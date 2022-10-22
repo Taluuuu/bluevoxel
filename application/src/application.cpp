@@ -2,6 +2,7 @@
 
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
+#include "rendering/rendering_module.h"
 
 void Application::run()
 {
@@ -18,6 +19,7 @@ void Application::run()
 bool Application::init()
 {
     engine::WindowingModule::init();
+    engine::RenderingModule::init();
 
     m_window = engine::WindowingModule::create_window(800, 600, "haaa");
     if (!m_window)
@@ -37,5 +39,6 @@ void Application::update()
 
 void Application::cleanup()
 {
+    engine::RenderingModule::cleanup();
     engine::WindowingModule::cleanup();
 }

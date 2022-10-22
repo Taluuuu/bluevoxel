@@ -8,6 +8,8 @@ namespace engine
 {
     std::shared_ptr<IWindow> WindowingModule::create_window(u32 width, u32 height, const std::string& title)
     {
+        assert(is_initialized());
+
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         auto handle = glfwCreateWindow(width, height, title.c_str(), NULL, NULL);
@@ -20,7 +22,7 @@ namespace engine
 
     bool WindowingModule::init_impl()
     {
-        return glfwInit() == GLFW_TRUE ? true : false;
+        return glfwInit() == GLFW_TRUE;
     }
 
     void WindowingModule::cleanup_impl()

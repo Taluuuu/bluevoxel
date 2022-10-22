@@ -6,14 +6,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(rendering
     src/renderer.cpp
+    src/rendering_module.cpp
 )
 
 target_link_libraries(rendering
     PRIVATE
+        core
 
+        ${Vulkan_LIBRARIES}
 )
 
 target_include_directories(rendering
     PUBLIC
         include/
+
+    PRIVATE
+        core
+
+        ${VULKAN_PATH}/Include/
 )

@@ -34,7 +34,7 @@ namespace engine
             s_initialized = false;
         }
 
-        bool is_initialized()
+        static bool is_initialized()
         {
             return s_initialized;
         }
