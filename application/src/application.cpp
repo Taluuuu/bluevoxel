@@ -4,6 +4,8 @@
 #include "windowing/windowing_module.h"
 #include "rendering/rendering_module.h"
 
+#include <iostream>
+
 void Application::run()
 {
     try
@@ -26,8 +28,8 @@ void Application::run()
 bool Application::init()
 {
     m_engine
-        .add_module<engine::WindowingModule>()
-        .add_module<engine::RenderingModule>();
+        .add_module<engine::RenderingModule>()
+        .add_module<engine::WindowingModule>();
 
     if (!m_engine.loaded_all_modules())
         std::cout << "[Warning] Not all modules were correctly initialized." << std::endl;

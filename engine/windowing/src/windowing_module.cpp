@@ -3,7 +3,6 @@
 #include "window_glfw.h"
 
 #include <GLFW/glfw3.h>
-#include <iostream>
 
 namespace engine
 {
@@ -24,7 +23,6 @@ namespace engine
     bool WindowingModule::init()
     {
         Module::init();
-        std::cout << "1\n";
         return glfwInit() == GLFW_TRUE;
     }
 

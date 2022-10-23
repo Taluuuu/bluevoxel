@@ -2,7 +2,6 @@
 
 #include "windowing/windowing_module.h"
 
-#include <iostream>
 #include <typeinfo>
 #include <vulkan/vulkan.h>
 
@@ -30,9 +29,7 @@ namespace engine
         {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
             .pApplicationInfo = &app_info,
-        };
-
-        std::cout << "2\n";
+        }
 
         return true;
     }

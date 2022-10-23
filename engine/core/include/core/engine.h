@@ -1,9 +1,6 @@
 #pragma once
 
-#include "module.h"
-
 #include <cassert>
-#include <iostream>
 #include <memory>
 #include <typeindex>
 #include <type_traits>
@@ -11,6 +8,8 @@
 
 namespace engine
 {
+    class Module;
+
     class Engine
     {
     public:

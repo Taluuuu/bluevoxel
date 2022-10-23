@@ -1,5 +1,9 @@
 #include "core/engine.h"
 
+#include "core/module.h"
+
+#include <iostream>
+
 namespace engine
 {
     void Engine::cleanup()
