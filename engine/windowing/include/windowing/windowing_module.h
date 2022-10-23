@@ -4,13 +4,12 @@
 #include "core/types.h"
 
 #include <memory>
-#include <string>
 
 namespace engine
 {
     class IWindow;
 
-    class WindowingModule : public Module<WindowingModule>
+    class WindowingModule : public Module
     {
     public:
 
@@ -22,14 +21,13 @@ namespace engine
          * @param title The window's title
          * @return A shared_ptr to the window or nullptr if creation failed
          */
-        static std::shared_ptr<IWindow> create_window(u32 width, u32 height, const std::string& title);
+        std::shared_ptr<IWindow> create_window(u32 width, u32 height, const std::string& title);
 
-    protected:
-
-        friend class Module<WindowingModule>;
-
-        static bool init_impl();
-        static void cleanup_impl();
+        // IModule interface
+        virtual bool init() override;
+        virtual void cleanup() override;
+        virtual std::string get_module_name() const override { return "Windowing"; }
+        virtual std::vector<std::type_index> get_dependencies() const override { return {}; }
 
     };
 }

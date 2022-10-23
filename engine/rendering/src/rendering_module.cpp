@@ -1,5 +1,9 @@
 #include "rendering/rendering_module.h"
 
+#include "windowing/windowing_module.h"
+
+#include <iostream>
+#include <typeinfo>
 #include <vulkan/vulkan.h>
 
 namespace engine
@@ -9,8 +13,9 @@ namespace engine
         return nullptr;
     }
 
-    bool RenderingModule::init_impl()
+    bool RenderingModule::init()
     {
+        Module::init();
         VkApplicationInfo app_info
         {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -27,11 +32,18 @@ namespace engine
             .pApplicationInfo = &app_info,
         };
 
+        std::cout << "2\n";
+
         return true;
     }
 
-    void RenderingModule::cleanup_impl()
+    void RenderingModule::cleanup()
     {
 
+    }
+
+    std::vector<std::type_index> RenderingModule::get_dependencies() const
+    {
+        return { typeid(WindowingModule) };
     }
 }

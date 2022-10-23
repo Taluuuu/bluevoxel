@@ -12,6 +12,7 @@ add_library(rendering
 target_link_libraries(rendering
     PRIVATE
         core
+        windowing
 
         ${Vulkan_LIBRARIES}
 )
@@ -22,6 +23,7 @@ target_include_directories(rendering
 
     PRIVATE
         core
+        windowing
 
         ${VULKAN_PATH}/Include/
 )

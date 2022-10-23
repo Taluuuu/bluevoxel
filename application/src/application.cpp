@@ -6,22 +6,36 @@
 
 void Application::run()
 {
-    if (!init())
+    try
+    {
+        if (!init())
         return;
 
-    // Main loop
-    while (!m_window->should_close())
-        update();
+        // Main loop
+        while (!m_window->should_close())
+            update();
 
-    cleanup();        
+        cleanup();  
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "[Error] Unexpected exception: '" << e.what() << "'\n";
+    }     
 }
 
 bool Application::init()
 {
-    engine::WindowingModule::init();
-    engine::RenderingModule::init();
+    m_engine
+        .add_module<engine::WindowingModule>()
+        .add_module<engine::RenderingModule>();
 
-    m_window = engine::WindowingModule::create_window(800, 600, "haaa");
+    if (!m_engine.loaded_all_modules())
+        std::cout << "[Warning] Not all modules were correctly initialized." << std::endl;
+
+    // Create window
+    if (auto windowing_module = m_engine.get_module<engine::WindowingModule>())
+        m_window = windowing_module->create_window(800, 600, "haaa");
+        
     if (!m_window)
         return false;
 
@@ -39,6 +53,5 @@ void Application::update()
 
 void Application::cleanup()
 {
-    engine::RenderingModule::cleanup();
-    engine::WindowingModule::cleanup();
+    m_engine.cleanup();
 }

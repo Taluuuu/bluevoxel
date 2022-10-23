@@ -3,6 +3,7 @@
 #include "window_glfw.h"
 
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 namespace engine
 {
@@ -20,13 +21,16 @@ namespace engine
         return std::make_shared<Window_GLFW>(handle);
     }
 
-    bool WindowingModule::init_impl()
+    bool WindowingModule::init()
     {
+        Module::init();
+        std::cout << "1\n";
         return glfwInit() == GLFW_TRUE;
     }
 
-    void WindowingModule::cleanup_impl()
+    void WindowingModule::cleanup()
     {
+        Module::cleanup();
         glfwTerminate();
     }
 }
