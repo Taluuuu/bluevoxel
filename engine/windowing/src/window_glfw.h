@@ -28,6 +28,7 @@ namespace engine
         virtual f64 delta_time() const override;
         virtual void poll_events() const override;
         virtual void swap_buffers(f64 max_fps = 60.0) override;
+        virtual const char** vulkan_instance_extensions(u32& count) const override;
 
     private:
         

@@ -7,15 +7,13 @@
 
 namespace engine
 {
-    std::shared_ptr<IRenderer> RenderingModule::create_renderer()
-    {
-        return nullptr;
-    }
+    RenderingModule::RenderingModule(Engine& engine)
+        : Module(engine) {}
 
-    bool RenderingModule::init()
+    bool RenderingModule::init(const AppInfo& app_info)
     {
-        Module::init();
-        VkApplicationInfo app_info
+        Module::init(app_info);
+        VkApplicationInfo vulkan_app_info
         {
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pApplicationName = "Hello Triangle",
@@ -28,8 +26,8 @@ namespace engine
         VkInstanceCreateInfo create_info
         {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pApplicationInfo = &app_info,
-        }
+            .pApplicationInfo = &vulkan_app_info,
+        };
 
         return true;
     }

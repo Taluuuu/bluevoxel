@@ -4,7 +4,10 @@
 
 namespace engine
 {
-    bool Module::init()
+    Module::Module(Engine& engine)
+        : m_engine(engine) {}
+
+    bool Module::init(const AppInfo& app_info)
     {
         assert(!m_is_initialized);
         m_is_initialized = true;

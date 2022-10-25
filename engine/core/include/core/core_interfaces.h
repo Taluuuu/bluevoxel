@@ -1,31 +1,16 @@
 #pragma once
 
-#include "core/core_interfaces.h"
-#include "core/types.h"
+#include "types.h"
 
 namespace engine
 {
-    class IWindow
+    class ICoreWindow
     {
     public:
 
-        virtual ~IWindow() {}
+        virtual ~ICoreWindow() {}
 
         /**
-         * @brief Get the size of the window in pixels
-         * 
-         * @return The size of the window in pixels
-         */
-        virtual v2i size() const = 0;
-
-        /**
-         * @brief [Vulkan specific] Get the window's vulkan instance extensions
-         * 
-         * @return Vulkan instance extensions
-         */
-        virtual const char** vulkan_instance_extensions(u32& count) const = 0;
-
-                /**
          * @brief Get the time since the last frame in seconds
          * 
          * @return The time since the last frame in seconds
@@ -50,7 +35,22 @@ namespace engine
          * 
          * @param max_fps The fps lock
          */
-        virtual void swap_buffers(f64 max_fps = 60.0) = 0;
-        
+        virtual void swap_buffers(f64 max_fps = 60.0) const = 0;
+
+    };
+
+    class ITickable
+    {
+    public:
+
+        virtual ~ITickable() {}
+
+        /**
+         * @brief Called every frame
+         * 
+         * @param delta_time The time since the last frame in seconds
+         */
+        virtual void tick(f64 delta_time) = 0;
+
     };
 }

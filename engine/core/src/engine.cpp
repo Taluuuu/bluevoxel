@@ -6,43 +6,47 @@
 
 namespace engine
 {
-    void Engine::cleanup()
+    Engine::Engine(const AppInfo& app_info)
+        :m_app_info(app_info) {}
+
+    void Engine::run() const
     {
-        // TODO: This probably needs to be ordered
-        for (auto& module : m_modules)
+        while (!m_core_window || !m_core_window->should_close())
+            update();
+
+        cleanup();
+    }
+
+    void Engine::update() const
+    {
+        f64 delta_time = m_core_window ? 
+            m_core_window->delta_time() : 0.0;
+
+        if (m_core_window != nullptr)
+            m_core_window->poll_events();
+
+        for (const auto& tickable : m_tickables)
+            tickable->tick(delta_time);
+
+        if (m_core_window != nullptr)
+            m_core_window->swap_buffers();
+    }
+
+    void Engine::cleanup() const
+    {
+        // Cleanup in reverse order from initialization
+        for (auto i = m_ordered_modules.rbegin(); i != m_ordered_modules.rend(); i++)
         {
-            assert(module.second != nullptr);
-            module.second->cleanup();
+            assert(*i != nullptr);
+            (*i)->cleanup();
         }
     }
 
-    bool Engine::loaded_all_modules() const
-    {
-        return m_uninitialized_modules.empty();
-    }
-
-    bool Engine::is_module_added(const std::type_index& module_type) const
-    {
-        return  m_modules.contains(module_type) ||
-                m_uninitialized_modules.contains(module_type);
-    }
-
-    bool Engine::module_can_be_loaded(const std::shared_ptr<Module>& module) const
-    {
-        for (const auto& dep : module->get_dependencies())
-        {
-            if (!m_modules.contains(std::type_index(dep)))
-                return false;
-        }
-
-        return true;
-    }
-    
     void Engine::init_new_modules()
     {
         while (true)
         {
-            const auto& init_modules = m_modules;
+            const auto& init_modules = m_initialized_modules;
             auto it = std::find_if(m_uninitialized_modules.begin(), m_uninitialized_modules.end(), 
                 [&init_modules](const auto& module)
                 {
@@ -59,11 +63,21 @@ namespace engine
             if (it == m_uninitialized_modules.end())
                 return;
 
-            if (it->second->init())
+            if (it->second->init(m_app_info))
             {
+                auto module = it->second;
+
                 // Add module to initialized list
-                m_modules[it->first] = it->second;
+                m_initialized_modules[it->first] = module;
+                m_ordered_modules.push_back(module);
                 m_uninitialized_modules.erase(it->first);
+
+                // Query interfaces...
+                if (auto dtp = std::dynamic_pointer_cast<ICoreWindow>(module))
+                    m_core_window = dtp;
+
+                if (auto tickable = std::dynamic_pointer_cast<ITickable>(module))
+                    m_tickables.push_back(tickable);
             }
             else
             {

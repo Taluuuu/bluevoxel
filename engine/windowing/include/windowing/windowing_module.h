@@ -2,6 +2,7 @@
 
 #include "core/module.h"
 #include "core/types.h"
+#include "core/core_interfaces.h"
 
 #include <memory>
 
@@ -9,25 +10,33 @@ namespace engine
 {
     class IWindow;
 
-    class WindowingModule : public Module
+    class WindowingModule
+        : public Module
+        , public ICoreWindow
     {
     public:
 
-        /**
-         * @brief Create a window
-         * 
-         * @param width The window's initial width
-         * @param height The window's initial height
-         * @param title The window's title
-         * @return A shared_ptr to the window or nullptr if creation failed
-         */
-        std::shared_ptr<IWindow> create_window(u32 width, u32 height, const std::string& title);
+        WindowingModule(Engine& engine);
 
-        // IModule interface
-        virtual bool init() override;
+        // Module virtual methods
+        virtual bool init(const AppInfo& app_info) override;
         virtual void cleanup() override;
-        virtual std::string get_module_name() const override { return "Windowing"; }
+        virtual std::string_view get_module_name() const override { return "Windowing"; }
         virtual std::vector<std::type_index> get_dependencies() const override { return {}; }
+
+        // ICoreWindow interface
+        virtual f64 delta_time() const override;
+        virtual bool should_close() const override;
+        virtual void poll_events() const override;
+        virtual void swap_buffers(f64 max_fps) const override;
+
+        IWindow& window() const;
+
+    private:
+
+        std::shared_ptr<IWindow> m_window = nullptr;
+
+        static constexpr v2i default_size = { 800, 600 };
 
     };
 }

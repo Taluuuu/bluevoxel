@@ -58,4 +58,9 @@ namespace engine
         m_delta_time = curTime - m_previous_time;
         m_previous_time = curTime;
     }
+
+    const char** Window_GLFW::vulkan_instance_extensions(u32& count) const
+    {
+        return glfwGetRequiredInstanceExtensions(&count);
+    }
 }
