@@ -20,5 +20,11 @@ namespace engine
         virtual std::string_view get_module_name() const override { return "Rendering"; }
         virtual std::vector<std::type_index> get_dependencies() const override;
 
+        IRenderer& renderer() const;
+
+    private:
+
+        std::shared_ptr<IRenderer> m_renderer = nullptr;
+
     };
 }

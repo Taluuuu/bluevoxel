@@ -13,10 +13,8 @@ namespace engine
     {
     public:
 
-        Window_GLFW() = delete;
+        Window_GLFW(const std::string_view& title, v2i size);
         Window_GLFW(const Window_GLFW&) = delete;
-
-        Window_GLFW(GLFWwindow* window_handle);
         Window_GLFW(Window_GLFW&& other);
         ~Window_GLFW();
 
@@ -28,7 +26,6 @@ namespace engine
         virtual f64 delta_time() const override;
         virtual void poll_events() const override;
         virtual void swap_buffers(f64 max_fps = 60.0) override;
-        virtual const char** vulkan_instance_extensions(u32& count) const override;
 
     private:
         

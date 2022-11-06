@@ -1,13 +1,18 @@
 #include "window_glfw.h"
 
 #include <glfw/glfw3.h>
+#include <stdexcept>
 
 namespace engine
 {
-    Window_GLFW::Window_GLFW(GLFWwindow* window_handle)
-        : m_handle(window_handle)
+    Window_GLFW::Window_GLFW(const std::string_view& title, v2i size)
     {
-        
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+
+        m_handle = glfwCreateWindow(size.x, size.y, title.data(), NULL, NULL);
+        if (m_handle == nullptr)
+            throw std::runtime_error("Failed to create GLFW window.");
     }
 
     Window_GLFW::Window_GLFW(Window_GLFW&& other)
@@ -18,8 +23,8 @@ namespace engine
 
     Window_GLFW::~Window_GLFW()
     {
-        if (m_handle)
-            glfwDestroyWindow(m_handle);
+        assert(m_handle);
+        glfwDestroyWindow(m_handle);
     }
 
     v2i Window_GLFW::size() const
@@ -41,7 +46,7 @@ namespace engine
 
     void Window_GLFW::poll_events() const
     {
-        glfwPollEvents();
+        // Managing window input?
     }
 
     void Window_GLFW::swap_buffers(f64 max_fps)
@@ -57,10 +62,5 @@ namespace engine
         
         m_delta_time = curTime - m_previous_time;
         m_previous_time = curTime;
-    }
-
-    const char** Window_GLFW::vulkan_instance_extensions(u32& count) const
-    {
-        return glfwGetRequiredInstanceExtensions(&count);
     }
 }

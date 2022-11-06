@@ -1,11 +1,12 @@
 #pragma once
 
-#include <string>
+#include <string_view>
 
 namespace engine
 {
     struct AppInfo
     {
-        std::string app_name;
+        std::string_view app_name;
+        std::string_view engine_name;
     };
 }

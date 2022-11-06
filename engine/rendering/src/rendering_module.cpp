@@ -1,9 +1,12 @@
 #include "rendering/rendering_module.h"
 
+#include "core/engine.h"
+#include "renderer_vulkan.h"
+#include "windowing/window.h"
 #include "windowing/windowing_module.h"
 
+#include <iostream>
 #include <typeinfo>
-#include <vulkan/vulkan.h>
 
 namespace engine
 {
@@ -13,32 +16,37 @@ namespace engine
     bool RenderingModule::init(const AppInfo& app_info)
     {
         Module::init(app_info);
-        VkApplicationInfo vulkan_app_info
-        {
-            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-            .pApplicationName = "Hello Triangle",
-            .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-            .pEngineName = "No Engine",
-            .engineVersion = VK_MAKE_VERSION(1, 0, 0),
-            .apiVersion = VK_API_VERSION_1_0,
-        };
 
-        VkInstanceCreateInfo create_info
+        const auto windowing_module = engine().get_module<WindowingModule>();
+        assert(windowing_module != nullptr);
+        const auto& window = windowing_module->window();
+
+        try
         {
-            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-            .pApplicationInfo = &vulkan_app_info,
-        };
+            m_renderer = std::make_shared<Renderer_Vulkan>(app_info, window);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << "[Error] " << e.what() << "\n";
+            return false;
+        }
 
         return true;
     }
 
     void RenderingModule::cleanup()
     {
-
+        m_renderer.reset();
     }
 
     std::vector<std::type_index> RenderingModule::get_dependencies() const
     {
         return { typeid(WindowingModule) };
+    }
+
+    IRenderer& RenderingModule::renderer() const
+    {
+        assert(m_renderer != nullptr);
+        return *m_renderer;
     }
 }

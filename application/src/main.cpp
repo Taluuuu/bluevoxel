@@ -7,7 +7,8 @@ int main()
     engine::Engine engine(
         engine::AppInfo
         {
-            .app_name = "haaaaa"
+            .app_name = "haaaaa",
+            .engine_name = "hbbbbbbb"
         }
     );
 

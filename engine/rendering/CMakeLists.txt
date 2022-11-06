@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(rendering
-    src/renderer.cpp
+    src/renderer_vulkan.cpp
     src/rendering_module.cpp
 )
 
@@ -15,6 +15,7 @@ target_link_libraries(rendering
         windowing
 
         ${Vulkan_LIBRARIES}
+        glfw
 )
 
 target_include_directories(rendering
@@ -26,4 +27,5 @@ target_include_directories(rendering
         windowing
 
         ${VULKAN_PATH}/Include/
+        glfw
 )

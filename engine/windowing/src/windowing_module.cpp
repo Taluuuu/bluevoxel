@@ -4,6 +4,7 @@
 #include "window_glfw.h"
 
 #include <GLFW/glfw3.h>
+#include <iostream>
 
 namespace engine
 {
@@ -17,24 +18,26 @@ namespace engine
         if (!glfwInit())
             return false;
 
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-        auto handle = glfwCreateWindow(
-            default_size.x, default_size.y, app_info.app_name.c_str(), NULL, NULL);
-
-        if (!handle)
+        try
+        {
+            m_window = std::make_shared<Window_GLFW>(app_info.app_name, default_size);
+        }
+        catch(const std::exception& e)
+        {
+            std::cout << "[Error] " << e.what() << "\n";
+            glfwTerminate();
             return false;
-
-        m_window = std::make_shared<Window_GLFW>(handle);
+        }
 
         return true;
     }
 
     void WindowingModule::cleanup()
     {
-        Module::cleanup();
+        m_window.reset();
         glfwTerminate();
+
+        Module::cleanup();
     }
 
     f64 WindowingModule::delta_time() const
@@ -52,6 +55,7 @@ namespace engine
     void WindowingModule::poll_events() const
     {
         assert(m_window != nullptr);
+        glfwPollEvents();
         m_window->poll_events();
     }
 

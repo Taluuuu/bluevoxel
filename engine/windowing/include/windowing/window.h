@@ -19,13 +19,6 @@ namespace engine
         virtual v2i size() const = 0;
 
         /**
-         * @brief [Vulkan specific] Get the window's vulkan instance extensions
-         * 
-         * @return Vulkan instance extensions
-         */
-        virtual const char** vulkan_instance_extensions(u32& count) const = 0;
-
-                /**
          * @brief Get the time since the last frame in seconds
          * 
          * @return The time since the last frame in seconds
