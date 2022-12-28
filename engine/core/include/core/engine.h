@@ -1,6 +1,6 @@
 #pragma once
 
-#include "app_info.h"
+#include "game_info.h"
 #include "core/core_interfaces.h"
 
 #include <cassert>
@@ -18,7 +18,7 @@ namespace engine
     {
     public:
 
-        Engine(const AppInfo& app_info);
+        Engine(const GameInfo& game_info);
         Engine(const Engine&) = delete;
         Engine(Engine&&) = delete;
 
@@ -81,7 +81,7 @@ namespace engine
 
     private:
 
-        AppInfo m_app_info;
+        GameInfo m_game_info;
 
         // Modules that are waiting to be initialized
         std::unordered_map<std::type_index, std::shared_ptr<Module>> m_uninitialized_modules;

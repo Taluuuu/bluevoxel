@@ -7,6 +7,7 @@
 namespace engine
 {
     class Engine;
+    struct GameInfo;
 
     class Module
     {
@@ -16,11 +17,12 @@ namespace engine
         ~Module() {}
 
         /**
-         * @brief Init the module, called when all dependencies are loaded
+         * @brief Try initializing the module
          * 
-         * @return true if the module was correctly initialized
+         * @param game_info The struct containing the game's info
+         * @return true if the module was correctly initialized, false otherwise.
          */
-        virtual bool init(const struct AppInfo& app_info);
+        virtual bool init(const GameInfo& game_info);
 
         /**
          * @brief Free module resources

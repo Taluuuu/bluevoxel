@@ -4,9 +4,9 @@
 
 namespace engine
 {
-    struct AppInfo
+    struct GameInfo
     {
-        std::string_view app_name;
+        std::string_view game_name;
         std::string_view engine_name;
     };
 }

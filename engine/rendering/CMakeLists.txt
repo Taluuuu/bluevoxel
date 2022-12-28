@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(rendering
-    src/renderer_vulkan.cpp
     src/rendering_module.cpp
+    src/vulkan/renderer_vulkan.cpp
 )
 
 target_link_libraries(rendering

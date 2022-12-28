@@ -1,6 +1,6 @@
 #include "windowing/windowing_module.h"
 
-#include "core/app_info.h"
+#include "core/game_info.h"
 #include "window_glfw.h"
 
 #include <GLFW/glfw3.h>
@@ -11,16 +11,16 @@ namespace engine
     WindowingModule::WindowingModule(Engine& engine)
         : Module(engine) {}
 
-    bool WindowingModule::init(const AppInfo& app_info)
+    bool WindowingModule::init(const GameInfo& game_info)
     {
-        Module::init(app_info);
+        Module::init(game_info);
 
         if (!glfwInit())
             return false;
 
         try
         {
-            m_window = std::make_shared<Window_GLFW>(app_info.app_name, default_size);
+            m_window = std::make_shared<Window_GLFW>(game_info.game_name, default_size);
         }
         catch(const std::exception& e)
         {

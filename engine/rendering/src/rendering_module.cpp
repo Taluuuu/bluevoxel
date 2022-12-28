@@ -1,7 +1,7 @@
 #include "rendering/rendering_module.h"
 
 #include "core/engine.h"
-#include "renderer_vulkan.h"
+#include "vulkan/renderer_vulkan.h"
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
 
@@ -13,9 +13,9 @@ namespace engine
     RenderingModule::RenderingModule(Engine& engine)
         : Module(engine) {}
 
-    bool RenderingModule::init(const AppInfo& app_info)
+    bool RenderingModule::init(const GameInfo& game_info)
     {
-        Module::init(app_info);
+        Module::init(game_info);
 
         const auto windowing_module = engine().get_module<WindowingModule>();
         assert(windowing_module != nullptr);
@@ -23,15 +23,14 @@ namespace engine
 
         try
         {
-            m_renderer = std::make_shared<Renderer_Vulkan>(app_info, window);
+            m_renderer = std::make_shared<Renderer_Vulkan>(game_info, window);
+            return true;
         }
-        catch(const std::exception& e)
+        catch (const std::exception& e)
         {
-            std::cout << "[Error] " << e.what() << "\n";
+            std::cerr << e.what() << '\n';
             return false;
         }
-
-        return true;
     }
 
     void RenderingModule::cleanup()

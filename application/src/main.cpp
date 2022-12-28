@@ -5,9 +5,9 @@
 int main()
 {
     engine::Engine engine(
-        engine::AppInfo
+        engine::GameInfo
         {
-            .app_name = "haaaaa",
+            .game_name = "haaaaa",
             .engine_name = "hbbbbbbb"
         }
     );

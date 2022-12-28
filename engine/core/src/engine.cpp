@@ -6,8 +6,8 @@
 
 namespace engine
 {
-    Engine::Engine(const AppInfo& app_info)
-        :m_app_info(app_info) {}
+    Engine::Engine(const GameInfo& game_info)
+        :m_game_info(game_info) {}
 
     void Engine::run() const
     {
@@ -63,7 +63,7 @@ namespace engine
             if (it == m_uninitialized_modules.end())
                 return;
 
-            if (it->second->init(m_app_info))
+            if (it->second->init(m_game_info))
             {
                 auto module = it->second;
 

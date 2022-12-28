@@ -19,7 +19,7 @@ namespace engine
         WindowingModule(Engine& engine);
 
         // Module virtual methods
-        virtual bool init(const AppInfo& app_info) override;
+        virtual bool init(const GameInfo& game_info) override;
         virtual void cleanup() override;
         virtual std::string_view get_module_name() const override { return "Windowing"; }
         virtual std::vector<std::type_index> get_dependencies() const override { return {}; }
