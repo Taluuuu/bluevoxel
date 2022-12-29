@@ -39,6 +39,14 @@ namespace engine
         virtual void poll_events() const = 0;
 
         /**
+         * @brief Get this window's wrapped instance pointer. With a GLFW
+         *        window, this is the GLFWwindow* pointer.
+         * 
+         * @return void* 
+         */
+        virtual void* wrapped_window_handle() const = 0;
+
+        /**
          * @brief Swap the window's buffers
          * 
          * @param max_fps The fps lock

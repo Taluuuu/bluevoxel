@@ -14,8 +14,8 @@ using quat = glm::quat;
 using m3 = glm::mat3;
 using m4 = glm::mat4;
 
-using f32 = float;
-using f64 = double;
+using f32 = glm::f32;
+using f64 = glm::f64;
 
 using u8  = uint8_t;
 using u16 = uint16_t;

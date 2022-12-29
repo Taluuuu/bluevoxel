@@ -49,6 +49,11 @@ namespace engine
         // Managing window input?
     }
 
+    void *Window_GLFW::wrapped_window_handle() const
+    {
+        return m_handle;
+    }
+
     void Window_GLFW::swap_buffers(f64 max_fps)
     {
         glfwSwapBuffers(m_handle);
