@@ -84,8 +84,8 @@ namespace engine
 
         vk::SwapchainKHR           m_swapchain              = nullptr;
         std::vector<vk::Image>     m_swapchain_images;
-        vk::Format                 m_swapchain_image_format = nullptr;
-        vk::Extent2D               m_swapchain_extent       = nullptr;
+        vk::Format                 m_swapchain_image_format;
+        vk::Extent2D               m_swapchain_extent;
 
     private:
 
