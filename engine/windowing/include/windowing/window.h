@@ -12,11 +12,18 @@ namespace engine
         virtual ~IWindow() {}
 
         /**
+         * @brief Get the size of the window in screen coordinates
+         * 
+         * @return The size of the window in screen coordinates
+         */
+        virtual v2i window_size() const = 0;
+
+        /**
          * @brief Get the size of the window in pixels
          * 
          * @return The size of the window in pixels
          */
-        virtual v2i size() const = 0;
+        virtual v2i framebuffer_size() const = 0;
 
         /**
          * @brief Get the time since the last frame in seconds

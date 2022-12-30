@@ -1,7 +1,7 @@
 #pragma once
 
 #include <inttypes.h>
-#include <glm/glm.hpp>
+#include <glm/glm.hpp> // TODO: Smaller includes as this file is included everywhere
 #include <glm/gtc/quaternion.hpp>
 
 using v2   = glm::vec2;

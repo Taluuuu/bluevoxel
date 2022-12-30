@@ -27,10 +27,17 @@ namespace engine
         glfwDestroyWindow(m_handle);
     }
 
-    v2i Window_GLFW::size() const
+    v2i Window_GLFW::window_size() const
     {
         i32 width, height;
         glfwGetWindowSize(m_handle, &width, &height);
+        return { width, height };
+    }
+
+    v2i Window_GLFW::framebuffer_size() const
+    {
+        i32 width, height;
+        glfwGetFramebufferSize(m_handle, &width, &height);
         return { width, height };
     }
 

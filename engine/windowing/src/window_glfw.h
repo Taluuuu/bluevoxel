@@ -21,7 +21,8 @@ namespace engine
     public:
 
         // IWindow interface
-        virtual v2i size() const override;
+        virtual v2i window_size() const override;
+        virtual v2i framebuffer_size() const override;
         virtual bool should_close() const override;
         virtual f64 delta_time() const override;
         virtual void poll_events() const override;

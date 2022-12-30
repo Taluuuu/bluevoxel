@@ -13,6 +13,8 @@
 #include <GLFW/glfw3native.h>
 
 #include <iostream>
+#undef max
+#include <limits>
 #include <set>
 
 PFN_vkCreateDebugUtilsMessengerEXT  pfnVkCreateDebugUtilsMessengerEXT;
@@ -55,10 +57,12 @@ namespace engine
         create_surface(window);
         pick_physical_device();
         create_logical_device();
+        create_swapchain(window);
     }
 
     Renderer_Vulkan::~Renderer_Vulkan()
     {
+        m_device.destroySwapchainKHR(m_swapchain);
         m_device.destroy();
         m_instance.destroySurfaceKHR(m_surface);
         m_instance.destroyDebugUtilsMessengerEXT(m_debug_messenger);
@@ -78,7 +82,7 @@ namespace engine
             VK_API_VERSION_1_0
         );
 
-        auto extensions = get_required_extensions();
+        auto extensions = get_required_instance_extensions();
         vk::InstanceCreateInfo create_info({}, 
             &app_info, 
             0, nullptr, 
@@ -176,9 +180,9 @@ namespace engine
         vk::PhysicalDeviceFeatures device_features;
 
         vk::DeviceCreateInfo create_info({}, 
-            static_cast<u32>(queue_create_infos.size()), queue_create_infos.data(), 
-            0, nullptr, 
-            0, nullptr, 
+            static_cast<u32>(queue_create_infos.size()),  queue_create_infos.data(),  // Queue create infos
+            0,                                            nullptr,                    // Validation layers
+            static_cast<u32>(m_device_extensions.size()), m_device_extensions.data(), // Device extensions
             &device_features, 
             nullptr);
 
@@ -193,7 +197,63 @@ namespace engine
         m_present_queue = m_device.getQueue(indices.present_family.value(), 0);
     }
 
-    std::vector<const char*> Renderer_Vulkan::get_required_extensions() const
+    void Renderer_Vulkan::create_swapchain(const IWindow& window)
+    {
+        auto swapchain_support = query_swapchain_support(m_physical_device);
+        
+        auto surface_format = choose_swap_surface_format(swapchain_support.formats);
+        auto present_mode   = choose_swap_present_mode(swapchain_support.present_modes);
+        auto extent         = choose_swap_extent(window, swapchain_support.capabilities);
+
+        u32 image_count = swapchain_support.capabilities.minImageCount + 1;
+        if (swapchain_support.capabilities.maxImageCount > 0 && 
+            image_count > swapchain_support.capabilities.maxImageCount)
+        {
+            image_count = swapchain_support.capabilities.maxImageCount;
+        }
+
+        // The vk::ImageUsageFlagBits parameter would be different if I need to draw
+        // to a separate image first to do post processing
+        // https://vulkan-tutorial.com/en/Drawing_a_triangle/Presentation/swapchain
+        vk::SwapchainCreateInfoKHR create_info({},
+            m_surface, 
+            image_count, 
+            surface_format.format, 
+            surface_format.colorSpace, 
+            extent, 
+            1, 
+            vk::ImageUsageFlagBits::eColorAttachment, 
+            vk::SharingMode::eExclusive,
+            0, nullptr, 
+            swapchain_support.capabilities.currentTransform,
+            vk::CompositeAlphaFlagBitsKHR::eOpaque,
+            present_mode,
+            true,
+            nullptr
+        );
+
+        auto indices = find_queue_families(m_physical_device);
+        u32 queue_family_indices[] = 
+        {
+            indices.graphics_family.value(), 
+            indices.present_family.value()
+        };
+
+        // Exclusive sharing mode offers best performance
+        if (indices.graphics_family != indices.present_family)
+        {
+            create_info.imageSharingMode = vk::SharingMode::eConcurrent;
+            create_info.queueFamilyIndexCount = 2;
+            create_info.pQueueFamilyIndices = queue_family_indices;
+        }
+
+        m_swapchain              = m_device.createSwapchainKHR(create_info);
+        m_swapchain_images       = m_device.getSwapchainImagesKHR(m_swapchain);
+        m_swapchain_image_format = surface_format.format;
+        m_swapchain_extent       = extent;
+    }
+
+    std::vector<const char*> Renderer_Vulkan::get_required_instance_extensions() const
     {
         u32 glfw_extension_count = 0;
         const char** glfw_extensions;
@@ -256,14 +316,37 @@ namespace engine
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families
         // We can evaluate with more criterias which devices we want
 
+        bool extensions_supported = device_supports_extensions(device);
+
+        bool is_swapchain_adequate = false;
+        if (extensions_supported)
+        {
+            auto swapchain_support = query_swapchain_support(device);
+            is_swapchain_adequate = swapchain_support.is_adequate();
+        }
+
         QueueFamilyIndices indices = find_queue_families(device);
-        return indices.is_complete();
+        return indices.is_complete() && extensions_supported && is_swapchain_adequate;
     }
 
-    Renderer_Vulkan::QueueFamilyIndices Renderer_Vulkan::find_queue_families(const vk::PhysicalDevice& device) const
+    bool Renderer_Vulkan::device_supports_extensions(const vk::PhysicalDevice &device) const
+    {
+        auto available_extensions = device.enumerateDeviceExtensionProperties();
+        std::set<std::string_view> required_extensions(
+            m_device_extensions.begin(), m_device_extensions.end());
+
+        for (const auto& extension : available_extensions)
+            required_extensions.erase(extension.extensionName);
+
+        return required_extensions.empty();
+    }
+
+    Renderer_Vulkan::QueueFamilyIndices Renderer_Vulkan::find_queue_families(
+        const vk::PhysicalDevice& device) const
     {
         QueueFamilyIndices indices;
 
+        // TODO: Prioritize queue families with the same queue indices
         auto queue_families = device.getQueueFamilyProperties();
 
         u32 i = 0;
@@ -282,5 +365,61 @@ namespace engine
         }
 
         return indices;
+    }
+
+    Renderer_Vulkan::SwapChainSupportDetails Renderer_Vulkan::query_swapchain_support(
+        const vk::PhysicalDevice& device) const
+    {
+        return SwapChainSupportDetails
+        {
+            .capabilities  = device.getSurfaceCapabilitiesKHR(m_surface),
+            .formats       = device.getSurfaceFormatsKHR(m_surface),
+            .present_modes = device.getSurfacePresentModesKHR(m_surface),
+        };
+    }
+
+    vk::SurfaceFormatKHR Renderer_Vulkan::choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& available_formats) const
+    {
+        for (const auto& format : available_formats)
+        {
+            if (format.format == vk::Format::eB8G8R8A8Srgb && 
+                format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+            {
+                return format;
+            }
+        }
+
+        assert(!available_formats.empty());
+        return available_formats[0];
+    }
+
+    vk::PresentModeKHR Renderer_Vulkan::choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& available_present_modes) const
+    {
+        // Present modes : 
+        // https://vulkan-tutorial.com/en/Drawing_a_triangle/Presentation/swapchain
+        
+        for (const auto& present_mode : available_present_modes)
+        {
+            if (present_mode == vk::PresentModeKHR::eMailbox)
+                return present_mode;
+        }
+
+        return vk::PresentModeKHR::eFifo;
+    }
+
+    vk::Extent2D Renderer_Vulkan::choose_swap_extent(
+        const IWindow& window, 
+        const vk::SurfaceCapabilitiesKHR& capabilities) const
+    {
+        if (capabilities.currentExtent.width != std::numeric_limits<u32>::max())
+            return capabilities.currentExtent;
+
+        auto window_size = window.framebuffer_size();
+        vk::Extent2D actual_extent(window_size.x, window_size.y);
+        
+        actual_extent.width = std::clamp(actual_extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        actual_extent.height = std::clamp(actual_extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+        return actual_extent;
     }
 }
