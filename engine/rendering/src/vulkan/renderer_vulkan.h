@@ -29,6 +29,8 @@ namespace engine
         void pick_physical_device();
         void create_logical_device();
         void create_swapchain(const IWindow& window);
+        void create_image_views();
+        void create_graphics_pipeline();
 
         std::vector<const char*> get_required_instance_extensions() const;
         bool validation_layers_are_supported() const;
@@ -84,6 +86,7 @@ namespace engine
 
         vk::SwapchainKHR           m_swapchain              = nullptr;
         std::vector<vk::Image>     m_swapchain_images;
+        std::vector<vk::ImageView> m_swapchain_image_views;
         vk::Format                 m_swapchain_image_format;
         vk::Extent2D               m_swapchain_extent;
 

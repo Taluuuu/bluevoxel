@@ -58,12 +58,18 @@ namespace engine
         pick_physical_device();
         create_logical_device();
         create_swapchain(window);
+        create_image_views();
+        create_graphics_pipeline();
     }
 
     Renderer_Vulkan::~Renderer_Vulkan()
     {
+        for (const auto& image_view : m_swapchain_image_views)
+            m_device.destroyImageView(image_view);
+
         m_device.destroySwapchainKHR(m_swapchain);
         m_device.destroy();
+
         m_instance.destroySurfaceKHR(m_surface);
         m_instance.destroyDebugUtilsMessengerEXT(m_debug_messenger);
         m_instance.destroy();
@@ -251,6 +257,38 @@ namespace engine
         m_swapchain_images       = m_device.getSwapchainImagesKHR(m_swapchain);
         m_swapchain_image_format = surface_format.format;
         m_swapchain_extent       = extent;
+    }
+
+    void Renderer_Vulkan::create_image_views()
+    {
+        m_swapchain_image_views.resize(m_swapchain_images.size());
+
+        vk::ComponentMapping components(
+            vk::ComponentSwizzle::eIdentity,
+            vk::ComponentSwizzle::eIdentity,
+            vk::ComponentSwizzle::eIdentity,
+            vk::ComponentSwizzle::eIdentity
+        );
+        
+        vk::ImageSubresourceRange subresource_range(
+            vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+        for (size_t i = 0; i < m_swapchain_images.size(); i++)
+        {
+            vk::ImageViewCreateInfo create_info({},
+                m_swapchain_images[i],
+                vk::ImageViewType::e2D,
+                m_swapchain_image_format,
+                components,
+                subresource_range
+            );
+
+            m_swapchain_image_views[i] = m_device.createImageView(create_info);
+        }
+    }
+
+    void Renderer_Vulkan::create_graphics_pipeline()
+    {
     }
 
     std::vector<const char*> Renderer_Vulkan::get_required_instance_extensions() const

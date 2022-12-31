@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.18)
+cmake_minimum_required(VERSION 3.20)
 
 # glfw
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -18,3 +18,6 @@ STRING(REGEX REPLACE "/Include" "" VULKAN_PATH ${VULKAN_PATH})
 add_subdirectory(core)
 add_subdirectory(windowing)
 add_subdirectory(rendering)
+
+# Add this resource path
+set(RESOURCE_PATHS ${RESOURCE_PATHS};${CMAKE_CURRENT_SOURCE_DIR}/res PARENT_SCOPE)
