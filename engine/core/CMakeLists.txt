@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 add_library(core
     src/engine.cpp
     src/module.cpp
+    src/utils.cpp
 )
 
 target_link_libraries(core

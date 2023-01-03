@@ -13,7 +13,13 @@ namespace engine
     RenderingModule::RenderingModule(Engine& engine)
         : Module(engine) {}
 
-    bool RenderingModule::init(const GameInfo& game_info)
+    void RenderingModule::tick(f64 delta_time)
+    {
+        assert(m_renderer != nullptr);
+        m_renderer->draw_frame();
+    }
+
+    bool RenderingModule::init(const GameInfo &game_info)
     {
         Module::init(game_info);
 

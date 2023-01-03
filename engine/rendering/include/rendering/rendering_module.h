@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/core_interfaces.h"
 #include "core/module.h"
 
 #include <memory>
@@ -8,11 +9,15 @@ namespace engine
 {
     class IRenderer;
 
-    class RenderingModule : public Module
+    class RenderingModule
+        : public Module
+        , public ITickable
     {
     public:
 
         RenderingModule(Engine& engine);
+
+        virtual void tick(f64 delta_time) override;
         
         // IModule interface
         virtual bool init(const GameInfo& game_info) override;

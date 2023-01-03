@@ -11,5 +11,7 @@ namespace engine
 
         virtual ~IRenderer() {}
 
+        virtual void draw_frame() const = 0;
+
     };
 }

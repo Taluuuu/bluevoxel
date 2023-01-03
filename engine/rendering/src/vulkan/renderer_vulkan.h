@@ -21,6 +21,8 @@ namespace engine
         Renderer_Vulkan(const Renderer_Vulkan&) = delete;
         Renderer_Vulkan(Renderer_Vulkan&&) = delete;
 
+        virtual void draw_frame() const override;
+
     private:
 
         void create_instance(const char* game_name, const char* engine_name);
@@ -30,13 +32,19 @@ namespace engine
         void create_logical_device();
         void create_swapchain(const IWindow& window);
         void create_image_views();
+        void create_render_pass();
         void create_graphics_pipeline();
+        void create_framebuffers();
+        void create_command_pool();
+        void create_command_buffer();
+        void create_sync_objects();
 
         std::vector<const char*> get_required_instance_extensions() const;
         bool validation_layers_are_supported() const;
         void populate_debug_messenger_create_info(vk::DebugUtilsMessengerCreateInfoEXT& debug_utils_messenger_create_info) const;
         bool is_device_suitable(const vk::PhysicalDevice& device) const;
         bool device_supports_extensions(const vk::PhysicalDevice& device) const;
+        vk::ShaderModule create_shader_module(const std::vector<char>& code) const;
 
         struct QueueFamilyIndices
         {
@@ -72,23 +80,37 @@ namespace engine
         vk::PresentModeKHR choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& available_present_modes) const;
         vk::Extent2D choose_swap_extent(const IWindow& window, const vk::SurfaceCapabilitiesKHR& capabilities) const;
 
+        void record_command_buffer(const vk::CommandBuffer& command_buffer, u32 image_index) const;
+
     private:
 
-        vk::Instance               m_instance               = nullptr;
-        vk::DebugUtilsMessengerEXT m_debug_messenger        = nullptr;
-        vk::SurfaceKHR             m_surface                = nullptr;
+        vk::Instance                 m_instance                  = nullptr;
+        vk::DebugUtilsMessengerEXT   m_debug_messenger           = nullptr;
+        vk::SurfaceKHR               m_surface                   = nullptr;
 
-        vk::PhysicalDevice         m_physical_device        = nullptr;
-        vk::Device                 m_device                 = nullptr;
+        vk::PhysicalDevice           m_physical_device           = nullptr;
+        vk::Device                   m_device                    = nullptr;
 
-        vk::Queue                  m_queue                  = nullptr;
-        vk::Queue                  m_present_queue          = nullptr;
+        vk::Queue                    m_graphics_queue            = nullptr;
+        vk::Queue                    m_present_queue             = nullptr;
 
-        vk::SwapchainKHR           m_swapchain              = nullptr;
-        std::vector<vk::Image>     m_swapchain_images;
-        std::vector<vk::ImageView> m_swapchain_image_views;
-        vk::Format                 m_swapchain_image_format;
-        vk::Extent2D               m_swapchain_extent;
+        vk::SwapchainKHR             m_swapchain                 = nullptr;
+        std::vector<vk::Image>       m_swapchain_images;
+        std::vector<vk::ImageView>   m_swapchain_image_views;
+        vk::Format                   m_swapchain_image_format;
+        vk::Extent2D                 m_swapchain_extent;
+        std::vector<vk::Framebuffer> m_swapchain_framebuffers;
+
+        vk::RenderPass               m_render_pass               = nullptr;
+        vk::PipelineLayout           m_pipeline_layout           = nullptr;
+        vk::Pipeline                 m_graphics_pipeline         = nullptr;
+
+        vk::CommandPool              m_command_pool              = nullptr;
+        vk::CommandBuffer            m_command_buffer            = nullptr;
+
+        vk::Semaphore                m_image_available_semaphore = nullptr;
+        vk::Semaphore                m_render_finished_semaphore = nullptr;
+        vk::Fence                    m_in_flight_fence           = nullptr;
 
     private:
 
