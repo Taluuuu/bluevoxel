@@ -4,6 +4,7 @@
 #include "core/types.h"
 #include "core/utils.h"
 #include "windowing/window.h"
+#include "shader_vulkan.h"
 
 // GLFW for Vulkan
 // TODO: this file should not assume Vulkan is used with GLFW.

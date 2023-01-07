@@ -13,6 +13,7 @@ add_library(core
 target_link_libraries(core
     PUBLIC
         glm
+        fmt
 )
 
 target_include_directories(core
@@ -20,4 +21,5 @@ target_include_directories(core
         include/
         
         glm
+        fmt
 )

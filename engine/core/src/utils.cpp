@@ -6,7 +6,7 @@ namespace engine::utils
 {
     std::optional<std::vector<char>> read_file(const std::string& path)
     {
-        std::ifstream file(path.data(), std::ios::ate | std::ios::binary);
+        std::ifstream file(path, std::ios::ate | std::ios::binary);
 
         if (!file.is_open())
             return std::nullopt;

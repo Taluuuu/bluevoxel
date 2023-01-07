@@ -21,7 +21,9 @@ namespace engine
         Renderer_Vulkan(const Renderer_Vulkan&) = delete;
         Renderer_Vulkan(Renderer_Vulkan&&) = delete;
 
+        // IRenderer interface
         virtual void draw_frame() const override;
+        virtual std::shared_ptr<IShader> load_shader(const std::string_view& vertex_path, const std::string_view& fragment_path) const override;
 
     private:
 
