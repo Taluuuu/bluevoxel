@@ -2,6 +2,8 @@
 
 #include "rendering/renderer_enums.h"
 
+#include <string>
+
 namespace engine
 {
     class IPipeline
@@ -10,7 +12,7 @@ namespace engine
 
         ~IPipeline() {}
 
-        virtual IPipeline& add_shader(engine::ShaderType type, const std::string& path) = 0;
+        virtual IPipeline& add_shader(ShaderType type, const std::string& path) = 0;
 
         virtual IPipeline& compile() = 0;
 

@@ -4,3 +4,6 @@
 [submodule "engine/lib/glm"]
 	path = engine/lib/glm
 	url = https://github.com/g-truc/glm
+[submodule "engine/lib/magic_enum"]
+	path = engine/lib/magic_enum
+	url = https://github.com/Neargye/magic_enum

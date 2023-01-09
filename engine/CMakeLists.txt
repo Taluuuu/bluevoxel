@@ -14,6 +14,9 @@ find_package(Vulkan REQUIRED)
 set(VULKAN_PATH ${Vulkan_INCLUDE_DIRS})
 STRING(REGEX REPLACE "/Include" "" VULKAN_PATH ${VULKAN_PATH})
 
+# magic_enum
+add_subdirectory(lib/magic_enum)
+
 # Engine libraries
 add_subdirectory(core)
 add_subdirectory(windowing)

@@ -12,7 +12,7 @@ namespace engine
 
     IPipeline &Pipeline_Vulkan::add_shader(engine::ShaderType type, const std::string &path)
     {
-        Shader_Vulkan::create(m_device, path);
+        auto shader = Shader_Vulkan::create(type, m_device, path);
 
         return *this;
     }

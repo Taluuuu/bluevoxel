@@ -14,6 +14,7 @@ target_link_libraries(core
     PUBLIC
         glm
         fmt
+        magic_enum
 )
 
 target_include_directories(core
@@ -22,4 +23,5 @@ target_include_directories(core
         
         glm
         fmt
+        magic_enum
 )

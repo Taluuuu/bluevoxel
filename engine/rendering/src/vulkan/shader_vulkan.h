@@ -1,5 +1,7 @@
 #pragma once
 
+#include "rendering/renderer_enums.h"
+
 #include <memory>
 #include <string_view>
 #include <vulkan/vulkan.hpp>
@@ -13,6 +15,7 @@ namespace engine
         Shader_Vulkan() = delete;
 
         static std::unique_ptr<Shader_Vulkan> create(
+            ShaderType type,
             const vk::Device& device, 
             const std::string& path);
 
