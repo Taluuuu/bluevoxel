@@ -11,17 +11,17 @@ namespace engine
     {
     public:
 
-        Pipeline_Vulkan() = delete;
+        Pipeline_Vulkan(const vk::Device& device);
 
-        static std::shared_ptr<Pipeline_Vulkan> create();
+        // IPipeline interface
+        virtual IPipeline& add_shader(engine::ShaderType type, const std::string& path) override;
+        virtual IPipeline& compile() override;
+        virtual bool is_ready() const override;
 
     private:
 
-        Pipeline_Vulkan(const vk::Pipeline& pipeline);
-
-    private:
-
-        vk::Pipeline m_pipeline;
+        vk::Device m_device = nullptr;
+        vk::Pipeline m_pipeline = nullptr;
 
     };
 }
