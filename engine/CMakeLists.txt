@@ -17,6 +17,9 @@ STRING(REGEX REPLACE "/Include" "" VULKAN_PATH ${VULKAN_PATH})
 # magic_enum
 add_subdirectory(lib/magic_enum)
 
+# fmt
+add_subdirectory(lib/fmt)
+
 # Engine libraries
 add_subdirectory(core)
 add_subdirectory(windowing)

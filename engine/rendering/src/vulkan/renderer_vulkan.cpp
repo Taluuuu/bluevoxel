@@ -134,6 +134,11 @@ namespace engine
         m_device.waitIdle();
     }
 
+    IPipeline* Renderer_Vulkan::create_pipeline(const PipelineFactory& factory) const
+    {
+        return nullptr;
+    }
+
     void Renderer_Vulkan::create_instance(const char *game_name, const char *engine_name)
     {
         if (m_enable_validation_layers && !validation_layers_are_supported())

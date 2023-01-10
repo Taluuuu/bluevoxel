@@ -12,7 +12,7 @@ namespace engine
 
         ~IPipeline() {}
 
-        virtual IPipeline& add_shader(ShaderType type, const std::string& path) = 0;
+        virtual IPipeline& add_shader(ShaderStage type, const std::string& path) = 0;
 
         virtual IPipeline& compile() = 0;
 

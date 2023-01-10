@@ -3,6 +3,7 @@
 #include "rendering/renderer_enums.h"
 
 #include <memory>
+#include <optional>
 #include <string_view>
 #include <vulkan/vulkan.hpp>
 
@@ -14,18 +15,23 @@ namespace engine
 
         Shader_Vulkan() = delete;
 
-        static std::unique_ptr<Shader_Vulkan> create(
-            ShaderType type,
+        static std::optional<Shader_Vulkan> create(
+            ShaderStage stage,
             const vk::Device& device, 
             const std::string& path);
 
+        vk::PipelineShaderStageCreateInfo make_pipeline_shader_stage_create_info() const;
+
+        ShaderStage stage() const;
+
     private:
 
-        Shader_Vulkan(const vk::ShaderModule& shader);
+        Shader_Vulkan(ShaderStage stage, const vk::ShaderModule& shader);
 
     private:
 
         vk::ShaderModule m_shader = nullptr;
+        ShaderStage m_stage;
 
     };
 }

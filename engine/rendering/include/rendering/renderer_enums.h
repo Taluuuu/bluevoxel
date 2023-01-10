@@ -2,7 +2,7 @@
 
 namespace engine
 {
-    enum class ShaderType
+    enum class ShaderStage
     {
         Vertex,
         Fragment,

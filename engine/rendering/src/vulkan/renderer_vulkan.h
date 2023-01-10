@@ -23,7 +23,7 @@ namespace engine
 
         // IRenderer interface
         virtual void draw_frame() const override;
-        virtual std::shared_ptr<IShader> load_shader(const std::string_view& vertex_path, const std::string_view& fragment_path) const override;
+        virtual IPipeline* create_pipeline(const PipelineFactory& factory) const override;
 
     private:
 

@@ -5,8 +5,8 @@
 
 namespace engine
 {
-    std::unique_ptr<Shader_Vulkan> Shader_Vulkan::create(
-        ShaderType type,
+    std::optional<Shader_Vulkan> Shader_Vulkan::create(
+        ShaderStage stage,
         const vk::Device& device, 
         const std::string& path)
     {
@@ -14,7 +14,7 @@ namespace engine
         if (!code.has_value())
         {
             log::error("Failed to load shader at path: '{}'", path);
-            return nullptr;
+            return std::nullopt;
         }
 
         vk::ShaderModuleCreateInfo create_info({}, 
@@ -30,27 +30,40 @@ namespace engine
         catch (const std::exception& e)
         {
             log::error("Failed to create shader at path '{}': {}", path, e.what());
-            return nullptr;
+            return std::nullopt;
         }
 
-        vk::ShaderStageFlagBits shader_stage = {};
-        switch (type)
-        {
-        case ShaderType::Vertex:   shader_stage = vk::ShaderStageFlagBits::eVertex;   break;
-        case ShaderType::Fragment: shader_stage = vk::ShaderStageFlagBits::eFragment; break;
-        case ShaderType::Geometry: shader_stage = vk::ShaderStageFlagBits::eGeometry; break;
-        }
-
-        vk::PipelineShaderStageCreateInfo vert_shader_stage_create_info({},
-            shader_stage,
-            shader,
-            "main",
-            nullptr // SpecializationInfo, used to set constants at runtime
-        );
-
-        return std::make_unique<Shader_Vulkan>(shader);
+        return Shader_Vulkan(stage, shader);
     }
 
-    Shader_Vulkan::Shader_Vulkan(const vk::ShaderModule& shader)
-        : m_shader(shader) {}
+    static vk::ShaderStageFlagBits shader_stage_bits(engine::ShaderStage stage)
+    {
+        switch (stage)
+        {
+        case ShaderStage::Vertex:   return vk::ShaderStageFlagBits::eVertex;
+        case ShaderStage::Fragment: return vk::ShaderStageFlagBits::eFragment;
+        case ShaderStage::Geometry: return vk::ShaderStageFlagBits::eGeometry;
+        }
+
+        return {};
+    }
+
+    vk::PipelineShaderStageCreateInfo Shader_Vulkan::make_pipeline_shader_stage_create_info() const
+    {
+        return vk::PipelineShaderStageCreateInfo({},
+            shader_stage_bits(m_stage),
+            m_shader,
+            "main",
+            nullptr
+        );
+    }
+
+    ShaderStage Shader_Vulkan::stage() const
+    {
+        return m_stage;
+    }
+
+    Shader_Vulkan::Shader_Vulkan(ShaderStage stage, const vk::ShaderModule& shader)
+        : m_stage(stage)
+        , m_shader(shader) {}
 }
