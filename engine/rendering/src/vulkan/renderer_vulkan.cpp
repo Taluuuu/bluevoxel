@@ -5,9 +5,10 @@
 #include "core/utils.h"
 #include "windowing/window.h"
 #include "shader_vulkan.h"
+#include "swapchain_vulkan.h"
 
 // GLFW for Vulkan
-// TODO: this file should not assume Vulkan is used with GLFW.
+// TODO: Should not assume Vulkan is used with GLFW.
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -59,7 +60,14 @@ namespace engine
         create_surface(window);
         pick_physical_device();
         create_logical_device();
-        create_swapchain(window);
+
+        m_swapchain = Swapchain_Vulkan::create(*this, window, m_physical_device, m_device);
+        if (!m_swapchain)
+        {
+            // TODO: Destroy previously allocated resources
+            throw std::runtime_error("Failed to create swapchain.");
+        }
+
         create_image_views();
         create_render_pass();
         create_graphics_pipeline();
@@ -87,7 +95,7 @@ namespace engine
         for (const auto& image_view : m_swapchain_image_views)
             m_device.destroyImageView(image_view);
 
-        m_device.destroySwapchainKHR(m_swapchain);
+        m_swapchain.reset();
         m_device.destroy();
 
         m_instance.destroySurfaceKHR(m_surface);
@@ -97,13 +105,15 @@ namespace engine
 
     void Renderer_Vulkan::draw_frame() const
     {
+        assert(m_swapchain);
+
         // TODO: Figure out why nodiscard
         auto wait_fence_result = m_device.waitForFences(m_in_flight_fence, VK_TRUE, UINT64_MAX);
         m_device.resetFences(m_in_flight_fence);
 
         // TODO: Check this .value i'm really fucking tired so i trust future me to do it
         u32 image_index = 
-            m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, m_image_available_semaphore, nullptr).value;
+            m_device.acquireNextImageKHR(m_swapchain->handle(), UINT64_MAX, m_image_available_semaphore, nullptr).value;
 
         m_command_buffer.reset();
         record_command_buffer(m_command_buffer, image_index);
@@ -122,7 +132,7 @@ namespace engine
 
         vk::PresentInfoKHR present_info(
             1, signal_semaphores,
-            1, &m_swapchain,
+            1, &m_swapchain->handle(),
             &image_index,
             nullptr
         );
@@ -317,15 +327,14 @@ namespace engine
             create_info.pQueueFamilyIndices = queue_family_indices;
         }
 
-        m_swapchain              = m_device.createSwapchainKHR(create_info);
-        m_swapchain_images       = m_device.getSwapchainImagesKHR(m_swapchain);
-        m_swapchain_image_format = surface_format.format;
-        m_swapchain_extent       = extent;
+        
     }
 
     void Renderer_Vulkan::create_image_views()
     {
-        m_swapchain_image_views.resize(m_swapchain_images.size());
+        assert(m_swapchain); // TODO: Probably not necessary
+        const auto& swapchain_images = m_swapchain->images();
+        m_swapchain_image_views.resize(swapchain_images.size());
 
         vk::ComponentMapping components(
             vk::ComponentSwizzle::eIdentity,
@@ -337,10 +346,10 @@ namespace engine
         vk::ImageSubresourceRange subresource_range(
             vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
 
-        for (size_t i = 0; i < m_swapchain_images.size(); i++)
+        for (size_t i = 0; i < swapchain_images.size(); i++)
         {
             vk::ImageViewCreateInfo create_info({},
-                m_swapchain_images[i],
+                swapchain_images[i],
                 vk::ImageViewType::e2D,
                 m_swapchain_image_format,
                 components,
@@ -425,7 +434,7 @@ namespace engine
 
         vk::PipelineShaderStageCreateInfo shader_stages_create_infos[] = 
         {
-            vert_shader_stage_create_info, 
+            vert_shader_stage_create_info,
             frag_shader_stage_create_info
         };
 
@@ -444,16 +453,8 @@ namespace engine
             false
         );
 
-        vk::Viewport viewport(
-            0.0f, 0.0f,
-            static_cast<f32>(m_swapchain_extent.width), static_cast<f32>(m_swapchain_extent.height),
-            0.0f, 1.0f
-        );
-
-        vk::Rect2D scissor(
-            { 0, 0 },
-            m_swapchain_extent
-        );
+        vk::Viewport viewport = m_swapchain->viewport();
+        vk::Rect2D scissor    = m_swapchain->scissor();
 
         std::vector<vk::DynamicState> dynamic_states = 
         {
@@ -564,7 +565,7 @@ namespace engine
             vk::FramebufferCreateInfo framebuffer_info({},
                 m_render_pass,
                 1, attachments,
-                m_swapchain_extent.width, m_swapchain_extent.height, 1
+                m_swapchain->extent().width, m_swapchain->extent().height, 1
             );
 
             m_swapchain_framebuffers[i] = m_device.createFramebuffer(framebuffer_info);
@@ -794,26 +795,14 @@ namespace engine
             vk::RenderPassBeginInfo render_pass_info(
                 m_render_pass, 
                 m_swapchain_framebuffers[image_index],
-                vk::Rect2D({ 0, 0 }, m_swapchain_extent),
+                vk::Rect2D({ 0, 0 }, m_swapchain->extent()),
                 1, &clear_value
             );
 
             command_buffer.beginRenderPass(render_pass_info, vk::SubpassContents::eInline);
                 command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_graphics_pipeline);
-
-                vk::Viewport viewport(
-                    0.0f, 0.0f,
-                    static_cast<f32>(m_swapchain_extent.width), static_cast<f32>(m_swapchain_extent.height),
-                    0.0f, 1.0f
-                );
-                command_buffer.setViewport(0, viewport);
-
-                vk::Rect2D scissor(
-                    { 0, 0 },
-                    m_swapchain_extent
-                );
-                command_buffer.setScissor(0, scissor);
-
+                command_buffer.setViewport(0, m_swapchain->viewport());
+                command_buffer.setScissor(0,  m_swapchain->scissor());
                 command_buffer.draw(3, 1, 0, 0);
             command_buffer.endRenderPass();
         command_buffer.end();

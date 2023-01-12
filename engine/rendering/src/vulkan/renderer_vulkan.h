@@ -3,6 +3,7 @@
 #include "core/types.h"
 #include "rendering/renderer.h"
 
+#include <memory>
 #include <optional>
 #include <vulkan/vulkan.hpp>
 
@@ -10,6 +11,7 @@ namespace engine
 {
     struct GameInfo;
     class IWindow;
+    class Swapchain_Vulkan;
 
     class Renderer_Vulkan : public IRenderer
     {
@@ -24,6 +26,40 @@ namespace engine
         // IRenderer interface
         virtual void draw_frame() const override;
         virtual IPipeline* create_pipeline(const PipelineFactory& factory) const override;
+
+        // Getters
+        const vk::SurfaceKHR& surface() const { return m_surface; }
+
+        struct SwapChainSupportDetails
+        {
+            vk::SurfaceCapabilitiesKHR capabilities;
+            std::vector<vk::SurfaceFormatKHR> formats;
+            std::vector<vk::PresentModeKHR> present_modes;
+
+            bool is_adequate() const
+            {
+                return
+                    !formats.empty() &&
+                    !present_modes.empty();
+            }
+        };
+
+        SwapChainSupportDetails query_swapchain_support(const vk::PhysicalDevice& device) const;
+
+        struct QueueFamilyIndices
+        {
+            std::optional<u32> graphics_family;
+            std::optional<u32> present_family;
+
+            bool is_complete() const
+            {
+                return 
+                    graphics_family.has_value() && 
+                    present_family.has_value();
+            }
+        };
+
+        QueueFamilyIndices find_queue_families(const vk::PhysicalDevice& device) const;
 
     private:
 
@@ -48,36 +84,6 @@ namespace engine
         bool device_supports_extensions(const vk::PhysicalDevice& device) const;
         vk::ShaderModule create_shader_module(const std::vector<char>& code) const;
 
-        struct QueueFamilyIndices
-        {
-            std::optional<u32> graphics_family;
-            std::optional<u32> present_family;
-
-            bool is_complete() const
-            {
-                return 
-                    graphics_family.has_value() && 
-                    present_family.has_value();
-            }
-        };
-
-        QueueFamilyIndices find_queue_families(const vk::PhysicalDevice& device) const;
-
-        struct SwapChainSupportDetails
-        {
-            vk::SurfaceCapabilitiesKHR capabilities;
-            std::vector<vk::SurfaceFormatKHR> formats;
-            std::vector<vk::PresentModeKHR> present_modes;
-
-            bool is_adequate() const
-            {
-                return
-                    !formats.empty() &&
-                    !present_modes.empty();
-            }
-        };
-
-        SwapChainSupportDetails query_swapchain_support(const vk::PhysicalDevice& device) const;
         vk::SurfaceFormatKHR choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& available_formats) const;
         vk::PresentModeKHR choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& available_present_modes) const;
         vk::Extent2D choose_swap_extent(const IWindow& window, const vk::SurfaceCapabilitiesKHR& capabilities) const;
@@ -96,11 +102,8 @@ namespace engine
         vk::Queue                    m_graphics_queue            = nullptr;
         vk::Queue                    m_present_queue             = nullptr;
 
-        vk::SwapchainKHR             m_swapchain                 = nullptr;
-        std::vector<vk::Image>       m_swapchain_images;
         std::vector<vk::ImageView>   m_swapchain_image_views;
         vk::Format                   m_swapchain_image_format;
-        vk::Extent2D                 m_swapchain_extent;
         std::vector<vk::Framebuffer> m_swapchain_framebuffers;
 
         vk::RenderPass               m_render_pass               = nullptr;
@@ -113,6 +116,8 @@ namespace engine
         vk::Semaphore                m_image_available_semaphore = nullptr;
         vk::Semaphore                m_render_finished_semaphore = nullptr;
         vk::Fence                    m_in_flight_fence           = nullptr;
+
+        std::unique_ptr<Swapchain_Vulkan> m_swapchain = nullptr;
 
     private:
 

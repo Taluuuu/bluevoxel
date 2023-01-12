@@ -6,6 +6,7 @@ namespace engine
 {
     class PipelineFactory;
     class IPipeline;
+    class IWindow;
 
     class IRenderer
     {

@@ -9,6 +9,7 @@ add_library(rendering
     src/vulkan/pipeline_vulkan.cpp
     src/vulkan/renderer_vulkan.cpp
     src/vulkan/shader_vulkan.cpp
+    src/vulkan/swapchain_vulkan.cpp
 )
 
 target_link_libraries(rendering
