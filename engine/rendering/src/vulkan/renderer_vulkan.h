@@ -103,7 +103,6 @@ namespace engine
         vk::Queue                    m_present_queue             = nullptr;
 
         std::vector<vk::ImageView>   m_swapchain_image_views;
-        vk::Format                   m_swapchain_image_format;
         std::vector<vk::Framebuffer> m_swapchain_framebuffers;
 
         vk::RenderPass               m_render_pass               = nullptr;

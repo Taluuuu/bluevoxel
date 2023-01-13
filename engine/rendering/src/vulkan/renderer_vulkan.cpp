@@ -351,7 +351,7 @@ namespace engine
             vk::ImageViewCreateInfo create_info({},
                 swapchain_images[i],
                 vk::ImageViewType::e2D,
-                m_swapchain_image_format,
+                m_swapchain->image_format(),
                 components,
                 subresource_range
             );
@@ -363,7 +363,7 @@ namespace engine
     void Renderer_Vulkan::create_render_pass()
     {
         vk::AttachmentDescription color_attachment({},
-            m_swapchain_image_format,
+            m_swapchain->image_format(),
             vk::SampleCountFlagBits::e1, // Should match the format of the swapchain images
             vk::AttachmentLoadOp::eClear, // Clear screen to black
             vk::AttachmentStoreOp::eStore, // Store rendered content

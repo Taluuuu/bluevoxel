@@ -21,12 +21,12 @@ namespace engine
 
         ~Swapchain_Vulkan();
 
-        const vk::SwapchainKHR&       handle()   const { return m_swapchain_handle; }
-        const std::vector<vk::Image>& images()   const { return m_images; }
-
-        const vk::Extent2D&           extent()   const { return m_extent; }
-        vk::Viewport                  viewport() const;
-        vk::Rect2D                    scissor()  const;
+        const vk::SwapchainKHR&       handle()       const { return m_swapchain_handle; }
+        const std::vector<vk::Image>& images()       const { return m_images;           }
+        const vk::Format&             image_format() const { return m_image_format;     }
+        const vk::Extent2D&           extent()       const { return m_extent;           }
+        vk::Viewport                  viewport()     const;
+        vk::Rect2D                    scissor()      const;
     
     private:
 

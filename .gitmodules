@@ -7,3 +7,6 @@
 [submodule "engine/lib/magic_enum"]
 	path = engine/lib/magic_enum
 	url = https://github.com/Neargye/magic_enum
+[submodule "engine/lib/fmt"]
+	path = engine/lib/fmt
+	url = https://github.com/fmtlib/fmt
