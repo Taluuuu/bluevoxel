@@ -4,6 +4,8 @@
 #include "core/types.h"
 #include "core/utils.h"
 #include "windowing/window.h"
+
+#include "pipeline_vulkan.h"
 #include "shader_vulkan.h"
 #include "swapchain_vulkan.h"
 
@@ -70,7 +72,21 @@ namespace engine
 
         create_image_views();
         create_render_pass();
-        create_graphics_pipeline();
+
+        // Pipeline creation here is temporary; pipelines will be created in game code
+        // or in more abstract mesh renderers in the engine
+        m_pipeline = std::make_unique<Pipeline_Vulkan>(*this);
+        (*m_pipeline)
+            .add_shader(ShaderStage::Vertex,   "Resources/engine/shaders/triangle.vert.spv")
+            .add_shader(ShaderStage::Fragment, "Resources/engine/shaders/triangle.frag.spv")
+            .compile();
+        
+        if (!m_pipeline->is_ready())
+        {
+            // TODO: Destroy previously allocated resources
+            throw std::runtime_error("Failed to create graphics pipeline.");
+        }
+
         create_framebuffers();
         create_command_pool();
         create_command_buffer();
@@ -87,9 +103,8 @@ namespace engine
 
         for (const auto& framebuffer : m_swapchain_framebuffers)
             m_device.destroyFramebuffer(framebuffer);
-
-        m_device.destroyPipeline(m_graphics_pipeline);
-        m_device.destroyPipelineLayout(m_pipeline_layout);
+        
+        m_pipeline.reset();
         m_device.destroyRenderPass(m_render_pass);
 
         for (const auto& image_view : m_swapchain_image_views)
@@ -144,9 +159,17 @@ namespace engine
         m_device.waitIdle();
     }
 
-    IPipeline* Renderer_Vulkan::create_pipeline(const PipelineFactory& factory) const
+    IPipeline& Renderer_Vulkan::create_pipeline() const
     {
-        return nullptr;
+        // TODO: This is very wrong.
+        // Pipelines should be stored and returned as a reference.
+        return *m_pipeline;
+    }
+
+    const Swapchain_Vulkan &Renderer_Vulkan::swapchain() const
+    {
+        assert(m_swapchain);
+        return *m_swapchain;
     }
 
     void Renderer_Vulkan::create_instance(const char *game_name, const char *engine_name)
@@ -277,59 +300,6 @@ namespace engine
         m_present_queue  = m_device.getQueue(indices.present_family.value(), 0);
     }
 
-    void Renderer_Vulkan::create_swapchain(const IWindow& window)
-    {
-        auto swapchain_support = query_swapchain_support(m_physical_device);
-        
-        auto surface_format = choose_swap_surface_format(swapchain_support.formats);
-        auto present_mode   = choose_swap_present_mode(swapchain_support.present_modes);
-        auto extent         = choose_swap_extent(window, swapchain_support.capabilities);
-
-        u32 image_count = swapchain_support.capabilities.minImageCount + 1;
-        if (swapchain_support.capabilities.maxImageCount > 0 && 
-            image_count > swapchain_support.capabilities.maxImageCount)
-        {
-            image_count = swapchain_support.capabilities.maxImageCount;
-        }
-
-        // The vk::ImageUsageFlagBits parameter would be different if I need to draw
-        // to a separate image first to do post processing
-        // https://vulkan-tutorial.com/en/Drawing_a_triangle/Presentation/swapchain
-        vk::SwapchainCreateInfoKHR create_info({},
-            m_surface, 
-            image_count, 
-            surface_format.format, 
-            surface_format.colorSpace, 
-            extent, 
-            1, 
-            vk::ImageUsageFlagBits::eColorAttachment, 
-            vk::SharingMode::eExclusive,
-            0, nullptr, 
-            swapchain_support.capabilities.currentTransform,
-            vk::CompositeAlphaFlagBitsKHR::eOpaque,
-            present_mode,
-            true,
-            nullptr
-        );
-
-        auto indices = find_queue_families(m_physical_device);
-        u32 queue_family_indices[] = 
-        {
-            indices.graphics_family.value(), 
-            indices.present_family.value()
-        };
-
-        // Exclusive sharing mode offers best performance
-        if (indices.graphics_family != indices.present_family)
-        {
-            create_info.imageSharingMode = vk::SharingMode::eConcurrent;
-            create_info.queueFamilyIndexCount = 2;
-            create_info.pQueueFamilyIndices = queue_family_indices;
-        }
-
-        
-    }
-
     void Renderer_Vulkan::create_image_views()
     {
         assert(m_swapchain); // TODO: Probably not necessary
@@ -403,151 +373,6 @@ namespace engine
         );
 
         m_render_pass = m_device.createRenderPass(render_pass_create_info);
-    }
-
-    void Renderer_Vulkan::create_graphics_pipeline()
-    {
-        auto vert_shader_code = utils::read_file("Resources/engine/shaders/triangle.vert.spv");
-        if (!vert_shader_code.has_value())
-            throw std::runtime_error("Failed to read vertex shader.");
-
-        auto frag_shader_code = utils::read_file("Resources/engine/shaders/triangle.frag.spv");
-        if (!frag_shader_code.has_value())
-            throw std::runtime_error("Failed to read fragment shader.");
-
-        auto vert_shader_module = create_shader_module(*vert_shader_code);
-        auto frag_shader_module = create_shader_module(*frag_shader_code);
-
-        vk::PipelineShaderStageCreateInfo vert_shader_stage_create_info({},
-            vk::ShaderStageFlagBits::eVertex,
-            vert_shader_module,
-            "main",
-            nullptr // SpecializationInfo, used to set constants at runtime
-        );
-
-        vk::PipelineShaderStageCreateInfo frag_shader_stage_create_info({},
-            vk::ShaderStageFlagBits::eFragment,
-            frag_shader_module,
-            "main",
-            nullptr // SpecializationInfo, used to set constants at runtime
-        );
-
-        vk::PipelineShaderStageCreateInfo shader_stages_create_infos[] = 
-        {
-            vert_shader_stage_create_info,
-            frag_shader_stage_create_info
-        };
-
-        // Vertex input format
-        // Bindings   : Spacing between data and whether the data is per-vertex or 
-        //              per-instance
-        // Attributes : Type of the attributes passed to the vertex shader, which 
-        //              binding to load them from and at which offset
-        vk::PipelineVertexInputStateCreateInfo vertex_input_info({},
-            0, nullptr, // Vertex binding descriptions
-            0, nullptr  // Vertex attribute descriptions
-        );
-
-        vk::PipelineInputAssemblyStateCreateInfo assembly_info({},
-            vk::PrimitiveTopology::eTriangleList,
-            false
-        );
-
-        vk::Viewport viewport = m_swapchain->viewport();
-        vk::Rect2D scissor    = m_swapchain->scissor();
-
-        std::vector<vk::DynamicState> dynamic_states = 
-        {
-            vk::DynamicState::eViewport,
-            vk::DynamicState::eScissor
-        };
-        vk::PipelineDynamicStateCreateInfo pipeline_dynamic_state_create_info({},
-            static_cast<u32>(dynamic_states.size()),
-            dynamic_states.data()
-        );
-
-        vk::PipelineViewportStateCreateInfo viewport_state_create_info({},
-            1, &viewport, 
-            1, &scissor
-        );
-
-        vk::PipelineRasterizationStateCreateInfo pipeline_rasterization_state_create_info({},
-            VK_FALSE, // Might be useful for shadow mapping
-            VK_FALSE,
-            vk::PolygonMode::eFill,
-            vk::CullModeFlagBits::eBack,
-            vk::FrontFace::eClockwise,
-            VK_FALSE, 0.0f, 0.0f, 0.0f,
-            1.0f
-        );
-
-        // Disabled multisampling
-        vk::PipelineMultisampleStateCreateInfo pipeline_multisample_state_create_info({},
-            vk::SampleCountFlagBits::e1,
-            VK_FALSE,
-            1.0f, nullptr, VK_FALSE, VK_FALSE // This line is optional as multisampling is disabled
-        );
-
-        // Search alpha blending for transparency
-        vk::PipelineColorBlendAttachmentState pipeline_color_blend_attachment_state(
-            VK_FALSE,
-            // The following is optional as blending is disabled
-            // Color blend
-            vk::BlendFactor::eOne,
-            vk::BlendFactor::eZero,
-            vk::BlendOp::eAdd,
-            // Alpha blend
-            vk::BlendFactor::eOne,
-            vk::BlendFactor::eZero,
-            vk::BlendOp::eAdd,
-            // Not optional
-            vk::ColorComponentFlagBits::eR |
-            vk::ColorComponentFlagBits::eG |
-            vk::ColorComponentFlagBits::eB |
-            vk::ColorComponentFlagBits::eA
-        );
-
-        vk::PipelineColorBlendStateCreateInfo pipeline_color_blend_state_create_info({},
-            VK_FALSE,
-            vk::LogicOp::eCopy,
-            1, &pipeline_color_blend_attachment_state,
-            { 0.0f, 0.0f, 0.0f, 0.0f }
-        );
-
-        // Will be used to set uniforms
-        vk::PipelineLayoutCreateInfo pipeline_layout_create_info({},
-            0, nullptr,
-            0, nullptr
-        );
-        m_pipeline_layout = m_device.createPipelineLayout(pipeline_layout_create_info);
-
-        // TODO: Rework naming for create infos, currently a mess
-        vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info({},
-            2, shader_stages_create_infos,
-            &vertex_input_info,
-            &assembly_info,
-            nullptr,
-            &viewport_state_create_info,
-            &pipeline_rasterization_state_create_info,
-            &pipeline_multisample_state_create_info,
-            nullptr,
-            &pipeline_color_blend_state_create_info,
-            &pipeline_dynamic_state_create_info,
-            m_pipeline_layout,
-            m_render_pass,
-            0,
-            nullptr,
-            -1
-        );
-
-        auto pipeline_creation_result = m_device.createGraphicsPipeline(nullptr, graphics_pipeline_create_info);
-        if (pipeline_creation_result.result != vk::Result::eSuccess)
-            throw std::runtime_error("Failed to create graphics pipeline.");
-
-        m_graphics_pipeline = pipeline_creation_result.value;
-
-        m_device.destroyShaderModule(vert_shader_module);
-        m_device.destroyShaderModule(frag_shader_module);
     }
 
     void Renderer_Vulkan::create_framebuffers()
@@ -800,7 +625,7 @@ namespace engine
             );
 
             command_buffer.beginRenderPass(render_pass_info, vk::SubpassContents::eInline);
-                command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_graphics_pipeline);
+                command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline->pipeline_handle());
                 command_buffer.setViewport(0, m_swapchain->viewport());
                 command_buffer.setScissor(0,  m_swapchain->scissor());
                 command_buffer.draw(3, 1, 0, 0);

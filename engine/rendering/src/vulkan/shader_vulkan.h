@@ -4,11 +4,13 @@
 
 #include <memory>
 #include <optional>
-#include <string_view>
+#include <string>
 #include <vulkan/vulkan.hpp>
 
 namespace engine
 {
+    class Renderer_Vulkan;
+
     class Shader_Vulkan
     {
     public:
@@ -16,9 +18,9 @@ namespace engine
         Shader_Vulkan() = delete;
 
         static std::optional<Shader_Vulkan> create(
-            ShaderStage stage,
-            const vk::Device& device, 
-            const std::string& path);
+            ShaderStage stage, 
+            const std::string& path,
+            const Renderer_Vulkan& renderer);
 
         vk::PipelineShaderStageCreateInfo make_pipeline_shader_stage_create_info() const;
 

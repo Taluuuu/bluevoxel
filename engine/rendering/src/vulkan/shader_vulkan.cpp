@@ -2,13 +2,14 @@
 
 #include "core/utils.h"
 #include "core/log.h"
+#include "renderer_vulkan.h"
 
 namespace engine
 {
     std::optional<Shader_Vulkan> Shader_Vulkan::create(
-        ShaderStage stage,
-        const vk::Device& device, 
-        const std::string& path)
+        ShaderStage stage, 
+        const std::string& path, 
+        const Renderer_Vulkan& renderer)
     {
         auto code = utils::read_file(path);
         if (!code.has_value())
@@ -25,7 +26,7 @@ namespace engine
         vk::ShaderModule shader = nullptr;
         try
         {
-            shader = device.createShaderModule(create_info);
+            shader = renderer.device().createShaderModule(create_info);
         }
         catch (const std::exception& e)
         {

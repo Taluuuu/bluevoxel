@@ -11,6 +11,7 @@ namespace engine
 {
     struct GameInfo;
     class IWindow;
+    class Pipeline_Vulkan;
     class Swapchain_Vulkan;
 
     class Renderer_Vulkan : public IRenderer
@@ -25,10 +26,16 @@ namespace engine
 
         // IRenderer interface
         virtual void draw_frame() const override;
-        virtual IPipeline* create_pipeline(const PipelineFactory& factory) const override;
+        virtual IPipeline& create_pipeline() const override;
 
-        // Getters
-        const vk::SurfaceKHR& surface() const { return m_surface; }
+        // Vulkan wrapper getters
+        // Get the renderer's swapchain instance. Must be called after the swapchain is initialized.
+        const Swapchain_Vulkan& swapchain() const;
+
+        // Native Vulkan getters
+        const vk::Device&     device()      const { return m_device;      }
+        const vk::SurfaceKHR& surface()     const { return m_surface;     }
+        const vk::RenderPass& render_pass() const { return m_render_pass; }
 
         struct SwapChainSupportDetails
         {
@@ -68,10 +75,8 @@ namespace engine
         void create_surface(const IWindow& window);
         void pick_physical_device();
         void create_logical_device();
-        void create_swapchain(const IWindow& window);
         void create_image_views();
         void create_render_pass();
-        void create_graphics_pipeline();
         void create_framebuffers();
         void create_command_pool();
         void create_command_buffer();
@@ -107,7 +112,6 @@ namespace engine
 
         vk::RenderPass               m_render_pass               = nullptr;
         vk::PipelineLayout           m_pipeline_layout           = nullptr;
-        vk::Pipeline                 m_graphics_pipeline         = nullptr;
 
         vk::CommandPool              m_command_pool              = nullptr;
         vk::CommandBuffer            m_command_buffer            = nullptr;
@@ -117,6 +121,7 @@ namespace engine
         vk::Fence                    m_in_flight_fence           = nullptr;
 
         std::unique_ptr<Swapchain_Vulkan> m_swapchain = nullptr;
+        std::unique_ptr<Pipeline_Vulkan>  m_pipeline  = nullptr;
 
     private:
 

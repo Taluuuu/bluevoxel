@@ -2,23 +2,34 @@
 
 #include "core/log.h"
 #include "core/utils.h"
+#include "renderer_vulkan.h"
 #include "shader_vulkan.h"
+#include "swapchain_vulkan.h"
 
 #include <magic_enum.hpp>
 
 namespace engine
 {
-    Pipeline_Vulkan::Pipeline_Vulkan(const vk::Device &device)
-        : m_device(device)
+    Pipeline_Vulkan::Pipeline_Vulkan(const Renderer_Vulkan& renderer)
+        : m_renderer(&renderer)
     {
-        assert(device);
-
-        m_shaders.resize(magic_enum::enum_count<ShaderStage>(), std::nullopt);
+        m_shaders.resize(magic_enum::enum_count<ShaderStage>());
     }
 
-    IPipeline& Pipeline_Vulkan::add_shader(engine::ShaderStage stage, const std::string& path)
+    Pipeline_Vulkan::~Pipeline_Vulkan()
     {
-        auto shader = Shader_Vulkan::create(stage, m_device, path);
+        const auto& device = m_renderer->device();
+
+        if (m_pipeline_handle)
+            device.destroyPipeline(m_pipeline_handle);
+
+        if (m_layout)
+            device.destroyPipelineLayout(m_layout);
+    }
+
+    IPipeline& Pipeline_Vulkan::add_shader(engine::ShaderStage stage, const std::string &path)
+    {
+        auto shader = Shader_Vulkan::create(stage, path, *m_renderer);
         if (shader)
             register_shader(*shader);
 
@@ -27,7 +38,7 @@ namespace engine
 
     IPipeline& Pipeline_Vulkan::compile()
     {
-        m_has_compiled = false;
+        m_pipeline_handle = nullptr;
 
         // Create shader stage create info array
         std::vector<vk::PipelineShaderStageCreateInfo> shader_create_infos;
@@ -67,107 +78,113 @@ namespace engine
             false
         );
 
-        // vk::Viewport viewport(
-        //     0.0f, 0.0f,
-        //     static_cast<f32>(m_swapchain_extent.width), static_cast<f32>(m_swapchain_extent.height),
-        //     0.0f, 1.0f
-        // );
+        std::vector<vk::DynamicState> dynamic_states = 
+        {
+            vk::DynamicState::eViewport,
+            vk::DynamicState::eScissor
+        };
+        vk::PipelineDynamicStateCreateInfo pipeline_dynamic_state_create_info({},
+            static_cast<u32>(dynamic_states.size()),
+            dynamic_states.data()
+        );
 
-        // vk::Rect2D scissor(
-        //     { 0, 0 },
-        //     m_swapchain_extent
-        // );
+        const auto& swapchain = m_renderer->swapchain();
+        auto viewport = swapchain.viewport();
+        auto scissor  = swapchain.scissor();
+        vk::PipelineViewportStateCreateInfo viewport_state_create_info({},
+            1, &viewport, 
+            1, &scissor
+        );
 
-        // std::vector<vk::DynamicState> dynamic_states = 
-        // {
-        //     vk::DynamicState::eViewport,
-        //     vk::DynamicState::eScissor
-        // };
-        // vk::PipelineDynamicStateCreateInfo pipeline_dynamic_state_create_info({},
-        //     static_cast<u32>(dynamic_states.size()),
-        //     dynamic_states.data()
-        // );
+        vk::PipelineRasterizationStateCreateInfo pipeline_rasterization_state_create_info({},
+            VK_FALSE, // Might be useful for shadow mapping
+            VK_FALSE,
+            vk::PolygonMode::eFill,
+            vk::CullModeFlagBits::eBack,
+            vk::FrontFace::eClockwise,
+            VK_FALSE, 0.0f, 0.0f, 0.0f,
+            1.0f
+        );
 
-        // vk::PipelineViewportStateCreateInfo viewport_state_create_info({},
-        //     1, &viewport, 
-        //     1, &scissor
-        // );
+        // Disabled multisampling
+        vk::PipelineMultisampleStateCreateInfo pipeline_multisample_state_create_info({},
+            vk::SampleCountFlagBits::e1,
+            VK_FALSE,
+            1.0f, nullptr, VK_FALSE, VK_FALSE // This line is optional as multisampling is disabled
+        );
 
-        // vk::PipelineRasterizationStateCreateInfo pipeline_rasterization_state_create_info({},
-        //     VK_FALSE, // Might be useful for shadow mapping
-        //     VK_FALSE,
-        //     vk::PolygonMode::eFill,
-        //     vk::CullModeFlagBits::eBack,
-        //     vk::FrontFace::eClockwise,
-        //     VK_FALSE, 0.0f, 0.0f, 0.0f,
-        //     1.0f
-        // );
+        // Search alpha blending for transparency
+        vk::PipelineColorBlendAttachmentState pipeline_color_blend_attachment_state(
+            VK_FALSE,
+            // The following is optional as blending is disabled
+            // Color blend
+            vk::BlendFactor::eOne,
+            vk::BlendFactor::eZero,
+            vk::BlendOp::eAdd,
+            // Alpha blend
+            vk::BlendFactor::eOne,
+            vk::BlendFactor::eZero,
+            vk::BlendOp::eAdd,
+            // Not optional
+            vk::ColorComponentFlagBits::eR |
+            vk::ColorComponentFlagBits::eG |
+            vk::ColorComponentFlagBits::eB |
+            vk::ColorComponentFlagBits::eA
+        );
 
-        // // Disabled multisampling
-        // vk::PipelineMultisampleStateCreateInfo pipeline_multisample_state_create_info({},
-        //     vk::SampleCountFlagBits::e1,
-        //     VK_FALSE,
-        //     1.0f, nullptr, VK_FALSE, VK_FALSE // This line is optional as multisampling is disabled
-        // );
+        vk::PipelineColorBlendStateCreateInfo pipeline_color_blend_state_create_info({},
+            VK_FALSE,
+            vk::LogicOp::eCopy,
+            1, &pipeline_color_blend_attachment_state,
+            { 0.0f, 0.0f, 0.0f, 0.0f }
+        );
 
-        // // Search alpha blending for transparency
-        // vk::PipelineColorBlendAttachmentState pipeline_color_blend_attachment_state(
-        //     VK_FALSE,
-        //     // The following is optional as blending is disabled
-        //     // Color blend
-        //     vk::BlendFactor::eOne,
-        //     vk::BlendFactor::eZero,
-        //     vk::BlendOp::eAdd,
-        //     // Alpha blend
-        //     vk::BlendFactor::eOne,
-        //     vk::BlendFactor::eZero,
-        //     vk::BlendOp::eAdd,
-        //     // Not optional
-        //     vk::ColorComponentFlagBits::eR |
-        //     vk::ColorComponentFlagBits::eG |
-        //     vk::ColorComponentFlagBits::eB |
-        //     vk::ColorComponentFlagBits::eA
-        // );
+        // Will be used to set uniforms
+        vk::PipelineLayoutCreateInfo pipeline_layout_create_info({},
+            0, nullptr,
+            0, nullptr
+        );
 
-        // vk::PipelineColorBlendStateCreateInfo pipeline_color_blend_state_create_info({},
-        //     VK_FALSE,
-        //     vk::LogicOp::eCopy,
-        //     1, &pipeline_color_blend_attachment_state,
-        //     { 0.0f, 0.0f, 0.0f, 0.0f }
-        // );
+        const auto& device = m_renderer->device();
+        m_layout = device.createPipelineLayout(pipeline_layout_create_info);
 
-        // // Will be used to set uniforms
-        // vk::PipelineLayoutCreateInfo pipeline_layout_create_info({},
-        //     0, nullptr,
-        //     0, nullptr
-        // );
-        // m_pipeline_layout = m_device.createPipelineLayout(pipeline_layout_create_info);
+        vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info({},
+            2, shader_create_infos.data(),
+            &vertex_input_info,
+            &assembly_info,
+            nullptr,
+            &viewport_state_create_info,
+            &pipeline_rasterization_state_create_info,
+            &pipeline_multisample_state_create_info,
+            nullptr,
+            &pipeline_color_blend_state_create_info,
+            &pipeline_dynamic_state_create_info,
+            m_layout,
+            m_renderer->render_pass(),
+            0,
+            nullptr,
+            -1
+        );
 
-        // // TODO: Rework naming for create infos, currently a mess
-        // vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info({},
-        //     2, shader_stages_create_infos,
-        //     &vertex_input_info,
-        //     &assembly_info,
-        //     nullptr,
-        //     &viewport_state_create_info,
-        //     &pipeline_rasterization_state_create_info,
-        //     &pipeline_multisample_state_create_info,
-        //     nullptr,
-        //     &pipeline_color_blend_state_create_info,
-        //     &pipeline_dynamic_state_create_info,
-        //     m_pipeline_layout,
-        //     m_render_pass,
-        //     0,
-        //     nullptr,
-        //     -1
-        // );
+        auto pipeline_creation_result = device.createGraphicsPipeline(nullptr, graphics_pipeline_create_info);
+        if (pipeline_creation_result.result != vk::Result::eSuccess)
+        {
+            log::error("Failed to create graphics pipeline.");
+            return *this;
+        }
+
+        m_pipeline_handle = pipeline_creation_result.value;
+
+        // Destroy shader modules
+        // TODO: Should delete shader modules even when pipeline creation fails
+        m_shaders.clear();
 
         return *this;
     }
     
     bool Pipeline_Vulkan::is_ready() const
     {
-        return m_has_compiled;
+        return m_pipeline_handle;
     }
 
     void Pipeline_Vulkan::register_shader(const Shader_Vulkan& shader)
