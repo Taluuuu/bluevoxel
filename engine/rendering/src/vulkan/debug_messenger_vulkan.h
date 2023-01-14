@@ -11,11 +11,12 @@ namespace engine
     {
     public:
 
+        static std::unique_ptr<DebugMessenger_Vulkan> create(
+            const Renderer_Vulkan& renderer);
+
         DebugMessenger_Vulkan(const DebugMessenger_Vulkan&) = delete;
         DebugMessenger_Vulkan(DebugMessenger_Vulkan&&) = delete;
         ~DebugMessenger_Vulkan();
-
-        static std::unique_ptr<DebugMessenger_Vulkan> create(const Renderer_Vulkan& renderer);
 
         static void populate_debug_messenger_create_info(vk::DebugUtilsMessengerCreateInfoEXT& create_info);
 

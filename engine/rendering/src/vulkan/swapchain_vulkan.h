@@ -19,6 +19,8 @@ namespace engine
             const vk::PhysicalDevice& physical_device,
             const vk::Device& device);
 
+        Swapchain_Vulkan(const Swapchain_Vulkan&) = delete;
+        Swapchain_Vulkan(Swapchain_Vulkan&&) = delete;
         ~Swapchain_Vulkan();
 
         const vk::SwapchainKHR&       handle()       const { return m_swapchain_handle; }

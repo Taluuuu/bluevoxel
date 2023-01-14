@@ -14,14 +14,14 @@ namespace engine
     {
     public:
 
-        Shader_Vulkan(const Shader_Vulkan&) = delete;
-        Shader_Vulkan(Shader_Vulkan&& other);
-        ~Shader_Vulkan();
-
         static std::unique_ptr<Shader_Vulkan> create(
             ShaderStage stage, 
             const std::string& path,
             const Renderer_Vulkan& renderer);
+
+        Shader_Vulkan(const Shader_Vulkan&) = delete;
+        Shader_Vulkan(Shader_Vulkan&& other);
+        ~Shader_Vulkan();
 
         vk::PipelineShaderStageCreateInfo make_pipeline_shader_stage_create_info() const;
 

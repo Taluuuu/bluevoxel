@@ -123,8 +123,6 @@ namespace engine
         std::unique_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
         std::unique_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;
 
-    private:
-
         // TODO: Make below constexpr
         const std::vector<const char*> m_device_extensions =
         {
@@ -141,6 +139,10 @@ namespace engine
 #else
         const bool m_enable_validation_layers = true;
 #endif
+
+    public:
+
+        const std::vector<const char*>& device_extensions() const { return m_device_extensions; }
 
     };
 }

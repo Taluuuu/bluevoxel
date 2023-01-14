@@ -6,20 +6,6 @@
 
 namespace engine
 {
-    Shader_Vulkan::Shader_Vulkan(Shader_Vulkan&& other)
-        : m_shader_handle(other.m_shader_handle)
-        , m_stage(other.m_stage)
-        , m_renderer(other.m_renderer)
-    {
-        m_shader_handle = nullptr;
-    }
-
-    Shader_Vulkan::~Shader_Vulkan()
-    {
-        if (m_shader_handle)
-            m_renderer->device().destroyShaderModule(m_shader_handle);
-    }
-
     std::unique_ptr<Shader_Vulkan> Shader_Vulkan::create(
         ShaderStage stage, 
         const std::string& path, 
@@ -49,6 +35,20 @@ namespace engine
         }
 
         return std::unique_ptr<Shader_Vulkan>(new Shader_Vulkan(stage, shader, renderer));
+    }
+
+    Shader_Vulkan::Shader_Vulkan(Shader_Vulkan&& other)
+        : m_shader_handle(other.m_shader_handle)
+        , m_stage(other.m_stage)
+        , m_renderer(other.m_renderer)
+    {
+        m_shader_handle = nullptr;
+    }
+
+    Shader_Vulkan::~Shader_Vulkan()
+    {
+        if (m_shader_handle)
+            m_renderer->device().destroyShaderModule(m_shader_handle);
     }
 
     static vk::ShaderStageFlagBits shader_stage_bits(engine::ShaderStage stage)
