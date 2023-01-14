@@ -11,6 +11,8 @@ namespace engine
 {
     struct GameInfo;
     class IWindow;
+
+    class DebugMessenger_Vulkan;
     class Pipeline_Vulkan;
     class Swapchain_Vulkan;
 
@@ -33,8 +35,9 @@ namespace engine
         const Swapchain_Vulkan& swapchain() const;
 
         // Native Vulkan getters
-        const vk::Device&     device()      const { return m_device;      }
+        const vk::Instance&   instance()    const { return m_instance;    }
         const vk::SurfaceKHR& surface()     const { return m_surface;     }
+        const vk::Device&     device()      const { return m_device;      }
         const vk::RenderPass& render_pass() const { return m_render_pass; }
 
         struct SwapChainSupportDetails
@@ -71,7 +74,6 @@ namespace engine
     private:
 
         void create_instance(const char* game_name, const char* engine_name);
-        void setup_debug_messenger();
         void create_surface(const IWindow& window);
         void pick_physical_device();
         void create_logical_device();
@@ -84,7 +86,6 @@ namespace engine
 
         std::vector<const char*> get_required_instance_extensions() const;
         bool validation_layers_are_supported() const;
-        void populate_debug_messenger_create_info(vk::DebugUtilsMessengerCreateInfoEXT& debug_utils_messenger_create_info) const;
         bool is_device_suitable(const vk::PhysicalDevice& device) const;
         bool device_supports_extensions(const vk::PhysicalDevice& device) const;
         vk::ShaderModule create_shader_module(const std::vector<char>& code) const;
@@ -98,7 +99,6 @@ namespace engine
     private:
 
         vk::Instance                 m_instance                  = nullptr;
-        vk::DebugUtilsMessengerEXT   m_debug_messenger           = nullptr;
         vk::SurfaceKHR               m_surface                   = nullptr;
 
         vk::PhysicalDevice           m_physical_device           = nullptr;
@@ -111,7 +111,6 @@ namespace engine
         std::vector<vk::Framebuffer> m_swapchain_framebuffers;
 
         vk::RenderPass               m_render_pass               = nullptr;
-        vk::PipelineLayout           m_pipeline_layout           = nullptr;
 
         vk::CommandPool              m_command_pool              = nullptr;
         vk::CommandBuffer            m_command_buffer            = nullptr;
@@ -120,8 +119,9 @@ namespace engine
         vk::Semaphore                m_render_finished_semaphore = nullptr;
         vk::Fence                    m_in_flight_fence           = nullptr;
 
-        std::unique_ptr<Swapchain_Vulkan> m_swapchain = nullptr;
-        std::unique_ptr<Pipeline_Vulkan>  m_pipeline  = nullptr;
+        std::unique_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;
+        std::unique_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
+        std::unique_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;
 
     private:
 

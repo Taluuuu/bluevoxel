@@ -5,6 +5,7 @@
 #include "core/utils.h"
 #include "windowing/window.h"
 
+#include "debug_messenger_vulkan.h"
 #include "pipeline_vulkan.h"
 #include "shader_vulkan.h"
 #include "swapchain_vulkan.h"
@@ -22,43 +23,19 @@
 #include <limits>
 #include <set>
 
-PFN_vkCreateDebugUtilsMessengerEXT  pfnVkCreateDebugUtilsMessengerEXT;
-PFN_vkDestroyDebugUtilsMessengerEXT pfnVkDestroyDebugUtilsMessengerEXT;
-
-VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(
-    VkInstance instance,
-    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkDebugUtilsMessengerEXT* pMessenger )
-{
-    return pfnVkCreateDebugUtilsMessengerEXT(instance, pCreateInfo, pAllocator, pMessenger);
-}
-
-VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(
-    VkInstance instance, 
-    VkDebugUtilsMessengerEXT messenger, 
-    VkAllocationCallbacks const* pAllocator)
-{
-    return pfnVkDestroyDebugUtilsMessengerEXT(instance, messenger, pAllocator);
-}
-
-static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT message_severity,
-    VkDebugUtilsMessageTypeFlagsEXT message_type,
-    const VkDebugUtilsMessengerCallbackDataEXT* callback_data,
-    void* user_data)
-{
-    std::cerr << "validation layer: " << callback_data->pMessage << std::endl;
-    return VK_FALSE;
-}
-
 namespace engine
 {
     Renderer_Vulkan::Renderer_Vulkan(const GameInfo& game_info, const IWindow& window)
     {
         // TODO: Make sure to destroy the instance if setup_debug_messenger fails.
         create_instance(game_info.game_name.data(), game_info.engine_name.data());
-        setup_debug_messenger();
+
+        m_debug_messenger = DebugMessenger_Vulkan::create(*this);
+        if (!m_debug_messenger)
+        {
+            throw std::runtime_error("Failed to create debug messenger.");
+        }
+
         create_surface(window);
         pick_physical_device();
         create_logical_device();
@@ -114,7 +91,7 @@ namespace engine
         m_device.destroy();
 
         m_instance.destroySurfaceKHR(m_surface);
-        m_instance.destroyDebugUtilsMessengerEXT(m_debug_messenger);
+        m_debug_messenger.reset();
         m_instance.destroy();
     }
 
@@ -199,30 +176,11 @@ namespace engine
             create_info.enabledLayerCount = static_cast<u32>(m_validation_layers.size());
             create_info.ppEnabledLayerNames = m_validation_layers.data();
 
-            populate_debug_messenger_create_info(debug_messenger_create_info);
+            DebugMessenger_Vulkan::populate_debug_messenger_create_info(debug_messenger_create_info);
             create_info.pNext = &debug_messenger_create_info;
         }
 
         m_instance = vk::createInstance(create_info);
-    }
-
-    void Renderer_Vulkan::setup_debug_messenger()
-    {
-        if (!m_enable_validation_layers)
-            return;
-
-        pfnVkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(m_instance.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
-        if (!pfnVkCreateDebugUtilsMessengerEXT)
-            throw std::runtime_error("GetInstanceProcAddr: Unable to find pfnVkCreateDebugUtilsMessengerEXT function.");
-
-        pfnVkDestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(m_instance.getProcAddr( "vkDestroyDebugUtilsMessengerEXT"));
-        if (!pfnVkDestroyDebugUtilsMessengerEXT)
-            throw std::runtime_error("GetInstanceProcAddr: Unable to find pfnVkDestroyDebugUtilsMessengerEXT function.");
-
-        vk::DebugUtilsMessengerCreateInfoEXT create_info;
-        populate_debug_messenger_create_info(create_info);
-
-        m_debug_messenger = m_instance.createDebugUtilsMessengerEXT(create_info);
     }
 
     void Renderer_Vulkan::create_surface(const IWindow& window)
@@ -469,25 +427,6 @@ namespace engine
 
         return true;
 
-    }
-
-    void Renderer_Vulkan::populate_debug_messenger_create_info(vk::DebugUtilsMessengerCreateInfoEXT& debug_utils_messenger_create_info) const
-    {
-        const vk::DebugUtilsMessageSeverityFlagsEXT message_severity_flags = 
-            // vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | 
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | 
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
-
-        const vk::DebugUtilsMessageTypeFlagsEXT message_type_flags = 
-            vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-            vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance |
-            vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
-
-        debug_utils_messenger_create_info = vk::DebugUtilsMessengerCreateInfoEXT({},
-            message_severity_flags,
-            message_type_flags,
-            debug_callback
-        );
     }
     
     bool Renderer_Vulkan::is_device_suitable(const vk::PhysicalDevice& device) const
