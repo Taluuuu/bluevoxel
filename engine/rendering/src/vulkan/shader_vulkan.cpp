@@ -6,7 +6,21 @@
 
 namespace engine
 {
-    std::optional<Shader_Vulkan> Shader_Vulkan::create(
+    Shader_Vulkan::Shader_Vulkan(Shader_Vulkan&& other)
+        : m_shader_handle(other.m_shader_handle)
+        , m_stage(other.m_stage)
+        , m_renderer(other.m_renderer)
+    {
+        m_shader_handle = nullptr;
+    }
+
+    Shader_Vulkan::~Shader_Vulkan()
+    {
+        if (m_shader_handle)
+            m_renderer->device().destroyShaderModule(m_shader_handle);
+    }
+
+    std::unique_ptr<Shader_Vulkan> Shader_Vulkan::create(
         ShaderStage stage, 
         const std::string& path, 
         const Renderer_Vulkan& renderer)
@@ -15,7 +29,7 @@ namespace engine
         if (!code.has_value())
         {
             log::error("Failed to load shader at path: '{}'", path);
-            return std::nullopt;
+            return nullptr;
         }
 
         vk::ShaderModuleCreateInfo create_info({}, 
@@ -31,10 +45,10 @@ namespace engine
         catch (const std::exception& e)
         {
             log::error("Failed to create shader at path '{}': {}", path, e.what());
-            return std::nullopt;
+            return nullptr;
         }
 
-        return Shader_Vulkan(stage, shader);
+        return std::unique_ptr<Shader_Vulkan>(new Shader_Vulkan(stage, shader, renderer));
     }
 
     static vk::ShaderStageFlagBits shader_stage_bits(engine::ShaderStage stage)
@@ -53,7 +67,7 @@ namespace engine
     {
         return vk::PipelineShaderStageCreateInfo({},
             shader_stage_bits(m_stage),
-            m_shader,
+            m_shader_handle,
             "main",
             nullptr
         );
@@ -64,7 +78,8 @@ namespace engine
         return m_stage;
     }
 
-    Shader_Vulkan::Shader_Vulkan(ShaderStage stage, const vk::ShaderModule& shader)
+    Shader_Vulkan::Shader_Vulkan(ShaderStage stage, const vk::ShaderModule& shader, const Renderer_Vulkan& renderer)
         : m_stage(stage)
-        , m_shader(shader) {}
+        , m_shader_handle(shader)
+        , m_renderer(&renderer) {}
 }

@@ -474,7 +474,7 @@ namespace engine
     void Renderer_Vulkan::populate_debug_messenger_create_info(vk::DebugUtilsMessengerCreateInfoEXT& debug_utils_messenger_create_info) const
     {
         const vk::DebugUtilsMessageSeverityFlagsEXT message_severity_flags = 
-            vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | 
+            // vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | 
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | 
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
 

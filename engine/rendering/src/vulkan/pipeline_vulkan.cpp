@@ -31,7 +31,7 @@ namespace engine
     {
         auto shader = Shader_Vulkan::create(stage, path, *m_renderer);
         if (shader)
-            register_shader(*shader);
+            register_shader(std::move(shader));
 
         return *this;
     }
@@ -46,7 +46,7 @@ namespace engine
         shader_create_infos.reserve(m_shaders.size());
         for (const auto& shader : m_shaders)
         {
-            if (shader.has_value())
+            if (shader)
             {
                 shader_create_infos.push_back(
                     shader->make_pipeline_shader_stage_create_info());
@@ -187,12 +187,10 @@ namespace engine
         return m_pipeline_handle;
     }
 
-    void Pipeline_Vulkan::register_shader(const Shader_Vulkan& shader)
+    void Pipeline_Vulkan::register_shader(std::unique_ptr<Shader_Vulkan>&& shader)
     {
-        auto stage_index = magic_enum::enum_index(shader.stage());
-        if (!stage_index.has_value())
-            return;
-
-        m_shaders[*stage_index] = shader;
+        auto stage_index = magic_enum::enum_index(shader->stage());
+        if (stage_index.has_value())
+            m_shaders[*stage_index] = std::move(shader);
     }
 }

@@ -4,7 +4,6 @@
 #include "rendering/renderer_enums.h"
 #include "shader_vulkan.h" // TODO: Check if it's better to have this be a forward declaration
 
-#include <optional>
 #include <memory>
 #include <vector>
 #include <vulkan/vulkan.hpp>
@@ -31,11 +30,11 @@ namespace engine
 
     private:
 
-        void register_shader(const Shader_Vulkan& shader);
+        void register_shader(std::unique_ptr<Shader_Vulkan>&& shader);
 
     private:
 
-        std::vector<std::optional<Shader_Vulkan>> m_shaders;
+        std::vector<std::unique_ptr<Shader_Vulkan>> m_shaders;
         vk::Pipeline m_pipeline_handle = nullptr;
         vk::PipelineLayout m_layout = nullptr;
 
