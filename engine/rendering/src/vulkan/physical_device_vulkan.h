@@ -17,6 +17,10 @@ namespace engine
         PhysicalDevice_Vulkan(PhysicalDevice_Vulkan&&) = delete;
         ~PhysicalDevice_Vulkan() = default;
 
+        const vk::PhysicalDevice& physical_device_handle() const { return m_physical_device_handle; }
+
+        vk::Device create_device(const vk::DeviceCreateInfo& create_info) const;
+
     private:
 
         PhysicalDevice_Vulkan(const vk::PhysicalDevice& physical_device_handle);

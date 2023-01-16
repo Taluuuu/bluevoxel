@@ -23,7 +23,7 @@ namespace engine
         vk::PhysicalDevice physical_device = nullptr;
         for (const auto& device : devices)
         {
-            if (is_device_suitable(device))
+            if (is_device_suitable(device, renderer))
             {
                 physical_device = device;
                 break;
@@ -39,10 +39,14 @@ namespace engine
         return std::unique_ptr<PhysicalDevice_Vulkan>(new PhysicalDevice_Vulkan(physical_device));
     }
 
-    PhysicalDevice_Vulkan::PhysicalDevice_Vulkan(const vk::PhysicalDevice& physical_device_handle)
+    vk::Device PhysicalDevice_Vulkan::create_device(const vk::DeviceCreateInfo& create_info) const
     {
-
+        return m_physical_device_handle.createDevice(create_info);
     }
+
+    PhysicalDevice_Vulkan::PhysicalDevice_Vulkan(const vk::PhysicalDevice &physical_device_handle)
+        : m_physical_device_handle(physical_device_handle)
+    {}
 
     bool PhysicalDevice_Vulkan::is_device_suitable(const vk::PhysicalDevice& device, const Renderer_Vulkan& renderer)
     {
@@ -51,10 +55,11 @@ namespace engine
 
         bool extensions_supported = device_supports_extensions(device, renderer);
 
+        auto surface = renderer.surface();
         bool is_swapchain_adequate = false;
         if (extensions_supported)
         {
-            auto swapchain_support = query_swapchain_support(device);
+            auto swapchain_support = renderer.query_swapchain_support(device);
             is_swapchain_adequate = swapchain_support.is_adequate();
         }
 

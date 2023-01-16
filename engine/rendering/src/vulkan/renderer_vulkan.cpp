@@ -6,6 +6,7 @@
 #include "windowing/window.h"
 
 #include "debug_messenger_vulkan.h"
+#include "physical_device_vulkan.h"
 #include "pipeline_vulkan.h"
 #include "shader_vulkan.h"
 #include "swapchain_vulkan.h"
@@ -37,10 +38,17 @@ namespace engine
         }
 
         create_surface(window);
-        pick_physical_device();
+
+        m_physical_device = PhysicalDevice_Vulkan::create(*this);
+        if (!m_physical_device)
+        {
+            throw std::runtime_error("Failed to pick physical device.");
+        }
+
         create_logical_device();
 
-        m_swapchain = Swapchain_Vulkan::create(*this, window, m_physical_device, m_device);
+        // TODO: Change this stupid constructor
+        m_swapchain = Swapchain_Vulkan::create(*this, window, m_physical_device->physical_device_handle(), m_device);
         if (!m_swapchain)
         {
             // TODO: Destroy previously allocated resources
@@ -198,28 +206,9 @@ namespace engine
             throw std::runtime_error("Failed to create GLFW window surface.");
     }
 
-    void Renderer_Vulkan::pick_physical_device()
-    {
-        std::vector<vk::PhysicalDevice> devices = m_instance.enumeratePhysicalDevices();
-        if (devices.empty())
-            throw std::runtime_error("Failed to find GPUs with Vulkan support.");
-
-        for (const auto& device : devices)
-        {
-            if (is_device_suitable(device))
-            {
-                m_physical_device = device;
-                break;
-            }
-        }
-
-        if (!m_physical_device)
-            throw std::runtime_error("Failed to find GPUs with Vulkan support.");
-    }
-
     void Renderer_Vulkan::create_logical_device()
     {
-        QueueFamilyIndices indices = find_queue_families(m_physical_device);
+        QueueFamilyIndices indices = find_queue_families(m_physical_device->physical_device_handle());
 
         // TODO: .value() could throw - there might be more instances of this in this file.
         std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
@@ -253,7 +242,7 @@ namespace engine
             create_info.ppEnabledLayerNames = m_validation_layers.data();
         }
 
-        m_device         = m_physical_device.createDevice(create_info);
+        m_device         = m_physical_device->create_device(create_info);
         m_graphics_queue = m_device.getQueue(indices.graphics_family.value(), 0);
         m_present_queue  = m_device.getQueue(indices.present_family.value(), 0);
     }
@@ -357,7 +346,7 @@ namespace engine
 
     void Renderer_Vulkan::create_command_pool()
     {
-        auto queue_family_indices = find_queue_families(m_physical_device);
+        auto queue_family_indices = find_queue_families(m_physical_device->physical_device_handle());
 
         vk::CommandPoolCreateInfo command_pool_info(
             vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
@@ -428,49 +417,19 @@ namespace engine
         return true;
 
     }
-    
-    bool Renderer_Vulkan::is_device_suitable(const vk::PhysicalDevice& device) const
+
+    Renderer_Vulkan::SwapChainSupportDetails Renderer_Vulkan::query_swapchain_support(const vk::PhysicalDevice &device) const
     {
-        // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families
-        // We can evaluate with more criterias which devices we want
-
-        bool extensions_supported = device_supports_extensions(device);
-
-        bool is_swapchain_adequate = false;
-        if (extensions_supported)
+        return SwapChainSupportDetails
         {
-            auto swapchain_support = query_swapchain_support(device);
-            is_swapchain_adequate = swapchain_support.is_adequate();
-        }
-
-        QueueFamilyIndices indices = find_queue_families(device);
-        return indices.is_complete() && extensions_supported && is_swapchain_adequate;
-    }
-
-    bool Renderer_Vulkan::device_supports_extensions(const vk::PhysicalDevice &device) const
-    {
-        auto available_extensions = device.enumerateDeviceExtensionProperties();
-        std::set<std::string_view> required_extensions(
-            m_device_extensions.begin(), m_device_extensions.end());
-
-        for (const auto& extension : available_extensions)
-            required_extensions.erase(extension.extensionName);
-
-        return required_extensions.empty();
-    }
-
-    vk::ShaderModule Renderer_Vulkan::create_shader_module(const std::vector<char> &code) const
-    {
-        vk::ShaderModuleCreateInfo create_info({}, 
-            code.size(),
-            reinterpret_cast<const u32*>(code.data())
-        );
-
-        return m_device.createShaderModule(create_info);
+            .capabilities  = device.getSurfaceCapabilitiesKHR(m_surface),
+            .formats       = device.getSurfaceFormatsKHR(m_surface),
+            .present_modes = device.getSurfacePresentModesKHR(m_surface),
+        };
     }
 
     Renderer_Vulkan::QueueFamilyIndices Renderer_Vulkan::find_queue_families(
-        const vk::PhysicalDevice& device) const
+        const vk::PhysicalDevice &device) const
     {
         QueueFamilyIndices indices;
 
@@ -493,17 +452,6 @@ namespace engine
         }
 
         return indices;
-    }
-
-    Renderer_Vulkan::SwapChainSupportDetails Renderer_Vulkan::query_swapchain_support(
-        const vk::PhysicalDevice& device) const
-    {
-        return SwapChainSupportDetails
-        {
-            .capabilities  = device.getSurfaceCapabilitiesKHR(m_surface),
-            .formats       = device.getSurfaceFormatsKHR(m_surface),
-            .present_modes = device.getSurfacePresentModesKHR(m_surface),
-        };
     }
 
     vk::SurfaceFormatKHR Renderer_Vulkan::choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& available_formats) const

@@ -14,6 +14,7 @@ namespace engine
 
     class DebugMessenger_Vulkan;
     class Pipeline_Vulkan;
+    class PhysicalDevice_Vulkan;
     class Swapchain_Vulkan;
 
     class Renderer_Vulkan : public IRenderer
@@ -75,7 +76,6 @@ namespace engine
 
         void create_instance(const char* game_name, const char* engine_name);
         void create_surface(const IWindow& window);
-        void pick_physical_device();
         void create_logical_device();
         void create_image_views();
         void create_render_pass();
@@ -86,9 +86,6 @@ namespace engine
 
         std::vector<const char*> get_required_instance_extensions() const;
         bool validation_layers_are_supported() const;
-        bool is_device_suitable(const vk::PhysicalDevice& device) const;
-        bool device_supports_extensions(const vk::PhysicalDevice& device) const;
-        vk::ShaderModule create_shader_module(const std::vector<char>& code) const;
 
         vk::SurfaceFormatKHR choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& available_formats) const;
         vk::PresentModeKHR choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& available_present_modes) const;
@@ -101,7 +98,6 @@ namespace engine
         vk::Instance                 m_instance                  = nullptr;
         vk::SurfaceKHR               m_surface                   = nullptr;
 
-        vk::PhysicalDevice           m_physical_device           = nullptr;
         vk::Device                   m_device                    = nullptr;
 
         vk::Queue                    m_graphics_queue            = nullptr;
@@ -119,6 +115,7 @@ namespace engine
         vk::Semaphore                m_render_finished_semaphore = nullptr;
         vk::Fence                    m_in_flight_fence           = nullptr;
 
+        std::unique_ptr<PhysicalDevice_Vulkan> m_physical_device = nullptr;
         std::unique_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;
         std::unique_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
         std::unique_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;
