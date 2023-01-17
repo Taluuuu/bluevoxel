@@ -6,7 +6,7 @@
 #include "windowing/window.h"
 
 #include "debug_messenger_vulkan.h"
-#include "physical_device_vulkan.h"
+#include "device_vulkan.h"
 #include "pipeline_vulkan.h"
 #include "shader_vulkan.h"
 #include "swapchain_vulkan.h"
@@ -39,13 +39,11 @@ namespace engine
 
         create_surface(window);
 
-        m_physical_device = PhysicalDevice_Vulkan::create(*this);
+        m_physical_device = Device_Vulkan::create(*this);
         if (!m_physical_device)
         {
             throw std::runtime_error("Failed to pick physical device.");
         }
-
-        create_logical_device();
 
         // TODO: Change this stupid constructor
         m_swapchain = Swapchain_Vulkan::create(*this, window, m_physical_device->physical_device_handle(), m_device);
@@ -204,47 +202,6 @@ namespace engine
 
         if (result != VK_SUCCESS)
             throw std::runtime_error("Failed to create GLFW window surface.");
-    }
-
-    void Renderer_Vulkan::create_logical_device()
-    {
-        QueueFamilyIndices indices = find_queue_families(m_physical_device->physical_device_handle());
-
-        // TODO: .value() could throw - there might be more instances of this in this file.
-        std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
-        std::set<uint32_t> unique_queue_families = 
-        {
-            indices.graphics_family.value(),
-            indices.present_family.value()
-        };
-
-        f32 queue_priority = 1.0f;
-        for (u32 queue_family : unique_queue_families)
-        {
-            vk::DeviceQueueCreateInfo queue_create_info({}, 
-                queue_family, 1, &queue_priority);
-
-            queue_create_infos.push_back(queue_create_info);
-        }
-        
-        vk::PhysicalDeviceFeatures device_features;
-
-        vk::DeviceCreateInfo create_info({}, 
-            static_cast<u32>(queue_create_infos.size()),  queue_create_infos.data(),  // Queue create infos
-            0,                                            nullptr,                    // Validation layers
-            static_cast<u32>(m_device_extensions.size()), m_device_extensions.data(), // Device extensions
-            &device_features, 
-            nullptr);
-
-        if (m_enable_validation_layers)
-        {
-            create_info.enabledLayerCount = static_cast<u32>(m_validation_layers.size());
-            create_info.ppEnabledLayerNames = m_validation_layers.data();
-        }
-
-        m_device         = m_physical_device->create_device(create_info);
-        m_graphics_queue = m_device.getQueue(indices.graphics_family.value(), 0);
-        m_present_queue  = m_device.getQueue(indices.present_family.value(), 0);
     }
 
     void Renderer_Vulkan::create_image_views()

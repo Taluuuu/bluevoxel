@@ -63,7 +63,9 @@ namespace engine
 
     void Window_GLFW::swap_buffers(f64 max_fps)
     {
-        glfwSwapBuffers(m_handle);
+        // Only do this on OpenGL
+        // Something with strategy pattern ?
+        // glfwSwapBuffers(m_handle);
 
         f64 curTime = glfwGetTime();
 

@@ -14,7 +14,7 @@ namespace engine
 
     class DebugMessenger_Vulkan;
     class Pipeline_Vulkan;
-    class PhysicalDevice_Vulkan;
+    class Device_Vulkan;
     class Swapchain_Vulkan;
 
     class Renderer_Vulkan : public IRenderer
@@ -98,8 +98,6 @@ namespace engine
         vk::Instance                 m_instance                  = nullptr;
         vk::SurfaceKHR               m_surface                   = nullptr;
 
-        vk::Device                   m_device                    = nullptr;
-
         vk::Queue                    m_graphics_queue            = nullptr;
         vk::Queue                    m_present_queue             = nullptr;
 
@@ -115,7 +113,7 @@ namespace engine
         vk::Semaphore                m_render_finished_semaphore = nullptr;
         vk::Fence                    m_in_flight_fence           = nullptr;
 
-        std::unique_ptr<PhysicalDevice_Vulkan> m_physical_device = nullptr;
+        std::unique_ptr<Device_Vulkan>         m_physical_device = nullptr;
         std::unique_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;
         std::unique_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
         std::unique_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;
@@ -140,6 +138,10 @@ namespace engine
     public:
 
         const std::vector<const char*>& device_extensions() const { return m_device_extensions; }
+
+        bool enable_validation_layers() const { return m_enable_validation_layers; }
+
+        const std::vector<const char*>& validation_layers() const { return m_validation_layers; }
 
     };
 }
