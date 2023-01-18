@@ -2,6 +2,7 @@
 
 #include "core/log.h"
 #include "core/utils.h"
+#include "device_vulkan.h"
 #include "renderer_vulkan.h"
 #include "shader_vulkan.h"
 #include "swapchain_vulkan.h"
@@ -19,12 +20,7 @@ namespace engine
     Pipeline_Vulkan::~Pipeline_Vulkan()
     {
         const auto& device = m_renderer->device();
-
-        if (m_pipeline_handle)
-            device.destroyPipeline(m_pipeline_handle);
-
-        if (m_layout)
-            device.destroyPipelineLayout(m_layout);
+        device.destroy_pipeline(m_pipeline_handle, m_layout);
     }
 
     IPipeline& Pipeline_Vulkan::add_shader(engine::ShaderStage stage, const std::string &path)
@@ -146,7 +142,7 @@ namespace engine
         );
 
         const auto& device = m_renderer->device();
-        m_layout = device.createPipelineLayout(pipeline_layout_create_info);
+        m_layout = device.create_pipeline_layout(pipeline_layout_create_info);
 
         vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info({},
             2, shader_create_infos.data(),
@@ -166,14 +162,12 @@ namespace engine
             -1
         );
 
-        auto pipeline_creation_result = device.createGraphicsPipeline(nullptr, graphics_pipeline_create_info);
-        if (pipeline_creation_result.result != vk::Result::eSuccess)
+        m_pipeline_handle = device.create_pipeline(graphics_pipeline_create_info);
+        if (!m_pipeline_handle)
         {
             log::error("Failed to create graphics pipeline.");
             return *this;
         }
-
-        m_pipeline_handle = pipeline_creation_result.value;
 
         // Destroy shader modules
         // TODO: Should delete shader modules even when pipeline creation fails

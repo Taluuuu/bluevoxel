@@ -39,14 +39,14 @@ namespace engine
 
         create_surface(window);
 
-        m_physical_device = Device_Vulkan::create(*this);
-        if (!m_physical_device)
+        m_device = Device_Vulkan::create(*this);
+        if (!m_device)
         {
             throw std::runtime_error("Failed to pick physical device.");
         }
 
         // TODO: Change this stupid constructor
-        m_swapchain = Swapchain_Vulkan::create(*this, window, m_physical_device->physical_device_handle(), m_device);
+        m_swapchain = Swapchain_Vulkan::create(*this, window, m_device->physical_device_handle(), m_device->logical_device_handle());
         if (!m_swapchain)
         {
             // TODO: Destroy previously allocated resources
@@ -72,29 +72,32 @@ namespace engine
 
         create_framebuffers();
         create_command_pool();
+
+        m_command_buffer = m_device->allocate_command_buffer(m_command_pool);
+
         create_command_buffer();
         create_sync_objects();
     }
 
     Renderer_Vulkan::~Renderer_Vulkan()
     {
-        m_device.destroySemaphore(m_image_available_semaphore);
-        m_device.destroySemaphore(m_render_finished_semaphore);
-        m_device.destroyFence(m_in_flight_fence);
+        m_device->logical_device_handle().destroySemaphore(m_image_available_semaphore);
+        m_device->logical_device_handle().destroySemaphore(m_render_finished_semaphore);
+        m_device->logical_device_handle().destroyFence(m_in_flight_fence);
 
-        m_device.destroyCommandPool(m_command_pool);
+        m_device->logical_device_handle().destroyCommandPool(m_command_pool);
 
         for (const auto& framebuffer : m_swapchain_framebuffers)
-            m_device.destroyFramebuffer(framebuffer);
+            m_device->logical_device_handle().destroyFramebuffer(framebuffer);
         
         m_pipeline.reset();
-        m_device.destroyRenderPass(m_render_pass);
+        m_device->logical_device_handle().destroyRenderPass(m_render_pass);
 
         for (const auto& image_view : m_swapchain_image_views)
-            m_device.destroyImageView(image_view);
+            m_device->logical_device_handle().destroyImageView(image_view);
 
         m_swapchain.reset();
-        m_device.destroy();
+        m_device->logical_device_handle().destroy();
 
         m_instance.destroySurfaceKHR(m_surface);
         m_debug_messenger.reset();
@@ -106,12 +109,12 @@ namespace engine
         assert(m_swapchain);
 
         // TODO: Figure out why nodiscard
-        auto wait_fence_result = m_device.waitForFences(m_in_flight_fence, VK_TRUE, UINT64_MAX);
-        m_device.resetFences(m_in_flight_fence);
+        auto wait_fence_result = m_device->logical_device_handle().waitForFences(m_in_flight_fence, VK_TRUE, UINT64_MAX);
+        m_device->logical_device_handle().resetFences(m_in_flight_fence);
 
         // TODO: Check this .value i'm really fucking tired so i trust future me to do it
         u32 image_index = 
-            m_device.acquireNextImageKHR(m_swapchain->handle(), UINT64_MAX, m_image_available_semaphore, nullptr).value;
+            m_device->logical_device_handle().acquireNextImageKHR(m_swapchain->handle(), UINT64_MAX, m_image_available_semaphore, nullptr).value;
 
         m_command_buffer.reset();
         record_command_buffer(m_command_buffer, image_index);
@@ -126,7 +129,7 @@ namespace engine
             1, signal_semaphores
         );
 
-        m_graphics_queue.submit(submit_info, m_in_flight_fence);
+        m_device->graphics_queue().submit(submit_info, m_in_flight_fence);
 
         vk::PresentInfoKHR present_info(
             1, signal_semaphores,
@@ -136,10 +139,10 @@ namespace engine
         );
 
         // TODO: Figure out why nodiscard
-        auto present_result = m_present_queue.presentKHR(present_info);
+        auto present_result = m_device->present_queue().presentKHR(present_info);
 
         // This may be better elsewhere
-        m_device.waitIdle();
+        m_device->logical_device_handle().waitIdle();
     }
 
     IPipeline& Renderer_Vulkan::create_pipeline() const
@@ -153,6 +156,12 @@ namespace engine
     {
         assert(m_swapchain);
         return *m_swapchain;
+    }
+
+    const Device_Vulkan &Renderer_Vulkan::device() const
+    {
+        assert(m_device);
+        return *m_device;
     }
 
     void Renderer_Vulkan::create_instance(const char *game_name, const char *engine_name)
@@ -230,7 +239,7 @@ namespace engine
                 subresource_range
             );
 
-            m_swapchain_image_views[i] = m_device.createImageView(create_info);
+            m_swapchain_image_views[i] = m_device->logical_device_handle().createImageView(create_info);
         }
     }
 
@@ -276,7 +285,7 @@ namespace engine
             1, &dependency
         );
 
-        m_render_pass = m_device.createRenderPass(render_pass_create_info);
+        m_render_pass = m_device->logical_device_handle().createRenderPass(render_pass_create_info);
     }
 
     void Renderer_Vulkan::create_framebuffers()
@@ -297,20 +306,20 @@ namespace engine
                 m_swapchain->extent().width, m_swapchain->extent().height, 1
             );
 
-            m_swapchain_framebuffers[i] = m_device.createFramebuffer(framebuffer_info);
+            m_swapchain_framebuffers[i] = m_device->logical_device_handle().createFramebuffer(framebuffer_info);
         }
     }
 
     void Renderer_Vulkan::create_command_pool()
     {
-        auto queue_family_indices = find_queue_families(m_physical_device->physical_device_handle());
+        auto queue_family_indices = find_queue_families(m_device->physical_device_handle());
 
         vk::CommandPoolCreateInfo command_pool_info(
             vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
             queue_family_indices.graphics_family.value()
         );
 
-        m_command_pool = m_device.createCommandPool(command_pool_info);
+        m_command_pool = m_device->logical_device_handle().createCommandPool(command_pool_info);
     }
 
     void Renderer_Vulkan::create_command_buffer()
@@ -322,7 +331,7 @@ namespace engine
         );
 
         // TODO: Probably unsafe
-        m_command_buffer = m_device.allocateCommandBuffers(alloc_info)[0];
+        m_command_buffer = m_device->logical_device_handle().allocateCommandBuffers(alloc_info)[0];
     }
 
     void Renderer_Vulkan::create_sync_objects()
@@ -331,9 +340,9 @@ namespace engine
         // Prevent blocking on first draw_frame by creating the fence in the signaled state
         vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits::eSignaled);
 
-        m_image_available_semaphore = m_device.createSemaphore(semaphore_info);
-        m_render_finished_semaphore = m_device.createSemaphore(semaphore_info);
-        m_in_flight_fence           = m_device.createFence(fence_info);
+        m_image_available_semaphore = m_device->logical_device_handle().createSemaphore(semaphore_info);
+        m_render_finished_semaphore = m_device->logical_device_handle().createSemaphore(semaphore_info);
+        m_in_flight_fence           = m_device->logical_device_handle().createFence(fence_info);
     }
 
     std::vector<const char*> Renderer_Vulkan::get_required_instance_extensions() const

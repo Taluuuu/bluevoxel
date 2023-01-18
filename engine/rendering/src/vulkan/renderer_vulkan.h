@@ -34,11 +34,11 @@ namespace engine
         // Vulkan wrapper getters
         // Get the renderer's swapchain instance. Must be called after the swapchain is initialized.
         const Swapchain_Vulkan& swapchain() const;
+        const Device_Vulkan&    device()    const;
 
         // Native Vulkan getters
         const vk::Instance&   instance()    const { return m_instance;    }
         const vk::SurfaceKHR& surface()     const { return m_surface;     }
-        const vk::Device&     device()      const { return m_device;      }
         const vk::RenderPass& render_pass() const { return m_render_pass; }
 
         struct SwapChainSupportDetails
@@ -76,7 +76,6 @@ namespace engine
 
         void create_instance(const char* game_name, const char* engine_name);
         void create_surface(const IWindow& window);
-        void create_logical_device();
         void create_image_views();
         void create_render_pass();
         void create_framebuffers();
@@ -98,9 +97,6 @@ namespace engine
         vk::Instance                 m_instance                  = nullptr;
         vk::SurfaceKHR               m_surface                   = nullptr;
 
-        vk::Queue                    m_graphics_queue            = nullptr;
-        vk::Queue                    m_present_queue             = nullptr;
-
         std::vector<vk::ImageView>   m_swapchain_image_views;
         std::vector<vk::Framebuffer> m_swapchain_framebuffers;
 
@@ -113,7 +109,7 @@ namespace engine
         vk::Semaphore                m_render_finished_semaphore = nullptr;
         vk::Fence                    m_in_flight_fence           = nullptr;
 
-        std::unique_ptr<Device_Vulkan>         m_physical_device = nullptr;
+        std::unique_ptr<Device_Vulkan>         m_device          = nullptr;
         std::unique_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;
         std::unique_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
         std::unique_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;

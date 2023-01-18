@@ -9,6 +9,19 @@
 
 namespace engine
 {
+    static bool physical_device_supports_extensions(const vk::PhysicalDevice& physical_device, const Renderer_Vulkan& renderer)
+    {
+        auto available_extensions = physical_device.enumerateDeviceExtensionProperties();
+        const auto& device_extensions = renderer.device_extensions();
+        std::set<std::string> required_extensions(
+            device_extensions.begin(), device_extensions.end());
+
+        for (const auto& extension : available_extensions)
+            required_extensions.erase(extension.extensionName);
+
+        return required_extensions.empty();
+    }
+
     static bool is_physical_device_suitable(const vk::PhysicalDevice& physical_device, const Renderer_Vulkan& renderer)
     {
         // https://vulkan-tutorial.com/Drawing_a_triangle/Setup/Physical_devices_and_queue_families
@@ -26,19 +39,6 @@ namespace engine
 
         auto indices = renderer.find_queue_families(physical_device);
         return indices.is_complete() && extensions_supported && is_swapchain_adequate;
-    }
-
-    static bool physical_device_supports_extensions(const vk::PhysicalDevice& physical_device, const Renderer_Vulkan& renderer)
-    {
-        auto available_extensions = physical_device.enumerateDeviceExtensionProperties();
-        const auto& device_extensions = renderer.device_extensions();
-        std::set<std::string> required_extensions(
-            device_extensions.begin(), device_extensions.end());
-
-        for (const auto& extension : available_extensions)
-            required_extensions.erase(extension.extensionName);
-
-        return required_extensions.empty();
     }
 
     static vk::PhysicalDevice select_physical_device(const Renderer_Vulkan& renderer)
@@ -75,11 +75,10 @@ namespace engine
 
         // TODO: .value() could throw
         std::vector<vk::DeviceQueueCreateInfo> queue_create_infos;
-        std::set<uint32_t> unique_queue_families = 
+        std::set<uint32_t> unique_queue_families =
         {
             indices.graphics_family.value(),
-            indices.present_family.value()
-        };
+            indices.present_family.value()};
 
         f32 queue_priority = 1.0f;
         for (u32 queue_family : unique_queue_families)
@@ -95,15 +94,15 @@ namespace engine
         auto device_extensions = renderer.device_extensions();
 
         vk::DeviceCreateInfo create_info({}, 
-            static_cast<u32>(queue_create_infos.size()),  queue_create_infos.data(),  // Queue create infos
-            0,                                            nullptr,                    // Validation layers
-            static_cast<u32>(device_extensions.size()), device_extensions.data(),     // Device extensions
+            static_cast<u32>(queue_create_infos.size()), queue_create_infos.data(), // Queue create infos
+            0,                                           nullptr,                   // Validation layers
+            static_cast<u32>(device_extensions.size()),  device_extensions.data(),  // Device extensions
             &device_features, 
             nullptr);
 
         if (renderer.enable_validation_layers())
         {
-            auto validation_layers = renderer.validation_layers();
+            const auto& validation_layers = renderer.validation_layers();
             create_info.enabledLayerCount = static_cast<u32>(validation_layers.size());
             create_info.ppEnabledLayerNames = validation_layers.data();
         }
@@ -136,16 +135,48 @@ namespace engine
         if (!logical_device)
             return nullptr;
 
-        return std::unique_ptr<Device_Vulkan>(new Device_Vulkan(physical_device, logical_device));
+        return std::unique_ptr<Device_Vulkan>(new Device_Vulkan(physical_device, logical_device, graphics_queue, present_queue));
     }
 
-    vk::Device Device_Vulkan::create_device(const vk::DeviceCreateInfo& create_info) const
+    vk::CommandBuffer Device_Vulkan::allocate_command_buffer(const vk::CommandPool& command_pool) const
     {
-        return m_physical_device_handle.createDevice(create_info);
+        vk::CommandBufferAllocateInfo alloc_info(
+            command_pool,
+            vk::CommandBufferLevel::ePrimary,
+            1
+        );
+
+        // TODO: Might be unsafe
+        return m_logical_device_handle.allocateCommandBuffers(alloc_info)[0];
     }
 
-    Device_Vulkan::Device_Vulkan(const vk::PhysicalDevice& physical_device_handle, const vk::Device& logical_device_handle)
+    vk::Pipeline Device_Vulkan::create_pipeline(const vk::GraphicsPipelineCreateInfo& create_info) const
+    {
+        auto result = m_logical_device_handle.createGraphicsPipeline(nullptr, create_info);
+        if (result.result == vk::Result::eSuccess)
+            return result.value;
+
+        return nullptr;
+    }
+
+    vk::PipelineLayout Device_Vulkan::create_pipeline_layout(const vk::PipelineLayoutCreateInfo& create_info) const
+    {
+        return m_logical_device_handle.createPipelineLayout(create_info);
+    }
+
+    void Device_Vulkan::destroy_pipeline(const vk::Pipeline& pipeline, const vk::PipelineLayout& pipeline_layout) const
+    {
+        if (pipeline)
+            m_logical_device_handle.destroyPipeline(pipeline);
+
+        if (pipeline_layout)
+            m_logical_device_handle.destroyPipelineLayout(pipeline_layout);
+    }
+
+    Device_Vulkan::Device_Vulkan(const vk::PhysicalDevice& physical_device_handle, const vk::Device& logical_device_handle, const vk::Queue& graphics_queue, const vk::Queue& present_queue)
         : m_physical_device_handle(physical_device_handle)
         , m_logical_device_handle(logical_device_handle)
+        , m_graphics_queue(graphics_queue)
+        , m_present_queue(present_queue)
     {}
 }
