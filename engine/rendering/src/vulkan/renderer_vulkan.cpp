@@ -46,7 +46,7 @@ namespace engine
         }
 
         // TODO: Change this stupid constructor
-        m_swapchain = Swapchain_Vulkan::create(*this, window, m_device->physical_device_handle(), m_device->logical_device_handle());
+        m_swapchain = Swapchain_Vulkan::create(*this, window, m_device->physical_device_handle(), m_device->handle());
         if (!m_swapchain)
         {
             // TODO: Destroy previously allocated resources
@@ -73,63 +73,72 @@ namespace engine
         create_framebuffers();
         create_command_pool();
 
-        m_command_buffer = m_device->allocate_command_buffer(m_command_pool);
+        create_command_buffers();
 
-        create_command_buffer();
         create_sync_objects();
     }
 
     Renderer_Vulkan::~Renderer_Vulkan()
     {
-        m_device->logical_device_handle().destroySemaphore(m_image_available_semaphore);
-        m_device->logical_device_handle().destroySemaphore(m_render_finished_semaphore);
-        m_device->logical_device_handle().destroyFence(m_in_flight_fence);
+        for (size_t i = 0; i < max_frames_in_flight; i++)
+        {
+            m_device->handle().destroySemaphore(m_image_available_semaphores[i]);
+            m_device->handle().destroySemaphore(m_render_finished_semaphores[i]);
+            m_device->handle().destroyFence(m_in_flight_fences[i]);
+        }
 
-        m_device->logical_device_handle().destroyCommandPool(m_command_pool);
+        m_device->handle().destroyCommandPool(m_command_pool);
 
         for (const auto& framebuffer : m_swapchain_framebuffers)
-            m_device->logical_device_handle().destroyFramebuffer(framebuffer);
+            m_device->handle().destroyFramebuffer(framebuffer);
         
         m_pipeline.reset();
-        m_device->logical_device_handle().destroyRenderPass(m_render_pass);
+        m_device->handle().destroyRenderPass(m_render_pass);
 
         for (const auto& image_view : m_swapchain_image_views)
-            m_device->logical_device_handle().destroyImageView(image_view);
+            m_device->handle().destroyImageView(image_view);
 
         m_swapchain.reset();
-        m_device->logical_device_handle().destroy();
+        m_device->handle().destroy();
 
         m_instance.destroySurfaceKHR(m_surface);
         m_debug_messenger.reset();
         m_instance.destroy();
     }
 
-    void Renderer_Vulkan::draw_frame() const
+    void Renderer_Vulkan::draw_frame()
     {
         assert(m_swapchain);
 
+        const auto& image_available_semaphore = m_image_available_semaphores[m_current_frame];
+        const auto& render_finished_semaphore = m_render_finished_semaphores[m_current_frame];
+        const auto& in_flight_fence = m_in_flight_fences[m_current_frame];
+        const auto& command_buffer = m_command_buffers[m_current_frame];
+
         // TODO: Figure out why nodiscard
-        auto wait_fence_result = m_device->logical_device_handle().waitForFences(m_in_flight_fence, VK_TRUE, UINT64_MAX);
-        m_device->logical_device_handle().resetFences(m_in_flight_fence);
+        auto wait_fence_result = m_device->handle().waitForFences(in_flight_fence, VK_TRUE, UINT64_MAX);
+        m_device->handle().resetFences(in_flight_fence);
 
         // TODO: Check this .value i'm really fucking tired so i trust future me to do it
         u32 image_index = 
-            m_device->logical_device_handle().acquireNextImageKHR(m_swapchain->handle(), UINT64_MAX, m_image_available_semaphore, nullptr).value;
+            m_device->handle().acquireNextImageKHR(m_swapchain->handle(), UINT64_MAX, image_available_semaphore, nullptr).value;
 
-        m_command_buffer.reset();
-        record_command_buffer(m_command_buffer, image_index);
+        command_buffer.reset();
 
-        vk::Semaphore wait_semaphores[]   = { m_image_available_semaphore };
-        vk::Semaphore signal_semaphores[] = { m_render_finished_semaphore };
+        // More efficient not to record command buffer every frame
+        record_command_buffer(command_buffer, image_index);
+
+        vk::Semaphore wait_semaphores[]   = { image_available_semaphore };
+        vk::Semaphore signal_semaphores[] = { render_finished_semaphore };
         vk::PipelineStageFlags wait_stages[] = { vk::PipelineStageFlagBits::eColorAttachmentOutput };
         vk::SubmitInfo submit_info(
             1, wait_semaphores,
             wait_stages,
-            1, &m_command_buffer,
+            1, &command_buffer,
             1, signal_semaphores
         );
 
-        m_device->graphics_queue().submit(submit_info, m_in_flight_fence);
+        m_device->graphics_queue().submit(submit_info, in_flight_fence);
 
         vk::PresentInfoKHR present_info(
             1, signal_semaphores,
@@ -142,7 +151,9 @@ namespace engine
         auto present_result = m_device->present_queue().presentKHR(present_info);
 
         // This may be better elsewhere
-        m_device->logical_device_handle().waitIdle();
+        m_device->handle().waitIdle();
+
+        m_current_frame = (m_current_frame + 1) % max_frames_in_flight;
     }
 
     IPipeline& Renderer_Vulkan::create_pipeline() const
@@ -239,7 +250,7 @@ namespace engine
                 subresource_range
             );
 
-            m_swapchain_image_views[i] = m_device->logical_device_handle().createImageView(create_info);
+            m_swapchain_image_views[i] = m_device->handle().createImageView(create_info);
         }
     }
 
@@ -285,7 +296,7 @@ namespace engine
             1, &dependency
         );
 
-        m_render_pass = m_device->logical_device_handle().createRenderPass(render_pass_create_info);
+        m_render_pass = m_device->handle().createRenderPass(render_pass_create_info);
     }
 
     void Renderer_Vulkan::create_framebuffers()
@@ -306,12 +317,13 @@ namespace engine
                 m_swapchain->extent().width, m_swapchain->extent().height, 1
             );
 
-            m_swapchain_framebuffers[i] = m_device->logical_device_handle().createFramebuffer(framebuffer_info);
+            m_swapchain_framebuffers[i] = m_device->handle().createFramebuffer(framebuffer_info);
         }
     }
 
     void Renderer_Vulkan::create_command_pool()
     {
+        // TODO: The device wrapper class should return queue families
         auto queue_family_indices = find_queue_families(m_device->physical_device_handle());
 
         vk::CommandPoolCreateInfo command_pool_info(
@@ -319,30 +331,38 @@ namespace engine
             queue_family_indices.graphics_family.value()
         );
 
-        m_command_pool = m_device->logical_device_handle().createCommandPool(command_pool_info);
+        m_command_pool = m_device->handle().createCommandPool(command_pool_info);
     }
 
-    void Renderer_Vulkan::create_command_buffer()
+    void Renderer_Vulkan::create_command_buffers()
     {
+        m_command_buffers.resize(max_frames_in_flight);
+
         vk::CommandBufferAllocateInfo alloc_info(
             m_command_pool,
             vk::CommandBufferLevel::ePrimary,
-            1
+            m_command_buffers.size()
         );
 
-        // TODO: Probably unsafe
-        m_command_buffer = m_device->logical_device_handle().allocateCommandBuffers(alloc_info)[0];
+        m_command_buffers = m_device->handle().allocateCommandBuffers(alloc_info);
     }
 
     void Renderer_Vulkan::create_sync_objects()
     {
+        m_image_available_semaphores.resize(max_frames_in_flight);
+        m_render_finished_semaphores.resize(max_frames_in_flight);
+        m_in_flight_fences.resize(max_frames_in_flight);
+
         vk::SemaphoreCreateInfo semaphore_info({});
         // Prevent blocking on first draw_frame by creating the fence in the signaled state
         vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits::eSignaled);
 
-        m_image_available_semaphore = m_device->logical_device_handle().createSemaphore(semaphore_info);
-        m_render_finished_semaphore = m_device->logical_device_handle().createSemaphore(semaphore_info);
-        m_in_flight_fence           = m_device->logical_device_handle().createFence(fence_info);
+        for (size_t i = 0; i < max_frames_in_flight; i++)
+        {
+            m_image_available_semaphores[i] = m_device->handle().createSemaphore(semaphore_info);
+            m_render_finished_semaphores[i] = m_device->handle().createSemaphore(semaphore_info);
+            m_in_flight_fences[i]           = m_device->handle().createFence(fence_info);
+        }
     }
 
     std::vector<const char*> Renderer_Vulkan::get_required_instance_extensions() const

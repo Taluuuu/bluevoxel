@@ -27,7 +27,7 @@ namespace engine
         vk::ShaderModule shader = nullptr;
         try
         {
-            shader = renderer.device().logical_device_handle().createShaderModule(create_info);
+            shader = renderer.device().handle().createShaderModule(create_info);
         }
         catch (const std::exception& e)
         {
@@ -49,7 +49,7 @@ namespace engine
     Shader_Vulkan::~Shader_Vulkan()
     {
         if (m_shader_handle)
-            m_renderer->device().logical_device_handle().destroyShaderModule(m_shader_handle);
+            m_renderer->device().handle().destroyShaderModule(m_shader_handle);
     }
 
     static vk::ShaderStageFlagBits shader_stage_bits(engine::ShaderStage stage)

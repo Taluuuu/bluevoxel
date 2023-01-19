@@ -14,7 +14,7 @@ namespace engine
         virtual ~IRenderer() {}
 
         // TODO: Make this accessible only by the rendering module
-        virtual void draw_frame() const = 0;
+        virtual void draw_frame() = 0;
 
         virtual IPipeline& create_pipeline() const = 0;
 

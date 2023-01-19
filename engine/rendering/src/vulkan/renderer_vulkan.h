@@ -28,7 +28,7 @@ namespace engine
         Renderer_Vulkan(Renderer_Vulkan&&) = delete;
 
         // IRenderer interface
-        virtual void draw_frame() const override;
+        virtual void draw_frame() override;
         virtual IPipeline& create_pipeline() const override;
 
         // Vulkan wrapper getters
@@ -80,7 +80,7 @@ namespace engine
         void create_render_pass();
         void create_framebuffers();
         void create_command_pool();
-        void create_command_buffer();
+        void create_command_buffers();
         void create_sync_objects();
 
         std::vector<const char*> get_required_instance_extensions() const;
@@ -94,20 +94,27 @@ namespace engine
 
     private:
 
-        vk::Instance                 m_instance                  = nullptr;
-        vk::SurfaceKHR               m_surface                   = nullptr;
+        vk::Instance                   m_instance                  = nullptr;
+        vk::SurfaceKHR                 m_surface                   = nullptr;
 
-        std::vector<vk::ImageView>   m_swapchain_image_views;
-        std::vector<vk::Framebuffer> m_swapchain_framebuffers;
+        std::vector<vk::ImageView>     m_swapchain_image_views;
+        std::vector<vk::Framebuffer>   m_swapchain_framebuffers;
 
-        vk::RenderPass               m_render_pass               = nullptr;
+        vk::RenderPass                 m_render_pass               = nullptr;
 
-        vk::CommandPool              m_command_pool              = nullptr;
-        vk::CommandBuffer            m_command_buffer            = nullptr;
+        vk::CommandPool                m_command_pool              = nullptr;
 
-        vk::Semaphore                m_image_available_semaphore = nullptr;
-        vk::Semaphore                m_render_finished_semaphore = nullptr;
-        vk::Fence                    m_in_flight_fence           = nullptr;
+        // Allows the program to start rendering the next frame while the current frame is still drawing.
+        // 3 or more frames in flight could add latency, so 2 is good
+        static constexpr u32 max_frames_in_flight = 2;
+        u32 m_current_frame = 0;
+
+        // These will probably be need to be grouped together in some wrapper class
+        // Their size is always max_frames_in_flight, so maybe an std::array would be better
+        std::vector<vk::CommandBuffer> m_command_buffers;
+        std::vector<vk::Semaphore>     m_image_available_semaphores;
+        std::vector<vk::Semaphore>     m_render_finished_semaphores;
+        std::vector<vk::Fence>         m_in_flight_fences;
 
         std::unique_ptr<Device_Vulkan>         m_device          = nullptr;
         std::unique_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;

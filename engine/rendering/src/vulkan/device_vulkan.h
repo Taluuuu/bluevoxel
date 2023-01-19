@@ -17,12 +17,11 @@ namespace engine
         Device_Vulkan(Device_Vulkan&&) = delete;
         ~Device_Vulkan() = default;
 
+        // TODO: Remove the physical device handle
         const vk::PhysicalDevice& physical_device_handle() const { return m_physical_device_handle; }
-        const vk::Device&         logical_device_handle()  const { return m_logical_device_handle;  }
+        const vk::Device&         handle()                 const { return m_logical_device_handle;  }
         const vk::Queue&          graphics_queue()         const { return m_graphics_queue;         }
         const vk::Queue&          present_queue()          const { return m_present_queue;          }
-
-        vk::CommandBuffer allocate_command_buffer(const vk::CommandPool& command_pool) const;
 
         // Pipeline
         vk::Pipeline       create_pipeline(const vk::GraphicsPipelineCreateInfo& create_info) const;

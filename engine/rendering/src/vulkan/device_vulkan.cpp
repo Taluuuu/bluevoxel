@@ -138,18 +138,6 @@ namespace engine
         return std::unique_ptr<Device_Vulkan>(new Device_Vulkan(physical_device, logical_device, graphics_queue, present_queue));
     }
 
-    vk::CommandBuffer Device_Vulkan::allocate_command_buffer(const vk::CommandPool& command_pool) const
-    {
-        vk::CommandBufferAllocateInfo alloc_info(
-            command_pool,
-            vk::CommandBufferLevel::ePrimary,
-            1
-        );
-
-        // TODO: Might be unsafe
-        return m_logical_device_handle.allocateCommandBuffers(alloc_info)[0];
-    }
-
     vk::Pipeline Device_Vulkan::create_pipeline(const vk::GraphicsPipelineCreateInfo& create_info) const
     {
         auto result = m_logical_device_handle.createGraphicsPipeline(nullptr, create_info);
