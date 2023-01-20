@@ -17,6 +17,8 @@ namespace engine
         Device_Vulkan(Device_Vulkan&&) = delete;
         ~Device_Vulkan() = default;
 
+        void wait_idle() const { m_logical_device_handle.waitIdle(); }
+
         // TODO: Remove the physical device handle
         const vk::PhysicalDevice& physical_device_handle() const { return m_physical_device_handle; }
         const vk::Device&         handle()                 const { return m_logical_device_handle;  }

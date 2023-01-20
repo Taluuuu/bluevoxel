@@ -45,12 +45,17 @@ namespace engine
 
     private:
 
-        vk::SwapchainKHR       m_swapchain_handle = nullptr;
-        std::vector<vk::Image> m_images;
-        vk::Format             m_image_format;
-        vk::Extent2D           m_extent;
+        vk::SwapchainKHR             m_swapchain_handle = nullptr;
 
-        vk::Device             m_device = nullptr;
+        std::vector<vk::Image>       m_images;
+        std::vector<vk::ImageView>   m_image_views;
+        std::vector<vk::Framebuffer> m_framebuffers;
+
+        vk::Format                   m_image_format;
+        vk::Extent2D                 m_extent;
+
+        // Would probably be better to store a pointer to the wrapper class
+        vk::Device                   m_device = nullptr;
 
     };
 }

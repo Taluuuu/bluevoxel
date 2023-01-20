@@ -1,7 +1,9 @@
 #include "device_vulkan.h"
 
-#include "core/log.h"
 #include "renderer_vulkan.h"
+#include "surface_vulkan.h"
+
+#include "core/log.h"
 
 #include <set>
 #include <string>
@@ -29,11 +31,11 @@ namespace engine
 
         bool extensions_supported = physical_device_supports_extensions(physical_device, renderer);
 
-        auto surface = renderer.surface();
+        const auto& surface = renderer.surface();
         bool is_swapchain_adequate = false;
         if (extensions_supported)
         {
-            auto swapchain_support = renderer.query_swapchain_support(physical_device);
+            auto swapchain_support = surface.query_swapchain_support(physical_device);
             is_swapchain_adequate = swapchain_support.is_adequate();
         }
 
@@ -134,12 +136,14 @@ namespace engine
         auto logical_device = create_logical_device(physical_device, renderer, graphics_queue, present_queue);
         if (!logical_device)
             return nullptr;
+        // TODO: error msg
 
         return std::unique_ptr<Device_Vulkan>(new Device_Vulkan(physical_device, logical_device, graphics_queue, present_queue));
     }
 
     vk::Pipeline Device_Vulkan::create_pipeline(const vk::GraphicsPipelineCreateInfo& create_info) const
     {
+        // TODO: createGraphicsPipeline can throw
         auto result = m_logical_device_handle.createGraphicsPipeline(nullptr, create_info);
         if (result.result == vk::Result::eSuccess)
             return result.value;

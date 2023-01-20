@@ -26,7 +26,7 @@ namespace engine
         virtual bool should_close() const override;
         virtual f64 delta_time() const override;
         virtual void poll_events() const override;
-        virtual void* wrapped_window_handle() const override;
+        virtual void* handle() const override;
         virtual void swap_buffers(f64 max_fps = 60.0) override;
 
     private:

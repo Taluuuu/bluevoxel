@@ -9,6 +9,7 @@
 #include "device_vulkan.h"
 #include "pipeline_vulkan.h"
 #include "shader_vulkan.h"
+#include "surface_vulkan.h"
 #include "swapchain_vulkan.h"
 
 // GLFW for Vulkan
@@ -28,6 +29,9 @@ namespace engine
 {
     Renderer_Vulkan::Renderer_Vulkan(const GameInfo& game_info, const IWindow& window)
     {
+        // TODO: Return raw pointers from my create functions
+        // and store them into smart pointers here
+
         // TODO: Make sure to destroy the instance if setup_debug_messenger fails.
         create_instance(game_info.game_name.data(), game_info.engine_name.data());
 
@@ -37,7 +41,11 @@ namespace engine
             throw std::runtime_error("Failed to create debug messenger.");
         }
 
-        create_surface(window);
+        m_surface = Surface_Vulkan::create(window, *this);
+        if (!m_surface)
+        {
+            throw std::runtime_error("Failed to create vulkan surface");
+        }
 
         m_device = Device_Vulkan::create(*this);
         if (!m_device)
@@ -52,8 +60,22 @@ namespace engine
             // TODO: Destroy previously allocated resources
             throw std::runtime_error("Failed to create swapchain.");
         }
-
         create_image_views();
+
+        // Pipeline needs to go before render pass, and render pass needs
+        // to go before framebuffers
+
+        // Pipeline could go after render pass, the only info needed from it
+        // is the surface format which is obtained with the physical device
+        // and the surface
+
+        // Render pass NEEDS to be before framebuffer though
+        // The pipeline can then go after the framebuffers and render pass
+
+        // Then I can group framebuffers and image views with the swapchain
+
+        // Sounds like stuff to do for tomorrow me
+
         create_render_pass();
 
         // Pipeline creation here is temporary; pipelines will be created in game code
@@ -71,6 +93,7 @@ namespace engine
         }
 
         create_framebuffers();
+
         create_command_pool();
 
         create_command_buffers();
@@ -101,7 +124,7 @@ namespace engine
         m_swapchain.reset();
         m_device->handle().destroy();
 
-        m_instance.destroySurfaceKHR(m_surface);
+        m_surface.reset();
         m_debug_messenger.reset();
         m_instance.destroy();
     }
@@ -163,13 +186,19 @@ namespace engine
         return *m_pipeline;
     }
 
-    const Swapchain_Vulkan &Renderer_Vulkan::swapchain() const
+    const Surface_Vulkan& Renderer_Vulkan::surface() const
+    {
+        assert(m_surface);
+        return *m_surface;
+    }
+
+    const Swapchain_Vulkan& Renderer_Vulkan::swapchain() const
     {
         assert(m_swapchain);
         return *m_swapchain;
     }
 
-    const Device_Vulkan &Renderer_Vulkan::device() const
+    const Device_Vulkan& Renderer_Vulkan::device() const
     {
         assert(m_device);
         return *m_device;
@@ -207,21 +236,6 @@ namespace engine
         }
 
         m_instance = vk::createInstance(create_info);
-    }
-
-    void Renderer_Vulkan::create_surface(const IWindow& window)
-    {
-        VkSurfaceKHR surface = m_surface;
-        auto result = glfwCreateWindowSurface(
-            m_instance, 
-            reinterpret_cast<GLFWwindow*>(window.wrapped_window_handle()), 
-            nullptr, 
-            &surface);
-
-        m_surface = surface;
-
-        if (result != VK_SUCCESS)
-            throw std::runtime_error("Failed to create GLFW window surface.");
     }
 
     void Renderer_Vulkan::create_image_views()
@@ -365,6 +379,18 @@ namespace engine
         }
     }
 
+    void Renderer_Vulkan::recreate_swapchain()
+    {
+        assert(m_device);
+
+        // Don't touch resources that can still be in use
+        m_device->wait_idle();
+
+        // create_swapchain();
+        create_image_views();
+        create_framebuffers();
+    }
+
     std::vector<const char*> Renderer_Vulkan::get_required_instance_extensions() const
     {
         u32 glfw_extension_count = 0;
@@ -404,19 +430,11 @@ namespace engine
 
     }
 
-    Renderer_Vulkan::SwapChainSupportDetails Renderer_Vulkan::query_swapchain_support(const vk::PhysicalDevice &device) const
-    {
-        return SwapChainSupportDetails
-        {
-            .capabilities  = device.getSurfaceCapabilitiesKHR(m_surface),
-            .formats       = device.getSurfaceFormatsKHR(m_surface),
-            .present_modes = device.getSurfacePresentModesKHR(m_surface),
-        };
-    }
-
     Renderer_Vulkan::QueueFamilyIndices Renderer_Vulkan::find_queue_families(
         const vk::PhysicalDevice &device) const
     {
+        assert(m_surface);
+        
         QueueFamilyIndices indices;
 
         // TODO: Prioritize queue families with the same queue indices
@@ -428,7 +446,7 @@ namespace engine
             if (queue_family.queueFlags & vk::QueueFlagBits::eGraphics)
                 indices.graphics_family = i;
 
-            if (device.getSurfaceSupportKHR(i, m_surface))
+            if (m_surface->surface_support(device, i))
                 indices.present_family = i;
 
             if (indices.is_complete())

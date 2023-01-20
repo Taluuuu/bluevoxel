@@ -56,7 +56,7 @@ namespace engine
         // Managing window input?
     }
 
-    void *Window_GLFW::wrapped_window_handle() const
+    void *Window_GLFW::handle() const
     {
         return m_handle;
     }

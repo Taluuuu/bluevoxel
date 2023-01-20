@@ -1,7 +1,9 @@
 #include "swapchain_vulkan.h"
 
-#include "core/log.h"
 #include "renderer_vulkan.h"
+#include "surface_vulkan.h"
+
+#include "core/log.h"
 #include "windowing/window.h"
 
 namespace engine
@@ -12,7 +14,7 @@ namespace engine
         const vk::PhysicalDevice& physical_device,
         const vk::Device& device)
     {
-        auto swapchain_support = renderer.query_swapchain_support(physical_device);
+        auto swapchain_support = renderer.surface().query_swapchain_support(physical_device);
 
         auto surface_format = choose_swap_surface_format(swapchain_support.formats);
         auto present_mode = choose_swap_present_mode(swapchain_support.present_modes);
@@ -29,7 +31,7 @@ namespace engine
         // to a separate image first to do post processing
         // https://vulkan-tutorial.com/en/Drawing_a_triangle/Presentation/swapchain
         vk::SwapchainCreateInfoKHR create_info({},
-            renderer.surface(), 
+            renderer.surface().handle(), 
             image_count, 
             surface_format.format, 
             surface_format.colorSpace, 

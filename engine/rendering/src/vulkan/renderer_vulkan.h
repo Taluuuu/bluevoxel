@@ -15,6 +15,7 @@ namespace engine
     class DebugMessenger_Vulkan;
     class Pipeline_Vulkan;
     class Device_Vulkan;
+    class Surface_Vulkan;
     class Swapchain_Vulkan;
 
     class Renderer_Vulkan : public IRenderer
@@ -28,34 +29,18 @@ namespace engine
         Renderer_Vulkan(Renderer_Vulkan&&) = delete;
 
         // IRenderer interface
-        virtual void draw_frame() override;
+        virtual void       draw_frame()            override;
         virtual IPipeline& create_pipeline() const override;
 
         // Vulkan wrapper getters
         // Get the renderer's swapchain instance. Must be called after the swapchain is initialized.
+        const Surface_Vulkan&   surface()   const;
         const Swapchain_Vulkan& swapchain() const;
         const Device_Vulkan&    device()    const;
 
         // Native Vulkan getters
         const vk::Instance&   instance()    const { return m_instance;    }
-        const vk::SurfaceKHR& surface()     const { return m_surface;     }
         const vk::RenderPass& render_pass() const { return m_render_pass; }
-
-        struct SwapChainSupportDetails
-        {
-            vk::SurfaceCapabilitiesKHR capabilities;
-            std::vector<vk::SurfaceFormatKHR> formats;
-            std::vector<vk::PresentModeKHR> present_modes;
-
-            bool is_adequate() const
-            {
-                return
-                    !formats.empty() &&
-                    !present_modes.empty();
-            }
-        };
-
-        SwapChainSupportDetails query_swapchain_support(const vk::PhysicalDevice& device) const;
 
         struct QueueFamilyIndices
         {
@@ -75,13 +60,14 @@ namespace engine
     private:
 
         void create_instance(const char* game_name, const char* engine_name);
-        void create_surface(const IWindow& window);
         void create_image_views();
         void create_render_pass();
         void create_framebuffers();
         void create_command_pool();
         void create_command_buffers();
         void create_sync_objects();
+
+        void recreate_swapchain();
 
         std::vector<const char*> get_required_instance_extensions() const;
         bool validation_layers_are_supported() const;
@@ -94,15 +80,12 @@ namespace engine
 
     private:
 
-        vk::Instance                   m_instance                  = nullptr;
-        vk::SurfaceKHR                 m_surface                   = nullptr;
+        vk::Instance    m_instance     = nullptr;
+        vk::RenderPass  m_render_pass  = nullptr;
+        vk::CommandPool m_command_pool = nullptr;
 
         std::vector<vk::ImageView>     m_swapchain_image_views;
         std::vector<vk::Framebuffer>   m_swapchain_framebuffers;
-
-        vk::RenderPass                 m_render_pass               = nullptr;
-
-        vk::CommandPool                m_command_pool              = nullptr;
 
         // Allows the program to start rendering the next frame while the current frame is still drawing.
         // 3 or more frames in flight could add latency, so 2 is good
@@ -119,6 +102,8 @@ namespace engine
         std::unique_ptr<Device_Vulkan>         m_device          = nullptr;
         std::unique_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;
         std::unique_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
+        std::unique_ptr<Surface_Vulkan>        m_surface         = nullptr;
+
         std::unique_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;
 
         // TODO: Make below constexpr

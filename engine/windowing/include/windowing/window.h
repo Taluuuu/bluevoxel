@@ -51,7 +51,7 @@ namespace engine
          * 
          * @return void* 
          */
-        virtual void* wrapped_window_handle() const = 0;
+        virtual void* handle() const = 0;
 
         /**
          * @brief Swap the window's buffers
