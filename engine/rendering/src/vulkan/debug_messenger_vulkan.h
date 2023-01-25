@@ -11,8 +11,7 @@ namespace engine
     {
     public:
 
-        static std::unique_ptr<DebugMessenger_Vulkan> create(
-            const Renderer_Vulkan& renderer);
+        static DebugMessenger_Vulkan* create(const Renderer_Vulkan& renderer);
 
         DebugMessenger_Vulkan(const DebugMessenger_Vulkan&) = delete;
         DebugMessenger_Vulkan(DebugMessenger_Vulkan&&) = delete;

@@ -39,8 +39,7 @@ namespace engine
         const Device_Vulkan&    device()    const;
 
         // Native Vulkan getters
-        const vk::Instance&   instance()    const { return m_instance;    }
-        const vk::RenderPass& render_pass() const { return m_render_pass; }
+        const vk::Instance& instance() const { return m_instance; }
 
         struct QueueFamilyIndices
         {
@@ -81,11 +80,7 @@ namespace engine
     private:
 
         vk::Instance    m_instance     = nullptr;
-        vk::RenderPass  m_render_pass  = nullptr;
         vk::CommandPool m_command_pool = nullptr;
-
-        std::vector<vk::ImageView>     m_swapchain_image_views;
-        std::vector<vk::Framebuffer>   m_swapchain_framebuffers;
 
         // Allows the program to start rendering the next frame while the current frame is still drawing.
         // 3 or more frames in flight could add latency, so 2 is good
@@ -103,7 +98,6 @@ namespace engine
         std::unique_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;
         std::unique_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
         std::unique_ptr<Surface_Vulkan>        m_surface         = nullptr;
-
         std::unique_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;
 
         // TODO: Make below constexpr

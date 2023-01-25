@@ -35,9 +35,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debug_callback(
 
 namespace engine
 {
-    std::unique_ptr<DebugMessenger_Vulkan> DebugMessenger_Vulkan::create(const Renderer_Vulkan& renderer)
+    DebugMessenger_Vulkan* DebugMessenger_Vulkan::create(const Renderer_Vulkan& renderer)
     {
-        auto instance = renderer.instance();
+        const auto& instance = renderer.instance();
 
         pfnVkCreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(instance.getProcAddr("vkCreateDebugUtilsMessengerEXT"));
         if (!pfnVkCreateDebugUtilsMessengerEXT)
@@ -53,7 +53,7 @@ namespace engine
         try
         {
             auto messenger_handle = instance.createDebugUtilsMessengerEXT(create_info);
-            return std::unique_ptr<DebugMessenger_Vulkan>(new DebugMessenger_Vulkan(messenger_handle, renderer));
+            return new DebugMessenger_Vulkan(messenger_handle, renderer);
         }
         catch (const std::exception& e)
         {

@@ -123,7 +123,7 @@ namespace engine
         }
     }
 
-    std::unique_ptr<Device_Vulkan> Device_Vulkan::create(const Renderer_Vulkan& renderer)
+    Device_Vulkan* Device_Vulkan::create(const Renderer_Vulkan& renderer)
     {
         auto physical_device = select_physical_device(renderer);
         if (!physical_device)
@@ -138,7 +138,7 @@ namespace engine
             return nullptr;
         // TODO: error msg
 
-        return std::unique_ptr<Device_Vulkan>(new Device_Vulkan(physical_device, logical_device, graphics_queue, present_queue));
+        return new Device_Vulkan(physical_device, logical_device, graphics_queue, present_queue);
     }
 
     vk::Pipeline Device_Vulkan::create_pipeline(const vk::GraphicsPipelineCreateInfo& create_info) const

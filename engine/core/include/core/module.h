@@ -14,7 +14,7 @@ namespace engine
     public:
 
         Module(Engine& engine);
-        ~Module() {}
+        virtual ~Module() {}
 
         /**
          * @brief Try initializing the module

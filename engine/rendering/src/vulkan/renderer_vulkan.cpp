@@ -35,26 +35,26 @@ namespace engine
         // TODO: Make sure to destroy the instance if setup_debug_messenger fails.
         create_instance(game_info.game_name.data(), game_info.engine_name.data());
 
-        m_debug_messenger = DebugMessenger_Vulkan::create(*this);
+        m_debug_messenger.reset(DebugMessenger_Vulkan::create(*this));
         if (!m_debug_messenger)
         {
             throw std::runtime_error("Failed to create debug messenger.");
         }
 
-        m_surface = Surface_Vulkan::create(window, *this);
+        m_surface.reset(Surface_Vulkan::create(window, *this));
         if (!m_surface)
         {
             throw std::runtime_error("Failed to create vulkan surface");
         }
 
-        m_device = Device_Vulkan::create(*this);
+        m_device.reset(Device_Vulkan::create(*this));
         if (!m_device)
         {
             throw std::runtime_error("Failed to pick physical device.");
         }
 
         // TODO: Change this stupid constructor
-        m_swapchain = Swapchain_Vulkan::create(*this, window, m_device->physical_device_handle(), m_device->handle());
+        m_swapchain.reset(Swapchain_Vulkan::create(*this, window, m_device->physical_device_handle(), m_device->handle()));
         if (!m_swapchain)
         {
             // TODO: Destroy previously allocated resources
@@ -78,6 +78,9 @@ namespace engine
 
         create_render_pass();
 
+        // Old framebuffer pos
+        create_framebuffers();
+
         // Pipeline creation here is temporary; pipelines will be created in game code
         // or in more abstract mesh renderers in the engine
         m_pipeline = std::make_unique<Pipeline_Vulkan>(*this);
@@ -91,8 +94,6 @@ namespace engine
             // TODO: Destroy previously allocated resources
             throw std::runtime_error("Failed to create graphics pipeline.");
         }
-
-        create_framebuffers();
 
         create_command_pool();
 

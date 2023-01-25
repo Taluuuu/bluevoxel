@@ -17,6 +17,7 @@ target_link_libraries(game
         core
         rendering
         windowing
+        voxels
 )
 
 target_include_directories(game
@@ -24,6 +25,7 @@ target_include_directories(game
         core
         rendering
         windowing
+        voxels
         
         include/
 )

@@ -15,7 +15,7 @@ namespace engine
     {
     public:
 
-        static std::unique_ptr<Surface_Vulkan> create(const IWindow& window, const Renderer_Vulkan& renderer);
+        static Surface_Vulkan* create(const IWindow& window, const Renderer_Vulkan& renderer);
 
         Surface_Vulkan(const Surface_Vulkan&) = delete;
         Surface_Vulkan(Surface_Vulkan&&) = delete;

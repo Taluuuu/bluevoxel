@@ -24,6 +24,7 @@ add_subdirectory(lib/fmt)
 add_subdirectory(core)
 add_subdirectory(windowing)
 add_subdirectory(rendering)
+add_subdirectory(voxels)
 
 # Add this resource path
 set(RESOURCE_PATHS ${RESOURCE_PATHS};${CMAKE_CURRENT_SOURCE_DIR}/res PARENT_SCOPE)

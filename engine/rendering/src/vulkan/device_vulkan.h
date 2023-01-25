@@ -10,8 +10,7 @@ namespace engine
     {
     public:
 
-        static std::unique_ptr<Device_Vulkan> create(
-            const Renderer_Vulkan& renderer);
+        static Device_Vulkan* create(const Renderer_Vulkan& renderer);
 
         Device_Vulkan(const Device_Vulkan&) = delete;
         Device_Vulkan(Device_Vulkan&&) = delete;

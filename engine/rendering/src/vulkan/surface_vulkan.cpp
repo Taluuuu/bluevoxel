@@ -14,7 +14,7 @@
 
 namespace engine
 {
-    std::unique_ptr<Surface_Vulkan> Surface_Vulkan::create(const IWindow& window, const Renderer_Vulkan& renderer)
+    Surface_Vulkan* Surface_Vulkan::create(const IWindow& window, const Renderer_Vulkan& renderer)
     {
         VkSurfaceKHR surface;
         auto result = glfwCreateWindowSurface(
@@ -29,7 +29,7 @@ namespace engine
             return nullptr;
         }
 
-        return std::unique_ptr<Surface_Vulkan>(new Surface_Vulkan(surface, renderer));
+        return new Surface_Vulkan(surface, renderer);
     }
 
     Surface_Vulkan::~Surface_Vulkan()

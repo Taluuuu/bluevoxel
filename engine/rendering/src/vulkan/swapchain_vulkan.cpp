@@ -1,5 +1,6 @@
 #include "swapchain_vulkan.h"
 
+#include "device_vulkan.h"
 #include "renderer_vulkan.h"
 #include "surface_vulkan.h"
 
@@ -8,17 +9,107 @@
 
 namespace engine
 {
-    std::unique_ptr<Swapchain_Vulkan> Swapchain_Vulkan::create(
+    Swapchain_Vulkan* Swapchain_Vulkan::create(
         const Renderer_Vulkan& renderer, 
-        const IWindow& window, 
-        const vk::PhysicalDevice& physical_device,
-        const vk::Device& device)
+        const IWindow& window)
     {
+        auto device = renderer.device().handle();
+
+        vk::Format image_format;
+        auto swapchain = create_swapchain(renderer, window, image_format);
+        if (!swapchain)
+            return nullptr;
+
+        auto images = device.getSwapchainImagesKHR(swapchain);
+        auto image_views = create_image_views(renderer, swapchain, image_format, images);
+        if (image_views.empty())
+        {
+            device.destroySwapchainKHR(swapchain);
+            return nullptr;
+        }
+
+        auto render_pass = create_render_pass(device, image_format);
+        if (!render_pass)
+        {
+            for (const auto& image_view : image_views)
+                device.destroyImageView(image_view);
+            
+            device.destroySwapchainKHR(swapchain);
+            return nullptr;
+        }
+
+        try
+        {
+            // Sort le extent
+            return new Swapchain_Vulkan(
+                swapchain,
+                render_pass,
+                extent;
+        }
+        catch (const std::exception& e)
+        {
+            log::error("Failed to create Vulkan swapchain: {}", e.what());
+            return nullptr;
+        }
+    }
+
+    Swapchain_Vulkan::~Swapchain_Vulkan()
+    {
+        m_device.destroySwapchainKHR(m_swapchain_handle);
+    }
+
+    void Swapchain_Vulkan::recreate()
+    {
+        
+    }
+
+    vk::Viewport Swapchain_Vulkan::viewport() const
+    {
+        return vk::Viewport(
+            0.0f, 0.0f,
+            static_cast<f32>(m_extent.width), static_cast<f32>(m_extent.height),
+            0.0f, 1.0f
+        );
+    }
+
+    vk::Rect2D Swapchain_Vulkan::scissor() const
+    {
+        return vk::Rect2D(
+            { 0, 0 },
+            m_extent
+        );
+    }
+
+    Swapchain_Vulkan::Swapchain_Vulkan(
+        const vk::SwapchainKHR&             swapchain, 
+        const vk::RenderPass&               render_pass,
+        const vk::Extent2D&                 extent,
+        const vk::Format&                   image_format, 
+        const std::vector<vk::Image>&       images, 
+        const std::vector<vk::ImageView>&   image_views,
+        const std::vector<vk::Framebuffer>& framebuffers,
+        const Renderer_Vulkan&              renderer)
+        : m_swapchain(swapchain)
+        , m_render_pass(render_pass)
+        , m_extent(extent)
+        , m_image_format(image_format)
+        , m_images(images)
+        , m_image_views(image_views)
+        , m_framebuffers(framebuffers)
+        , m_renderer(&renderer)
+    {}
+
+    vk::SwapchainKHR Swapchain_Vulkan::create_swapchain(const Renderer_Vulkan& renderer, const IWindow& window, vk::Format& out_image_format)
+    {
+        const auto& physical_device = renderer.device().physical_device_handle();
+        const auto& logical_device = renderer.device().handle();
+
         auto swapchain_support = renderer.surface().query_swapchain_support(physical_device);
 
         auto surface_format = choose_swap_surface_format(swapchain_support.formats);
         auto present_mode = choose_swap_present_mode(swapchain_support.present_modes);
         auto extent = choose_swap_extent(window, swapchain_support.capabilities);
+        out_image_format = surface_format.format;
 
         u32 image_count = swapchain_support.capabilities.minImageCount + 1;
         if (swapchain_support.capabilities.maxImageCount > 0 && 
@@ -64,52 +155,117 @@ namespace engine
 
         try
         {
-            auto swapchain_handle = device.createSwapchainKHR(create_info);
-            return std::unique_ptr<Swapchain_Vulkan>(new Swapchain_Vulkan(
-                swapchain_handle,
-                device.getSwapchainImagesKHR(swapchain_handle),
-                surface_format.format,
-                extent,
-                device));
+            return logical_device.createSwapchainKHR(create_info);
         }
         catch (const std::exception& e)
         {
-            log::error("Failed to create Vulkan swapchain: {}", e.what());
+            log::error("Failed to create Vulkan Swapchain: {}", e.what());
             return nullptr;
         }
     }
 
-    Swapchain_Vulkan::~Swapchain_Vulkan()
+    std::vector<vk::ImageView> Swapchain_Vulkan::create_image_views(const Renderer_Vulkan& renderer, const vk::SwapchainKHR& swapchain, const vk::Format& image_format, const std::vector<vk::Image>& images)
     {
-        m_device.destroySwapchainKHR(m_swapchain_handle);
-    }
+        const auto& logical_device = renderer.device().handle();
 
-    vk::Viewport Swapchain_Vulkan::viewport() const
-    {
-        return vk::Viewport(
-            0.0f, 0.0f,
-            static_cast<f32>(m_extent.width), static_cast<f32>(m_extent.height),
-            0.0f, 1.0f
+        auto swapchain_images = logical_device.getSwapchainImagesKHR(swapchain);
+        std::vector<vk::ImageView> image_views(swapchain_images.size(), nullptr);
+
+        vk::ComponentMapping components(
+            vk::ComponentSwizzle::eIdentity,
+            vk::ComponentSwizzle::eIdentity,
+            vk::ComponentSwizzle::eIdentity,
+            vk::ComponentSwizzle::eIdentity
         );
+
+        vk::ImageSubresourceRange subresource_range(
+            vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
+
+        try
+        {
+            for (size_t i = 0; i < swapchain_images.size(); i++)
+            {
+                vk::ImageViewCreateInfo create_info({},
+                    swapchain_images[i],
+                    vk::ImageViewType::e2D,
+                    image_format,
+                    components,
+                    subresource_range
+                );
+
+                image_views [i] = logical_device.createImageView(create_info);
+            }
+
+            return image_views;
+        }
+        catch (const std::exception& e)
+        {
+            // Destroy created swapchain image views
+            for (const auto& image_view : image_views)
+            {
+                if (image_view)
+                    logical_device.destroyImageView(image_view);
+            }
+
+            log::error("Failed to create Vulkan Swapchain images: {}", e.what());
+            return {};
+        }
     }
 
-    vk::Rect2D Swapchain_Vulkan::scissor() const
+    vk::RenderPass Swapchain_Vulkan::create_render_pass(const vk::Device& device, const vk::Format& image_format)
     {
-        return vk::Rect2D(
-            { 0, 0 },
-            m_extent
+        vk::AttachmentDescription color_attachment({},
+            image_format,
+            vk::SampleCountFlagBits::e1, // Should match the format of the swapchain images
+            vk::AttachmentLoadOp::eClear, // Clear screen to black
+            vk::AttachmentStoreOp::eStore, // Store rendered content
+            vk::AttachmentLoadOp::eDontCare,
+            vk::AttachmentStoreOp::eDontCare,
+            vk::ImageLayout::eUndefined,
+            vk::ImageLayout::ePresentSrcKHR
         );
+
+        vk::AttachmentReference color_attachment_ref(
+            0, vk::ImageLayout::eColorAttachmentOptimal
+        );
+
+        vk::SubpassDescription subpass({},
+            vk::PipelineBindPoint::eGraphics,
+            0, nullptr,
+            // The index of the attachment in this array is directly referenced from the fragment 
+            // shader with the layout(location = 0)
+            1, &color_attachment_ref, 
+            nullptr,
+            nullptr,
+            0, nullptr
+        );
+
+        vk::SubpassDependency dependency(
+            VK_SUBPASS_EXTERNAL, 0,
+            vk::PipelineStageFlagBits::eColorAttachmentOutput, 
+            vk::PipelineStageFlagBits::eColorAttachmentOutput,
+            {},
+            vk::AccessFlagBits::eColorAttachmentWrite
+        );
+
+        vk::RenderPassCreateInfo render_pass_create_info({},
+            1, &color_attachment,
+            1, &subpass,
+            1, &dependency
+        );
+
+        try
+        {
+            return device.createRenderPass(render_pass_create_info);
+        }
+        catch (const std::exception& e)
+        {
+            log::error("Failed to craete render pass: {}", e.what());
+            return nullptr;
+        }
     }
 
-    Swapchain_Vulkan::Swapchain_Vulkan(const vk::SwapchainKHR& swapchain_handle, const std::vector<vk::Image>& images, const vk::Format& image_format, const vk::Extent2D& extent, const vk::Device& device)
-        : m_swapchain_handle(swapchain_handle)
-        , m_images(images)
-        , m_image_format(image_format)
-        , m_extent(extent)
-        , m_device(device)
-    {}
-
-    vk::SurfaceFormatKHR Swapchain_Vulkan::choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& available_formats)
+    vk::SurfaceFormatKHR Swapchain_Vulkan::choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR> &available_formats)
     {
         for (const auto& format : available_formats)
         {
