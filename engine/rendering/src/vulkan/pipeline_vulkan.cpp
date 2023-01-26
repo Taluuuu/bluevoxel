@@ -156,11 +156,10 @@ namespace engine
             &pipeline_color_blend_state_create_info,
             &pipeline_dynamic_state_create_info,
             m_layout,
-            m_renderer->render_pass(),
+            m_renderer->swapchain().render_pass(),
             0,
             nullptr,
-            -1
-        );
+            -1);
 
         m_pipeline_handle = device.create_pipeline(graphics_pipeline_create_info);
         if (!m_pipeline_handle)

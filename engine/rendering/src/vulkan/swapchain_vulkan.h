@@ -23,12 +23,14 @@ namespace engine
 
         void recreate();
 
-        const vk::SwapchainKHR&       handle()       const { return m_swapchain;    }
-        const std::vector<vk::Image>& images()       const { return m_images;       }
-        const vk::Format&             image_format() const { return m_image_format; }
-        const vk::Extent2D&           extent()       const { return m_extent;       }
-        vk::Viewport                  viewport()     const;
-        vk::Rect2D                    scissor()      const;
+        const vk::SwapchainKHR&             handle()       const { return m_swapchain;    }
+        const std::vector<vk::Image>&       images()       const { return m_images;       }
+        const vk::Format&                   image_format() const { return m_image_format; }
+        const vk::Extent2D&                 extent()       const { return m_extent;       }
+        const vk::RenderPass&               render_pass()  const { return m_render_pass;  }
+        const std::vector<vk::Framebuffer>& framebuffers() const { return m_framebuffers; }
+        vk::Viewport                        viewport()     const;
+        vk::Rect2D                          scissor()      const;
     
     private:
 
@@ -37,18 +39,19 @@ namespace engine
             const vk::RenderPass&               render_pass,
             const vk::Extent2D&                 extent,
             const vk::Format&                   image_format, 
-            const std::vector<vk::Image>&       images, 
+            const std::vector<vk::Image>&       images,
             const std::vector<vk::ImageView>&   image_views,
             const std::vector<vk::Framebuffer>& framebuffers,
             const Renderer_Vulkan&              renderer);
 
-        static vk::SwapchainKHR create_swapchain(const Renderer_Vulkan& renderer, const IWindow& window, vk::Format& out_image_format);
-        static std::vector<vk::ImageView> create_image_views(const Renderer_Vulkan& renderer, const vk::SwapchainKHR& swapchain, const vk::Format& image_format, const std::vector<vk::Image>& images);
-        static vk::RenderPass create_render_pass(const vk::Device& device, const vk::Format& image_format);
+        static vk::SwapchainKHR             create_swapchain(const Renderer_Vulkan& renderer, const IWindow& window, const vk::SurfaceFormatKHR& surface_format, const vk::PresentModeKHR& present_mode, const vk::Extent2D& extent, const vk::SurfaceCapabilitiesKHR& capabilities);
+        static std::vector<vk::ImageView>   create_image_views(const Renderer_Vulkan& renderer, const vk::SwapchainKHR& swapchain, const vk::Format& image_format, const std::vector<vk::Image>& images);
+        static vk::RenderPass               create_render_pass(const vk::Device& device, const vk::Format& image_format);
+        static std::vector<vk::Framebuffer> create_framebuffers(const std::vector<vk::ImageView>& image_views, const vk::RenderPass& render_pass, const vk::Extent2D& extent, const vk::Device& device);
 
         static vk::SurfaceFormatKHR choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& available_formats);
-        static vk::PresentModeKHR choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& available_present_modes);
-        static vk::Extent2D choose_swap_extent(const IWindow& window, const vk::SurfaceCapabilitiesKHR& capabilities);
+        static vk::PresentModeKHR   choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& available_present_modes);
+        static vk::Extent2D         choose_swap_extent(const IWindow& window, const vk::SurfaceCapabilitiesKHR& capabilities);
 
     private:
 

@@ -13,22 +13,27 @@ namespace engine
         const Renderer_Vulkan& renderer, 
         const IWindow& window)
     {
-        auto device = renderer.device().handle();
+        const auto& device = renderer.device().handle();
+        const auto& physical_device = renderer.device().physical_device_handle();
 
-        vk::Format image_format;
-        auto swapchain = create_swapchain(renderer, window, image_format);
+        auto swapchain_support = renderer.surface().query_swapchain_support(physical_device);
+        auto surface_format = choose_swap_surface_format(swapchain_support.formats);
+        auto present_mode = choose_swap_present_mode(swapchain_support.present_modes);
+        auto extent = choose_swap_extent(window, swapchain_support.capabilities);
+
+        auto swapchain = create_swapchain(renderer, window, surface_format, present_mode, extent, swapchain_support.capabilities);
         if (!swapchain)
             return nullptr;
 
         auto images = device.getSwapchainImagesKHR(swapchain);
-        auto image_views = create_image_views(renderer, swapchain, image_format, images);
+        auto image_views = create_image_views(renderer, swapchain, surface_format.format, images);
         if (image_views.empty())
         {
             device.destroySwapchainKHR(swapchain);
             return nullptr;
         }
 
-        auto render_pass = create_render_pass(device, image_format);
+        auto render_pass = create_render_pass(device, surface_format.format);
         if (!render_pass)
         {
             for (const auto& image_view : image_views)
@@ -38,13 +43,29 @@ namespace engine
             return nullptr;
         }
 
+        auto framebuffers = create_framebuffers(image_views, render_pass, extent, device);
+        if (framebuffers.empty())
+        {
+            device.destroyRenderPass(render_pass);
+
+            for (const auto& image_view : image_views)
+                device.destroyImageView(image_view);
+            
+            device.destroySwapchainKHR(swapchain);
+            return nullptr;
+        }
+
         try
         {
-            // Sort le extent
             return new Swapchain_Vulkan(
                 swapchain,
                 render_pass,
-                extent;
+                extent, 
+                surface_format.format,
+                images,
+                image_views,
+                framebuffers,
+                renderer);
         }
         catch (const std::exception& e)
         {
@@ -55,7 +76,17 @@ namespace engine
 
     Swapchain_Vulkan::~Swapchain_Vulkan()
     {
-        m_device.destroySwapchainKHR(m_swapchain_handle);
+        const auto& device = m_renderer->device().handle();
+
+        for (const auto& framebuffer : m_framebuffers)
+            device.destroyFramebuffer(framebuffer);
+
+        device.destroyRenderPass(m_render_pass);
+
+        for (const auto& image_view : m_image_views)
+            device.destroyImageView(image_view);
+
+        device.destroySwapchainKHR(m_swapchain);
     }
 
     void Swapchain_Vulkan::recreate()
@@ -99,23 +130,16 @@ namespace engine
         , m_renderer(&renderer)
     {}
 
-    vk::SwapchainKHR Swapchain_Vulkan::create_swapchain(const Renderer_Vulkan& renderer, const IWindow& window, vk::Format& out_image_format)
+    vk::SwapchainKHR Swapchain_Vulkan::create_swapchain(const Renderer_Vulkan& renderer, const IWindow& window, const vk::SurfaceFormatKHR& surface_format, const vk::PresentModeKHR& present_mode, const vk::Extent2D& extent, const vk::SurfaceCapabilitiesKHR& capabilities)
     {
         const auto& physical_device = renderer.device().physical_device_handle();
         const auto& logical_device = renderer.device().handle();
 
-        auto swapchain_support = renderer.surface().query_swapchain_support(physical_device);
-
-        auto surface_format = choose_swap_surface_format(swapchain_support.formats);
-        auto present_mode = choose_swap_present_mode(swapchain_support.present_modes);
-        auto extent = choose_swap_extent(window, swapchain_support.capabilities);
-        out_image_format = surface_format.format;
-
-        u32 image_count = swapchain_support.capabilities.minImageCount + 1;
-        if (swapchain_support.capabilities.maxImageCount > 0 && 
-            image_count > swapchain_support.capabilities.maxImageCount)
+        u32 image_count = capabilities.minImageCount + 1;
+        if (capabilities.maxImageCount > 0 && 
+            image_count > capabilities.maxImageCount)
         {
-            image_count = swapchain_support.capabilities.maxImageCount;
+            image_count = capabilities.maxImageCount;
         }
 
         // The vk::ImageUsageFlagBits parameter would be different if I need to draw
@@ -131,7 +155,7 @@ namespace engine
             vk::ImageUsageFlagBits::eColorAttachment, 
             vk::SharingMode::eExclusive,
             0, nullptr, 
-            swapchain_support.capabilities.currentTransform,
+            capabilities.currentTransform,
             vk::CompositeAlphaFlagBitsKHR::eOpaque,
             present_mode,
             true,
@@ -260,9 +284,47 @@ namespace engine
         }
         catch (const std::exception& e)
         {
-            log::error("Failed to craete render pass: {}", e.what());
+            log::error("Failed to create render pass: {}", e.what());
             return nullptr;
         }
+    }
+
+    std::vector<vk::Framebuffer> Swapchain_Vulkan::create_framebuffers(const std::vector<vk::ImageView>& image_views, const vk::RenderPass& render_pass, const vk::Extent2D& extent, const vk::Device& device)
+    {
+        std::vector<vk::Framebuffer> framebuffers(image_views.size());
+
+        try
+        {
+            // Create framebuffers from swapchain image views
+            for (size_t i = 0; i < image_views.size(); i++)
+            {
+                vk::ImageView attachments[] =
+                {
+                    image_views[i]
+                };
+
+                vk::FramebufferCreateInfo framebuffer_info({},
+                    render_pass,
+                    1, attachments,
+                    extent.width, extent.height, 1
+                );
+
+                framebuffers[i] = device.createFramebuffer(framebuffer_info);
+            }
+        }
+        catch (const std::exception& e)
+        {
+            for (const auto& framebuffer : framebuffers)
+            {
+                if (framebuffer)
+                    device.destroyFramebuffer(framebuffer);
+            }
+
+            log::error("Failed to create framebuffer: {}", e.what());
+            return {};
+        }
+
+        return framebuffers;
     }
 
     vk::SurfaceFormatKHR Swapchain_Vulkan::choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR> &available_formats)
@@ -300,11 +362,11 @@ namespace engine
             return capabilities.currentExtent;
 
         auto window_size = window.framebuffer_size();
-        vk::Extent2D actual_extent(window_size.x, window_size.y);
+        vk::Extent2D extent(window_size.x, window_size.y);
         
-        actual_extent.width = std::clamp(actual_extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-        actual_extent.height = std::clamp(actual_extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+        extent.width = std::clamp(extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
+        extent.height = std::clamp(extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
 
-        return actual_extent;
+        return extent;
     }
 }

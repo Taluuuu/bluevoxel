@@ -54,32 +54,12 @@ namespace engine
         }
 
         // TODO: Change this stupid constructor
-        m_swapchain.reset(Swapchain_Vulkan::create(*this, window, m_device->physical_device_handle(), m_device->handle()));
+        m_swapchain.reset(Swapchain_Vulkan::create(*this, window));
         if (!m_swapchain)
         {
             // TODO: Destroy previously allocated resources
             throw std::runtime_error("Failed to create swapchain.");
         }
-        create_image_views();
-
-        // Pipeline needs to go before render pass, and render pass needs
-        // to go before framebuffers
-
-        // Pipeline could go after render pass, the only info needed from it
-        // is the surface format which is obtained with the physical device
-        // and the surface
-
-        // Render pass NEEDS to be before framebuffer though
-        // The pipeline can then go after the framebuffers and render pass
-
-        // Then I can group framebuffers and image views with the swapchain
-
-        // Sounds like stuff to do for tomorrow me
-
-        create_render_pass();
-
-        // Old framebuffer pos
-        create_framebuffers();
 
         // Pipeline creation here is temporary; pipelines will be created in game code
         // or in more abstract mesh renderers in the engine
@@ -112,16 +92,8 @@ namespace engine
         }
 
         m_device->handle().destroyCommandPool(m_command_pool);
-
-        for (const auto& framebuffer : m_swapchain_framebuffers)
-            m_device->handle().destroyFramebuffer(framebuffer);
         
         m_pipeline.reset();
-        m_device->handle().destroyRenderPass(m_render_pass);
-
-        for (const auto& image_view : m_swapchain_image_views)
-            m_device->handle().destroyImageView(image_view);
-
         m_swapchain.reset();
         m_device->handle().destroy();
 
@@ -239,103 +211,6 @@ namespace engine
         m_instance = vk::createInstance(create_info);
     }
 
-    void Renderer_Vulkan::create_image_views()
-    {
-        assert(m_swapchain); // TODO: Probably not necessary
-        const auto& swapchain_images = m_swapchain->images();
-        m_swapchain_image_views.resize(swapchain_images.size());
-
-        vk::ComponentMapping components(
-            vk::ComponentSwizzle::eIdentity,
-            vk::ComponentSwizzle::eIdentity,
-            vk::ComponentSwizzle::eIdentity,
-            vk::ComponentSwizzle::eIdentity
-        );
-        
-        vk::ImageSubresourceRange subresource_range(
-            vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1);
-
-        for (size_t i = 0; i < swapchain_images.size(); i++)
-        {
-            vk::ImageViewCreateInfo create_info({},
-                swapchain_images[i],
-                vk::ImageViewType::e2D,
-                m_swapchain->image_format(),
-                components,
-                subresource_range
-            );
-
-            m_swapchain_image_views[i] = m_device->handle().createImageView(create_info);
-        }
-    }
-
-    void Renderer_Vulkan::create_render_pass()
-    {
-        vk::AttachmentDescription color_attachment({},
-            m_swapchain->image_format(),
-            vk::SampleCountFlagBits::e1, // Should match the format of the swapchain images
-            vk::AttachmentLoadOp::eClear, // Clear screen to black
-            vk::AttachmentStoreOp::eStore, // Store rendered content
-            vk::AttachmentLoadOp::eDontCare,
-            vk::AttachmentStoreOp::eDontCare,
-            vk::ImageLayout::eUndefined,
-            vk::ImageLayout::ePresentSrcKHR
-        );
-
-        vk::AttachmentReference color_attachment_ref(
-            0, vk::ImageLayout::eColorAttachmentOptimal
-        );
-
-        vk::SubpassDescription subpass({},
-            vk::PipelineBindPoint::eGraphics,
-            0, nullptr,
-            // The index of the attachment in this array is directly referenced from the fragment 
-            // shader with the layout(location = 0)
-            1, &color_attachment_ref, 
-            nullptr,
-            nullptr,
-            0, nullptr
-        );
-
-        vk::SubpassDependency dependency(
-            VK_SUBPASS_EXTERNAL, 0,
-            vk::PipelineStageFlagBits::eColorAttachmentOutput, 
-            vk::PipelineStageFlagBits::eColorAttachmentOutput,
-            {},
-            vk::AccessFlagBits::eColorAttachmentWrite
-        );
-
-        vk::RenderPassCreateInfo render_pass_create_info({},
-            1, &color_attachment,
-            1, &subpass,
-            1, &dependency
-        );
-
-        m_render_pass = m_device->handle().createRenderPass(render_pass_create_info);
-    }
-
-    void Renderer_Vulkan::create_framebuffers()
-    {
-        m_swapchain_framebuffers.resize(m_swapchain_image_views.size());
-
-        // Create framebuffers from swapchain image views
-        for (size_t i = 0; i < m_swapchain_image_views.size(); i++)
-        {
-            vk::ImageView attachments[] =
-            {
-                m_swapchain_image_views[i]
-            };
-
-            vk::FramebufferCreateInfo framebuffer_info({},
-                m_render_pass,
-                1, attachments,
-                m_swapchain->extent().width, m_swapchain->extent().height, 1
-            );
-
-            m_swapchain_framebuffers[i] = m_device->handle().createFramebuffer(framebuffer_info);
-        }
-    }
-
     void Renderer_Vulkan::create_command_pool()
     {
         // TODO: The device wrapper class should return queue families
@@ -378,18 +253,6 @@ namespace engine
             m_render_finished_semaphores[i] = m_device->handle().createSemaphore(semaphore_info);
             m_in_flight_fences[i]           = m_device->handle().createFence(fence_info);
         }
-    }
-
-    void Renderer_Vulkan::recreate_swapchain()
-    {
-        assert(m_device);
-
-        // Don't touch resources that can still be in use
-        m_device->wait_idle();
-
-        // create_swapchain();
-        create_image_views();
-        create_framebuffers();
     }
 
     std::vector<const char*> Renderer_Vulkan::get_required_instance_extensions() const
@@ -510,8 +373,8 @@ namespace engine
         command_buffer.begin(command_buffer_info);
             vk::ClearValue clear_value(vk::ClearColorValue(std::array<f32, 4> { 0.0f, 0.0f, 0.0f, 1.0f }));
             vk::RenderPassBeginInfo render_pass_info(
-                m_render_pass, 
-                m_swapchain_framebuffers[image_index],
+                m_swapchain->render_pass(), 
+                m_swapchain->framebuffers()[image_index],
                 vk::Rect2D({ 0, 0 }, m_swapchain->extent()),
                 1, &clear_value
             );

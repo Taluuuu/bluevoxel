@@ -1,5 +1,5 @@
 #include "core/engine.h"
-// #include "rendering/rendering_module.h"
+#include "rendering/rendering_module.h"
 #include "windowing/windowing_module.h"
 
 int main()
@@ -14,6 +14,6 @@ int main()
 
     engine
         .add_module<engine::WindowingModule>()
-        // .add_module<engine::RenderingModule>()
+        .add_module<engine::RenderingModule>()
         .run();
 }

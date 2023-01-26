@@ -59,14 +59,9 @@ namespace engine
     private:
 
         void create_instance(const char* game_name, const char* engine_name);
-        void create_image_views();
-        void create_render_pass();
-        void create_framebuffers();
         void create_command_pool();
         void create_command_buffers();
         void create_sync_objects();
-
-        void recreate_swapchain();
 
         std::vector<const char*> get_required_instance_extensions() const;
         bool validation_layers_are_supported() const;
