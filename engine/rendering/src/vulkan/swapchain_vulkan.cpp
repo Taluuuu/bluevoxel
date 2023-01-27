@@ -192,8 +192,7 @@ namespace engine
     {
         const auto& logical_device = renderer.device().handle();
 
-        auto swapchain_images = logical_device.getSwapchainImagesKHR(swapchain);
-        std::vector<vk::ImageView> image_views(swapchain_images.size(), nullptr);
+        std::vector<vk::ImageView> image_views(images.size(), nullptr);
 
         vk::ComponentMapping components(
             vk::ComponentSwizzle::eIdentity,
@@ -207,10 +206,10 @@ namespace engine
 
         try
         {
-            for (size_t i = 0; i < swapchain_images.size(); i++)
+            for (size_t i = 0; i < images.size(); i++)
             {
                 vk::ImageViewCreateInfo create_info({},
-                    swapchain_images[i],
+                    images[i],
                     vk::ImageViewType::e2D,
                     image_format,
                     components,
