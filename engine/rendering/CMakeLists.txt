@@ -8,6 +8,7 @@ add_library(rendering
     src/rendering_module.cpp
     src/vulkan/debug_messenger_vulkan.cpp
     src/vulkan/device_vulkan.cpp
+    src/vulkan/image_view_vulkan.cpp
     src/vulkan/image_vulkan.cpp
     src/vulkan/pipeline_vulkan.cpp
     src/vulkan/renderer_vulkan.cpp

@@ -1,6 +1,7 @@
 #include "swapchain_vulkan.h"
 
 #include "device_vulkan.h"
+#include "image_vulkan.h"
 #include "renderer_vulkan.h"
 #include "surface_vulkan.h"
 
@@ -20,12 +21,20 @@ namespace engine
         auto surface_format = choose_swap_surface_format(swapchain_support.formats);
         auto present_mode = choose_swap_present_mode(swapchain_support.present_modes);
         auto extent = choose_swap_extent(window, swapchain_support.capabilities);
-
+        
         auto swapchain = create_swapchain(renderer, window, surface_format, present_mode, extent, swapchain_support.capabilities);
         if (!swapchain)
             return nullptr;
 
-        auto images = device.getSwapchainImagesKHR(swapchain);
+        std::vector<std::shared_ptr<Image_Vulkan>> images;
+        auto images_vk = device.getSwapchainImagesKHR(swapchain);
+        images.reserve(images_vk.size());
+        for (const auto& image_vk : images_vk)
+        {
+            images.push_back(
+                Image_Vulkan::create(image_vk, surface_format.format, device));
+        }
+
         auto image_views = create_image_views(renderer, swapchain, surface_format.format, images);
         if (image_views.empty())
         {
