@@ -5,16 +5,29 @@
 namespace engine
 {
     std::shared_ptr<Image_Vulkan> Image_Vulkan::create(
-        const vk::Image& image, 
+        const vk::Image& image_vk, 
         const vk::Format& format, 
         const vk::Device& device,
         bool destroy_handle)
     {
-        assert(image);
+        assert(image_vk);
         assert(device);
 
         return std::shared_ptr<Image_Vulkan>(
-            new Image_Vulkan(image, format, device, destroy_handle));
+            new Image_Vulkan(image_vk, format, device, destroy_handle));
+    }
+
+    std::vector<std::shared_ptr<Image_Vulkan>> Image_Vulkan::create_array(
+        const std::vector<vk::Image>& images_vk, 
+        const vk::Format& format, 
+        const vk::Device& device, 
+        bool destroy_handles)
+    {
+        std::vector<std::shared_ptr<Image_Vulkan>> images(images_vk.size(), nullptr);
+        for (size_t i = 0; i < images_vk.size(); i++)
+            images[i] = create(images_vk[i], format, device, destroy_handles);
+
+        return images;
     }
 
     Image_Vulkan::Image_Vulkan(Image_Vulkan&& other)

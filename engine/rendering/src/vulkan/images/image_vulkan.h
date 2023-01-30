@@ -14,10 +14,16 @@ namespace engine
     public:
 
         static std::shared_ptr<Image_Vulkan> create(
-            const vk::Image& image, 
+            const vk::Image& image_vk, 
             const vk::Format& format, 
             const vk::Device& device,
             bool destroy_handle = true);
+
+        static std::vector<std::shared_ptr<Image_Vulkan>> create_array(
+            const std::vector<vk::Image>& images_vk, 
+            const vk::Format& format, 
+            const vk::Device& device,
+            bool destroy_handles = true);
 
         ~Image_Vulkan();
         Image_Vulkan(Image_Vulkan&& other);

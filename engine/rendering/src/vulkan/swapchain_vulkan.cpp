@@ -1,7 +1,8 @@
 #include "swapchain_vulkan.h"
 
 #include "device_vulkan.h"
-#include "image_vulkan.h"
+#include "images/image_array_vulkan.h"
+#include "images/image_view_vulkan.h"
 #include "renderer_vulkan.h"
 #include "surface_vulkan.h"
 
@@ -26,16 +27,15 @@ namespace engine
         if (!swapchain)
             return nullptr;
 
-        std::vector<std::shared_ptr<Image_Vulkan>> images;
         auto images_vk = device.getSwapchainImagesKHR(swapchain);
-        images.reserve(images_vk.size());
-        for (const auto& image_vk : images_vk)
+        auto images = ImageArray_Vulkan::create(images_vk, surface_format.format, device, false);
+        if (!images.has_value())
         {
-            images.push_back(
-                Image_Vulkan::create(image_vk, surface_format.format, device));
+            device.destroySwapchainKHR(swapchain);
+            return nullptr;
         }
 
-        auto image_views = create_image_views(renderer, swapchain, surface_format.format, images);
+        auto image_views = images->create_image_views();
         if (image_views.empty())
         {
             device.destroySwapchainKHR(swapchain);
@@ -45,9 +45,6 @@ namespace engine
         auto render_pass = create_render_pass(device, surface_format.format);
         if (!render_pass)
         {
-            for (const auto& image_view : image_views)
-                device.destroyImageView(image_view);
-            
             device.destroySwapchainKHR(swapchain);
             return nullptr;
         }
@@ -56,10 +53,6 @@ namespace engine
         if (framebuffers.empty())
         {
             device.destroyRenderPass(render_pass);
-
-            for (const auto& image_view : image_views)
-                device.destroyImageView(image_view);
-            
             device.destroySwapchainKHR(swapchain);
             return nullptr;
         }
@@ -71,7 +64,7 @@ namespace engine
                 render_pass,
                 extent, 
                 surface_format.format,
-                images,
+                images_vk,
                 image_views,
                 framebuffers,
                 renderer);
@@ -91,9 +84,6 @@ namespace engine
             device.destroyFramebuffer(framebuffer);
 
         device.destroyRenderPass(m_render_pass);
-
-        for (const auto& image_view : m_image_views)
-            device.destroyImageView(image_view);
 
         device.destroySwapchainKHR(m_swapchain);
     }
@@ -126,7 +116,7 @@ namespace engine
         const vk::Extent2D&                 extent,
         const vk::Format&                   image_format, 
         const std::vector<vk::Image>&       images, 
-        const std::vector<vk::ImageView>&   image_views,
+        std::vector<ImageView_Vulkan>&      image_views,
         const std::vector<vk::Framebuffer>& framebuffers,
         const Renderer_Vulkan&              renderer)
         : m_swapchain(swapchain)
@@ -134,7 +124,7 @@ namespace engine
         , m_extent(extent)
         , m_image_format(image_format)
         , m_images(images)
-        , m_image_views(image_views)
+        , m_image_views(std::move(image_views))
         , m_framebuffers(framebuffers)
         , m_renderer(&renderer)
     {}
@@ -297,7 +287,7 @@ namespace engine
         }
     }
 
-    std::vector<vk::Framebuffer> Swapchain_Vulkan::create_framebuffers(const std::vector<vk::ImageView>& image_views, const vk::RenderPass& render_pass, const vk::Extent2D& extent, const vk::Device& device)
+    std::vector<vk::Framebuffer> Swapchain_Vulkan::create_framebuffers(const std::vector<ImageView_Vulkan>& image_views, const vk::RenderPass& render_pass, const vk::Extent2D& extent, const vk::Device& device)
     {
         std::vector<vk::Framebuffer> framebuffers(image_views.size());
 
@@ -308,7 +298,7 @@ namespace engine
             {
                 vk::ImageView attachments[] =
                 {
-                    image_views[i]
+                    image_views[i].handle()
                 };
 
                 vk::FramebufferCreateInfo framebuffer_info({},

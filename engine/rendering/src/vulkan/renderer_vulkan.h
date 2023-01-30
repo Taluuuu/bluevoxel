@@ -89,11 +89,11 @@ namespace engine
         std::vector<vk::Semaphore>     m_render_finished_semaphores;
         std::vector<vk::Fence>         m_in_flight_fences;
 
-        std::unique_ptr<Device_Vulkan>         m_device          = nullptr;
-        std::unique_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;
-        std::unique_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
-        std::unique_ptr<Surface_Vulkan>        m_surface         = nullptr;
-        std::unique_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;
+        std::shared_ptr<Device_Vulkan>         m_device          = nullptr;
+        std::shared_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;
+        std::shared_ptr<Swapchain_Vulkan>      m_swapchain       = nullptr;
+        std::shared_ptr<Surface_Vulkan>        m_surface         = nullptr;
+        std::shared_ptr<Pipeline_Vulkan>       m_pipeline        = nullptr;
 
         // TODO: Make below constexpr
         const std::vector<const char*> m_device_extensions =

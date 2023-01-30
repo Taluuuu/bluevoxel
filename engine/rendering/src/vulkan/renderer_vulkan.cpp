@@ -243,7 +243,7 @@ namespace engine
         m_render_finished_semaphores.resize(max_frames_in_flight);
         m_in_flight_fences.resize(max_frames_in_flight);
 
-        vk::SemaphoreCreateInfo semaphore_info({});
+        vk::SemaphoreCreateInfo semaphore_info;
         // Prevent blocking on first draw_frame by creating the fence in the signaled state
         vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits::eSignaled);
 

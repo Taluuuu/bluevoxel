@@ -19,6 +19,8 @@ namespace engine
         ImageView_Vulkan(ImageView_Vulkan&& other);
         ImageView_Vulkan(const ImageView_Vulkan&) = delete;
 
+        vk::ImageView handle() const { return m_image_view; }
+
     private:
 
         ImageView_Vulkan(
