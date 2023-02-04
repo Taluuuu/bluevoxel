@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/types.h"
 #include "rendering/renderer.h"
 
@@ -22,7 +23,7 @@ namespace engine
     {
     public:
 
-        Renderer_Vulkan(const GameInfo& game_info, const IWindow& window);
+        Renderer_Vulkan(const GameInfo& game_info, IWindow& window);
         ~Renderer_Vulkan();
         
         Renderer_Vulkan(const Renderer_Vulkan&) = delete;
@@ -119,6 +120,8 @@ namespace engine
         bool enable_validation_layers() const { return m_enable_validation_layers; }
 
         const std::vector<const char*>& validation_layers() const { return m_validation_layers; }
+
+        EventHandle m_window_resize_event_handle;
 
     };
 }

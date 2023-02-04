@@ -13,6 +13,9 @@ namespace engine
         m_handle = glfwCreateWindow(size.x, size.y, title.data(), NULL, NULL);
         if (m_handle == nullptr)
             throw std::runtime_error("Failed to create GLFW window.");
+
+        glfwSetFramebufferSizeCallback(m_handle, framebuffer_size_callback);
+        glfwSetWindowUserPointer(m_handle, this);
     }
 
     Window_GLFW::Window_GLFW(Window_GLFW&& other)
@@ -76,5 +79,16 @@ namespace engine
         
         m_delta_time = curTime - m_previous_time;
         m_previous_time = curTime;
+    }
+
+    Event<WindowResizeEvent>& Window_GLFW::resize_event()
+    {
+        return m_resize_event;
+    }
+
+    void Window_GLFW::framebuffer_size_callback(GLFWwindow* window_handle, int width, int height)
+    {
+        auto window = reinterpret_cast<Window_GLFW*>(glfwGetWindowUserPointer(window_handle));
+        window->m_resize_event.broadcast({{ width, height }});
     }
 }

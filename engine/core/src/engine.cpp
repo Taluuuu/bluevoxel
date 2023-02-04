@@ -6,8 +6,19 @@
 
 namespace engine
 {
+    Engine* Engine::s_instance = nullptr;
+
     Engine::Engine(const GameInfo& game_info)
-        :m_game_info(game_info) {}
+        :m_game_info(game_info)
+    {
+        assert(s_instance == nullptr);
+        s_instance = this;
+    }
+
+    Engine::~Engine()
+    {
+        s_instance = nullptr;
+    }
 
     void Engine::run() const
     {

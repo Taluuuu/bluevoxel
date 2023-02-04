@@ -25,7 +25,7 @@ namespace engine
 
         const auto windowing_module = engine().get_module<WindowingModule>();
         assert(windowing_module != nullptr);
-        const auto& window = windowing_module->window();
+        auto& window = windowing_module->window();
 
         try
         {

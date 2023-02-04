@@ -1,10 +1,16 @@
 #pragma once
 
 #include "core/core_interfaces.h"
+#include "core/events.h"
 #include "core/types.h"
 
 namespace engine
 {
+    struct WindowResizeEvent
+    {
+        v2u new_size{};
+    };
+
     class IWindow
     {
     public:
@@ -59,6 +65,8 @@ namespace engine
          * @param max_fps The fps lock
          */
         virtual void swap_buffers(f64 max_fps = 60.0) = 0;
+
+        virtual Event<WindowResizeEvent>& resize_event() = 0;
         
     };
 }

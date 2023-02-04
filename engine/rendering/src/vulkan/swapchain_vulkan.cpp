@@ -1,5 +1,6 @@
 #include "swapchain_vulkan.h"
 
+#include "core/engine.h"
 #include "device_vulkan.h"
 #include "images/image_array_vulkan.h"
 #include "images/image_view_vulkan.h"
@@ -90,7 +91,7 @@ namespace engine
 
     void Swapchain_Vulkan::recreate()
     {
-        
+        // auto windowing_module = Engine::instance()->get_module<WindowingModule>();
     }
 
     vk::Viewport Swapchain_Vulkan::viewport() const

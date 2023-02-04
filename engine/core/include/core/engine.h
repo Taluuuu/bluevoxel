@@ -21,6 +21,9 @@ namespace engine
         Engine(const GameInfo& game_info);
         Engine(const Engine&) = delete;
         Engine(Engine&&) = delete;
+        ~Engine();
+
+        static Engine* instance() { return s_instance; }
 
         /**
          * @brief Add a module to the engine. Initialize it once all its dependencies
@@ -80,6 +83,8 @@ namespace engine
         void init_new_modules();
 
     private:
+
+        static Engine* s_instance /* = nullptr */;
 
         GameInfo m_game_info;
 

@@ -1,9 +1,12 @@
 #include "renderer_vulkan.h"
 
+#include "core/engine.h"
 #include "core/game_info.h"
+#include "core/log.h"
 #include "core/types.h"
 #include "core/utils.h"
 #include "windowing/window.h"
+#include "windowing/windowing_module.h"
 
 #include "debug_messenger_vulkan.h"
 #include "device_vulkan.h"
@@ -27,7 +30,7 @@
 
 namespace engine
 {
-    Renderer_Vulkan::Renderer_Vulkan(const GameInfo& game_info, const IWindow& window)
+    Renderer_Vulkan::Renderer_Vulkan(const GameInfo& game_info, IWindow& window)
     {
         // TODO: Return raw pointers from my create functions
         // and store them into smart pointers here
@@ -60,6 +63,12 @@ namespace engine
             // TODO: Destroy previously allocated resources
             throw std::runtime_error("Failed to create swapchain.");
         }
+
+        m_window_resize_event_handle = window.resize_event().add_listener(
+            [&](const WindowResizeEvent& event)
+            {
+                m_swapchain->recreate();
+            });
 
         // Pipeline creation here is temporary; pipelines will be created in game code
         // or in more abstract mesh renderers in the engine
@@ -94,6 +103,12 @@ namespace engine
         m_device->handle().destroyCommandPool(m_command_pool);
         
         m_pipeline.reset();
+
+        auto windowing_module = Engine::instance()->get_module<WindowingModule>();
+
+        if (windowing_module)
+            windowing_module->window().resize_event().remove_listener(m_window_resize_event_handle);
+
         m_swapchain.reset();
         m_device->handle().destroy();
 

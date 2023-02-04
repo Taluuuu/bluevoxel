@@ -28,10 +28,17 @@ namespace engine
         virtual void poll_events() const override;
         virtual void* handle() const override;
         virtual void swap_buffers(f64 max_fps = 60.0) override;
+        virtual Event<WindowResizeEvent>& resize_event() override;
+
+    private:
+
+        static void framebuffer_size_callback(GLFWwindow* window_handle, int width, int height);
 
     private:
         
         GLFWwindow* m_handle = nullptr;
+
+        Event<WindowResizeEvent> m_resize_event;
 
         f64 m_previous_time = 0.0f;
         f64 m_delta_time = 0.0f;

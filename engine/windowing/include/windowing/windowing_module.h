@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/module.h"
 #include "core/types.h"
 #include "core/core_interfaces.h"
