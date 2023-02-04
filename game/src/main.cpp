@@ -1,5 +1,7 @@
 #include "core/engine.h"
 #include "rendering/rendering_module.h"
+#include "rendering/renderer.h"
+#include "rendering/pipeline.h"
 #include "windowing/windowing_module.h"
 
 int main()

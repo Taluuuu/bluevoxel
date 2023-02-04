@@ -112,6 +112,7 @@ namespace engine
         try
         {
             auto logical_device = physical_device.createDevice(create_info);
+
             graphics_queue = logical_device.getQueue(indices.graphics_family.value(), 0);
             present_queue  = logical_device.getQueue(indices.present_family.value(),  0);
             return logical_device;

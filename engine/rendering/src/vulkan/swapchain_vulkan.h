@@ -41,7 +41,7 @@ namespace engine
             const vk::Extent2D&                  extent,
             const vk::Format&                    image_format, 
             const std::vector<vk::Image>&        images,
-            std::vector<ImageView_Vulkan>& image_views,
+            std::vector<ImageView_Vulkan>&       image_views,
             const std::vector<vk::Framebuffer>&  framebuffers,
             const Renderer_Vulkan&               renderer);
 
