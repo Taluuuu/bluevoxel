@@ -19,19 +19,31 @@ namespace engine
     class Surface_Vulkan;
     class Swapchain_Vulkan;
 
-    class Renderer_Vulkan : public IRenderer
+    class Renderer_Vulkan
+        : public IRenderer
+        , public std::enable_shared_from_this<Renderer_Vulkan>
     {
     public:
 
+        [[nodiscard]] static std::shared_ptr<Renderer_Vulkan> create(
+            const GameInfo& game_info, 
+            IWindow& window);
+
+    private:
+
         Renderer_Vulkan(const GameInfo& game_info, IWindow& window);
+
+    public:
+
         ~Renderer_Vulkan();
         
         Renderer_Vulkan(const Renderer_Vulkan&) = delete;
         Renderer_Vulkan(Renderer_Vulkan&&) = delete;
 
         // IRenderer interface
-        virtual void       draw_frame()            override;
-        virtual IPipeline& create_pipeline() const override;
+        virtual void            draw_frame()                                     override;
+        virtual PipelineFactory create_pipeline()                                override;
+        virtual IPipeline*      compile_pipeline(const PipelineFactory& factory) override;
 
         // Vulkan wrapper getters
         // Get the renderer's swapchain instance. Must be called after the swapchain is initialized.

@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(rendering
     src/rendering_module.cpp
+    src/pipeline.cpp
     src/vulkan/debug_messenger_vulkan.cpp
     src/vulkan/device_vulkan.cpp
     src/vulkan/images/image_array_vulkan.cpp

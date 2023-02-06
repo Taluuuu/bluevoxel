@@ -20,11 +20,15 @@ namespace engine
             const Renderer_Vulkan& renderer, 
             const IWindow& window);
 
+        Swapchain_Vulkan(const Renderer_Vulkan& renderer);
         Swapchain_Vulkan(const Swapchain_Vulkan&) = delete;
         Swapchain_Vulkan(Swapchain_Vulkan&&) = delete;
         ~Swapchain_Vulkan();
 
+        bool is_valid() const { return m_is_valid; }
+        void cleanup();
         void recreate();
+        void recreate(v2u size);
 
         const vk::SwapchainKHR&             handle()       const { return m_swapchain;    }
         const std::vector<vk::Image>&       images()       const { return m_images;       }
@@ -67,6 +71,8 @@ namespace engine
         std::vector<vk::Image>        m_images;
         std::vector<ImageView_Vulkan> m_image_views;
         std::vector<vk::Framebuffer>  m_framebuffers;
+
+        bool                          m_is_valid = false;
 
         const Renderer_Vulkan* const  m_renderer = nullptr;
 

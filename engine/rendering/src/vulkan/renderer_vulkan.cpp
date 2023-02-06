@@ -30,6 +30,11 @@
 
 namespace engine
 {
+    std::shared_ptr<Renderer_Vulkan> Renderer_Vulkan::create(const GameInfo& game_info, IWindow& window)
+    {
+        return std::shared_ptr<Renderer_Vulkan>(new Renderer_Vulkan(game_info, window));
+    }
+
     Renderer_Vulkan::Renderer_Vulkan(const GameInfo& game_info, IWindow& window)
     {
         // TODO: Return raw pointers from my create functions
@@ -167,11 +172,14 @@ namespace engine
         m_current_frame = (m_current_frame + 1) % max_frames_in_flight;
     }
 
-    IPipeline& Renderer_Vulkan::create_pipeline() const
+    PipelineFactory Renderer_Vulkan::create_pipeline()
     {
-        // TODO: This is very wrong.
-        // Pipelines should be stored and returned as a reference.
-        return *m_pipeline;
+        return PipelineFactory(shared_from_this());
+    }
+
+    IPipeline* Renderer_Vulkan::compile_pipeline(const PipelineFactory& factory)
+    {
+        Pipeline_Vulkan(shared_from_this());
     }
 
     const Surface_Vulkan& Renderer_Vulkan::surface() const

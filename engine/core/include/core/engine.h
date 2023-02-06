@@ -98,7 +98,7 @@ namespace engine
         std::vector<std::shared_ptr<Module>> m_ordered_modules;
 
         // Interfaces
-        std::shared_ptr<ICoreWindow> m_core_window = nullptr;
+        std::shared_ptr<IWindowModule> m_core_window = nullptr;
         std::vector<std::shared_ptr<ITickable>> m_tickables;
 
     };

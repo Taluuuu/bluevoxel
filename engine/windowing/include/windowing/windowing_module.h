@@ -13,7 +13,7 @@ namespace engine
 
     class WindowingModule
         : public Module
-        , public ICoreWindow
+        , public IWindowModule
     {
     public:
 

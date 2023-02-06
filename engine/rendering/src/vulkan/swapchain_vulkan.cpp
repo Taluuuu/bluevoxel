@@ -9,6 +9,7 @@
 
 #include "core/log.h"
 #include "windowing/window.h"
+#include "windowing/windowing_module.h"
 
 namespace engine
 {
@@ -77,6 +78,12 @@ namespace engine
         }
     }
 
+    Swapchain_Vulkan::Swapchain_Vulkan(const Renderer_Vulkan& renderer)
+        : m_renderer(&renderer)
+    {
+
+    }
+
     Swapchain_Vulkan::~Swapchain_Vulkan()
     {
         const auto& device = m_renderer->device().handle();
@@ -89,9 +96,26 @@ namespace engine
         device.destroySwapchainKHR(m_swapchain);
     }
 
+    void Swapchain_Vulkan::cleanup()
+    {
+        m_framebuffers.clear();
+        m_image_views.clear();
+        m_renderer->device().handle().destroySwapchainKHR(m_swapchain);
+    }
+
     void Swapchain_Vulkan::recreate()
     {
-        // auto windowing_module = Engine::instance()->get_module<WindowingModule>();
+        auto windowing_module = Engine::instance()->get_module<WindowingModule>();
+        assert(windowing_module);
+        recreate(windowing_module->window().framebuffer_size());
+    }
+
+    void Swapchain_Vulkan::recreate(v2u size)
+    {
+        const auto& device = m_renderer->device();
+        device.wait_idle();
+
+
     }
 
     vk::Viewport Swapchain_Vulkan::viewport() const

@@ -11,8 +11,8 @@
 
 namespace engine
 {
-    Pipeline_Vulkan::Pipeline_Vulkan(const Renderer_Vulkan& renderer)
-        : m_renderer(&renderer)
+    Pipeline_Vulkan::Pipeline_Vulkan(const std::shared_ptr<Renderer_Vulkan>& renderer)
+        : m_renderer(renderer)
     {
         m_shaders.resize(magic_enum::enum_count<ShaderStage>());
     }
@@ -21,6 +21,18 @@ namespace engine
     {
         const auto& device = m_renderer->device();
         device.destroy_pipeline(m_pipeline_handle, m_layout);
+    }
+
+    void Pipeline_Vulkan::reset(const PipelineFactory& factory)
+    {
+        for (const auto& shader_params : factory.shader_create_params())
+        {
+            if (!shader_params.has_value())
+                continue;
+
+            auto shader = Shader_Vulkan::create(magic_enum::, path, *m_renderer);
+            shader_params->path
+        }
     }
 
     IPipeline& Pipeline_Vulkan::add_shader(engine::ShaderStage stage, const std::string &path)

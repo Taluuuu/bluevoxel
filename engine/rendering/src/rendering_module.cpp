@@ -19,11 +19,11 @@ namespace engine
         m_renderer->draw_frame();
     }
 
-    bool RenderingModule::init(const GameInfo &game_info)
+    bool RenderingModule::init(const GameInfo& game_info)
     {
         Module::init(game_info);
 
-        const auto windowing_module = engine().get_module<WindowingModule>();
+        const auto windowing_module = m_engine->get_module<WindowingModule>();
         assert(windowing_module != nullptr);
         auto& window = windowing_module->window();
 

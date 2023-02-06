@@ -84,7 +84,7 @@ namespace engine
                 m_uninitialized_modules.erase(it->first);
 
                 // Query interfaces...
-                if (auto dtp = std::dynamic_pointer_cast<ICoreWindow>(module))
+                if (auto dtp = std::dynamic_pointer_cast<IWindowModule>(module))
                     m_core_window = dtp;
 
                 if (auto tickable = std::dynamic_pointer_cast<ITickable>(module))

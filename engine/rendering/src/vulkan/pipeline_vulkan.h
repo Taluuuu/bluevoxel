@@ -16,15 +16,15 @@ namespace engine
     {
     public:
 
-        Pipeline_Vulkan(const Renderer_Vulkan& renderer);
+        Pipeline_Vulkan(const std::shared_ptr<Renderer_Vulkan>& renderer);
         Pipeline_Vulkan(const Pipeline_Vulkan&) = delete;
         Pipeline_Vulkan(Pipeline_Vulkan&& other) = delete;
         ~Pipeline_Vulkan();
 
+        void reset(const PipelineFactory& factory);
+
         // IPipeline interface
-        virtual IPipeline& add_shader(ShaderStage stage, const std::string& path) override;
-        virtual IPipeline& compile() override;
-        virtual bool is_ready() const override;
+        // ...
 
         const vk::Pipeline& pipeline_handle() const { return m_pipeline_handle; }
 
@@ -38,7 +38,7 @@ namespace engine
         vk::Pipeline m_pipeline_handle = nullptr;
         vk::PipelineLayout m_layout = nullptr;
 
-        const Renderer_Vulkan* const m_renderer = nullptr;
+        std::shared_ptr<Renderer_Vulkan> const m_renderer = nullptr;
 
     };
 }

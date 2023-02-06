@@ -4,6 +4,7 @@
 
 namespace engine
 {
+    class PipelineFactory;
     class IPipeline;
     class IWindow;
 
@@ -16,7 +17,9 @@ namespace engine
         // TODO: Make this accessible only by the rendering module
         virtual void draw_frame() = 0;
 
-        virtual IPipeline& create_pipeline() const = 0;
+        // Pipeline
+        virtual PipelineFactory create_pipeline() = 0;
+        virtual IPipeline*      compile_pipeline(const PipelineFactory& factory) = 0;
 
     };
 }

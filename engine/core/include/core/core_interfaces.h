@@ -4,11 +4,11 @@
 
 namespace engine
 {
-    class ICoreWindow
+    class IWindowModule
     {
     public:
 
-        virtual ~ICoreWindow() {}
+        virtual ~IWindowModule() {}
 
         /**
          * @brief Get the time since the last frame in seconds

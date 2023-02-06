@@ -51,18 +51,13 @@ namespace engine
          */
         bool is_initialized() const { return m_is_initialized; }
 
-        /**
-         * @brief Get the engine instance this module is owned by
-         * 
-         * @return A reference to the engine
-         */
-        Engine& engine() const { return m_engine; }
+    protected:
+
+        Engine* const m_engine = nullptr;
 
     private:
 
         bool m_is_initialized = false;
-
-        Engine& m_engine;
 
     };
 }

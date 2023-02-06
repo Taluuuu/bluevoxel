@@ -4,6 +4,7 @@ project(game)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(game 
+    src/game_module.cpp
     src/main.cpp
 )
 

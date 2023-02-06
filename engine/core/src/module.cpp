@@ -5,7 +5,7 @@
 namespace engine
 {
     Module::Module(Engine& engine)
-        : m_engine(engine) {}
+        : m_engine(&engine) {}
 
     bool Module::init(const GameInfo& game_info)
     {
