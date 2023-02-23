@@ -14,11 +14,25 @@ find_package(Vulkan REQUIRED)
 set(VULKAN_PATH ${Vulkan_INCLUDE_DIRS})
 STRING(REGEX REPLACE "/Include" "" VULKAN_PATH ${VULKAN_PATH})
 
+# OpenGL
+add_subdirectory(lib/glad)
+
 # magic_enum
 add_subdirectory(lib/magic_enum)
 
 # fmt
 add_subdirectory(lib/fmt)
+
+set(TNT_USE_OPENGL True)
+set(TNT_USE_VULKAN False)
+
+if(TNT_USE_VULKAN)
+    add_definitions(-DTNT_USE_VULKAN)
+endif()
+
+if (TNT_USE_OPENGL)
+    add_definitions(-DTNT_USE_OPENGL)
+endif()
 
 # Engine libraries
 add_subdirectory(core)

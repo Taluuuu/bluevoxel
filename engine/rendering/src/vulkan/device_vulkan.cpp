@@ -124,9 +124,11 @@ namespace engine
         }
     }
 
-    Device_Vulkan* Device_Vulkan::create(const Renderer_Vulkan& renderer)
+    std::shared_ptr<Device_Vulkan> Device_Vulkan::create(const std::shared_ptr<Renderer_Vulkan>& renderer)
     {
-        auto physical_device = select_physical_device(renderer);
+        assert(renderer);
+
+        auto physical_device = select_physical_device(*renderer);
         if (!physical_device)
         {
             log::error("Failed to find GPUs with Vulkan support.");
@@ -134,12 +136,17 @@ namespace engine
         }
 
         vk::Queue graphics_queue, present_queue;
-        auto logical_device = create_logical_device(physical_device, renderer, graphics_queue, present_queue);
+        auto logical_device = create_logical_device(physical_device, *renderer, graphics_queue, present_queue);
         if (!logical_device)
             return nullptr;
         // TODO: error msg
 
-        return new Device_Vulkan(physical_device, logical_device, graphics_queue, present_queue);
+        return std::shared_ptr<Device_Vulkan>(new Device_Vulkan(
+            renderer, 
+            physical_device, 
+            logical_device, 
+            graphics_queue, 
+            present_queue));
     }
 
     vk::Pipeline Device_Vulkan::create_pipeline(const vk::GraphicsPipelineCreateInfo& create_info) const
@@ -166,8 +173,9 @@ namespace engine
             m_logical_device_handle.destroyPipelineLayout(pipeline_layout);
     }
 
-    Device_Vulkan::Device_Vulkan(const vk::PhysicalDevice& physical_device_handle, const vk::Device& logical_device_handle, const vk::Queue& graphics_queue, const vk::Queue& present_queue)
-        : m_physical_device_handle(physical_device_handle)
+    Device_Vulkan::Device_Vulkan(const std::shared_ptr<Renderer_Vulkan>& renderer, const vk::PhysicalDevice& physical_device_handle, const vk::Device& logical_device_handle, const vk::Queue& graphics_queue, const vk::Queue& present_queue)
+        : m_renderer(renderer)
+        , m_physical_device_handle(physical_device_handle)
         , m_logical_device_handle(logical_device_handle)
         , m_graphics_queue(graphics_queue)
         , m_present_queue(present_queue)

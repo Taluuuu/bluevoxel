@@ -2,11 +2,10 @@
 
 #include "rendering/pipeline.h"
 #include "rendering/renderer_enums.h"
-#include "shader_vulkan.h" // TODO: Check if it's better to have this be a forward declaration
 
 #include <memory>
 #include <vector>
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 
 namespace engine
 {
@@ -16,26 +15,29 @@ namespace engine
     {
     public:
 
-        Pipeline_Vulkan(const std::shared_ptr<Renderer_Vulkan>& renderer);
+        static std::shared_ptr<Pipeline_Vulkan> create(
+            const std::shared_ptr<Renderer_Vulkan>& renderer,
+            const PipelineCreateData& create_data);
+
         Pipeline_Vulkan(const Pipeline_Vulkan&) = delete;
         Pipeline_Vulkan(Pipeline_Vulkan&& other) = delete;
-        ~Pipeline_Vulkan();
-
-        void reset(const PipelineFactory& factory);
+        ~Pipeline_Vulkan() override;
 
         // IPipeline interface
-        // ...
+        [[nodiscard]] bool is_ready() const override;
 
-        const vk::Pipeline& pipeline_handle() const { return m_pipeline_handle; }
-
-    private:
-
-        void register_shader(std::unique_ptr<Shader_Vulkan>&& shader);
+        [[nodiscard]] const vk::Pipeline& handle() const { return m_pipeline; }
 
     private:
 
-        std::vector<std::unique_ptr<Shader_Vulkan>> m_shaders;
-        vk::Pipeline m_pipeline_handle = nullptr;
+        Pipeline_Vulkan(
+            const std::shared_ptr<Renderer_Vulkan>& renderer,
+            const vk::Pipeline& pipeline,
+            const vk::PipelineLayout& pipeline_layout);
+
+    private:
+
+        vk::Pipeline m_pipeline = nullptr;
         vk::PipelineLayout m_layout = nullptr;
 
         std::shared_ptr<Renderer_Vulkan> const m_renderer = nullptr;

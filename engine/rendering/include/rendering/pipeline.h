@@ -15,21 +15,21 @@ namespace engine
     {
     public:
 
-        virtual ~IPipeline() {}
+        virtual ~IPipeline() = default;
+
+        [[nodiscard]] virtual bool is_ready() const = 0;
 
     };
 
-    class PipelineFactory
+    class PipelineCreateData
     {
     public:
 
-        PipelineFactory(const std::shared_ptr<IRenderer>& renderer);
+        explicit PipelineCreateData(IRenderer& renderer);
 
-        PipelineFactory& add_shader(ShaderStage stage, const std::string& path);
+        PipelineCreateData& add_shader(ShaderStage stage, const std::string& path);
 
-        IPipeline* compile();
-
-    public:
+        std::shared_ptr<IPipeline> compile();
 
         struct ShaderCreateData
         {
@@ -37,15 +37,17 @@ namespace engine
             std::string path;
         };
 
-    public:
-
-        auto shader_create_params() const { return m_shaders; }
+        [[nodiscard]] const std::optional<ShaderCreateData>& vertex_shader()   const { return m_vertex_shader;   }
+        [[nodiscard]] const std::optional<ShaderCreateData>& fragment_shader() const { return m_fragment_shader; }
+        [[nodiscard]] const std::optional<ShaderCreateData>& geometry_shader() const { return m_geometry_shader; }
 
     private:
 
-        std::vector< std::optional<ShaderCreateData> > m_shaders;
+        std::optional<ShaderCreateData> m_vertex_shader{};
+        std::optional<ShaderCreateData> m_fragment_shader{};
+        std::optional<ShaderCreateData> m_geometry_shader{};
 
-        std::shared_ptr<IRenderer> const m_renderer = nullptr;
+        IRenderer* const m_renderer = nullptr;
 
     };
 }

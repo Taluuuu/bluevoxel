@@ -5,7 +5,7 @@
 #include <memory>
 #include <optional>
 #include <vector>
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 
 namespace engine
 {

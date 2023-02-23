@@ -1,16 +1,17 @@
 #pragma once
 
-#include <vulkan/vulkan_raii.hpp>
+#include <memory>
+#include <vulkan/vulkan.h>
 
 namespace engine
 {
     class Renderer_Vulkan;
 
-    class Device_Vulkan
+    class Device_Vulkan : public std::enable_shared_from_this<Device_Vulkan>
     {
     public:
 
-        static Device_Vulkan* create(const Renderer_Vulkan& renderer);
+        static std::shared_ptr<Device_Vulkan> create(const std::shared_ptr<Renderer_Vulkan>& renderer);
 
         Device_Vulkan(const Device_Vulkan&) = delete;
         Device_Vulkan(Device_Vulkan&&) = delete;
@@ -32,6 +33,7 @@ namespace engine
     private:
 
         Device_Vulkan(
+            const std::shared_ptr<Renderer_Vulkan>& renderer,
             const vk::PhysicalDevice& physical_device_handle,
             const vk::Device& logical_device_handle,
             const vk::Queue& graphics_queue,
@@ -44,6 +46,8 @@ namespace engine
 
         vk::Queue          m_graphics_queue         = nullptr;
         vk::Queue          m_present_queue          = nullptr;
+
+        std::shared_ptr<Renderer_Vulkan> const m_renderer = nullptr;
 
     };
 }

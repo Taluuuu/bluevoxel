@@ -15,21 +15,21 @@ namespace engine
     {
     public:
 
-        RenderingModule(Engine& engine);
+        explicit RenderingModule(Engine& engine);
 
-        virtual void tick(f64 delta_time) override;
+        void tick(f64 delta_time) override;
         
         // IModule interface
-        virtual bool init(const GameInfo& game_info) override;
-        virtual void cleanup() override;
-        virtual std::string_view get_module_name() const override { return "Rendering"; }
-        virtual std::vector<std::type_index> get_dependencies() const override;
+        bool init(const GameInfo& game_info) override;
+        void cleanup() override;
+        [[nodiscard]] std::string_view get_module_name() const override { return "Rendering"; }
+        [[nodiscard]] std::vector<std::type_index> get_dependencies() const override;
 
-        IRenderer& renderer() const;
+        [[nodiscard]] IRenderer& renderer() const;
 
     private:
 
-        std::shared_ptr<IRenderer> m_renderer = nullptr;
+        std::unique_ptr<IRenderer> m_renderer;
 
     };
 }

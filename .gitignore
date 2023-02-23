@@ -1,3 +1,9 @@
-build/
-.vscode/
-.cache/
+.idea
+.vscode
+.cache
+
+build
+cmake-build-debug
+cmake-build-relwithdebinfo
+cmake-build-release
+cmake-build-minsizerel

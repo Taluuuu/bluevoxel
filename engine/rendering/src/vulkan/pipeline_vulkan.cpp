@@ -11,70 +11,43 @@
 
 namespace engine
 {
-    Pipeline_Vulkan::Pipeline_Vulkan(const std::shared_ptr<Renderer_Vulkan>& renderer)
-        : m_renderer(renderer)
+    std::shared_ptr<Pipeline_Vulkan> Pipeline_Vulkan::create(
+        const std::shared_ptr<Renderer_Vulkan>& renderer,
+        const PipelineCreateData& create_data)
     {
-        m_shaders.resize(magic_enum::enum_count<ShaderStage>());
-    }
+        const auto& shader_create_data = create_data.shader_create_data();
 
-    Pipeline_Vulkan::~Pipeline_Vulkan()
-    {
-        const auto& device = m_renderer->device();
-        device.destroy_pipeline(m_pipeline_handle, m_layout);
-    }
+        std::vector<vk::PipelineShaderStageCreateInfo> shader_create_infos;
+        shader_create_infos.reserve(shader_create_data.size());
 
-    void Pipeline_Vulkan::reset(const PipelineFactory& factory)
-    {
-        for (const auto& shader_params : factory.shader_create_params())
+        bool has_vertex_shader = false, has_fragment_shader = false;
+        for (const auto& shader_data : shader_create_data)
         {
-            if (!shader_params.has_value())
+            if (!shader_data.has_value())
                 continue;
 
-            auto shader = Shader_Vulkan::create(magic_enum::, path, *m_renderer);
-            shader_params->path
-        }
-    }
+            auto shader = Shader_Vulkan::create(shader_data->stage, shader_data->path, renderer);
+            if (!shader.has_value())
+                continue;
 
-    IPipeline& Pipeline_Vulkan::add_shader(engine::ShaderStage stage, const std::string &path)
-    {
-        auto shader = Shader_Vulkan::create(stage, path, *m_renderer);
-        if (shader)
-            register_shader(std::move(shader));
+            shader_create_infos.push_back(
+                shader->make_pipeline_shader_stage_create_info());
 
-        return *this;
-    }
-
-    IPipeline& Pipeline_Vulkan::compile()
-    {
-        m_pipeline_handle = nullptr;
-
-        // Create shader stage create info array
-        std::vector<vk::PipelineShaderStageCreateInfo> shader_create_infos;
-        bool has_vertex_shader = false, has_fragment_shader = false;
-        shader_create_infos.reserve(m_shaders.size());
-        for (const auto& shader : m_shaders)
-        {
-            if (shader)
-            {
-                shader_create_infos.push_back(
-                    shader->make_pipeline_shader_stage_create_info());
-
-                has_vertex_shader   = has_vertex_shader   || (shader->stage() == ShaderStage::Vertex);
-                has_fragment_shader = has_fragment_shader || (shader->stage() == ShaderStage::Fragment);
-            }
+            has_vertex_shader   = has_vertex_shader   || (shader->stage() == ShaderStage::Vertex);
+            has_fragment_shader = has_fragment_shader || (shader->stage() == ShaderStage::Fragment);
         }
 
         // Make sure there is at least a vertex and fragment shader
         if (!has_fragment_shader || !has_vertex_shader)
         {
             log::error("Failed to create pipeline. Missing vertex shader and/or fragment shader.");
-            return *this;
+            return nullptr;
         }
-        
+
         // Vertex input format
-        // Bindings   : Spacing between data and whether the data is per-vertex or 
+        // Bindings   : Spacing between data and whether the data is per-vertex or
         //              per-instance
-        // Attributes : Type of the attributes passed to the vertex shader, which 
+        // Attributes : Type of the attributes passed to the vertex shader, which
         //              binding to load them from and at which offset
         vk::PipelineVertexInputStateCreateInfo vertex_input_info({},
             0, nullptr, // Vertex binding descriptions
@@ -86,7 +59,7 @@ namespace engine
             false
         );
 
-        std::vector<vk::DynamicState> dynamic_states = 
+        std::vector<vk::DynamicState> dynamic_states =
         {
             vk::DynamicState::eViewport,
             vk::DynamicState::eScissor
@@ -96,11 +69,11 @@ namespace engine
             dynamic_states.data()
         );
 
-        const auto& swapchain = m_renderer->swapchain();
+        const auto& swapchain = renderer->swapchain();
         auto viewport = swapchain.viewport();
         auto scissor  = swapchain.scissor();
         vk::PipelineViewportStateCreateInfo viewport_state_create_info({},
-            1, &viewport, 
+            1, &viewport,
             1, &scissor
         );
 
@@ -135,9 +108,9 @@ namespace engine
             vk::BlendOp::eAdd,
             // Not optional
             vk::ColorComponentFlagBits::eR |
-            vk::ColorComponentFlagBits::eG |
-            vk::ColorComponentFlagBits::eB |
-            vk::ColorComponentFlagBits::eA
+                vk::ColorComponentFlagBits::eG |
+                vk::ColorComponentFlagBits::eB |
+                vk::ColorComponentFlagBits::eA
         );
 
         vk::PipelineColorBlendStateCreateInfo pipeline_color_blend_state_create_info({},
@@ -153,8 +126,8 @@ namespace engine
             0, nullptr
         );
 
-        const auto& device = m_renderer->device();
-        m_layout = device.create_pipeline_layout(pipeline_layout_create_info);
+        const auto& device = renderer->device();
+        auto layout = device.create_pipeline_layout(pipeline_layout_create_info);
 
         vk::GraphicsPipelineCreateInfo graphics_pipeline_create_info({},
             2, shader_create_infos.data(),
@@ -167,35 +140,41 @@ namespace engine
             nullptr,
             &pipeline_color_blend_state_create_info,
             &pipeline_dynamic_state_create_info,
-            m_layout,
-            m_renderer->swapchain().render_pass(),
+            layout,
+            renderer->swapchain().render_pass(),
             0,
             nullptr,
             -1);
 
-        m_pipeline_handle = device.create_pipeline(graphics_pipeline_create_info);
-        if (!m_pipeline_handle)
+        auto handle = device.create_pipeline(graphics_pipeline_create_info);
+        if (!handle)
         {
             log::error("Failed to create graphics pipeline.");
-            return *this;
+            return nullptr;
         }
 
-        // Destroy shader modules
-        // TODO: Should delete shader modules even when pipeline creation fails
-        m_shaders.clear();
-
-        return *this;
+        auto pipeline = new Pipeline_Vulkan(renderer, handle, layout);
+        return std::shared_ptr<Pipeline_Vulkan>(pipeline);
     }
-    
+
+    Pipeline_Vulkan::~Pipeline_Vulkan()
+    {
+        const auto& device = m_renderer->device();
+        device.destroy_pipeline(m_pipeline, m_layout);
+    }
+
+
     bool Pipeline_Vulkan::is_ready() const
     {
-        return m_pipeline_handle;
+        return m_pipeline;
     }
 
-    void Pipeline_Vulkan::register_shader(std::unique_ptr<Shader_Vulkan>&& shader)
-    {
-        auto stage_index = magic_enum::enum_index(shader->stage());
-        if (stage_index.has_value())
-            m_shaders[*stage_index] = std::move(shader);
-    }
+    Pipeline_Vulkan::Pipeline_Vulkan(
+        const std::shared_ptr<Renderer_Vulkan>& renderer,
+        const vk::Pipeline& pipeline,
+        const vk::PipelineLayout& pipeline_layout)
+        : m_renderer(renderer)
+        , m_pipeline(pipeline)
+        , m_layout(pipeline_layout)
+    {}
 }

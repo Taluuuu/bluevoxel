@@ -88,8 +88,8 @@ namespace engine
         );
     }
 
-    DebugMessenger_Vulkan::DebugMessenger_Vulkan(const vk::DebugUtilsMessengerEXT& messenger_handle, const Renderer_Vulkan& renderer)
-        : m_messenger_handle(messenger_handle)
+    DebugMessenger_Vulkan::DebugMessenger_Vulkan(VkDebugUtilsMessengerEXT messenger, const Renderer_Vulkan& renderer)
+        : m_messenger(messenger)
         , m_renderer(&renderer)
     {}
 }

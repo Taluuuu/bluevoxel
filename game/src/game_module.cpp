@@ -21,14 +21,16 @@ namespace game
         assert(rendering_module);
         auto& renderer = rendering_module->renderer();
 
-        auto pipeline = std::unique_ptr<engine::IPipeline>(renderer
+        auto pipeline = renderer
             .create_pipeline()
             .add_shader(engine::ShaderStage::Vertex,   "Resources/engine/shaders/triangle.vert.spv")
             .add_shader(engine::ShaderStage::Fragment, "Resources/engine/shaders/triangle.frag.spv")
-            .compile());
+            .compile();
 
         if (!pipeline)
             return false;
+
+        renderer.bind_pipeline(pipeline);
 
         return true;
     }

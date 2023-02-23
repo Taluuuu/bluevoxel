@@ -15,35 +15,35 @@ namespace engine
     {
     public:
 
-        virtual ~IWindow() {}
+        virtual ~IWindow() = default;
 
         /**
          * @brief Get the size of the window in screen coordinates
          * 
          * @return The size of the window in screen coordinates
          */
-        virtual v2i window_size() const = 0;
+        [[nodiscard]] virtual v2i window_size() const = 0;
 
         /**
          * @brief Get the size of the window in pixels
          * 
          * @return The size of the window in pixels
          */
-        virtual v2i framebuffer_size() const = 0;
+        [[nodiscard]] virtual v2i framebuffer_size() const = 0;
 
         /**
          * @brief Get the time since the last frame in seconds
          * 
          * @return The time since the last frame in seconds
          */
-        virtual f64 delta_time() const = 0;
+        [[nodiscard]] virtual f64 delta_time() const = 0;
 
         /**
          * @brief Getter for if the window should close
          * 
          * @return true if the window should close
          */
-        virtual bool should_close() const = 0;
+        [[nodiscard]] virtual bool should_close() const = 0;
 
         /**
          * @brief Poll the window for events
@@ -57,14 +57,14 @@ namespace engine
          * 
          * @return void* 
          */
-        virtual void* handle() const = 0;
+        [[nodiscard]] virtual void* handle() const = 0;
 
         /**
          * @brief Swap the window's buffers
          * 
          * @param max_fps The fps lock
          */
-        virtual void swap_buffers(f64 max_fps = 60.0) = 0;
+        virtual void swap_buffers(f64 max_fps) = 0;
 
         virtual Event<WindowResizeEvent>& resize_event() = 0;
         

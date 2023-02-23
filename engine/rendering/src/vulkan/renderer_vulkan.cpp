@@ -4,96 +4,30 @@
 #include "core/game_info.h"
 #include "core/log.h"
 #include "core/types.h"
-#include "core/utils.h"
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
 
 #include "debug_messenger_vulkan.h"
 #include "device_vulkan.h"
 #include "pipeline_vulkan.h"
-#include "shader_vulkan.h"
 #include "surface_vulkan.h"
 #include "swapchain_vulkan.h"
 
 // GLFW for Vulkan
 // TODO: Should not assume Vulkan is used with GLFW.
-#define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #define GLFW_EXPOSE_NATIVE_WIN32
-#include <GLFW/glfw3native.h>
-
 #include <iostream>
 #undef max
 #include <limits>
-#include <set>
+#include <vulkan/vulkan.h>
 
 namespace engine
 {
-    std::shared_ptr<Renderer_Vulkan> Renderer_Vulkan::create(const GameInfo& game_info, IWindow& window)
+    Renderer_Vulkan::Renderer_Vulkan()
     {
-        return std::shared_ptr<Renderer_Vulkan>(new Renderer_Vulkan(game_info, window));
-    }
 
-    Renderer_Vulkan::Renderer_Vulkan(const GameInfo& game_info, IWindow& window)
-    {
-        // TODO: Return raw pointers from my create functions
-        // and store them into smart pointers here
-
-        // TODO: Make sure to destroy the instance if setup_debug_messenger fails.
-        create_instance(game_info.game_name.data(), game_info.engine_name.data());
-
-        m_debug_messenger.reset(DebugMessenger_Vulkan::create(*this));
-        if (!m_debug_messenger)
-        {
-            throw std::runtime_error("Failed to create debug messenger.");
-        }
-
-        m_surface.reset(Surface_Vulkan::create(window, *this));
-        if (!m_surface)
-        {
-            throw std::runtime_error("Failed to create vulkan surface");
-        }
-
-        m_device.reset(Device_Vulkan::create(*this));
-        if (!m_device)
-        {
-            throw std::runtime_error("Failed to pick physical device.");
-        }
-
-        // TODO: Change this stupid constructor
-        m_swapchain.reset(Swapchain_Vulkan::create(*this, window));
-        if (!m_swapchain)
-        {
-            // TODO: Destroy previously allocated resources
-            throw std::runtime_error("Failed to create swapchain.");
-        }
-
-        m_window_resize_event_handle = window.resize_event().add_listener(
-            [&](const WindowResizeEvent& event)
-            {
-                m_swapchain->recreate();
-            });
-
-        // Pipeline creation here is temporary; pipelines will be created in game code
-        // or in more abstract mesh renderers in the engine
-        m_pipeline = std::make_unique<Pipeline_Vulkan>(*this);
-        (*m_pipeline)
-            .add_shader(ShaderStage::Vertex,   "Resources/engine/shaders/triangle.vert.spv")
-            .add_shader(ShaderStage::Fragment, "Resources/engine/shaders/triangle.frag.spv")
-            .compile();
-        
-        if (!m_pipeline->is_ready())
-        {
-            // TODO: Destroy previously allocated resources
-            throw std::runtime_error("Failed to create graphics pipeline.");
-        }
-
-        create_command_pool();
-
-        create_command_buffers();
-
-        create_sync_objects();
     }
 
     Renderer_Vulkan::~Renderer_Vulkan()
@@ -120,6 +54,54 @@ namespace engine
         m_surface.reset();
         m_debug_messenger.reset();
         m_instance.destroy();
+
+        vkDestroyInstance(m_instance, nullptr);
+    }
+
+    bool Renderer_Vulkan::init(const GameInfo& game_info, IWindow& window)
+    {
+        if (!create_instance(game_info))
+            return false;
+
+        m_debug_messenger.reset(DebugMessenger_Vulkan::create(*this));
+        if (!m_debug_messenger)
+        {
+            throw std::runtime_error("Failed to create debug messenger.");
+        }
+
+        m_surface.reset(Surface_Vulkan::create(window, *this));
+        if (!m_surface)
+        {
+            throw std::runtime_error("Failed to create vulkan surface");
+        }
+
+        m_device = Device_Vulkan::create(shared_from_this());
+        if (!m_device)
+        {
+            throw std::runtime_error("Failed to pick physical device.");
+        }
+
+        // TODO: Change this stupid constructor
+        m_swapchain.reset(Swapchain_Vulkan::create(*this, window));
+        if (!m_swapchain)
+        {
+            // TODO: Destroy previously allocated resources
+            throw std::runtime_error("Failed to create swapchain.");
+        }
+
+        m_window_resize_event_handle = window.resize_event().add_listener(
+            [&](const WindowResizeEvent& event)
+            {
+                m_swapchain->recreate();
+            });
+
+        create_command_pool();
+
+        create_command_buffers();
+
+        create_sync_objects();
+
+        return true;
     }
 
     void Renderer_Vulkan::draw_frame()
@@ -172,14 +154,19 @@ namespace engine
         m_current_frame = (m_current_frame + 1) % max_frames_in_flight;
     }
 
-    PipelineFactory Renderer_Vulkan::create_pipeline()
+    PipelineCreateData Renderer_Vulkan::create_pipeline()
     {
-        return PipelineFactory(shared_from_this());
+        return PipelineCreateData(shared_from_this());
     }
 
-    IPipeline* Renderer_Vulkan::compile_pipeline(const PipelineFactory& factory)
+    std::shared_ptr<IPipeline> Renderer_Vulkan::compile_pipeline(const PipelineCreateData& create_data)
     {
-        Pipeline_Vulkan(shared_from_this());
+        return Pipeline_Vulkan::create(shared_from_this(), create_data);
+    }
+
+    void Renderer_Vulkan::bind_pipeline(const std::shared_ptr<IPipeline>& pipeline)
+    {
+        m_pipeline = std::dynamic_pointer_cast<Pipeline_Vulkan>(pipeline);
     }
 
     const Surface_Vulkan& Renderer_Vulkan::surface() const
@@ -200,38 +187,43 @@ namespace engine
         return *m_device;
     }
 
-    void Renderer_Vulkan::create_instance(const char *game_name, const char *engine_name)
+    bool Renderer_Vulkan::create_instance(const GameInfo& game_info)
     {
         if (m_enable_validation_layers && !validation_layers_are_supported())
-            throw std::runtime_error("Validation layers are required but not available.");
+            return false;
 
-        vk::ApplicationInfo app_info(
-            game_name, 
-            VK_MAKE_API_VERSION(0, 0, 0, 1),
-            engine_name,
-            VK_MAKE_API_VERSION(0, 0, 0, 1),
-            VK_API_VERSION_1_0
-        );
+        VkApplicationInfo app_info
+        {
+            .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pApplicationName   = game_info.game_name.data(),
+            .applicationVersion = VK_MAKE_VERSION(0, 0, 1),
+            .pEngineName        = game_info.engine_name.data(),
+            .engineVersion      = VK_MAKE_VERSION(0, 0, 1),
+            .apiVersion         = VK_API_VERSION_1_0
+        };
 
         auto extensions = get_required_instance_extensions();
-        vk::InstanceCreateInfo create_info({}, 
-            &app_info, 
-            0, nullptr, 
-            static_cast<u32>(extensions.size()), extensions.data(), 
-            nullptr
-        );
+        VkInstanceCreateInfo create_info
+        {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pApplicationInfo = &app_info,
+            .enabledLayerCount = 0,
+            .ppEnabledLayerNames = nullptr,
+            .enabledExtensionCount = static_cast<u32>(extensions.size()),
+            .ppEnabledExtensionNames = extensions.data(),
+        };
 
-        vk::DebugUtilsMessengerCreateInfoEXT debug_messenger_create_info;
+        VkDebugUtilsMessengerCreateInfoEXT messenger_create_info{};
         if (m_enable_validation_layers)
         {
             create_info.enabledLayerCount = static_cast<u32>(m_validation_layers.size());
             create_info.ppEnabledLayerNames = m_validation_layers.data();
 
-            DebugMessenger_Vulkan::populate_debug_messenger_create_info(debug_messenger_create_info);
-            create_info.pNext = &debug_messenger_create_info;
+            DebugMessenger_Vulkan::populate_debug_messenger_create_info(messenger_create_info);
+            create_info.pNext = &messenger_create_info;
         }
 
-        m_instance = vk::createInstance(create_info);
+        return vkCreateInstance(&create_info, nullptr, &m_instance) == VK_SUCCESS;
     }
 
     void Renderer_Vulkan::create_command_pool()
@@ -294,7 +286,13 @@ namespace engine
 
     bool Renderer_Vulkan::validation_layers_are_supported() const
     {
-        auto available_layers = vk::enumerateInstanceLayerProperties();
+        u32 layer_count;
+        if (vkEnumerateInstanceLayerProperties(&layer_count, nullptr) != VK_SUCCESS)
+            return false;
+
+        std::vector<VkLayerProperties> available_layers(layer_count);
+        if (!vkEnumerateInstanceLayerProperties(&layer_count, available_layers.data()))
+            return false;
 
         for (const char* layer_name : m_validation_layers)
         {
@@ -314,7 +312,6 @@ namespace engine
         }
 
         return true;
-
     }
 
     Renderer_Vulkan::QueueFamilyIndices Renderer_Vulkan::find_queue_families(
@@ -345,51 +342,6 @@ namespace engine
         return indices;
     }
 
-    vk::SurfaceFormatKHR Renderer_Vulkan::choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& available_formats) const
-    {
-        for (const auto& format : available_formats)
-        {
-            if (format.format == vk::Format::eB8G8R8A8Srgb && 
-                format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
-            {
-                return format;
-            }
-        }
-
-        assert(!available_formats.empty());
-        return available_formats[0];
-    }
-
-    vk::PresentModeKHR Renderer_Vulkan::choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& available_present_modes) const
-    {
-        // Present modes : 
-        // https://vulkan-tutorial.com/en/Drawing_a_triangle/Presentation/swapchain
-        
-        for (const auto& present_mode : available_present_modes)
-        {
-            if (present_mode == vk::PresentModeKHR::eMailbox)
-                return present_mode;
-        }
-
-        return vk::PresentModeKHR::eFifo;
-    }
-
-    vk::Extent2D Renderer_Vulkan::choose_swap_extent(
-        const IWindow& window, 
-        const vk::SurfaceCapabilitiesKHR& capabilities) const
-    {
-        if (capabilities.currentExtent.width != std::numeric_limits<u32>::max())
-            return capabilities.currentExtent;
-
-        auto window_size = window.framebuffer_size();
-        vk::Extent2D actual_extent(window_size.x, window_size.y);
-        
-        actual_extent.width = std::clamp(actual_extent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-        actual_extent.height = std::clamp(actual_extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-        return actual_extent;
-    }
-
     void Renderer_Vulkan::record_command_buffer(const vk::CommandBuffer &command_buffer, u32 image_index) const
     {
         vk::CommandBufferBeginInfo command_buffer_info({}, nullptr);
@@ -403,7 +355,7 @@ namespace engine
             );
 
             command_buffer.beginRenderPass(render_pass_info, vk::SubpassContents::eInline);
-                command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline->pipeline_handle());
+                command_buffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline->handle());
                 command_buffer.setViewport(0, m_swapchain->viewport());
                 command_buffer.setScissor(0,  m_swapchain->scissor());
                 command_buffer.draw(3, 1, 0, 0);

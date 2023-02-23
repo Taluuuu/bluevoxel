@@ -3,6 +3,7 @@
 #include "core/types.h"
 #include "windowing/window.h"
 
+#include <memory>
 #include <string>
 
 struct GLFWwindow;
@@ -13,22 +14,29 @@ namespace engine
     {
     public:
 
-        Window_GLFW(const std::string_view& title, v2i size);
+        static std::shared_ptr<Window_GLFW> create(const std::string_view& title, v2i size);
+
+    private:
+
+        explicit Window_GLFW(GLFWwindow* window);
+
+    public:
+
         Window_GLFW(const Window_GLFW&) = delete;
-        Window_GLFW(Window_GLFW&& other);
-        ~Window_GLFW();
+        Window_GLFW(Window_GLFW&& other) noexcept;
+        ~Window_GLFW() override;
 
     public:
 
         // IWindow interface
-        virtual v2i window_size() const override;
-        virtual v2i framebuffer_size() const override;
-        virtual bool should_close() const override;
-        virtual f64 delta_time() const override;
-        virtual void poll_events() const override;
-        virtual void* handle() const override;
-        virtual void swap_buffers(f64 max_fps = 60.0) override;
-        virtual Event<WindowResizeEvent>& resize_event() override;
+        [[nodiscard]] v2i window_size() const override;
+        [[nodiscard]] v2i framebuffer_size() const override;
+        [[nodiscard]] bool should_close() const override;
+        [[nodiscard]] f64 delta_time() const override;
+        void poll_events() const override;
+        [[nodiscard]] void* handle() const override;
+        void swap_buffers(f64 max_fps) override;
+        Event<WindowResizeEvent>& resize_event() override;
 
     private:
 

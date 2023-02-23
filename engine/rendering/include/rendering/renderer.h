@@ -4,7 +4,8 @@
 
 namespace engine
 {
-    class PipelineFactory;
+    class GameInfo;
+    class PipelineCreateData;
     class IPipeline;
     class IWindow;
 
@@ -12,14 +13,19 @@ namespace engine
     {
     public:
 
-        virtual ~IRenderer() {}
-
-        // TODO: Make this accessible only by the rendering module
-        virtual void draw_frame() = 0;
+        virtual ~IRenderer() = default;
 
         // Pipeline
-        virtual PipelineFactory create_pipeline() = 0;
-        virtual IPipeline*      compile_pipeline(const PipelineFactory& factory) = 0;
+        virtual PipelineCreateData         create_pipeline() = 0;
+        virtual std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data) = 0;
+        virtual void                       bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) = 0; // Temporary
+
+    protected:
+
+        friend class RenderingModule;
+
+        virtual bool init(const GameInfo& game_info, IWindow& window) = 0;
+        virtual void draw_frame() = 0;
 
     };
 }

@@ -20,7 +20,7 @@ namespace engine
 
         try
         {
-            m_window = std::make_shared<Window_GLFW>(game_info.game_name, default_size);
+            m_window = Window_GLFW::create(game_info.game_name, default_size);
         }
         catch(const std::exception& e)
         {

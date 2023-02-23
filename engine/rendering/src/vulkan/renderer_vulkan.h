@@ -6,7 +6,7 @@
 
 #include <memory>
 #include <optional>
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 
 namespace engine
 {
@@ -25,25 +25,21 @@ namespace engine
     {
     public:
 
-        [[nodiscard]] static std::shared_ptr<Renderer_Vulkan> create(
-            const GameInfo& game_info, 
-            IWindow& window);
-
-    private:
-
-        Renderer_Vulkan(const GameInfo& game_info, IWindow& window);
-
-    public:
-
-        ~Renderer_Vulkan();
+        Renderer_Vulkan();
+        ~Renderer_Vulkan() override;
         
         Renderer_Vulkan(const Renderer_Vulkan&) = delete;
         Renderer_Vulkan(Renderer_Vulkan&&) = delete;
-
+        
         // IRenderer interface
-        virtual void            draw_frame()                                     override;
-        virtual PipelineFactory create_pipeline()                                override;
-        virtual IPipeline*      compile_pipeline(const PipelineFactory& factory) override;
+        PipelineCreateData         create_pipeline()                                         override;
+        std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data)   override;
+        void                       bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;
+    protected:
+        bool                       init(const GameInfo& game_info, IWindow& window)          override;
+        void                       draw_frame()                                              override;
+
+    public:
 
         // Vulkan wrapper getters
         // Get the renderer's swapchain instance. Must be called after the swapchain is initialized.
@@ -52,7 +48,7 @@ namespace engine
         const Device_Vulkan&    device()    const;
 
         // Native Vulkan getters
-        const vk::Instance& instance() const { return m_instance; }
+        const VkInstance& instance() const { return m_instance; }
 
         struct QueueFamilyIndices
         {
@@ -67,11 +63,11 @@ namespace engine
             }
         };
 
-        QueueFamilyIndices find_queue_families(const vk::PhysicalDevice& device) const;
+        QueueFamilyIndices find_queue_families(const VkPhysicalDevice& device) const;
 
     private:
 
-        void create_instance(const char* game_name, const char* engine_name);
+        bool create_instance(const GameInfo& game_info);
         void create_command_pool();
         void create_command_buffers();
         void create_sync_objects();
@@ -79,16 +75,14 @@ namespace engine
         std::vector<const char*> get_required_instance_extensions() const;
         bool validation_layers_are_supported() const;
 
-        vk::SurfaceFormatKHR choose_swap_surface_format(const std::vector<vk::SurfaceFormatKHR>& available_formats) const;
-        vk::PresentModeKHR choose_swap_present_mode(const std::vector<vk::PresentModeKHR>& available_present_modes) const;
-        vk::Extent2D choose_swap_extent(const IWindow& window, const vk::SurfaceCapabilitiesKHR& capabilities) const;
-
-        void record_command_buffer(const vk::CommandBuffer& command_buffer, u32 image_index) const;
+        void record_command_buffer(const VkCommandBuffer& command_buffer, u32 image_index) const;
 
     private:
 
-        vk::Instance    m_instance     = nullptr;
-        vk::CommandPool m_command_pool = nullptr;
+        VkInstance    m_instance     = nullptr;
+
+
+        VkCommandPool m_command_pool = nullptr;
 
         // Allows the program to start rendering the next frame while the current frame is still drawing.
         // 3 or more frames in flight could add latency, so 2 is good
@@ -97,10 +91,10 @@ namespace engine
 
         // These will probably be need to be grouped together in some wrapper class
         // Their size is always max_frames_in_flight, so maybe an std::array would be better
-        std::vector<vk::CommandBuffer> m_command_buffers;
-        std::vector<vk::Semaphore>     m_image_available_semaphores;
-        std::vector<vk::Semaphore>     m_render_finished_semaphores;
-        std::vector<vk::Fence>         m_in_flight_fences;
+        std::vector<VkCommandBuffer> m_command_buffers;
+        std::vector<VkSemaphore>     m_image_available_semaphores;
+        std::vector<VkSemaphore>     m_render_finished_semaphores;
+        std::vector<VkFence>         m_in_flight_fences;
 
         std::shared_ptr<Device_Vulkan>         m_device          = nullptr;
         std::shared_ptr<DebugMessenger_Vulkan> m_debug_messenger = nullptr;

@@ -4,7 +4,7 @@
 
 #include <memory>
 #include <vector>
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 
 namespace engine
 {
@@ -25,19 +25,18 @@ namespace engine
         Swapchain_Vulkan(Swapchain_Vulkan&&) = delete;
         ~Swapchain_Vulkan();
 
-        bool is_valid() const { return m_is_valid; }
         void cleanup();
         void recreate();
         void recreate(v2u size);
 
-        const vk::SwapchainKHR&             handle()       const { return m_swapchain;    }
-        const std::vector<vk::Image>&       images()       const { return m_images;       }
-        const vk::Format&                   image_format() const { return m_image_format; }
-        const vk::Extent2D&                 extent()       const { return m_extent;       }
-        const vk::RenderPass&               render_pass()  const { return m_render_pass;  }
-        const std::vector<vk::Framebuffer>& framebuffers() const { return m_framebuffers; }
-        vk::Viewport                        viewport()     const;
-        vk::Rect2D                          scissor()      const;
+        [[nodiscard]] const vk::SwapchainKHR&             handle()       const { return m_swapchain;    }
+        [[nodiscard]] const std::vector<vk::Image>&       images()       const { return m_images;       }
+        [[nodiscard]] const vk::Format&                   image_format() const { return m_image_format; }
+        [[nodiscard]] const vk::Extent2D&                 extent()       const { return m_extent;       }
+        [[nodiscard]] const vk::RenderPass&               render_pass()  const { return m_render_pass;  }
+        [[nodiscard]] const std::vector<vk::Framebuffer>& framebuffers() const { return m_framebuffers; }
+        [[nodiscard]] vk::Viewport                        viewport()     const;
+        [[nodiscard]] vk::Rect2D                          scissor()      const;
     
     private:
 
@@ -71,8 +70,6 @@ namespace engine
         std::vector<vk::Image>        m_images;
         std::vector<ImageView_Vulkan> m_image_views;
         std::vector<vk::Framebuffer>  m_framebuffers;
-
-        bool                          m_is_valid = false;
 
         const Renderer_Vulkan* const  m_renderer = nullptr;
 

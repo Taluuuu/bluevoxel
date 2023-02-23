@@ -12,9 +12,9 @@ namespace engine
     public:
 
         EventHandle() = default;
-        EventHandle(i32 id) : m_id(id) {}
+        explicit EventHandle(i32 id) : m_id(id) {}
 
-        bool is_valid() const { return m_id >= 0; }
+        [[nodiscard]] bool is_valid() const { return m_id >= 0; }
 
         bool operator==(const EventHandle& rhs) const { return m_id == rhs.m_id; }
 

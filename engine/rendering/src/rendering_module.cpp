@@ -1,12 +1,16 @@
 #include "rendering/rendering_module.h"
 
 #include "core/engine.h"
-#include "vulkan/renderer_vulkan.h"
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
 
-#include <iostream>
-#include <typeinfo>
+#if TNT_USE_VULKAN
+#include "vulkan/renderer_vulkan.h"
+#endif
+
+#if TNT_USE_OPENGL
+#include "opengl/renderer_opengl.h"
+#endif
 
 namespace engine
 {
@@ -27,16 +31,13 @@ namespace engine
         assert(windowing_module != nullptr);
         auto& window = windowing_module->window();
 
-        try
-        {
-            m_renderer = std::make_shared<Renderer_Vulkan>(game_info, window);
-            return true;
-        }
-        catch (const std::exception& e)
-        {
-            std::cerr << e.what() << '\n';
-            return false;
-        }
+#if TNT_USE_VULKAN
+        m_renderer = std::make_unique<Renderer_Vulkan>();
+#elif TNT_USE_OPENGL
+        m_renderer = std::make_unique<Renderer_OpenGL>();
+#endif
+
+        return m_renderer->init(game_info, window);
     }
 
     void RenderingModule::cleanup()

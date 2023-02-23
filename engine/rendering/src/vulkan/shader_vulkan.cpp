@@ -7,16 +7,16 @@
 
 namespace engine
 {
-    std::unique_ptr<Shader_Vulkan> Shader_Vulkan::create(
+    std::optional<Shader_Vulkan> Shader_Vulkan::create(
         ShaderStage stage, 
         const std::string& path, 
-        const Renderer_Vulkan& renderer)
+        const std::shared_ptr<Renderer_Vulkan>& renderer)
     {
         auto code = utils::read_file(path);
         if (!code.has_value())
         {
             log::error("Failed to load shader at path: '{}'", path);
-            return nullptr;
+            return std::nullopt;
         }
 
         vk::ShaderModuleCreateInfo create_info({}, 
@@ -27,15 +27,15 @@ namespace engine
         vk::ShaderModule shader = nullptr;
         try
         {
-            shader = renderer.device().handle().createShaderModule(create_info);
+            shader = renderer->device().handle().createShaderModule(create_info);
         }
         catch (const std::exception& e)
         {
             log::error("Failed to create shader at path '{}': {}", path, e.what());
-            return nullptr;
+            return std::nullopt;
         }
 
-        return std::unique_ptr<Shader_Vulkan>(new Shader_Vulkan(stage, shader, renderer));
+        return Shader_Vulkan(stage, shader, renderer);
     }
 
     Shader_Vulkan::Shader_Vulkan(Shader_Vulkan&& other)
@@ -43,7 +43,7 @@ namespace engine
         , m_stage(other.m_stage)
         , m_renderer(other.m_renderer)
     {
-        m_shader_handle = nullptr;
+        other.m_shader_handle = nullptr;
     }
 
     Shader_Vulkan::~Shader_Vulkan()
@@ -66,12 +66,12 @@ namespace engine
 
     vk::PipelineShaderStageCreateInfo Shader_Vulkan::make_pipeline_shader_stage_create_info() const
     {
-        return vk::PipelineShaderStageCreateInfo({},
+        return {{},
             shader_stage_bits(m_stage),
             m_shader_handle,
             "main",
             nullptr
-        );
+        };
     }
 
     ShaderStage Shader_Vulkan::stage() const
@@ -79,8 +79,12 @@ namespace engine
         return m_stage;
     }
 
-    Shader_Vulkan::Shader_Vulkan(ShaderStage stage, const vk::ShaderModule& shader, const Renderer_Vulkan& renderer)
+    Shader_Vulkan::Shader_Vulkan(
+        ShaderStage stage,
+        const vk::ShaderModule& shader,
+        const std::shared_ptr<Renderer_Vulkan>& renderer)
         : m_stage(stage)
         , m_shader_handle(shader)
-        , m_renderer(&renderer) {}
+        , m_renderer(renderer)
+    {}
 }

@@ -6,22 +6,23 @@
 
 namespace engine
 {
-    PipelineFactory::PipelineFactory(const std::shared_ptr<IRenderer>& renderer)
-        : m_renderer(renderer)
-    {
-        m_shaders.resize(magic_enum::enum_count<ShaderStage>(), std::nullopt);
-    }
+    PipelineCreateData::PipelineCreateData(IRenderer& renderer)
+        : m_renderer(&renderer)
+    {}
 
-    PipelineFactory& PipelineFactory::add_shader(ShaderStage stage, const std::string& path)
+    PipelineCreateData& PipelineCreateData::add_shader(ShaderStage stage, const std::string& path)
     {
-        auto stage_index = magic_enum::enum_index<ShaderStage>(stage);
-        if (stage_index.has_value())
-            m_shaders[*stage_index] = { stage, path };
+        switch (stage)
+        {
+        case ShaderStage::Vertex:   m_vertex_shader   = { stage, path }; break;
+        case ShaderStage::Fragment: m_fragment_shader = { stage, path }; break;
+        case ShaderStage::Geometry: m_geometry_shader = { stage, path }; break;
+        }
 
         return *this;
     }
 
-    IPipeline* PipelineFactory::compile()
+    std::shared_ptr<IPipeline> PipelineCreateData::compile()
     {
         return m_renderer->compile_pipeline(*this);
     }

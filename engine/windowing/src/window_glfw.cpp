@@ -5,20 +5,36 @@
 
 namespace engine
 {
-    Window_GLFW::Window_GLFW(const std::string_view& title, v2i size)
+    std::shared_ptr<Window_GLFW> Window_GLFW::create(const std::string_view& title, v2i size)
     {
+#if TNT_USE_VULKAN
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+#elif TNT_USE_OPENGL
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-        m_handle = glfwCreateWindow(size.x, size.y, title.data(), NULL, NULL);
-        if (m_handle == nullptr)
-            throw std::runtime_error("Failed to create GLFW window.");
+        GLFWwindow* window = glfwCreateWindow(size.x, size.y, title.data(), NULL, NULL);
+#if TNT_USE_OPENGL
+        glfwMakeContextCurrent(window);
+#endif
 
+        if (!window)
+            return nullptr;
+
+        return std::shared_ptr<Window_GLFW>(new Window_GLFW(window));
+    }
+
+    Window_GLFW::Window_GLFW(GLFWwindow* window)
+        : m_handle(window)
+    {
         glfwSetFramebufferSizeCallback(m_handle, framebuffer_size_callback);
         glfwSetWindowUserPointer(m_handle, this);
     }
 
-    Window_GLFW::Window_GLFW(Window_GLFW&& other)
+    Window_GLFW::Window_GLFW(Window_GLFW&& other) noexcept
     {
         m_handle = other.m_handle;
         other.m_handle = nullptr;
@@ -66,9 +82,9 @@ namespace engine
 
     void Window_GLFW::swap_buffers(f64 max_fps)
     {
-        // Only do this on OpenGL
-        // Something with strategy pattern ?
-        // glfwSwapBuffers(m_handle);
+#if TNT_USE_OPENGL
+         glfwSwapBuffers(m_handle);
+#endif
 
         f64 curTime = glfwGetTime();
 
