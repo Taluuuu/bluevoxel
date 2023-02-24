@@ -24,6 +24,7 @@ endif()
 
 if(TNT_USE_OPENGL)
     list(APPEND RENDERING_SOURCES
+        src/opengl/pipeline_opengl.cpp
         src/opengl/renderer_opengl.cpp)
 endif()
 

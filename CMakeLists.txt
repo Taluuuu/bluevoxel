@@ -18,13 +18,18 @@ foreach(RESOURCE_PATH ${RESOURCE_PATHS})
     
     # Copy and rename the folder in the Resources directory
     file(COPY ${RESOURCE_PATH} DESTINATION "Resources")
-    file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/Resources/res/ ${CMAKE_CURRENT_BINARY_DIR}/Resources/${RESOURCE_PARENT_NAME})
-endforeach(RESOURCE_PATH ${RESOURCE_PATHS})
+    set(NEW_RESOURCE_PATH ${CMAKE_CURRENT_BINARY_DIR}/Resources/${RESOURCE_PARENT_NAME})
+    file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/Resources/res/ ${NEW_RESOURCE_PATH})
 
-# Compile shaders to SPIR-V.
-# TODO: Make sure we want to use Vulkan before doing this
-file(GLOB_RECURSE SHADER_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/Resources/**/*.vert" "${CMAKE_CURRENT_BINARY_DIR}/Resources/**/*.frag")
-foreach(SHADER_SOURCE ${SHADER_SOURCES})
-    execute_process(COMMAND glslangValidator -V ${SHADER_SOURCE} -o ${SHADER_SOURCE}.spv OUTPUT_QUIET)
-    file(REMOVE ${SHADER_SOURCE})
-endforeach(SHADER_SOURCE ${SHADER_SOURCES})
+    # Compile vulkan shaders to SPIR-V
+    if(TNT_USE_VULKAN)
+        file(GLOB_RECURSE VULKAN_SHADER_SOURCES "${NEW_RESOURCE_PATH}/shaders/vulkan/**.vert" "${NEW_RESOURCE_PATH}/shaders/vulkan/**.frag")
+        foreach(VULKAN_SHADER_SOURCE ${VULKAN_SHADER_SOURCE})
+            execute_process(COMMAND glslangValidator -V ${VULKAN_SHADER_SOURCE} -o ${VULKAN_SHADER_SOURCE}.spv OUTPUT_QUIET)
+            file(REMOVE ${VULKAN_SHADER_SOURCE})
+        endforeach()
+    else()
+        # Delete vulkan shader files
+        file(REMOVE_RECURSE "${NEW_RESOURCE_PATH}/shaders/vulkan/")
+    endif()
+endforeach()

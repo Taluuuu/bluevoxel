@@ -17,8 +17,6 @@ namespace engine
 
         virtual ~IPipeline() = default;
 
-        [[nodiscard]] virtual bool is_ready() const = 0;
-
     };
 
     class PipelineCreateData

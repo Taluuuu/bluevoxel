@@ -3,6 +3,7 @@
 #include "core/log.h"
 #include "rendering/pipeline.h"
 #include "windowing/window.h"
+#include "pipeline_opengl.h"
 
 #include <glad/gl.h>
 #include <glfw/glfw3.h>
@@ -16,12 +17,12 @@ namespace engine
 
     std::shared_ptr<IPipeline> Renderer_OpenGL::compile_pipeline(const PipelineCreateData& create_data)
     {
-        return nullptr;
+        return Pipeline_OpenGL::create(create_data);
     }
 
     void Renderer_OpenGL::bind_pipeline(const std::shared_ptr<IPipeline>& pipeline)
     {
-
+        m_bound_pipeline = pipeline;
     }
 
     bool Renderer_OpenGL::init(const GameInfo& game_info, IWindow& window)

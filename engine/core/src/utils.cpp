@@ -12,12 +12,13 @@ namespace engine::utils
             return std::nullopt;
 
         size_t file_size = (size_t)file.tellg();
-        std::vector<char> buffer(file_size);
+        std::vector<char> buffer(file_size + 1);
 
         file.seekg(0);
         file.read(buffer.data(), file_size);
-
         file.close();
+
+        buffer[file_size] = '\0';
         return buffer;
     }
 }

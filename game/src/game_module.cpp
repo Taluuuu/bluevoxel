@@ -23,8 +23,8 @@ namespace game
 
         auto pipeline = renderer
             .create_pipeline()
-            .add_shader(engine::ShaderStage::Vertex,   "Resources/engine/shaders/triangle.vert.spv")
-            .add_shader(engine::ShaderStage::Fragment, "Resources/engine/shaders/triangle.frag.spv")
+            .add_shader(engine::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/triangle.vert")
+            .add_shader(engine::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
             .compile();
 
         if (!pipeline)
