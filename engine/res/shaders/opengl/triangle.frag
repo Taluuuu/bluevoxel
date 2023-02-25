@@ -1,10 +1,10 @@
 #version 450
 
-layout(location = 0) in vec3 frag_color;
+in vec4 pass_frag_color;
 
-layout(location = 0) out vec4 out_color;
+out vec4 out_frag_color;
 
 void main()
 {
-    out_color = vec4(frag_color, 1.0);
+    out_frag_color = out_frag_color;
 }

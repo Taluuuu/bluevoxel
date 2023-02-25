@@ -24,8 +24,10 @@ endif()
 
 if(TNT_USE_OPENGL)
     list(APPEND RENDERING_SOURCES
+        src/opengl/buffer_opengl.cpp
         src/opengl/pipeline_opengl.cpp
-        src/opengl/renderer_opengl.cpp)
+        src/opengl/renderer_opengl.cpp
+        src/opengl/vertex_array_opengl.cpp)
 endif()
 
 add_library(rendering ${RENDERING_SOURCES})

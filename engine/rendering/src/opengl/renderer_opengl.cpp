@@ -1,12 +1,15 @@
 #include "renderer_opengl.h"
 
 #include "core/log.h"
+#include "core/game_info.h"
 #include "rendering/pipeline.h"
 #include "windowing/window.h"
 #include "pipeline_opengl.h"
+#include "buffer_opengl.h"
+#include "vertex_array_opengl.h"
 
 #include <glad/gl.h>
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 namespace engine
 {
@@ -22,10 +25,34 @@ namespace engine
 
     void Renderer_OpenGL::bind_pipeline(const std::shared_ptr<IPipeline>& pipeline)
     {
-        m_bound_pipeline = pipeline;
+        m_bound_pipeline = std::dynamic_pointer_cast<Pipeline_OpenGL>(pipeline);
+        if (m_bound_pipeline)
+            glUseProgram(m_bound_pipeline->handle());
     }
 
-    bool Renderer_OpenGL::init(const GameInfo& game_info, IWindow& window)
+    std::shared_ptr<IBuffer> Renderer_OpenGL::create_buffer()
+    {
+        return std::make_shared<Buffer_OpenGL>();
+    }
+
+    std::shared_ptr<IVertexArray> Renderer_OpenGL::create_vertex_array()
+    {
+        return std::make_shared<VertexArray_OpenGL>();
+    }
+
+    void Renderer_OpenGL::draw(const IVertexArray& vertex_array)
+    {
+        if (!m_bound_pipeline)
+            return;
+
+        auto vertex_array_gl = dynamic_cast<const VertexArray_OpenGL*>(&vertex_array);
+        assert(vertex_array_gl);
+
+        vertex_array_gl->bind();
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+    }
+
+    bool Renderer_OpenGL::init(IWindow& window, const GameInfo& game_info)
     {
         int version = gladLoadGL(glfwGetProcAddress);
         if (version == 0)

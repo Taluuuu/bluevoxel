@@ -37,7 +37,7 @@ namespace engine
         m_renderer = std::make_unique<Renderer_OpenGL>();
 #endif
 
-        return m_renderer->init(game_info, window);
+        return m_renderer->init(window, game_info);
     }
 
     void RenderingModule::cleanup()

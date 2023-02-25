@@ -22,6 +22,8 @@ namespace engine
         Pipeline_OpenGL(Pipeline_OpenGL&& other) noexcept;
         ~Pipeline_OpenGL() override;
 
+        [[nodiscard]] GLuint handle() const { return m_program; }
+
     private:
 
         GLuint m_program = 0;

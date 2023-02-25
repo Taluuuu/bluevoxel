@@ -5,6 +5,8 @@
 #include "rendering/pipeline.h"
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
+#include "rendering/vertex_array.h"
+#include "rendering/buffer.h"
 
 namespace game
 {
@@ -19,18 +21,29 @@ namespace game
 
         auto rendering_module = m_engine->get_module<engine::RenderingModule>();
         assert(rendering_module);
-        auto& renderer = rendering_module->renderer();
+        m_renderer = &rendering_module->renderer();
 
-        auto pipeline = renderer
+        m_pipeline = (*m_renderer)
             .create_pipeline()
             .add_shader(engine::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/triangle.vert")
             .add_shader(engine::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
             .compile();
 
-        if (!pipeline)
+        m_vertex_array = m_renderer->create_vertex_array();
+        auto buffer = m_renderer->create_buffer();
+
+        if (!m_pipeline || !m_vertex_array || !buffer)
             return false;
 
-        renderer.bind_pipeline(pipeline);
+        std::vector<f32> vertices = {
+            -0.5f, -0.5f,
+             0.5f, -0.5f,
+             0.0f,  0.5f
+        };
+
+        buffer->update_data(vertices.data(), vertices.size() * sizeof(f32));
+        m_vertex_array->attach_vertex_buffer(buffer, 0, 0, sizeof(f32));
+        m_vertex_array->setup_attribute(0, 0, 2, 2 * sizeof(f32));
 
         return true;
     }
@@ -47,6 +60,9 @@ namespace game
 
     void GameModule::tick(f64 delta_time)
     {
+        assert(m_renderer && m_pipeline && m_vertex_array);
 
+        m_renderer->bind_pipeline(m_pipeline);
+        m_renderer->draw(*m_vertex_array);
     }
 }
