@@ -4,6 +4,7 @@
 #include "core/utils.h"
 
 #include <cassert>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace engine
 {
@@ -152,5 +153,11 @@ namespace engine
     {
         if (m_program)
             glDeleteProgram(m_program);
+    }
+
+    void Pipeline_OpenGL::set_uniform_mat4(i32 location, const m4& value)
+    {
+        assert(m_program);
+        glProgramUniformMatrix4fv(m_program, location, 1, GL_FALSE, glm::value_ptr(value));
     }
 }

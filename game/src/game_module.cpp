@@ -2,6 +2,7 @@
 
 #include "core/engine.h"
 #include "core/log.h"
+#include "rendering/camera.h"
 #include "rendering/pipeline.h"
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
@@ -36,15 +37,20 @@ namespace game
             return false;
 
         std::vector<f32> vertices = {
-             0.5f, -0.5f, 0.5f,    1.0f, 0.0f, 0.0f, 1.0f,
-             0.0f,  0.5f, 0.5f,    0.0f, 1.0f, 0.0f, 1.0f,
-            -0.5f, -0.5f, 0.5f,    0.0f, 0.0f, 1.0f, 1.0f,
+            0.0f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,
+            0.0f,  0.5f,  0.0f,    0.0f, 1.0f, 0.0f, 1.0f,
+            0.0f, -0.5f, -0.5f,    0.0f, 0.0f, 1.0f, 1.0f,
         };
 
         buffer->update_data(vertices.data(), vertices.size() * sizeof(f32));
         m_vertex_array->attach_vertex_buffer(buffer, 0, 0, 7 * sizeof(f32));
         m_vertex_array->setup_attribute(0, 0, 3, 0);
         m_vertex_array->setup_attribute(1, 0, 4, 3 * sizeof(f32));
+
+        engine::Camera camera(90.0f, 800.0f / 600.0f);
+        camera.update({ -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
+
+        m_pipeline->set_uniform_mat4(0, camera.proj_view());
 
         return true;
     }

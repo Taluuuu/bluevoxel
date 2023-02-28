@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 set(RENDERING_SOURCES
     src/rendering_module.cpp
-    src/pipeline.cpp)
+    src/pipeline.cpp
+    src/camera.cpp)
 
 if(TNT_USE_VULKAN)
     list(APPEND RENDERING_SOURCES

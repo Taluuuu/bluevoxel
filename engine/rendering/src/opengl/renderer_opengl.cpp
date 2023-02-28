@@ -62,8 +62,15 @@ namespace engine
 
         glViewport(0, 0, window.window_size().x, window.window_size().y);
         glClearColor(0.0f, 0.1f, 0.2f, 1.0f);
+        glEnable(GL_DEBUG_OUTPUT);
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
+
+        window.resize_event().add_listener(
+            [](const WindowResizeEvent& event)
+            {
+                glViewport(0, 0, static_cast<i32>(event.new_size.x), static_cast<i32>(event.new_size.y));
+            });
 
         return true;
     }

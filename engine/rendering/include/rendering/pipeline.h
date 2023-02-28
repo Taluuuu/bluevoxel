@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/types.h"
 #include "rendering/renderer_enums.h"
 
 #include <memory>
@@ -16,6 +17,8 @@ namespace engine
     public:
 
         virtual ~IPipeline() = default;
+
+        virtual void set_uniform_mat4(i32 location, const m4& value) = 0;
 
     };
 

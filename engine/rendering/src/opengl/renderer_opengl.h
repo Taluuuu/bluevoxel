@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "rendering/renderer.h"
 
 namespace engine
@@ -23,6 +24,8 @@ namespace engine
     private:
 
         std::shared_ptr<Pipeline_OpenGL> m_bound_pipeline = nullptr;
+
+        EventHandle m_window_resize_event_handle;
 
     };
 }
