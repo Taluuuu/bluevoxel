@@ -8,7 +8,6 @@ namespace engine
 
     class Renderer_OpenGL : public IRenderer
     {
-
         // IRenderer interface
     public:
         PipelineCreateData            create_pipeline()                                         override;
@@ -19,7 +18,7 @@ namespace engine
         void                          draw(const IVertexArray& vertex_array)                    override;
     protected:
         bool init(IWindow& window, const GameInfo& game_info) override;
-        void draw_frame() override;
+        void clear() override;
 
     private:
 

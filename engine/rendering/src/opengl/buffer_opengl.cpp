@@ -21,6 +21,7 @@ namespace engine
 
     void Buffer_OpenGL::update_data(const void* data, size_t size)
     {
-        glNamedBufferData(m_buffer, static_cast<GLsizeiptr>(size), data, GL_STATIC_DRAW);
+        //glNamedBufferData(m_buffer, static_cast<GLsizeiptr>(size), data, GL_STATIC_DRAW);
+        glNamedBufferStorage(m_buffer, static_cast<GLsizeiptr>(size), data, GL_DYNAMIC_STORAGE_BIT);
     }
 }

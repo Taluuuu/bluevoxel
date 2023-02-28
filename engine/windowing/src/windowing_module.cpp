@@ -68,6 +68,6 @@ namespace engine
     IWindow& WindowingModule::window() const
     {
         assert(m_window != nullptr);
-        return *m_window.get();
+        return *m_window;
     }
 }

@@ -89,10 +89,10 @@ namespace engine
         f64 curTime = glfwGetTime();
 
         // Apply framerate lock
-        f64 targetTime = m_previous_time + (1.0 / max_fps);
-        while(curTime < targetTime)
-            curTime = glfwGetTime();
-        
+        //f64 targetTime = m_previous_time + (1.0 / max_fps);
+        //while(curTime < targetTime)
+        //    curTime = glfwGetTime();
+
         m_delta_time = curTime - m_previous_time;
         m_previous_time = curTime;
     }

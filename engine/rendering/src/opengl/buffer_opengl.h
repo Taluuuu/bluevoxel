@@ -1,8 +1,7 @@
 #pragma once
 
+#include "headers_opengl.h"
 #include "rendering/buffer.h"
-
-#include <glad/gl.h>
 
 namespace engine
 {

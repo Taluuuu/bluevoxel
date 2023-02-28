@@ -31,7 +31,7 @@ namespace engine
         friend class RenderingModule;
 
         virtual bool init(IWindow& window, const GameInfo& game_info) = 0;
-        virtual void draw_frame() = 0;
+        virtual void clear() = 0;
 
     };
 }

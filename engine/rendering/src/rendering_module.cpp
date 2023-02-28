@@ -20,7 +20,7 @@ namespace engine
     void RenderingModule::tick(f64 delta_time)
     {
         assert(m_renderer != nullptr);
-        m_renderer->draw_frame();
+        m_renderer->clear();
     }
 
     bool RenderingModule::init(const GameInfo& game_info)

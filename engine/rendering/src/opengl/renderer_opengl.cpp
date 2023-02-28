@@ -8,9 +8,6 @@
 #include "buffer_opengl.h"
 #include "vertex_array_opengl.h"
 
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-
 namespace engine
 {
     PipelineCreateData Renderer_OpenGL::create_pipeline()
@@ -63,14 +60,16 @@ namespace engine
 
         log::info("Loaded OpenGL {}.{}.", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
-        glViewport(0, 0, window.framebuffer_size().x, window.framebuffer_size().y);
+        glViewport(0, 0, window.window_size().x, window.window_size().y);
         glClearColor(0.0f, 0.1f, 0.2f, 1.0f);
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
 
         return true;
     }
 
-    void Renderer_OpenGL::draw_frame()
+    void Renderer_OpenGL::clear()
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }

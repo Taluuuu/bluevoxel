@@ -1,8 +1,8 @@
 #pragma once
 
+#include "headers_opengl.h"
 #include "rendering/vertex_array.h"
 
-#include <glad/gl.h>
 #include <vector>
 
 namespace engine

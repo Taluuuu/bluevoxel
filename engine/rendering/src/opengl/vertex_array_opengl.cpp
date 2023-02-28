@@ -33,6 +33,9 @@ namespace engine
         assert(buffer_gl != nullptr);
 
         glVertexArrayVertexBuffer(m_vertex_array, binding_index, buffer_gl->handle(), offset, stride);
+
+        // Make sure the buffer stays allocated
+        m_buffers.push_back(buffer);
     }
 
     void VertexArray_OpenGL::setup_attribute(
