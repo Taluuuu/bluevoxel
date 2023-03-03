@@ -3,7 +3,7 @@
 #include "headers_opengl.h"
 #include "rendering/pipeline.h"
 
-namespace engine
+namespace h2o::gfx
 {
     class Pipeline_OpenGL : public IPipeline
     {

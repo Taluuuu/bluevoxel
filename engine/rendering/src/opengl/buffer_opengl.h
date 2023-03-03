@@ -3,7 +3,7 @@
 #include "headers_opengl.h"
 #include "rendering/buffer.h"
 
-namespace engine
+namespace h2o::gfx
 {
     class Buffer_OpenGL : public IBuffer
     {

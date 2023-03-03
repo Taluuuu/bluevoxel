@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace engine
+namespace h2o::gfx
 {
     class IRenderer;
 

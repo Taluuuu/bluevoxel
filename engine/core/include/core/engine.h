@@ -10,7 +10,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace engine
+namespace h2o
 {
     class Module;
 
@@ -37,7 +37,7 @@ namespace engine
         template<typename T, typename... Args>
         Engine& add_module(Args... args)
         {
-            static_assert(std::is_base_of_v<Module, T>, "T must implement engine::IModule.");
+            static_assert(std::is_base_of_v<Module, T>, "T must implement h2o::IModule.");
 
             std::type_index module_type(typeid(T));
             
@@ -69,7 +69,7 @@ namespace engine
         }
 
         /**
-         * @brief Run the engine. Contains the main loop.
+         * @brief Run the h2o. Contains the main loop.
          * 
          */
         void run() const;

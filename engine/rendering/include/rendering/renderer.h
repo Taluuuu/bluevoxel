@@ -2,14 +2,18 @@
 
 #include <memory>
 
-namespace engine
+namespace h2o
 {
     class GameInfo;
+    class IWindow;
+}
+
+namespace h2o::gfx
+{
     class PipelineCreateData;
     class IPipeline;
     class IBuffer;
     class IVertexArray;
-    class IWindow;
 
     class IRenderer
     {

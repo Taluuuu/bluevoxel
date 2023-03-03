@@ -3,7 +3,7 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 
-namespace engine::log
+namespace h2o::log
 {
     /**
      * @brief Log an error message

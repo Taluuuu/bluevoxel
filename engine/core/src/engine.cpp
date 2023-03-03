@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-namespace engine
+namespace h2o
 {
     Engine* Engine::s_instance = nullptr;
 
@@ -40,7 +40,7 @@ namespace engine
             tickable->tick(delta_time);
 
         if (m_core_window != nullptr)
-            m_core_window->swap_buffers();
+            m_core_window->swap_buffers(144.0);
     }
 
     void Engine::cleanup() const
@@ -61,7 +61,7 @@ namespace engine
             auto it = std::find_if(m_uninitialized_modules.begin(), m_uninitialized_modules.end(), 
                 [&init_modules](const auto& module)
                 {
-                    for (const auto& module_dep : module.second->get_dependencies())
+                    for (const auto& module_dep : module.second->dependencies())
                     {
                         if (!init_modules.contains(module_dep))
                             return false;
@@ -94,7 +94,7 @@ namespace engine
             {
                 std::cout 
                     << "[Error] Failed to initialize module: '" 
-                    << it->second->get_module_name() << "'\n";
+                    << it->second->module_name() << "'\n";
 
                 // Don't try loading the module in subsequent runs
                 m_uninitialized_modules.erase(it->first);

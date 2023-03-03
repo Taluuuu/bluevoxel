@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-namespace engine::utils
+namespace h2o::utils
 {
     std::optional<std::vector<char>> read_file(const std::string& path)
     {

@@ -36,6 +36,7 @@ endif()
 
 # Engine libraries
 add_subdirectory(core)
+add_subdirectory(input)
 add_subdirectory(windowing)
 add_subdirectory(rendering)
 add_subdirectory(voxels)

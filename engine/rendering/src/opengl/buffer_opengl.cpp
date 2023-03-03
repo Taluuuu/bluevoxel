@@ -1,6 +1,6 @@
 #include "buffer_opengl.h"
 
-namespace engine
+namespace h2o::gfx
 {
     Buffer_OpenGL::Buffer_OpenGL()
     {

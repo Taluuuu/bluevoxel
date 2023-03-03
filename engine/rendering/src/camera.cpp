@@ -1,6 +1,6 @@
 #include "rendering/camera.h"
 
-namespace engine
+namespace h2o::gfx
 {
     Camera::Camera(f32 fov, f32 aspect_ratio)
         : fov(fov)

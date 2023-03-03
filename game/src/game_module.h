@@ -5,8 +5,9 @@
 
 #include <memory>
 
-namespace engine
+namespace h2o::gfx
 {
+    class Camera;
     class IRenderer;
     class IPipeline;
     class IVertexArray;
@@ -15,27 +16,28 @@ namespace engine
 namespace game
 {
     class GameModule
-        : public engine::Module
-        , public engine::ITickable
+        : public h2o::Module
+        , public h2o::ITickable
     {
     public:
 
-        explicit GameModule(engine::Engine& engine);
+        explicit GameModule(h2o::Engine& engine);
 
-        // engine::Module interface
-        bool init(const engine::GameInfo& game_info) override;
-        [[nodiscard]] std::string_view get_module_name() const override;
-        [[nodiscard]] std::vector<std::type_index> get_dependencies() const override;
+        // h2o::Module interface
+        bool init(const h2o::GameInfo& game_info) override;
+        [[nodiscard]] std::string_view module_name() const override;
+        [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
-        // engine::ITickable interface
+        // h2o::ITickable interface
         void tick(f64 delta_time) override;
 
     private:
 
-        std::shared_ptr<engine::IPipeline>    m_pipeline     = nullptr;
-        std::shared_ptr<engine::IVertexArray> m_vertex_array = nullptr;
+        std::shared_ptr<h2o::gfx::IPipeline>    m_pipeline     = nullptr;
+        std::shared_ptr<h2o::gfx::IVertexArray> m_vertex_array = nullptr;
+        std::shared_ptr<h2o::gfx::Camera>       m_camera       = nullptr;
 
-        engine::IRenderer* m_renderer = nullptr;
+        h2o::gfx::IRenderer* m_renderer = nullptr;
 
     };
 }

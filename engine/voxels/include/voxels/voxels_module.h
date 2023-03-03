@@ -2,17 +2,17 @@
 
 #include "core/module.h"
 
-namespace engine
+namespace h2o::vxl
 {
     class VoxelsModule : public Module
     {
     public:
 
-        VoxelsModule(Engine& engine);
+        explicit VoxelsModule(Engine& engine);
 
         // Module interface
-        virtual std::string_view get_module_name() const override;
-        virtual std::vector<std::type_index> get_dependencies() const override;
+        [[nodiscard]] std::string_view module_name() const override;
+        [[nodiscard]] std::vector<std::type_index> dependencies() const override;
         
     };
 }

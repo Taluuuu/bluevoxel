@@ -4,7 +4,7 @@
 #include "core/events.h"
 #include "core/types.h"
 
-namespace engine
+namespace h2o
 {
     struct WindowResizeEvent
     {

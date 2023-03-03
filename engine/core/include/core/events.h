@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 
-namespace engine
+namespace h2o
 {
     class EventHandle
     {

@@ -2,27 +2,27 @@
 
 #include "types.h"
 
-namespace engine
+namespace h2o
 {
     class IWindowModule
     {
     public:
 
-        virtual ~IWindowModule() {}
+        virtual ~IWindowModule() = default;
 
         /**
          * @brief Get the time since the last frame in seconds
          * 
          * @return The time since the last frame in seconds
          */
-        virtual f64 delta_time() const = 0;
+        [[nodiscard]] virtual f64 delta_time() const = 0;
 
         /**
          * @brief Getter for if the window should close
          * 
          * @return true if the window should close
          */
-        virtual bool should_close() const = 0;
+        [[nodiscard]] virtual bool should_close() const = 0;
 
         /**
          * @brief Poll the window for events
@@ -35,7 +35,7 @@ namespace engine
          * 
          * @param max_fps The fps lock
          */
-        virtual void swap_buffers(f64 max_fps = 60.0) const = 0;
+        virtual void swap_buffers(f64 max_fps) const = 0;
 
     };
 
@@ -43,14 +43,17 @@ namespace engine
     {
     public:
 
-        virtual ~ITickable() {}
+        virtual ~ITickable() = default;
 
-        /**
-         * @brief Called every frame
-         * 
-         * @param delta_time The time since the last frame in seconds
-         */
-        virtual void tick(f64 delta_time) = 0;
+        ///**
+        // * @brief Called every frame
+        // *
+        // * @param delta_time The time since the last frame in seconds
+        // */
+        //virtual void tick(f64 delta_time) = 0;
+
+        virtual void tick(f64 delta_time) { assert(false); }
+        virtual bool should_tick() const  { return false;  }
 
     };
 }

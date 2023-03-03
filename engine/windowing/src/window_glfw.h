@@ -8,7 +8,7 @@
 
 struct GLFWwindow;
 
-namespace engine
+namespace h2o
 {
     class Window_GLFW : public IWindow
     {

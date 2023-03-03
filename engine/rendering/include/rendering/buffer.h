@@ -4,7 +4,7 @@
 
 #include <span>
 
-namespace engine
+namespace h2o::gfx
 {
     class IBuffer
     {

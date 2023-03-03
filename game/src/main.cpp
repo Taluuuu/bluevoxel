@@ -7,8 +7,8 @@
 
 int main()
 {
-    engine::Engine engine(
-        engine::GameInfo
+    h2o::Engine engine(
+        h2o::GameInfo
         {
             .game_name = "haaaaa",
             .engine_name = "hbbbbbbb"
@@ -16,8 +16,8 @@ int main()
     );
 
     engine
-        .add_module<engine::WindowingModule>()
-        .add_module<engine::RenderingModule>()
+        .add_module<h2o::WindowingModule>()
+        .add_module<h2o::RenderingModule>()
         .add_module<game::GameModule>()
         .run();
 }

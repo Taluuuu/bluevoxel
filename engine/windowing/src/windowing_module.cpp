@@ -6,7 +6,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-namespace engine
+namespace h2o
 {
     WindowingModule::WindowingModule(Engine& engine)
         : Module(engine) {}

@@ -3,7 +3,7 @@
 #include "core/events.h"
 #include "rendering/renderer.h"
 
-namespace engine
+namespace h2o::gfx
 {
     class Pipeline_OpenGL;
 

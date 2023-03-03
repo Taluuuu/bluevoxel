@@ -4,7 +4,7 @@
 
 #include <magic_enum.hpp>
 
-namespace engine
+namespace h2o::gfx
 {
     PipelineCreateData::PipelineCreateData(IRenderer& renderer)
         : m_renderer(&renderer)

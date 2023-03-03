@@ -12,7 +12,7 @@
 #include "opengl/renderer_opengl.h"
 #endif
 
-namespace engine
+namespace h2o
 {
     RenderingModule::RenderingModule(Engine& engine)
         : Module(engine) {}
@@ -34,7 +34,7 @@ namespace engine
 #if TNT_USE_VULKAN
         m_renderer = std::make_unique<Renderer_Vulkan>();
 #elif TNT_USE_OPENGL
-        m_renderer = std::make_unique<Renderer_OpenGL>();
+        m_renderer = std::make_unique<gfx::Renderer_OpenGL>();
 #endif
 
         return m_renderer->init(window, game_info);
@@ -45,12 +45,12 @@ namespace engine
         m_renderer.reset();
     }
 
-    std::vector<std::type_index> RenderingModule::get_dependencies() const
+    std::vector<std::type_index> RenderingModule::dependencies() const
     {
         return { typeid(WindowingModule) };
     }
 
-    IRenderer& RenderingModule::renderer() const
+    gfx::IRenderer& RenderingModule::renderer() const
     {
         assert(m_renderer != nullptr);
         return *m_renderer;

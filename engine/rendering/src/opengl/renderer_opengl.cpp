@@ -8,7 +8,7 @@
 #include "buffer_opengl.h"
 #include "vertex_array_opengl.h"
 
-namespace engine
+namespace h2o::gfx
 {
     PipelineCreateData Renderer_OpenGL::create_pipeline()
     {

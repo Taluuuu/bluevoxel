@@ -7,7 +7,7 @@
 
 #include <memory>
 
-namespace engine
+namespace h2o
 {
     class IWindow;
 
@@ -22,8 +22,8 @@ namespace engine
         // Module virtual methods
         virtual bool init(const GameInfo& game_info) override;
         virtual void cleanup() override;
-        virtual std::string_view get_module_name() const override { return "Windowing"; }
-        virtual std::vector<std::type_index> get_dependencies() const override { return {}; }
+        virtual std::string_view module_name() const override { return "Windowing"; }
+        virtual std::vector<std::type_index> dependencies() const override { return {}; }
 
         // ICoreWindow interface
         virtual f64 delta_time() const override;

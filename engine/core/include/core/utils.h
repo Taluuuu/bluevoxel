@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace engine::utils
+namespace h2o::utils
 {
     /**
      * @brief Read a file to a vector of characters.

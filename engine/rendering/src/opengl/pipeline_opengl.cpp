@@ -6,7 +6,7 @@
 #include <cassert>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace engine
+namespace h2o::gfx
 {
     static GLuint compile_shader(
         const std::string& path, GLuint type)

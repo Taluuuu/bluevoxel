@@ -2,7 +2,7 @@
 
 #include "core/types.h"
 
-namespace engine
+namespace h2o::gfx
 {
     class Camera
     {

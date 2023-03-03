@@ -4,7 +4,7 @@
 
 #include <cassert>
 
-namespace engine
+namespace h2o::gfx
 {
     VertexArray_OpenGL::VertexArray_OpenGL()
     {

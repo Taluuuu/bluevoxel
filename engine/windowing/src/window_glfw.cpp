@@ -3,7 +3,7 @@
 #include <GLFW/glfw3.h>
 #include <stdexcept>
 
-namespace engine
+namespace h2o
 {
     std::shared_ptr<Window_GLFW> Window_GLFW::create(const std::string_view& title, v2i size)
     {

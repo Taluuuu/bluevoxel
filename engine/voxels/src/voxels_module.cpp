@@ -1,6 +1,6 @@
 #include "voxels/voxels_module.h"
 
-namespace engine
+namespace h2o::vxl
 {
     VoxelsModule::VoxelsModule(Engine &engine)
         : Module(engine)
@@ -8,12 +8,12 @@ namespace engine
 
     }
 
-    std::string_view VoxelsModule::get_module_name() const
+    std::string_view VoxelsModule::module_name() const
     {
         return "voxels";
     }
 
-    std::vector<std::type_index> VoxelsModule::get_dependencies() const
+    std::vector<std::type_index> VoxelsModule::dependencies() const
     {
         return {};
     }

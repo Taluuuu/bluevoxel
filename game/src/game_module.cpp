@@ -11,23 +11,23 @@
 
 namespace game
 {
-    GameModule::GameModule(engine::Engine& engine)
-        : engine::Module(engine)
+    GameModule::GameModule(h2o::Engine& engine)
+        : h2o::Module(engine)
     {}
 
-    bool GameModule::init(const engine::GameInfo& game_info)
+    bool GameModule::init(const h2o::GameInfo& game_info)
     {
-        if (!engine::Module::init(game_info))
+        if (!h2o::Module::init(game_info))
             return false;
 
-        auto rendering_module = m_engine->get_module<engine::RenderingModule>();
+        auto rendering_module = m_engine->get_module<h2o::RenderingModule>();
         assert(rendering_module);
         m_renderer = &rendering_module->renderer();
 
         m_pipeline = (*m_renderer)
             .create_pipeline()
-            .add_shader(engine::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/triangle.vert")
-            .add_shader(engine::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
+            .add_shader(h2o::gfx::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/triangle.vert")
+            .add_shader(h2o::gfx::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
             .compile();
 
         auto buffer = m_renderer->create_buffer();
@@ -36,33 +36,33 @@ namespace game
         if (!m_pipeline || !m_vertex_array || !buffer)
             return false;
 
-        std::vector<f32> vertices = {
+        const f32 vertices[] {
             0.0f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,
             0.0f,  0.5f,  0.0f,    0.0f, 1.0f, 0.0f, 1.0f,
             0.0f, -0.5f, -0.5f,    0.0f, 0.0f, 1.0f, 1.0f,
         };
 
-        buffer->update_data(vertices.data(), vertices.size() * sizeof(f32));
+        buffer->update_data(vertices, sizeof(vertices));
         m_vertex_array->attach_vertex_buffer(buffer, 0, 0, 7 * sizeof(f32));
         m_vertex_array->setup_attribute(0, 0, 3, 0);
         m_vertex_array->setup_attribute(1, 0, 4, 3 * sizeof(f32));
 
-        engine::Camera camera(90.0f, 800.0f / 600.0f);
-        camera.update({ -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
+        m_camera = std::make_shared<h2o::gfx::Camera>(90.0f, 800.0f / 600.0f);
+        m_camera->update({ -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
 
-        m_pipeline->set_uniform_mat4(0, camera.proj_view());
+        m_pipeline->set_uniform_mat4(0, m_camera->proj_view());
 
         return true;
     }
 
-    std::string_view GameModule::get_module_name() const
+    std::string_view GameModule::module_name() const
     {
         return "GameModule";
     }
 
-    std::vector<std::type_index> GameModule::get_dependencies() const
+    std::vector<std::type_index> GameModule::dependencies() const
     {
-        return { typeid(engine::RenderingModule) };
+        return { typeid(h2o::RenderingModule) };
     }
 
     void GameModule::tick(f64 delta_time)

@@ -5,9 +5,9 @@
 
 #include <memory>
 
-namespace engine
+namespace h2o
 {
-    class IRenderer;
+    namespace gfx { class IRenderer; };
 
     class RenderingModule
         : public Module
@@ -22,14 +22,14 @@ namespace engine
         // IModule interface
         bool init(const GameInfo& game_info) override;
         void cleanup() override;
-        [[nodiscard]] std::string_view get_module_name() const override { return "Rendering"; }
-        [[nodiscard]] std::vector<std::type_index> get_dependencies() const override;
+        [[nodiscard]] std::string_view module_name() const override { return "Rendering"; }
+        [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
-        [[nodiscard]] IRenderer& renderer() const;
+        [[nodiscard]] gfx::IRenderer& renderer() const;
 
     private:
 
-        std::unique_ptr<IRenderer> m_renderer;
+        std::unique_ptr<gfx::IRenderer> m_renderer;
 
     };
 }
