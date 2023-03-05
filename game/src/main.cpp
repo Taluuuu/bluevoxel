@@ -1,5 +1,6 @@
 #include "core/engine.h"
 #include "game_module.h"
+#include "input/input_module.h"
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
 #include "rendering/pipeline.h"
@@ -18,6 +19,7 @@ int main()
     engine
         .add_module<h2o::WindowingModule>()
         .add_module<h2o::RenderingModule>()
+        .add_module<h2o::InputModule>()
         .add_module<game::GameModule>()
         .run();
 }

@@ -18,6 +18,7 @@ target_link_libraries(game
         core
         rendering
         windowing
+        h2o_input
         voxels
 )
 
@@ -26,6 +27,7 @@ target_include_directories(game
         core
         rendering
         windowing
+        h2o_input
         voxels
         
         include/

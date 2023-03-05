@@ -55,7 +55,7 @@ namespace h2o
         /**
          * @brief Get the module of type T if it was correctly initialized
          * 
-         * @tparam T The module's typ
+         * @tparam T The module's type
          * @return A pointer to the module or nullptr if it was not found
          */
         template<typename T>
@@ -69,7 +69,7 @@ namespace h2o
         }
 
         /**
-         * @brief Run the h2o. Contains the main loop.
+         * @brief Run the engine. Contains the main loop.
          * 
          */
         void run() const;

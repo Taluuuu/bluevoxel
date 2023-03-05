@@ -23,15 +23,20 @@ add_subdirectory(lib/magic_enum)
 # fmt
 add_subdirectory(lib/fmt)
 
+set(TNT_USE_GLFW True)
 set(TNT_USE_OPENGL True)
 set(TNT_USE_VULKAN False)
 
-if(TNT_USE_VULKAN)
-    add_definitions(-DTNT_USE_VULKAN)
+if(TNT_USE_GLFW)
+    add_definitions(-DTNT_USE_GLFW)
 endif()
 
-if (TNT_USE_OPENGL)
+if(TNT_USE_OPENGL)
     add_definitions(-DTNT_USE_OPENGL)
+endif()
+
+if(TNT_USE_VULKAN)
+    add_definitions(-DTNT_USE_VULKAN)
 endif()
 
 # Engine libraries
