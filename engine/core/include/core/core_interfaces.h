@@ -39,6 +39,13 @@ namespace h2o
 
     };
 
+    enum class TickPhase
+    {
+        Input,
+        PreUpdate,
+        
+    };
+
     class ITickable
     {
     public:

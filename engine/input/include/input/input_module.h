@@ -14,6 +14,7 @@ namespace h2o
 
     class InputModule
         : public Module
+        , public ITickable
     {
     public:
         
@@ -28,6 +29,8 @@ namespace h2o
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
 
     private:
+
+        std::vector<KeyState> m_key_states;
 
         WindowingModule* const m_windowing_module = nullptr;
 
