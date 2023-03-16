@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/types.h"
+
 #include <string_view>
 #include <typeindex>
 #include <vector>
@@ -9,24 +11,26 @@ namespace h2o
     class Engine;
     struct GameInfo;
 
-    class Module
+    class IModule
     {
     public:
 
-        explicit Module(Engine& engine);
-        virtual ~Module() = default;
-
         /**
-         * @brief Try initializing the module
-         * 
-         * @param game_info The struct containing the game's info
-         * @return true if the module was correctly initialized, false otherwise.
+         * Destructor, will be called even if the module fails to initialize.
          */
-        virtual bool init(const GameInfo& game_info) { return true; }
+        virtual ~IModule() = default;
 
         /**
-         * @brief Free module resources
-         * 
+         * Initialize the module. Called just after the constructor.
+         *
+         * @param engine A reference to the engine. Modules can store a raw pointer to the engine
+         *               if needed, which will be valid for their entire lifetime.
+         * @return true if initialization was successful.
+         */
+        [[nodiscard]] virtual bool init(Engine& engine) { return true; }
+
+        /**
+         * Cleanup resources. Called just before the destructor.
          */
         virtual void cleanup() {}
 
@@ -43,10 +47,6 @@ namespace h2o
          * @return A vector of module types
          */
         [[nodiscard]] virtual std::vector<std::type_index> dependencies() const = 0;
-
-    protected:
-
-        Engine* const m_engine = nullptr;
 
     };
 }

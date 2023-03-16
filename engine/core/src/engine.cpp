@@ -1,103 +1,129 @@
 #include "core/engine.h"
 
+#include "core/log.h"
 #include "core/module.h"
 
 #include <iostream>
+#include <magic_enum.hpp>
+#include <ranges>
 
 namespace h2o
 {
     Engine* Engine::s_instance = nullptr;
 
     Engine::Engine(const GameInfo& game_info)
-        :m_game_info(game_info)
+        : m_game_info(game_info)
     {
         assert(s_instance == nullptr);
         s_instance = this;
+
+        m_tickables.resize(magic_enum::enum_count<TickPhase>(), {});
     }
 
     Engine::~Engine()
     {
         s_instance = nullptr;
+
+        while (!m_module_stack.empty())
+        {
+            auto& module = m_module_stack.top();
+            module->cleanup();
+            m_module_stack.pop();
+        }
     }
 
-    void Engine::run() const
+    void Engine::register_tickable(ITickable* tickable, TickPhase tick_phases)
     {
+        for (u32 i = 0; i < magic_enum::enum_count<TickPhase>(); i++)
+        {
+            auto tick_phase = static_cast<TickPhase>(1 << i);
+            auto& tickables = m_tickables[i];
+
+            std::erase(tickables, tickable);
+
+            if (tick_phase & tick_phases)
+                tickables.push_back(tickable);
+        }
+    }
+
+    void Engine::run()
+    {
+        init_new_modules();
+
         while (!m_core_window || !m_core_window->should_close())
             update();
-
-        cleanup();
     }
 
     void Engine::update() const
     {
-        f64 delta_time = m_core_window ? 
-            m_core_window->delta_time() : 0.0;
-
-        if (m_core_window != nullptr)
-            m_core_window->poll_events();
-
-        for (const auto& tickable : m_tickables)
-            tickable->tick(delta_time);
-
-        if (m_core_window != nullptr)
-            m_core_window->swap_buffers(144.0);
-    }
-
-    void Engine::cleanup() const
-    {
-        // Cleanup in reverse order from initialization
-        for (auto i = m_ordered_modules.rbegin(); i != m_ordered_modules.rend(); i++)
+        f64 delta_time = 0.0f;
+        if (m_core_window)
         {
-            assert(*i != nullptr);
-            (*i)->cleanup();
+            m_core_window->poll_events();
+            delta_time = m_core_window->delta_time();
         }
+
+        TickPhase tick_phase = static_cast<TickPhase>(1);
+        for (const auto& modules_to_tick : m_tickables)
+        {
+            for (const auto& module_to_tick : modules_to_tick)
+                module_to_tick->tick(tick_phase, delta_time);
+
+            tick_phase = static_cast<TickPhase>(tick_phase << 1);
+        }
+
+        if (m_core_window)
+            m_core_window->swap_buffers(144.0);
     }
 
     void Engine::init_new_modules()
     {
         while (true)
         {
-            const auto& init_modules = m_initialized_modules;
-            auto it = std::find_if(m_uninitialized_modules.begin(), m_uninitialized_modules.end(), 
-                [&init_modules](const auto& module)
+            // Find next module to init
+            auto it = std::find_if(m_modules_to_init.begin(), m_modules_to_init.end(),
+                [this](const auto& module)
                 {
                     for (const auto& module_dep : module.second->dependencies())
                     {
-                        if (!init_modules.contains(module_dep))
+                        if (!m_initialized_modules.contains(module_dep))
                             return false;
                     }
                     
                     return true;
-                }
-            );
+                });
 
-            if (it == m_uninitialized_modules.end())
-                return;
-
-            if (it->second->init(m_game_info))
+            if (it == m_modules_to_init.end())
             {
-                auto module = it->second;
+                // No more modules can be initialized
+                return;
+            }
 
-                // Add module to initialized list
+            if (it->second->init(*this))
+            {
+                // Release the unique_ptr
+                auto module = it->second.release();
+
+                // Take ownership of the module ptr
+                m_module_stack.push(std::unique_ptr<IModule>(module));
                 m_initialized_modules[it->first] = module;
-                m_ordered_modules.push_back(module);
-                m_uninitialized_modules.erase(it->first);
+
+                // Remove from modules to init
+                m_modules_to_init.erase(it);
 
                 // Query interfaces...
-                if (auto dtp = std::dynamic_pointer_cast<IWindowModule>(module))
-                    m_core_window = dtp;
-
-                if (auto tickable = std::dynamic_pointer_cast<ITickable>(module))
-                    m_tickables.push_back(tickable);
+                if (auto core_window = dynamic_cast<IWindowModule*>(module))
+                {
+                    assert(!m_core_window);
+                    m_core_window = core_window;
+                }
             }
             else
             {
-                std::cout 
-                    << "[Error] Failed to initialize module: '" 
-                    << it->second->module_name() << "'\n";
+                log::error("Failed to initialize module '{}'", it->second->module_name());
 
                 // Don't try loading the module in subsequent runs
-                m_uninitialized_modules.erase(it->first);
+                m_modules_to_init.erase(it->first);
             }
         }
     }

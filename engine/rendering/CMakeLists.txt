@@ -36,7 +36,7 @@ add_library(rendering ${RENDERING_SOURCES})
 target_link_libraries(rendering
     PRIVATE
         core
-        windowing
+        h2o_windowing
 
         ${Vulkan_LIBRARIES}
         glfw)
@@ -53,7 +53,7 @@ target_include_directories(rendering
 
     PRIVATE
         core
-        windowing
+        h2o_windowing
 
         ${VULKAN_PATH}/Include/
         glfw)

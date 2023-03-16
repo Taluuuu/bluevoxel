@@ -10,19 +10,20 @@ namespace h2o
     namespace gfx { class IRenderer; };
 
     class RenderingModule
-        : public Module
+        : public IModule
         , public ITickable
     {
     public:
 
-        explicit RenderingModule(Engine& engine);
+        RenderingModule() = default;
+        ~RenderingModule() override = default;
 
-        void tick(f64 delta_time) override;
+        // ITickable interface
+        void tick(TickPhase phase, f64 delta_time) override;
         
         // IModule interface
-        bool init(const GameInfo& game_info) override;
-        void cleanup() override;
-        [[nodiscard]] std::string_view module_name() const override { return "Rendering"; }
+        bool init(Engine& engine) override;
+        [[nodiscard]] std::string_view module_name() const override { return "h2o_rendering"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         [[nodiscard]] gfx::IRenderer& renderer() const;

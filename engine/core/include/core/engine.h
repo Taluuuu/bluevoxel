@@ -9,16 +9,17 @@
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
+#include <stack>
 
 namespace h2o
 {
-    class Module;
+    class IModule;
 
     class Engine
     {
     public:
 
-        Engine(const GameInfo& game_info);
+        explicit Engine(const GameInfo& game_info);
         Engine(const Engine&) = delete;
         Engine(Engine&&) = delete;
         ~Engine();
@@ -37,18 +38,16 @@ namespace h2o
         template<typename T, typename... Args>
         Engine& add_module(Args... args)
         {
-            static_assert(std::is_base_of_v<Module, T>, "T must implement h2o::IModule.");
+            static_assert(std::is_base_of_v<IModule, T>, "T must implement h2o::IModule.");
 
             std::type_index module_type(typeid(T));
             
             // Make sure the module hadn't already been added
             assert( !m_initialized_modules.contains(module_type) &&
-                    !m_uninitialized_modules.contains(module_type) );
+                    !m_modules_to_init.contains(module_type) );
 
-            auto module = std::make_shared<T>(*this, args...);
-            m_uninitialized_modules[module_type] = module;
+            m_modules_to_init[module_type] = std::make_unique<T>(args...);
 
-            init_new_modules();
             return *this;
         }
 
@@ -65,20 +64,22 @@ namespace h2o
             if (it == m_initialized_modules.end())
                 return nullptr;
 
-            return dynamic_cast<T*>(it->second.get());
+            return dynamic_cast<T*>(it->second);
         }
+
+        [[nodiscard]] const GameInfo& game_info() const { return m_game_info; }
+
+        void register_tickable(ITickable* tickable, TickPhase tick_phases);
 
         /**
          * @brief Run the engine. Contains the main loop.
          * 
          */
-        void run() const;
+        void run();
 
     private:
     
         void update() const;
-
-        void cleanup() const;
 
         void init_new_modules();
 
@@ -88,18 +89,16 @@ namespace h2o
 
         GameInfo m_game_info;
 
-        // Modules that are waiting to be initialized
-        std::unordered_map<std::type_index, std::shared_ptr<Module>> m_uninitialized_modules;
+        // Modules to initialize
+        std::unordered_map<std::type_index, std::unique_ptr<IModule>> m_modules_to_init;
 
         // Initialized modules
-        std::unordered_map<std::type_index, std::shared_ptr<Module>> m_initialized_modules;
+        std::unordered_map<std::type_index, IModule*> m_initialized_modules;
+        std::stack<std::unique_ptr<IModule>> m_module_stack;
 
-        // Modules in order of initialization
-        std::vector<std::shared_ptr<Module>> m_ordered_modules;
-
-        // Interfaces
-        std::shared_ptr<IWindowModule> m_core_window = nullptr;
-        std::vector<std::shared_ptr<ITickable>> m_tickables;
+        // The core window is automatically populated from
+        IWindowModule* m_core_window = nullptr;
+        std::vector< std::vector<ITickable*> > m_tickables;
 
     };
 }

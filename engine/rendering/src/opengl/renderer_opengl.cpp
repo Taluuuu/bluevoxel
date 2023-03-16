@@ -10,6 +10,11 @@
 
 namespace h2o::gfx
 {
+    Renderer_OpenGL::~Renderer_OpenGL()
+    {
+        m_window->resize_event().remove_listener(m_window_resize_event_handle);
+    }
+
     PipelineCreateData Renderer_OpenGL::create_pipeline()
     {
         return PipelineCreateData(*this);
@@ -66,11 +71,13 @@ namespace h2o::gfx
         glDisable(GL_DEPTH_TEST);
         glDisable(GL_CULL_FACE);
 
-        window.resize_event().add_listener(
+        m_window_resize_event_handle = window.resize_event().add_listener(
             [](const WindowResizeEvent& event)
             {
                 glViewport(0, 0, static_cast<i32>(event.new_size.x), static_cast<i32>(event.new_size.y));
             });
+
+        m_window = &window;
 
         return true;
     }

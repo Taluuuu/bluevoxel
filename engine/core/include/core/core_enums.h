@@ -4,6 +4,9 @@
 
 namespace h2o
 {
+    // These enums would probably be better placed in the input module,
+    // but right now both the windowing module and the input module need
+    // them. Placing them there avoids a circular dependency.
     enum class Key : i32
     {
         Unknown = 0,
@@ -128,7 +131,6 @@ namespace h2o
         RightSuper,
         Menu
     };
-
     enum class MouseButton : i32
     {
         Left = 0,

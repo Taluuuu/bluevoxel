@@ -11,16 +11,11 @@
 
 namespace game
 {
-    GameModule::GameModule(h2o::Engine& engine)
-        : h2o::Module(engine)
-    {}
-
-    bool GameModule::init(const h2o::GameInfo& game_info)
+    bool GameModule::init(h2o::Engine& engine)
     {
-        if (!h2o::Module::init(game_info))
-            return false;
+        engine.register_tickable(this, h2o::TickPhase::Render);
 
-        auto rendering_module = m_engine->get_module<h2o::RenderingModule>();
+        auto rendering_module = engine.get_module<h2o::RenderingModule>();
         assert(rendering_module);
         m_renderer = &rendering_module->renderer();
 
@@ -55,17 +50,12 @@ namespace game
         return true;
     }
 
-    std::string_view GameModule::module_name() const
-    {
-        return "GameModule";
-    }
-
     std::vector<std::type_index> GameModule::dependencies() const
     {
         return { typeid(h2o::RenderingModule) };
     }
 
-    void GameModule::tick(f64 delta_time)
+    void GameModule::tick(h2o::TickPhase phase, f64 delta_time)
     {
         assert(m_renderer && m_pipeline && m_vertex_array);
 

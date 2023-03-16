@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/core_enums.h"
 #include "core/core_interfaces.h"
 #include "core/events.h"
 #include "core/types.h"
@@ -9,6 +10,12 @@ namespace h2o
     struct WindowResizeEvent
     {
         v2u new_size{};
+    };
+
+    struct KeyChangedEvent
+    {
+        Key key { Key::Unknown };
+        bool pressed { false };
     };
 
     class IWindow
@@ -66,7 +73,9 @@ namespace h2o
          */
         virtual void swap_buffers(f64 max_fps) = 0;
 
-        virtual Event<WindowResizeEvent>& resize_event() = 0;
+        [[nodiscard]] virtual Event<WindowResizeEvent>& resize_event() = 0;
+
+        [[nodiscard]] virtual Event<KeyChangedEvent>& key_changed_event() = 0;
         
     };
 }

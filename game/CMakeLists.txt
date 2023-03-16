@@ -17,7 +17,7 @@ target_link_libraries(game
     PRIVATE
         core
         rendering
-        windowing
+        h2o_windowing
         h2o_input
         voxels
 )
@@ -26,7 +26,7 @@ target_include_directories(game
     PRIVATE
         core
         rendering
-        windowing
+        h2o_windowing
         h2o_input
         voxels
         

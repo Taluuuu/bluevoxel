@@ -16,20 +16,21 @@ namespace h2o::gfx
 namespace game
 {
     class GameModule
-        : public h2o::Module
+        : public h2o::IModule
         , public h2o::ITickable
     {
     public:
 
-        explicit GameModule(h2o::Engine& engine);
+        GameModule() = default;
+        ~GameModule() override = default;
 
         // h2o::Module interface
-        bool init(const h2o::GameInfo& game_info) override;
-        [[nodiscard]] std::string_view module_name() const override;
+        bool init(h2o::Engine& engine) override;
+        [[nodiscard]] std::string_view module_name() const override { return "game_module"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         // h2o::ITickable interface
-        void tick(f64 delta_time) override;
+        void tick(h2o::TickPhase phase, f64 delta_time) override;
 
     private:
 

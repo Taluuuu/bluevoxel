@@ -1,43 +1,36 @@
 #include "windowing/windowing_module.h"
 
 #include "core/game_info.h"
+#include "core/engine.h"
+#include "core/log.h"
 #include "window_glfw.h"
 
 #include <GLFW/glfw3.h>
-#include <iostream>
 
 namespace h2o
 {
-    WindowingModule::WindowingModule(Engine& engine)
-        : Module(engine) {}
-
-    bool WindowingModule::init(const GameInfo& game_info)
+    void WindowingModule::cleanup()
     {
-        Module::init(game_info);
+        delete m_window;
+        glfwTerminate();
+    }
 
+    bool WindowingModule::init(Engine& engine)
+    {
         if (!glfwInit())
+        {
+            log::error("Failed to initialize GLFW.");
             return false;
-
-        try
-        {
-            m_window = Window_GLFW::create(game_info.game_name, default_size);
         }
-        catch(const std::exception& e)
+
+        m_window = Window_GLFW::create(engine.game_info().game_name, default_size);
+        if (!m_window)
         {
-            std::cout << "[Error] " << e.what() << "\n";
             glfwTerminate();
             return false;
         }
 
         return true;
-    }
-
-    void WindowingModule::cleanup()
-    {
-        m_window.reset();
-        glfwTerminate();
-
-        Module::cleanup();
     }
 
     f64 WindowingModule::delta_time() const

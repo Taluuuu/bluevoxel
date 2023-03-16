@@ -9,6 +9,11 @@ namespace h2o::gfx
 
     class Renderer_OpenGL : public IRenderer
     {
+    public:
+
+        Renderer_OpenGL() = default;
+        ~Renderer_OpenGL() override;
+
         // IRenderer interface
     public:
         PipelineCreateData            create_pipeline()                                         override;
@@ -25,6 +30,7 @@ namespace h2o::gfx
 
         std::shared_ptr<Pipeline_OpenGL> m_bound_pipeline = nullptr;
 
+        IWindow* m_window = nullptr;
         EventHandle m_window_resize_event_handle;
 
     };

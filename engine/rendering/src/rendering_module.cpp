@@ -14,20 +14,17 @@
 
 namespace h2o
 {
-    RenderingModule::RenderingModule(Engine& engine)
-        : Module(engine) {}
-
-    void RenderingModule::tick(f64 delta_time)
+    void RenderingModule::tick(TickPhase phase, f64 delta_time)
     {
         assert(m_renderer != nullptr);
         m_renderer->clear();
     }
 
-    bool RenderingModule::init(const GameInfo& game_info)
+    bool RenderingModule::init(Engine& engine)
     {
-        Module::init(game_info);
+        engine.register_tickable(this, TickPhase::PreRender);
 
-        const auto windowing_module = m_engine->get_module<WindowingModule>();
+        const auto windowing_module = engine.get_module<WindowingModule>();
         assert(windowing_module != nullptr);
         auto& window = windowing_module->window();
 
@@ -37,12 +34,7 @@ namespace h2o
         m_renderer = std::make_unique<gfx::Renderer_OpenGL>();
 #endif
 
-        return m_renderer->init(window, game_info);
-    }
-
-    void RenderingModule::cleanup()
-    {
-        m_renderer.reset();
+        return m_renderer->init(window, engine.game_info());
     }
 
     std::vector<std::type_index> RenderingModule::dependencies() const

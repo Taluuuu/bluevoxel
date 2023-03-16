@@ -14,7 +14,7 @@ namespace h2o
     {
     public:
 
-        static std::shared_ptr<Window_GLFW> create(const std::string_view& title, v2i size);
+        static Window_GLFW* create(const std::string_view& title, v2i size);
 
     private:
 
@@ -26,8 +26,6 @@ namespace h2o
         Window_GLFW(Window_GLFW&& other) noexcept;
         ~Window_GLFW() override;
 
-    public:
-
         // IWindow interface
         [[nodiscard]] v2i window_size() const override;
         [[nodiscard]] v2i framebuffer_size() const override;
@@ -37,9 +35,11 @@ namespace h2o
         [[nodiscard]] void* handle() const override;
         void swap_buffers(f64 max_fps) override;
         Event<WindowResizeEvent>& resize_event() override;
+        Event<KeyChangedEvent>& key_changed_event() override;
 
     private:
 
+        static void key_callback(GLFWwindow* window_handle, int key, int scancode, int action, int mods);
         static void framebuffer_size_callback(GLFWwindow* window_handle, int width, int height);
 
     private:
@@ -47,6 +47,7 @@ namespace h2o
         GLFWwindow* m_handle = nullptr;
 
         Event<WindowResizeEvent> m_resize_event;
+        Event<KeyChangedEvent> m_key_changed_event;
 
         f64 m_previous_time = 0.0f;
         f64 m_delta_time = 0.0f;

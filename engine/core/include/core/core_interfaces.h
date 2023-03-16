@@ -39,11 +39,15 @@ namespace h2o
 
     };
 
-    enum class TickPhase
+    enum TickPhase : u32
     {
-        Input,
-        PreUpdate,
-        
+        Input      = 1 << 0,
+        PreUpdate  = 1 << 1,
+        Update     = 1 << 2,
+        PostUpdate = 1 << 3,
+        PreRender  = 1 << 4,
+        Render     = 1 << 5,
+        PostRender = 1 << 6,
     };
 
     class ITickable
@@ -52,15 +56,7 @@ namespace h2o
 
         virtual ~ITickable() = default;
 
-        ///**
-        // * @brief Called every frame
-        // *
-        // * @param delta_time The time since the last frame in seconds
-        // */
-        //virtual void tick(f64 delta_time) = 0;
-
-        virtual void tick(f64 delta_time) { assert(false); }
-        virtual bool should_tick() const  { return false;  }
+        virtual void tick(TickPhase phase, f64 delta_time) {}
 
     };
 }
