@@ -40,11 +40,11 @@ if(TNT_USE_VULKAN)
 endif()
 
 # Engine libraries
-add_subdirectory(core)
-add_subdirectory(input)
-add_subdirectory(windowing)
-add_subdirectory(rendering)
-add_subdirectory(voxels)
+add_subdirectory(h2o/core)
+add_subdirectory(h2o/input)
+add_subdirectory(h2o/windowing)
+add_subdirectory(h2o/rendering)
+add_subdirectory(h2o/voxels)
 
 # Add this resource path
 set(RESOURCE_PATHS ${RESOURCE_PATHS};${CMAKE_CURRENT_SOURCE_DIR}/res PARENT_SCOPE)

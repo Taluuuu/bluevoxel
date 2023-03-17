@@ -1,22 +1,22 @@
 cmake_minimum_required(VERSION 3.20)
-project(core)
+project(h2o_core)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-add_library(core
+add_library(h2o_core
     src/engine.cpp
     src/utils.cpp
 )
 
-target_link_libraries(core
+target_link_libraries(h2o_core
     PUBLIC
         glm
         fmt
         magic_enum
 )
 
-target_include_directories(core
+target_include_directories(h2o_core
     PUBLIC
         include/
         

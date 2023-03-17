@@ -11,7 +11,7 @@ add_library(h2o_input ${INPUT_SOURCES})
 
 target_link_libraries(h2o_input
     PRIVATE
-        core
+        h2o_core
         h2o_windowing)
 
 target_include_directories(h2o_input
@@ -19,5 +19,5 @@ target_include_directories(h2o_input
         include/
 
     PRIVATE
-        core
+        h2o_core
         h2o_windowing)

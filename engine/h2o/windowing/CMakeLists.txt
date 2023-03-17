@@ -11,7 +11,7 @@ add_library(h2o_windowing
 
 target_link_libraries(h2o_windowing
     PRIVATE
-        core
+        h2o_core
 
         glfw)
 
@@ -20,6 +20,6 @@ target_include_directories(h2o_windowing
         include/
 
     PRIVATE
-        core
+        h2o_core
 
         glfw)

@@ -61,11 +61,6 @@ namespace h2o
             }
         }
 
-        [[nodiscard]] i32 id() const
-        {
-            return m_id;
-        }
-
         void clear()
         {
             m_event = nullptr;
@@ -102,14 +97,14 @@ namespace h2o
         void add_listener(EventHandle& handle, const std::function<void(const T&)>& callback)
         {
             handle.reset(this, s_next_handle_id++);
-            m_listeners.push_back({ callback, handle.id() });
+            m_listeners.push_back({ callback, handle.m_id });
         }
 
         void remove_listener(const EventHandle& handle) override
         {
             // Calls another function as removing listeners is something we want to do
             // from the destructor
-            remove_listener_impl(handle.id());
+            remove_listener_impl(handle.m_id);
         }
 
     private:

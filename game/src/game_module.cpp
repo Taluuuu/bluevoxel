@@ -61,10 +61,7 @@ namespace game
     {
         if (phase & h2o::TickPhase::Update)
         {
-            if (m_input_module->key_state(h2o::Key::A).pressed_this_frame)
-            {
-                h2o::log::info("WOWWWW");
-            }
+
         }
         else if (phase & h2o::TickPhase::Render)
         {

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(rendering)
+project(h2o_rendering)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -31,35 +31,35 @@ if(TNT_USE_OPENGL)
         src/opengl/vertex_array_opengl.cpp)
 endif()
 
-add_library(rendering ${RENDERING_SOURCES})
+add_library(h2o_rendering ${RENDERING_SOURCES})
 
-target_link_libraries(rendering
+target_link_libraries(h2o_rendering
     PRIVATE
-        core
+        h2o_core
         h2o_windowing
 
         ${Vulkan_LIBRARIES}
         glfw)
 
 if (TNT_USE_OPENGL)
-    target_link_libraries(rendering
+    target_link_libraries(h2o_rendering
         PRIVATE
             glad)
 endif()
 
-target_include_directories(rendering
+target_include_directories(h2o_rendering
     PUBLIC
         include/
 
     PRIVATE
-        core
+        h2o_core
         h2o_windowing
 
         ${VULKAN_PATH}/Include/
         glfw)
 
 if (TNT_USE_OPENGL)
-    target_include_directories(rendering
+    target_include_directories(h2o_rendering
         PRIVATE
             glad)
 endif()

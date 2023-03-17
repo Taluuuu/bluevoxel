@@ -15,20 +15,20 @@ set_target_properties(game PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAK
 
 target_link_libraries(game
     PRIVATE
-        core
-        rendering
+        h2o_core
+        h2o_rendering
         h2o_windowing
         h2o_input
-        voxels
+        h2o_voxels
 )
 
 target_include_directories(game
     PRIVATE
-        core
-        rendering
+        h2o_core
+        h2o_rendering
         h2o_windowing
         h2o_input
-        voxels
+        h2o_voxels
         
         include/
 )
