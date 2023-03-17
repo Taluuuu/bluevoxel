@@ -5,71 +5,131 @@
 #include <functional>
 #include <vector>
 
+#define ID_NONE (-1)
+
 namespace h2o
 {
+    class EventHandle;
+
+    class EventBase
+    {
+    public:
+
+        virtual void remove_listener(const EventHandle& event_handle) = 0;
+
+    };
+
     class EventHandle
     {
     public:
 
         EventHandle() = default;
-        explicit EventHandle(i32 id) : m_id(id) {}
-
-        [[nodiscard]] bool is_valid() const { return m_id >= 0; }
+        ~EventHandle() { reset(); }
+        EventHandle(const EventHandle&) = delete;
+        EventHandle(EventHandle&& other)
+        {
+            m_id = other.m_id;
+            m_event = other.m_event;
+            other.clear();
+        }
 
         bool operator==(const EventHandle& rhs) const { return m_id == rhs.m_id; }
 
+        /**
+         * Unbind the listener associated with this handle. Does nothing if this handle
+         * is unused.
+         */
+        void reset() { reset(nullptr, ID_NONE); }
+
     private:
 
-        i32 m_id = -1;
+        template<class T>
+        friend class Event;
+
+        void reset(EventBase* event, i32 id)
+        {
+            if (m_event)
+            {
+                assert(m_id != ID_NONE);
+
+                m_event->remove_listener(*this);
+                clear();
+            }
+
+            if (event)
+            {
+                assert(id != ID_NONE);
+
+                m_event = event;
+                m_id = id;
+            }
+        }
+
+        [[nodiscard]] i32 id() const
+        {
+            return m_id;
+        }
+
+        void clear()
+        {
+            m_event = nullptr;
+            m_id = ID_NONE;
+        }
+
+    private:
+
+        EventBase* m_event = nullptr;
+        i32 m_id = ID_NONE;
 
     };
 
-    // To add a very needed unbind method on an EventHandle that would be called
-    // either manually or during destruction, I could create a base Event class
-    // the templated version would inherit from (BaseEvent). This would contain
-    // all logic that does not need the template. Removing listeners does not
-    // require the template type.
-    //
-    // EDIT: I can't create the Listener struct without the template type. Need
-    // to think about this some more.
-
     template<class T>
-    class Event
+    class Event : public EventBase
     {
     public:
 
         Event() = default;
         Event(const Event&) = delete;
         Event(Event&&) = delete;
-        ~Event() { assert(m_listeners.empty()); }
+        ~Event()
+        {
+            while (!m_listeners.empty())
+                remove_listener_impl(m_listeners.front().handle_id);
+        }
 
         void broadcast(const T& event) const
         {
             for (const auto& listener : m_listeners)
-            {
                 listener.callback(event);
-            }
         }
 
-        [[nodiscard]] EventHandle add_listener(const std::function<void(const T&)>& callback)
+        void add_listener(EventHandle& handle, const std::function<void(const T&)>& callback)
         {
-            EventHandle new_handle(s_next_handle_id++);
-            m_listeners.push_back({ callback, new_handle });
-            return new_handle;
+            handle.reset(this, s_next_handle_id++);
+            m_listeners.push_back({ callback, handle.id() });
         }
 
-        void remove_listener(const EventHandle& handle)
+        void remove_listener(const EventHandle& handle) override
         {
-            if (!handle.is_valid())
+            // Calls another function as removing listeners is something we want to do
+            // from the destructor
+            remove_listener_impl(handle.id());
+        }
+
+    private:
+
+        void remove_listener_impl(i32 id)
+        {
+            if (id == ID_NONE)
                 return;
 
-            m_listeners.erase(std::remove_if(
-                m_listeners.begin(), 
-                m_listeners.end(), 
-                [&handle](const auto& listener)
+            const auto num_erased = std::erase_if(m_listeners,
+                [id](const auto& listener)
                 {
-                    return listener.handle == handle;
-                }));
+                    return listener.handle_id == id;
+                });
+
+            assert(num_erased < 2);
         }
 
     private:
@@ -77,12 +137,11 @@ namespace h2o
         struct Listener
         {
             std::function<void(const T&)> callback;
-            EventHandle handle;
+            i32 handle_id;
         };
 
         std::vector<Listener> m_listeners;
 
-        // Note: not thread safe
         static i32 s_next_handle_id;
 
     };

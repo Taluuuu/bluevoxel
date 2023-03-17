@@ -5,12 +5,18 @@
 
 #include <memory>
 
-namespace h2o::gfx
+// Forward declarations
+namespace h2o
 {
-    class Camera;
-    class IRenderer;
-    class IPipeline;
-    class IVertexArray;
+    namespace gfx
+    {
+        class Camera;
+        class IRenderer;
+        class IPipeline;
+        class IVertexArray;
+    }
+
+    class InputModule;
 }
 
 namespace game
@@ -39,6 +45,8 @@ namespace game
         std::shared_ptr<h2o::gfx::Camera>       m_camera       = nullptr;
 
         h2o::gfx::IRenderer* m_renderer = nullptr;
+
+        h2o::InputModule* m_input_module = nullptr;
 
     };
 }

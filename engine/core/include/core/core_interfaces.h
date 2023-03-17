@@ -41,7 +41,7 @@ namespace h2o
 
     enum TickPhase : u32
     {
-        Input      = 1 << 0,
+        PrePollEvents      = 1 << 0,
         PreUpdate  = 1 << 1,
         Update     = 1 << 2,
         PostUpdate = 1 << 3,
@@ -49,6 +49,11 @@ namespace h2o
         Render     = 1 << 5,
         PostRender = 1 << 6,
     };
+
+    inline TickPhase operator|(TickPhase lhs, TickPhase rhs)
+    {
+        return static_cast<TickPhase>(static_cast<u32>(lhs) | static_cast<u32>(rhs));
+    }
 
     class ITickable
     {

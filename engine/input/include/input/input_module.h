@@ -24,7 +24,6 @@ namespace h2o
 
         // Module interface
         bool init(Engine& engine) override;
-        void cleanup() override;
         [[nodiscard]] std::string_view module_name() const override { return "h2o_input"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
@@ -38,8 +37,6 @@ namespace h2o
 
         std::vector<KeyState> m_key_states;
         std::vector<KeyState> m_mouse_button_states;
-
-        class WindowingModule* m_windowing_module = nullptr;
 
         EventHandle m_key_state_event_handle;
 

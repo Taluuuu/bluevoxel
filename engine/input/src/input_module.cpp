@@ -13,25 +13,22 @@ namespace h2o
         m_key_states.resize(magic_enum::enum_count<Key>(), {});
         m_mouse_button_states.resize(magic_enum::enum_count<Key>(), {});
 
-        m_windowing_module = engine.get_module<WindowingModule>();
-        assert(m_windowing_module);
+        auto windowing_module = engine.get_module<WindowingModule>();
+        assert(windowing_module);
 
-        m_key_state_event_handle = m_windowing_module->window().key_changed_event().add_listener([this]
-            (KeyChangedEvent evt)
-        {
-            auto key_idx = magic_enum::enum_index(evt.key);
-            assert(key_idx.has_value());
+        windowing_module->window().key_changed_event().add_listener(m_key_state_event_handle,
+            [&](KeyChangedEvent evt)
+            {
+                auto key_idx = magic_enum::enum_index(evt.key);
+                assert(key_idx.has_value());
 
-            m_key_states[*key_idx].held               = evt.pressed;
-            m_key_states[*key_idx].pressed_this_frame = evt.pressed;
-        });
+                m_key_states[*key_idx].held               = evt.pressed;
+                m_key_states[*key_idx].pressed_this_frame = evt.pressed;
+            });
+
+        engine.register_tickable(this, TickPhase::PrePollEvents);
 
         return true;
-    }
-
-    void InputModule::cleanup()
-    {
-        m_windowing_module->window().key_changed_event().remove_listener(m_key_state_event_handle);
     }
 
     std::vector<std::type_index> InputModule::dependencies() const

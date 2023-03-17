@@ -8,15 +8,17 @@
 #include "rendering/renderer.h"
 #include "rendering/vertex_array.h"
 #include "rendering/buffer.h"
+#include "input/input_module.h"
 
 namespace game
 {
     bool GameModule::init(h2o::Engine& engine)
     {
-        engine.register_tickable(this, h2o::TickPhase::Render);
+        engine.register_tickable(this, h2o::TickPhase::Render | h2o::TickPhase::Update);
 
+        m_input_module = engine.get_module<h2o::InputModule>();
         auto rendering_module = engine.get_module<h2o::RenderingModule>();
-        assert(rendering_module);
+        assert(m_input_module && rendering_module);
         m_renderer = &rendering_module->renderer();
 
         m_pipeline = (*m_renderer)
@@ -52,14 +54,28 @@ namespace game
 
     std::vector<std::type_index> GameModule::dependencies() const
     {
-        return { typeid(h2o::RenderingModule) };
+        return { typeid(h2o::RenderingModule), typeid(h2o::InputModule) };
     }
 
     void GameModule::tick(h2o::TickPhase phase, f64 delta_time)
     {
-        assert(m_renderer && m_pipeline && m_vertex_array);
+        if (phase & h2o::TickPhase::Update)
+        {
+            if (m_input_module->key_state(h2o::Key::A).pressed_this_frame)
+            {
+                h2o::log::info("WOWWWW");
+            }
+        }
+        else if (phase & h2o::TickPhase::Render)
+        {
+            assert(m_renderer && m_pipeline && m_vertex_array);
 
-        m_renderer->bind_pipeline(m_pipeline);
-        m_renderer->draw(*m_vertex_array);
+            m_renderer->bind_pipeline(m_pipeline);
+            m_renderer->draw(*m_vertex_array);
+        }
+        else
+        {
+            assert(false);
+        }
     }
 }
