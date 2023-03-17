@@ -1,12 +1,10 @@
 #pragma once
 
 #include "game_info.h"
-#include "core/core_interfaces.h"
+#include "core/core_interfaces.h" // Could probably be removed
 
-#include <cassert>
 #include <memory>
 #include <typeindex>
-#include <type_traits>
 #include <unordered_map>
 #include <vector>
 #include <stack>
@@ -96,9 +94,11 @@ namespace h2o
         std::unordered_map<std::type_index, IModule*> m_initialized_modules;
         std::stack<std::unique_ptr<IModule>> m_module_stack;
 
-        // The core window is automatically populated from
-        IWindowModule* m_core_window = nullptr;
         std::vector< std::vector<ITickable*> > m_tickables;
+
+        // Queried interfaces
+        IWindowModule* m_window_module = nullptr;
+        IInputModule*  m_input_module  = nullptr;
 
     };
 }

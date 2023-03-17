@@ -50,17 +50,22 @@ namespace h2o
     {
         init_new_modules();
 
-        while (!m_core_window || !m_core_window->should_close())
+        while (!m_window_module || !m_window_module->should_close())
             update();
     }
 
     void Engine::update() const
     {
-        f64 delta_time = 0.0f;
-        if (m_core_window)
+        if (m_input_module)
         {
-            m_core_window->poll_events();
-            delta_time = m_core_window->delta_time();
+            m_input_module->prepare();
+        }
+
+        f64 delta_time = 0.0f;
+        if (m_window_module)
+        {
+            m_window_module->poll_events();
+            delta_time = m_window_module->delta_time();
         }
 
         TickPhase tick_phase = static_cast<TickPhase>(1);
@@ -72,8 +77,10 @@ namespace h2o
             tick_phase = static_cast<TickPhase>(tick_phase << 1);
         }
 
-        if (m_core_window)
-            m_core_window->swap_buffers(144.0);
+        if (m_window_module)
+        {
+            m_window_module->swap_buffers(144.0);
+        }
     }
 
     void Engine::init_new_modules()
@@ -112,10 +119,15 @@ namespace h2o
                 m_modules_to_init.erase(it);
 
                 // Query interfaces...
-                if (auto core_window = dynamic_cast<IWindowModule*>(module))
+                if (auto window_module = dynamic_cast<IWindowModule*>(module))
                 {
-                    assert(!m_core_window);
-                    m_core_window = core_window;
+                    assert(!m_window_module);
+                    m_window_module = window_module;
+                }
+                if (auto input_module = dynamic_cast<IInputModule*>(module))
+                {
+                    assert(!m_input_module);
+                    m_input_module = input_module;
                 }
             }
             else

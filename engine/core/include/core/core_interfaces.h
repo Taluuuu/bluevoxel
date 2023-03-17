@@ -39,15 +39,22 @@ namespace h2o
 
     };
 
+    class IInputModule
+    {
+    public:
+
+        virtual void prepare() = 0;
+
+    };
+
     enum TickPhase : u32
     {
-        PrePollEvents      = 1 << 0,
-        PreUpdate  = 1 << 1,
-        Update     = 1 << 2,
-        PostUpdate = 1 << 3,
-        PreRender  = 1 << 4,
-        Render     = 1 << 5,
-        PostRender = 1 << 6,
+        PreUpdate   = 1 << 0,
+        Update      = 1 << 1,
+        PostUpdate  = 1 << 2,
+        PreRender   = 1 << 3,
+        Render      = 1 << 4,
+        PostRender  = 1 << 5,
     };
 
     inline TickPhase operator|(TickPhase lhs, TickPhase rhs)
@@ -61,7 +68,7 @@ namespace h2o
 
         virtual ~ITickable() = default;
 
-        virtual void tick(TickPhase phase, f64 delta_time) {}
+        virtual void tick(TickPhase phase, f64 delta_time) = 0;
 
     };
 }

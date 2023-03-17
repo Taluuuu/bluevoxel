@@ -26,8 +26,6 @@ namespace h2o
                 m_key_states[*key_idx].pressed_this_frame = evt.pressed;
             });
 
-        engine.register_tickable(this, TickPhase::PrePollEvents);
-
         return true;
     }
 
@@ -36,7 +34,7 @@ namespace h2o
         return { typeid(WindowingModule) };
     }
 
-    void InputModule::tick(TickPhase phase, f64 delta_time)
+    void InputModule::prepare()
     {
         for (auto& key_state : m_key_states)
             key_state.pressed_this_frame = false;

@@ -26,18 +26,14 @@ namespace h2o
         EventHandle() = default;
         ~EventHandle() { reset(); }
         EventHandle(const EventHandle&) = delete;
-        EventHandle(EventHandle&& other)
-        {
-            m_id = other.m_id;
-            m_event = other.m_event;
-            other.clear();
-        }
+        EventHandle(EventHandle&&) = delete;
 
         bool operator==(const EventHandle& rhs) const { return m_id == rhs.m_id; }
 
         /**
          * Unbind the listener associated with this handle. Does nothing if this handle
          * is unused.
+         * This function is called by the destructor.
          */
         void reset() { reset(nullptr, ID_NONE); }
 

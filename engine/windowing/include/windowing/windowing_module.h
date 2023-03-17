@@ -26,7 +26,7 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override { return "h2o_windowing"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override { return {}; }
 
-        // ICoreWindow interface
+        // IWindowModule interface
         [[nodiscard]] f64 delta_time() const override;
         [[nodiscard]] bool should_close() const override;
         void poll_events() const override;

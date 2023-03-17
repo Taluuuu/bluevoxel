@@ -15,7 +15,7 @@ namespace h2o
 
     class InputModule
         : public IModule
-        , public ITickable
+        , public IInputModule
     {
     public:
         
@@ -27,8 +27,8 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override { return "h2o_input"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
-        // ITickable interface
-        void tick(TickPhase phase, f64 delta_time) override;
+        // IInputModule interface
+        void prepare() override;
 
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
