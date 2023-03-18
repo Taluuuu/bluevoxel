@@ -32,7 +32,7 @@ namespace game
 
         // h2o::Module interface
         bool init(h2o::Engine& engine) override;
-        [[nodiscard]] std::string_view module_name() const override { return "game_module"; }
+        [[nodiscard]] std::string_view module_name() const override { return "game"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         // h2o::ITickable interface

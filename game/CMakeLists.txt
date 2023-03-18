@@ -19,6 +19,7 @@ target_link_libraries(game
         h2o_rendering
         h2o_windowing
         h2o_input
+        h2o_scene
         h2o_voxels
 )
 
@@ -28,8 +29,9 @@ target_include_directories(game
         h2o_rendering
         h2o_windowing
         h2o_input
+        h2o_scene
         h2o_voxels
-        
+
         include/
 )
 

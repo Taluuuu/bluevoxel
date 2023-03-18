@@ -4,6 +4,7 @@
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
 #include "rendering/pipeline.h"
+#include "scene/scene_module.h"
 #include "windowing/windowing_module.h"
 
 int main()
@@ -20,6 +21,7 @@ int main()
         .add_module<h2o::WindowingModule>()
         .add_module<h2o::RenderingModule>()
         .add_module<h2o::InputModule>()
+        .add_module<h2o::SceneModule>()
         .add_module<game::GameModule>()
         .run();
 }
