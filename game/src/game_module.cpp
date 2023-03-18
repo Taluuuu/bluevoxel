@@ -9,6 +9,9 @@
 #include "rendering/vertex_array.h"
 #include "rendering/buffer.h"
 #include "input/input_module.h"
+#include "scene/scene_module.h"
+#include "scene/scene_headers.h"
+#include "scene/camera_component.h"
 
 namespace game
 {
@@ -49,12 +52,21 @@ namespace game
 
         m_pipeline->set_uniform_mat4(0, m_camera->proj_view());
 
+        m_scene = h2o::Scene::create("TestGameScene");
+        auto test_actor = m_scene->create_actor("TestActor");
+        if (test_actor)
+        {
+            test_actor->add_component<h2o::CameraComponent>();
+        }
+
         return true;
     }
 
     std::vector<std::type_index> GameModule::dependencies() const
     {
-        return { typeid(h2o::RenderingModule), typeid(h2o::InputModule) };
+        return { typeid(h2o::RenderingModule),
+                 typeid(h2o::InputModule),
+                 typeid(h2o::SceneModule) };
     }
 
     void GameModule::tick(h2o::TickPhase phase, f64 delta_time)

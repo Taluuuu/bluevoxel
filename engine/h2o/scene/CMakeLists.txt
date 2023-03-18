@@ -6,7 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_scene
     src/scene_module.cpp
-    src/actor.cpp)
+    src/scene.cpp
+    src/actor.cpp
+    src/component.cpp
+    src/camera_component.cpp)
 
 target_link_libraries(h2o_scene
     PRIVATE

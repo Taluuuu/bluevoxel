@@ -17,6 +17,7 @@ namespace h2o
     }
 
     class InputModule;
+    class Scene;
 }
 
 namespace game
@@ -39,6 +40,8 @@ namespace game
         void tick(h2o::TickPhase phase, f64 delta_time) override;
 
     private:
+
+        std::shared_ptr<h2o::Scene> m_scene = nullptr;
 
         std::shared_ptr<h2o::gfx::IPipeline>    m_pipeline     = nullptr;
         std::shared_ptr<h2o::gfx::IVertexArray> m_vertex_array = nullptr;
