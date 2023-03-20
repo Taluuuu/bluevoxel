@@ -40,10 +40,10 @@ namespace h2o
         /**
          * Add a component of type T to this actor
          *
-         * @tparam T
-         * @tparam Args
-         * @param args
-         * @return
+         * @tparam T The component's type, deriving from h2o::Component
+         * @tparam Args The component's constructor argument types
+         * @param args The component's constructor arguments
+         * @return The created component or nullptr on failure
          */
         template<class T, typename... Args>
         T* add_component(Args... args);
@@ -61,6 +61,10 @@ namespace h2o
     template<class T>
     T* Actor::get_component()
     {
+        static_assert(
+            std::is_base_of_v<Component, T> && !std::is_same_v<Component, T>,
+            "T must derive from h2o::Component.");
+
         auto comp_it = m_components.find(typeid(T));
         return (comp_it == m_components.end()) ?
             nullptr :
@@ -70,7 +74,9 @@ namespace h2o
     template<class T, typename... Args>
     T* Actor::add_component(Args... args)
     {
-        static_assert(std::is_base_of_v<Component, T>, "T must derive from h2o::Component.");
+        static_assert(
+            std::is_base_of_v<Component, T> && !std::is_same_v<Component, T>,
+            "T must derive from h2o::Component.");
 
         if (get_component<T>() != nullptr)
         {

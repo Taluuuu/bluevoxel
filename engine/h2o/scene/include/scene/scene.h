@@ -10,7 +10,7 @@ namespace h2o
 {
     class Actor;
 
-    class Scene : public std::enable_shared_from_this<Scene>
+    class Scene final : public std::enable_shared_from_this<Scene>
     {
     public:
 
@@ -24,20 +24,33 @@ namespace h2o
 
     public:
 
+        /**
+         * Create a new scene
+         *
+         * @param name The scene's name
+         * @return The created scene or nullptr on failure
+         */
         static std::shared_ptr<Scene> create(std::string_view name);
 
         /**
          * Create and store a new actor of type T
          *
-         * @tparam T
-         * @tparam Args
-         * @param name
-         * @param args
-         * @return
+         * @tparam T The actor's type, must inherit from or be Actor
+         * @tparam Args The actor's constructor argument types
+         * @param name The name of the actor, must be unique
+         * @param args The actor's constructor arguments
+         * @return The created actor or nullptr on failure
          */
         template<class T = Actor, typename... Args>
         std::shared_ptr<Actor> create_actor(std::string_view name, Args... args);
 
+        /**
+         * Get the actor of type T with a name
+         *
+         * @tparam T The actor's type
+         * @param name The actor's unique name
+         * @return The found actor or nullptr on failure
+         */
         template<class T = Actor>
         std::shared_ptr<T> get_actor(std::string_view name);
 
@@ -50,7 +63,8 @@ namespace h2o
     template<class T, typename... Args>
     std::shared_ptr<Actor> Scene::create_actor(std::string_view name, Args... args)
     {
-        static_assert(std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
+        static_assert(
+            std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
 
         if (get_actor(name) != nullptr)
         {
@@ -65,12 +79,14 @@ namespace h2o
         };
 
         std::shared_ptr<Actor> actor = std::make_shared<T>(actor_initializer, args...);
+        return actor;
     }
 
     template<class T>
     std::shared_ptr<T> Scene::get_actor(std::string_view name)
     {
-        static_assert(std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
+        static_assert(
+            std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
 
         auto actor_it = m_actor_map.find(name);
         if (actor_it == m_actor_map.end())

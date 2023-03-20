@@ -12,8 +12,7 @@ int main()
     h2o::Engine engine(
         h2o::GameInfo
         {
-            .game_name = "haaaaa",
-            .engine_name = "hbbbbbbb"
+            .game_name = "haaaaa"
         }
     );
 

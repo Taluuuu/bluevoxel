@@ -11,7 +11,7 @@
 #include "input/input_module.h"
 #include "scene/scene_module.h"
 #include "scene/scene_headers.h"
-#include "scene/camera_component.h"
+#include "scene/components/camera_component.h"
 
 namespace game
 {

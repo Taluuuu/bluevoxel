@@ -10,7 +10,6 @@ namespace h2o
     public:
 
         std::string_view game_name;
-        std::string_view engine_name;
 
     };
 }

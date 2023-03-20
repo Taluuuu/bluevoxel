@@ -1,4 +1,4 @@
-#include "scene/camera_component.h"
+#include "scene/components/camera_component.h"
 
 namespace h2o
 {
