@@ -9,6 +9,7 @@
 namespace h2o
 {
     class Actor;
+    class Engine;
 
     class Scene final : public std::enable_shared_from_this<Scene>
     {
@@ -16,11 +17,15 @@ namespace h2o
 
         Scene() = delete;
         Scene(const Scene&) = delete;
+
+        // A scene currently registers itself to the SceneModule by its memory address,
+        // so we want to make sure it doesn't move (for now)
         Scene(Scene&&) = delete;
+        ~Scene();
 
     private:
 
-        explicit Scene(std::string_view name);
+        explicit Scene(Engine& engine, std::string_view name);
 
     public:
 
@@ -30,7 +35,7 @@ namespace h2o
          * @param name The scene's name
          * @return The created scene or nullptr on failure
          */
-        static std::shared_ptr<Scene> create(std::string_view name);
+        static std::shared_ptr<Scene> create(Engine& engine, std::string_view name);
 
         /**
          * Create and store a new actor of type T
@@ -54,9 +59,14 @@ namespace h2o
         template<class T = Actor>
         std::shared_ptr<T> get_actor(std::string_view name);
 
+        // Temporary, will be replaced by a better ticking system
+        void tick(f32 delta_time);
+
     private:
 
         std::unordered_map< std::string_view, std::shared_ptr<Actor> > m_actor_map;
+
+        Engine* const m_engine = nullptr;
 
     };
 
@@ -79,6 +89,7 @@ namespace h2o
         };
 
         std::shared_ptr<Actor> actor = std::make_shared<T>(actor_initializer, args...);
+        m_actor_map.insert({ name, actor });
         return actor;
     }
 

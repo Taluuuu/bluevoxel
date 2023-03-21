@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/log.h"
+#include "core/handle_types.h"
 #include "scene/component.h"
 
 #include <typeindex>
@@ -35,7 +36,7 @@ namespace h2o
          * @return A pointer to the component instance or nullptr if none was found
          */
         template<class T>
-        T* get_component();
+        WeakHandle<T> get_component();
 
         /**
          * Add a component of type T to this actor
@@ -46,11 +47,14 @@ namespace h2o
          * @return The created component or nullptr on failure
          */
         template<class T, typename... Args>
-        T* add_component(Args... args);
+        WeakHandle<T> add_component(Args... args);
+
+        // Temporary, will be replaced by a better ticking system
+        virtual void tick(f32 delta_time) {}
 
     private:
 
-        std::unordered_map< std::type_index, std::unique_ptr<Component> > m_components;
+        std::unordered_map< std::type_index, OwningHandle<Component> > m_components;
 
         std::string_view m_name;
 
@@ -59,7 +63,7 @@ namespace h2o
     };
 
     template<class T>
-    T* Actor::get_component()
+    WeakHandle<T> Actor::get_component()
     {
         static_assert(
             std::is_base_of_v<Component, T> && !std::is_same_v<Component, T>,
@@ -68,17 +72,17 @@ namespace h2o
         auto comp_it = m_components.find(typeid(T));
         return (comp_it == m_components.end()) ?
             nullptr :
-            dynamic_cast<T*>(comp_it->second.get());
+            WeakHandle<T>(comp_it->second);
     }
 
     template<class T, typename... Args>
-    T* Actor::add_component(Args... args)
+    WeakHandle<T> Actor::add_component(Args... args)
     {
         static_assert(
             std::is_base_of_v<Component, T> && !std::is_same_v<Component, T>,
             "T must derive from h2o::Component.");
 
-        if (get_component<T>() != nullptr)
+        if (get_component<T>().is_valid())
         {
             log::warn("Only one instance of a component can be added to an actor ({}).", m_name);
             return nullptr;
@@ -86,15 +90,16 @@ namespace h2o
 
         ComponentInitializer component_initializer
         {
-            .owner = shared_from_this()
+            .owner = this
         };
 
-        auto new_comp = new T(component_initializer, args...);
+        OwningHandle<T> new_comp(new T(component_initializer, args...));
+        WeakHandle<T> weak_comp_handle = new_comp;
 
         m_components.insert({
             typeid(T),
-            std::unique_ptr<T>(new_comp) });
+            std::move(new_comp) });
 
-        return new_comp;
+        return weak_comp_handle;
     }
 }

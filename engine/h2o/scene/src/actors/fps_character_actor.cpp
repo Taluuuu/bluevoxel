@@ -7,6 +7,11 @@ namespace h2o
     FpsCharacterActor::FpsCharacterActor(const ActorInitializer& actor_initializer)
         : Actor(actor_initializer)
     {
-        add_component<CameraComponent>();
+        m_camera_component = add_component<CameraComponent>();
+    }
+
+    void FpsCharacterActor::tick(f32 delta_time)
+    {
+        log::info("{}", m_camera_component.is_valid());
     }
 }

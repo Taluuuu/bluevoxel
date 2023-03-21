@@ -12,6 +12,7 @@
 #include "scene/scene_module.h"
 #include "scene/scene_headers.h"
 #include "scene/components/camera_component.h"
+#include "scene/actors/fps_character_actor.h"
 
 namespace game
 {
@@ -52,12 +53,8 @@ namespace game
 
         m_pipeline->set_uniform_mat4(0, m_camera->proj_view());
 
-        m_scene = h2o::Scene::create("TestGameScene");
-        auto test_actor = m_scene->create_actor("TestActor");
-        if (test_actor)
-        {
-            test_actor->add_component<h2o::CameraComponent>();
-        }
+        m_scene = h2o::Scene::create(engine, "TestGameScene");
+        auto test_actor = m_scene->create_actor<h2o::FpsCharacterActor>("Player");
 
         return true;
     }

@@ -10,23 +10,7 @@ namespace h2o
 
     struct ComponentInitializer
     {
-        const std::shared_ptr<Actor>& owner;
-    };
-
-    template<class T>
-    class CachedComponent
-    {
-    public:
-
-        CachedComponent(T& component);
-        CachedComponent(const CachedComponent&) = delete;
-        CachedComponent(CachedComponent&&) = delete;
-        ~CachedComponent();
-
-    private:
-
-        T* const m_component = nullptr;
-
+        Actor* owner;
     };
 
     class Component
@@ -49,25 +33,9 @@ namespace h2o
 
     private:
 
-        std::vector<CachedComponent<Component>*> m_observers;
-
         Actor* m_owner;
 
     };
-
-    template<class T>
-    CachedComponent<T>::CachedComponent(T& component)
-        : m_component(&component)
-    {
-        //component.
-    }
-
-    template<class T>
-    CachedComponent<T>::~CachedComponent()
-    {
-        assert(m_component);
-
-    }
 
     template<class T>
     T* Component::get_owner()
