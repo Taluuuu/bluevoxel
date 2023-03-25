@@ -22,7 +22,7 @@ foreach(RESOURCE_PATH ${RESOURCE_PATHS})
     file(RENAME ${CMAKE_CURRENT_BINARY_DIR}/Resources/res/ ${NEW_RESOURCE_PATH})
 
     # Compile vulkan shaders to SPIR-V
-    if(TNT_USE_VULKAN)
+    if(H2O_USE_VULKAN)
         file(GLOB_RECURSE VULKAN_SHADER_SOURCES "${NEW_RESOURCE_PATH}/shaders/vulkan/**.vert" "${NEW_RESOURCE_PATH}/shaders/vulkan/**.frag")
         foreach(VULKAN_SHADER_SOURCE ${VULKAN_SHADER_SOURCE})
             execute_process(COMMAND glslangValidator -V ${VULKAN_SHADER_SOURCE} -o ${VULKAN_SHADER_SOURCE}.spv OUTPUT_QUIET)

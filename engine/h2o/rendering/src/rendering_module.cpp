@@ -4,11 +4,11 @@
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
 
-#if TNT_USE_VULKAN
+#if H2O_USE_VULKAN
 #include "vulkan/renderer_vulkan.h"
 #endif
 
-#if TNT_USE_OPENGL
+#if H2O_USE_OPENGL
 #include "opengl/renderer_opengl.h"
 #endif
 
@@ -28,9 +28,9 @@ namespace h2o
         assert(windowing_module != nullptr);
         auto& window = windowing_module->window();
 
-#if TNT_USE_VULKAN
+#if H2O_USE_VULKAN
         m_renderer = std::make_unique<Renderer_Vulkan>();
-#elif TNT_USE_OPENGL
+#elif H2O_USE_OPENGL
         m_renderer = std::make_unique<gfx::Renderer_OpenGL>();
 #endif
 

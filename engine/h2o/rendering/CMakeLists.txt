@@ -1,5 +1,4 @@
 cmake_minimum_required(VERSION 3.20)
-project(h2o_rendering)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
@@ -9,7 +8,7 @@ set(RENDERING_SOURCES
     src/pipeline.cpp
     src/camera.cpp)
 
-if(TNT_USE_VULKAN)
+if(H2O_USE_VULKAN)
     list(APPEND RENDERING_SOURCES
         src/vulkan/debug_messenger_vulkan.cpp
         src/vulkan/device_vulkan.cpp
@@ -23,7 +22,7 @@ if(TNT_USE_VULKAN)
         src/vulkan/swapchain_vulkan.cpp)
 endif()
 
-if(TNT_USE_OPENGL)
+if(H2O_USE_OPENGL)
     list(APPEND RENDERING_SOURCES
         src/opengl/buffer_opengl.cpp
         src/opengl/pipeline_opengl.cpp
@@ -41,7 +40,7 @@ target_link_libraries(h2o_rendering
         ${Vulkan_LIBRARIES}
         glfw)
 
-if (TNT_USE_OPENGL)
+if (H2O_USE_OPENGL)
     target_link_libraries(h2o_rendering
         PRIVATE
             glad)
@@ -58,7 +57,7 @@ target_include_directories(h2o_rendering
         ${VULKAN_PATH}/Include/
         glfw)
 
-if (TNT_USE_OPENGL)
+if (H2O_USE_OPENGL)
     target_include_directories(h2o_rendering
         PRIVATE
             glad)

@@ -1,11 +1,43 @@
 #pragma once
 
 #include "core/types.h"
+#include "core/log.h"
 
 #include <vector>
 
 namespace h2o
 {
+    template<class T>
+    struct Handle
+    {
+        T* data = nullptr;
+        i32 weak_handle_count = 0;
+    };
+
+    template<class T>
+    class OwningHandle
+    {
+    public:
+
+        OwningHandle(T* data = nullptr)
+        {
+            m_handle = new Handle { data, 0 };
+        }
+
+        ~OwningHandle()
+        {
+            if (m_handle->weak_handle_count == 0)
+            {
+                delete m_handle;
+            }
+        }
+
+    private:
+
+        Handle<T>* m_handle = nullptr;
+
+    };
+
     template<class OwningType>
     class OwningHandle
     {
@@ -14,8 +46,11 @@ namespace h2o
         OwningHandle(OwningType* value = nullptr)
             : m_value(value)
         {
-            m_observer_count = new i32;
-            (*m_observer_count) = 0;
+            if (value)
+            {
+                m_observer_count = new i32;
+                *m_observer_count = 0;
+            }
         }
 
         template<class OtherType>
@@ -30,6 +65,7 @@ namespace h2o
             other.m_observer_count = nullptr;
         }
 
+        OwningHandle(OwningHandle&&) = delete;
         OwningHandle(const OwningHandle&) = delete;
 
         ~OwningHandle()
@@ -48,6 +84,22 @@ namespace h2o
             }
 
             delete m_value;
+        }
+
+        template<class AssignedType>
+        void reset(AssignedType* value = nullptr)
+        {
+            static_assert(std::is_base_of_v<OwningType, AssignedType>);
+
+            if (m_value == value)
+                return;
+
+            delete m_value;
+
+            m_value = value;
+
+            m_observer_count = new i32;
+            *m_observer_count = 0;
         }
 
         [[nodiscard]] bool is_valid() const

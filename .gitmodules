@@ -10,3 +10,6 @@
 [submodule "engine/lib/fmt"]
 	path = engine/lib/fmt
 	url = https://github.com/fmtlib/fmt
+[submodule "engine/lib/Catch2"]
+	path = engine/lib/Catch2
+	url = https://github.com/catchorg/Catch2

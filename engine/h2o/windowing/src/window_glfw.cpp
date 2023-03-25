@@ -8,23 +8,23 @@ namespace h2o
 {
     Window_GLFW* Window_GLFW::create(const std::string_view& title, v2i size)
     {
-#if TNT_USE_VULKAN
+#if H2O_USE_VULKAN
 
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-#elif TNT_USE_OPENGL
+#elif H2O_USE_OPENGL
 
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-#endif // TNT_USE_OPENGL
+#endif // H2O_USE_OPENGL
 
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
         GLFWwindow* window = glfwCreateWindow(size.x, size.y, title.data(), nullptr, nullptr);
 
-#if TNT_USE_OPENGL
+#if H2O_USE_OPENGL
         glfwMakeContextCurrent(window);
 #endif
 
@@ -94,7 +94,7 @@ namespace h2o
 
     void Window_GLFW::swap_buffers(f64 max_fps)
     {
-#if TNT_USE_OPENGL
+#if H2O_USE_OPENGL
          glfwSwapBuffers(m_handle);
 #endif
 
