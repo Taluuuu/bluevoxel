@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/log.h"
+#include "core/types.h"
 #include "core/handle_types.h"
 #include "scene/component.h"
 
@@ -66,13 +67,13 @@ namespace h2o
     WeakHandle<T> Actor::get_component()
     {
         static_assert(
-            std::is_base_of_v<Component, T> && !std::is_same_v<Component, T>,
+            std::is_base_of_v<Component, T>,
             "T must derive from h2o::Component.");
 
         auto comp_it = m_components.find(typeid(T));
         return (comp_it == m_components.end()) ?
             nullptr :
-            WeakHandle<T>(comp_it->second);
+            oup::dynamic_pointer_cast<T>(WeakHandle<Component>(comp_it->second));
     }
 
     template<class T, typename... Args>
@@ -82,10 +83,10 @@ namespace h2o
             std::is_base_of_v<Component, T> && !std::is_same_v<Component, T>,
             "T must derive from h2o::Component.");
 
-        if (get_component<T>().is_valid())
+        if (auto comp = get_component<T>())
         {
             log::warn("Only one instance of a component can be added to an actor ({}).", m_name);
-            return nullptr;
+            return comp;
         }
 
         ComponentInitializer component_initializer

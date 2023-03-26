@@ -26,6 +26,9 @@ add_subdirectory(lib/fmt)
 # Catch2
 add_subdirectory(lib/Catch2)
 
+# observable_unique_ptr
+add_subdirectory(lib/observable_unique_ptr)
+
 set(H2O_USE_GLFW True)
 set(H2O_USE_OPENGL True)
 set(H2O_USE_VULKAN False)

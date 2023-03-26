@@ -13,3 +13,6 @@
 [submodule "engine/lib/Catch2"]
 	path = engine/lib/Catch2
 	url = https://github.com/catchorg/Catch2
+[submodule "engine/lib/observable_unique_ptr"]
+	path = engine/lib/observable_unique_ptr
+	url = https://github.com/cschreib/observable_unique_ptr

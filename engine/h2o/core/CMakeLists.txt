@@ -13,6 +13,7 @@ target_link_libraries(h2o_core
         glm
         fmt
         magic_enum
+        oup
 )
 
 target_include_directories(h2o_core
@@ -22,4 +23,5 @@ target_include_directories(h2o_core
         glm
         fmt
         magic_enum
+        oup
 )
