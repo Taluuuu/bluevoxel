@@ -4,15 +4,10 @@
 #include "core/core_interfaces.h"
 #include "core/module.h"
 #include "core/events.h"
+#include "key_state.h"
 
 namespace h2o
 {
-    struct KeyState
-    {
-        u8 held               : 1 = false;
-        u8 pressed_this_frame : 1 = false;
-    };
-
     class InputModule
         : public IModule
         , public IInputModule

@@ -9,21 +9,14 @@
 
 namespace h2o
 {
-    Engine* Engine::s_instance = nullptr;
-
     Engine::Engine(const GameInfo& game_info)
         : m_game_info(game_info)
     {
-        assert(s_instance == nullptr);
-        s_instance = this;
-
         m_tickables.resize(magic_enum::enum_count<TickPhase>(), {});
     }
 
     Engine::~Engine()
     {
-        s_instance = nullptr;
-
         while (!m_module_stack.empty())
         {
             auto& module = m_module_stack.top();
@@ -140,3 +133,5 @@ namespace h2o
         }
     }
 }
+
+h2o::Engine* g_engine = nullptr;

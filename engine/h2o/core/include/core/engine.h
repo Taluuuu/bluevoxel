@@ -22,8 +22,6 @@ namespace h2o
         Engine(Engine&&) = delete;
         ~Engine();
 
-        static Engine* instance() { return s_instance; }
-
         /**
          * @brief Add a module to the engine. Initialize it once all its dependencies
          *        are met.
@@ -34,20 +32,7 @@ namespace h2o
          * @return A reference to the engine used to chain add_module calls
          */
         template<typename T, typename... Args>
-        Engine& add_module(Args... args)
-        {
-            static_assert(std::is_base_of_v<IModule, T>, "T must implement h2o::IModule.");
-
-            std::type_index module_type(typeid(T));
-            
-            // Make sure the module hadn't already been added
-            assert( !m_initialized_modules.contains(module_type) &&
-                    !m_modules_to_init.contains(module_type) );
-
-            m_modules_to_init[module_type] = std::make_unique<T>(args...);
-
-            return *this;
-        }
+        Engine& add_module(Args... args);
 
         /**
          * @brief Get the module of type T if it was correctly initialized
@@ -56,14 +41,7 @@ namespace h2o
          * @return A pointer to the module or nullptr if it was not found
          */
         template<typename T>
-        T* get_module() const
-        {
-            auto it = m_initialized_modules.find(typeid(T));
-            if (it == m_initialized_modules.end())
-                return nullptr;
-
-            return dynamic_cast<T*>(it->second);
-        }
+        T* get_module() const;
 
         [[nodiscard]] const GameInfo& game_info() const { return m_game_info; }
 
@@ -83,8 +61,6 @@ namespace h2o
 
     private:
 
-        static Engine* s_instance /* = nullptr */;
-
         GameInfo m_game_info;
 
         // Modules to initialize
@@ -101,4 +77,35 @@ namespace h2o
         IInputModule*  m_input_module  = nullptr;
 
     };
+
+    template<typename T, typename... Args>
+    Engine& Engine::add_module(Args... args)
+    {
+        static_assert(std::is_base_of_v<IModule, T>, "T must implement h2o::IModule.");
+
+        std::type_index module_type(typeid(T));
+
+        // Make sure the module hadn't already been added
+        assert( !m_initialized_modules.contains(module_type) &&
+            !m_modules_to_init.contains(module_type) );
+
+        m_modules_to_init[module_type] = std::make_unique<T>(args...);
+
+        return *this;
+    }
+
+    template<typename T>
+    T* Engine::get_module() const
+    {
+        auto it = m_initialized_modules.find(typeid(T));
+        if (it == m_initialized_modules.end())
+            return nullptr;
+
+        return dynamic_cast<T*>(it->second);
+    }
 }
+
+/**
+ * Global engine instance
+ */
+extern h2o::Engine* g_engine /* = nullptr */;

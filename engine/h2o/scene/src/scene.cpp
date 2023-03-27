@@ -36,4 +36,10 @@ namespace h2o
             actor.second->tick(delta_time);
         }
     }
+
+    void Scene::set_main_camera(const OwningHandle<gfx::Camera>& camera)
+    {
+        m_main_camera = camera;
+        log::info("Set new main camera");
+    }
 }

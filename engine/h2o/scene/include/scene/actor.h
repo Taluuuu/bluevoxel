@@ -11,24 +11,25 @@
 
 namespace h2o
 {
+    class Scene;
     class Actor;
     class Component;
-    class Scene;
+    class TransformComponent;
 
     struct ActorInitializer
     {
         std::string_view actor_name;
-        const std::shared_ptr<Scene>& scene;
+        Scene* const scene;
     };
 
-    class Actor : public std::enable_shared_from_this<Actor>
+    class Actor : public oup::enable_observer_from_this_unique<Actor>
     {
     public:
 
         explicit Actor(const ActorInitializer& actor_initializer);
         Actor(const Actor&) = delete;
         Actor(Actor&&) = delete;
-        virtual ~Actor() = default;
+        ~Actor() override = default;
 
         /**
          * Get the component of type T on this actor
@@ -53,13 +54,22 @@ namespace h2o
         // Temporary, will be replaced by a better ticking system
         virtual void tick(f32 delta_time) {}
 
+        const WeakHandle<TransformComponent>& transform() const { return m_transform_component; }
+
+    protected:
+
+        const std::string_view m_name;
+
+        Scene* const m_scene;
+
+
+
     private:
 
         std::unordered_map< std::type_index, OwningHandle<Component> > m_components;
 
-        std::string_view m_name;
-
-        std::shared_ptr<Scene> m_scene;
+        // Cached components
+        WeakHandle<TransformComponent> m_transform_component;
 
     };
 
@@ -69,6 +79,9 @@ namespace h2o
         static_assert(
             std::is_base_of_v<Component, T>,
             "T must derive from h2o::Component.");
+
+        if constexpr (std::is_same_v<T, TransformComponent>)
+            return m_transform_component;
 
         auto comp_it = m_components.find(typeid(T));
         return (comp_it == m_components.end()) ?
@@ -91,15 +104,17 @@ namespace h2o
 
         ComponentInitializer component_initializer
         {
-            .owner = this
+            .owner = observer_from_this()
         };
 
-        OwningHandle<T> new_comp(new T(component_initializer, args...));
+        OwningHandle<T> new_comp = oup::make_observable_unique<T>(component_initializer, args...);
         WeakHandle<T> weak_comp_handle = new_comp;
 
-        m_components.insert({
-            typeid(T),
-            std::move(new_comp) });
+        m_components.insert({ typeid(T), std::move(new_comp) });
+
+        // Set cached components
+        if constexpr (std::is_same_v<T, TransformComponent>)
+            m_transform_component = weak_comp_handle;
 
         return weak_comp_handle;
     }

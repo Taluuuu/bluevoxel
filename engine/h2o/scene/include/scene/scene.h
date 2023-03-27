@@ -11,6 +11,8 @@ namespace h2o
     class Actor;
     class Engine;
 
+    namespace gfx { class Camera; }
+
     class Scene final : public std::enable_shared_from_this<Scene>
     {
     public:
@@ -47,7 +49,7 @@ namespace h2o
          * @return The created actor or nullptr on failure
          */
         template<class T = Actor, typename... Args>
-        std::shared_ptr<Actor> create_actor(std::string_view name, Args... args);
+        WeakHandle<T> create_actor(std::string_view name, Args... args);
 
         /**
          * Get the actor of type T with a name
@@ -57,21 +59,26 @@ namespace h2o
          * @return The found actor or nullptr on failure
          */
         template<class T = Actor>
-        std::shared_ptr<T> get_actor(std::string_view name);
+        WeakHandle<T> get_actor(std::string_view name);
 
-        // Temporary, will be replaced by a better ticking system
+        // TODO: Remove dependency on gfx module
+        void set_main_camera(const OwningHandle<gfx::Camera>& camera);
+
+        // TODO: Replace by a better ticking system
         void tick(f32 delta_time);
 
     private:
 
-        std::unordered_map< std::string_view, std::shared_ptr<Actor> > m_actor_map;
+        std::unordered_map< std::string_view, OwningHandle<Actor> > m_actor_map;
+
+        WeakHandle<gfx::Camera> m_main_camera;
 
         Engine* const m_engine = nullptr;
 
     };
 
     template<class T, typename... Args>
-    std::shared_ptr<Actor> Scene::create_actor(std::string_view name, Args... args)
+    WeakHandle<T> Scene::create_actor(std::string_view name, Args... args)
     {
         static_assert(
             std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
@@ -85,16 +92,19 @@ namespace h2o
         ActorInitializer actor_initializer
         {
             .actor_name = name,
-            .scene = shared_from_this()
+            .scene = this
         };
 
-        std::shared_ptr<Actor> actor = std::make_shared<T>(actor_initializer, args...);
-        m_actor_map.insert({ name, actor });
-        return actor;
+        OwningHandle<T> actor = oup::make_observable_unique<T>(actor_initializer, args...);
+        WeakHandle<T> weak_actor_handle = actor;
+
+        m_actor_map.insert({ name, std::move(actor) });
+
+        return weak_actor_handle;
     }
 
     template<class T>
-    std::shared_ptr<T> Scene::get_actor(std::string_view name)
+    WeakHandle<T> Scene::get_actor(std::string_view name)
     {
         static_assert(
             std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
@@ -103,6 +113,7 @@ namespace h2o
         if (actor_it == m_actor_map.end())
             return nullptr;
 
-        return std::dynamic_pointer_cast<T>(actor_it->second);
+        WeakHandle<Actor> actor = actor_it->second;
+        return oup::dynamic_pointer_cast<T>(actor);
     }
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/handle_types.h"
+
 #include <memory>
 #include <string_view>
 
@@ -10,7 +12,7 @@ namespace h2o
 
     struct ComponentInitializer
     {
-        Actor* owner;
+        WeakHandle<Actor> owner;
     };
 
     class Component
@@ -29,17 +31,17 @@ namespace h2o
          * @return A pointer to this component's owner actor
          */
         template<class T = Actor>
-        T* get_owner();
+        WeakHandle<T> owner() const;
 
     private:
 
-        Actor* m_owner;
+        WeakHandle<Actor> m_owner;
 
     };
 
     template<class T>
-    T* Component::get_owner()
+    WeakHandle<T> Component::owner() const
     {
-        return dynamic_cast<T*>(m_owner);
+        return oup::dynamic_pointer_cast<T>(m_owner);
     }
 }
