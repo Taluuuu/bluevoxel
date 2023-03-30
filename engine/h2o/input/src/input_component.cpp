@@ -9,7 +9,7 @@ namespace h2o
         : Component(component_initializer)
         , m_input_module(g_engine->get_module<InputModule>())
     {
-
+        assert(m_input_module);
     }
 
     KeyState InputComponent::key_state(Key key) const
@@ -22,5 +22,11 @@ namespace h2o
     {
         return m_input_module ?
             m_input_module->mouse_button_state(button) : KeyState{};
+    }
+
+    f32 InputComponent::get_axis(const std::string& name) const
+    {
+        return m_input_module ?
+            m_input_module->get_axis(name) : 0.0f;
     }
 }

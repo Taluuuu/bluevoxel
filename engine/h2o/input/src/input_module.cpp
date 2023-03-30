@@ -1,6 +1,8 @@
 #include "input/input_module.h"
 
 #include "core/engine.h"
+#include "core/log.h"
+#include "scene/scene_module.h"
 #include "windowing/windowing_module.h"
 #include "windowing/window.h"
 
@@ -31,13 +33,44 @@ namespace h2o
 
     std::vector<std::type_index> InputModule::dependencies() const
     {
-        return { typeid(WindowingModule) };
+        return { typeid(WindowingModule), typeid(SceneModule) };
     }
 
     void InputModule::prepare()
     {
         for (auto& key_state : m_key_states)
             key_state.pressed_this_frame = false;
+    }
+
+    void InputModule::register_axis(const std::string_view& name, Key negative, Key positive)
+    {
+        const auto it = m_input_axes.find(name);
+        if (it != m_input_axes.end())
+        {
+            log::warn("Trying to register two axes with the same name: '{}'.", name);
+            return;
+        }
+
+        m_input_axes.insert({ name, { positive, negative } });
+    }
+
+    f32 InputModule::get_axis(const std::string_view& name)
+    {
+        const auto it = m_input_axes.find(name);
+        if (it == m_input_axes.end())
+        {
+            log::warn("Trying to get unregistered axis with name: '{}'.", name);
+            return 0.0f;
+        }
+
+        // Currently only keyboard implementation
+        const auto& axis = it->second;
+
+        const f32 value =
+            static_cast<f32>(key_state(axis.positive).held) -
+            static_cast<f32>(key_state(axis.negative).held);
+
+        return value;
     }
 
     KeyState InputModule::key_state(Key key) const

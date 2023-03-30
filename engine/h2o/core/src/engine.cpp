@@ -12,11 +12,17 @@ namespace h2o
     Engine::Engine(const GameInfo& game_info)
         : m_game_info(game_info)
     {
+        assert(!g_engine);
+        g_engine = this;
+
         m_tickables.resize(magic_enum::enum_count<TickPhase>(), {});
     }
 
     Engine::~Engine()
     {
+        assert(g_engine);
+        g_engine = nullptr;
+
         while (!m_module_stack.empty())
         {
             auto& module = m_module_stack.top();

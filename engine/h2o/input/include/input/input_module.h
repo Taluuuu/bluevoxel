@@ -10,7 +10,7 @@ namespace h2o
 {
     class InputModule
         : public IModule
-        , public IInputModule
+        , public IInputModule // TODO: Remove this and make the module tick by itself
     {
     public:
         
@@ -25,6 +25,9 @@ namespace h2o
         // IInputModule interface
         void prepare() override;
 
+        void register_axis(const std::string_view& name, Key negative, Key positive);
+        [[nodiscard]] f32 get_axis(const std::string_view& name);
+
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
 
@@ -32,6 +35,9 @@ namespace h2o
 
         std::vector<KeyState> m_key_states;
         std::vector<KeyState> m_mouse_button_states;
+
+        struct InputAxis { Key positive, negative; };
+        std::unordered_map<std::string_view, InputAxis> m_input_axes;
 
         EventHandle m_key_state_event_handle;
 

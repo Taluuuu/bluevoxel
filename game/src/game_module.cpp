@@ -12,7 +12,7 @@
 #include "scene/scene_module.h"
 #include "scene/scene_headers.h"
 #include "scene/components/camera_component.h"
-#include "scene/actors/fps_character_actor.h"
+#include "game_framework/actors/fps_character_actor.h"
 
 namespace game
 {
@@ -20,9 +20,13 @@ namespace game
     {
         engine.register_tickable(this, h2o::TickPhase::Render | h2o::TickPhase::Update);
 
-        m_input_module = engine.get_module<h2o::InputModule>();
+        auto input_module = engine.get_module<h2o::InputModule>();
+        assert(input_module);
+        input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
+        input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
+
         auto rendering_module = engine.get_module<h2o::RenderingModule>();
-        assert(m_input_module && rendering_module);
+        assert(rendering_module);
         m_renderer = &rendering_module->renderer();
 
         m_pipeline = (*m_renderer)

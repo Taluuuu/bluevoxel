@@ -4,7 +4,7 @@
 
 namespace h2o
 {
-    class InputModule;
+    class InputComponent;
     class CameraComponent;
 
     class FpsCharacterActor : public Actor
@@ -18,7 +18,7 @@ namespace h2o
 
     private:
 
-        InputModule* m_input_module = nullptr;
+        WeakHandle<InputComponent> m_input = nullptr;
 
     };
 }

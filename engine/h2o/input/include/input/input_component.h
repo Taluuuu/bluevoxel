@@ -14,9 +14,10 @@ namespace h2o
 
         explicit InputComponent(const ComponentInitializer& component_initializer);
 
-        // TODO: Associate keys with names to allow remapping
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
+
+        [[nodiscard]] f32 get_axis(const std::string& name) const;
 
     private:
 

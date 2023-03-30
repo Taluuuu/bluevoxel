@@ -49,7 +49,5 @@ namespace game
 
         h2o::gfx::IRenderer* m_renderer = nullptr;
 
-        h2o::InputModule* m_input_module = nullptr;
-
     };
 }
