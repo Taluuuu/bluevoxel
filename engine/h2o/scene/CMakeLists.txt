@@ -7,9 +7,9 @@ add_library(h2o_scene
     src/scene_module.cpp
     src/scene.cpp
     src/actor.cpp
+    src/scene_system.cpp
     src/component.cpp
-    src/components/camera_component.cpp
-    src/components/transform_component.cpp)
+    src/transform.cpp)
 
 target_link_libraries(h2o_scene
     PRIVATE

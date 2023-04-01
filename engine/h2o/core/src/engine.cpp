@@ -139,5 +139,3 @@ namespace h2o
         }
     }
 }
-
-h2o::Engine* g_engine = nullptr;

@@ -2,14 +2,15 @@
 
 #include "core/log.h"
 #include "actor.h"
+#include "scene_system.h"
 
 #include <unordered_map>
 #include <vector>
 
 namespace h2o
 {
-    class Actor;
     class Engine;
+    class SceneSystem;
 
     namespace gfx { class Camera; }
 
@@ -49,7 +50,7 @@ namespace h2o
          * @return The created actor or nullptr on failure
          */
         template<class T = Actor, typename... Args>
-        WeakHandle<T> create_actor(std::string_view name, Args... args);
+        WeakHandle<T> spawn_actor(std::string_view name, Args... args);
 
         /**
          * Get the actor of type T with a name
@@ -61,6 +62,12 @@ namespace h2o
         template<class T = Actor>
         WeakHandle<T> get_actor(std::string_view name);
 
+        template<class T>
+        WeakHandle<T> add_system();
+
+        template<class T>
+        WeakHandle<T> get_system();
+
         // TODO: Remove dependency on gfx module
         void set_main_camera(const OwningHandle<gfx::Camera>& camera);
 
@@ -71,6 +78,8 @@ namespace h2o
 
         std::unordered_map< std::string_view, OwningHandle<Actor> > m_actor_map;
 
+        std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map;
+
         WeakHandle<gfx::Camera> m_main_camera;
 
         Engine* const m_engine = nullptr;
@@ -78,7 +87,7 @@ namespace h2o
     };
 
     template<class T, typename... Args>
-    WeakHandle<T> Scene::create_actor(std::string_view name, Args... args)
+    WeakHandle<T> Scene::spawn_actor(std::string_view name, Args... args)
     {
         static_assert(
             std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
@@ -115,5 +124,46 @@ namespace h2o
 
         WeakHandle<Actor> actor = actor_it->second;
         return oup::dynamic_pointer_cast<T>(actor);
+    }
+
+    template<class T>
+    WeakHandle<T> Scene::add_system()
+    {
+        static_assert(
+            std::is_base_of_v<SceneSystem, T> &&
+            !std::is_same_v<SceneSystem, T>, "T must derive from h2o::SceneSystem.");
+
+        if (get_system<T>() != nullptr)
+        {
+            log::error("Tried to add multiple scene systems of the same type.");
+            return nullptr;
+        }
+
+        SceneSystemInitializer system_initializer
+        {
+            .owning_scene = *this
+        };
+
+        OwningHandle<T> system = oup::make_observable_unique<T>(system_initializer);
+        WeakHandle<T> weak_system_handle = system;
+
+        m_system_map.insert({ typeid(T), std::move(system) });
+
+        return weak_system_handle;
+    }
+
+    template<class T>
+    WeakHandle<T> Scene::get_system()
+    {
+        static_assert(
+            std::is_base_of_v<SceneSystem, T> &&
+            !std::is_same_v<SceneSystem, T>, "T must derive from h2o::SceneSystem.");
+
+        auto system_it = m_system_map.find(typeid(T));
+        if (system_it == m_system_map.end())
+            return nullptr;
+
+        WeakHandle<SceneSystem> system = system_it->second;
+        return oup::dynamic_pointer_cast<T>(system);
     }
 }

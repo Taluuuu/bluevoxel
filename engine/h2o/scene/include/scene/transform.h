@@ -1,15 +1,15 @@
 #pragma once
 
 #include "core/types.h"
-#include "scene/component.h"
 
 namespace h2o
 {
-    class TransformComponent : public Component
+    class Transform
     {
     public:
 
-        explicit TransformComponent(const ComponentInitializer& component_initializer);
+        Transform() = default;
+        ~Transform() = default;
 
         /**
          * Construct a model matrix from this transform's data.

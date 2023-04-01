@@ -4,6 +4,7 @@
 #include "core/types.h"
 #include "core/handle_types.h"
 #include "scene/component.h"
+#include "transform.h"
 
 #include <typeindex>
 #include <unordered_map>
@@ -14,7 +15,6 @@ namespace h2o
     class Scene;
     class Actor;
     class Component;
-    class TransformComponent;
 
     struct ActorInitializer
     {
@@ -54,7 +54,11 @@ namespace h2o
         // Temporary, will be replaced by a better ticking system
         virtual void tick(f32 delta_time) {}
 
-        const WeakHandle<TransformComponent>& transform() const { return m_transform_component; }
+        Scene* scene() const { return m_scene; }
+
+    public:
+
+        Transform transform;
 
     protected:
 
@@ -62,14 +66,9 @@ namespace h2o
 
         Scene* const m_scene;
 
-
-
     private:
 
         std::unordered_map< std::type_index, OwningHandle<Component> > m_components;
-
-        // Cached components
-        WeakHandle<TransformComponent> m_transform_component;
 
     };
 
@@ -79,9 +78,6 @@ namespace h2o
         static_assert(
             std::is_base_of_v<Component, T>,
             "T must derive from h2o::Component.");
-
-        if constexpr (std::is_same_v<T, TransformComponent>)
-            return m_transform_component;
 
         auto comp_it = m_components.find(typeid(T));
         return (comp_it == m_components.end()) ?
@@ -104,17 +100,13 @@ namespace h2o
 
         ComponentInitializer component_initializer
         {
-            .owner = observer_from_this()
+            .owner = *this
         };
 
         OwningHandle<T> new_comp = oup::make_observable_unique<T>(component_initializer, args...);
         WeakHandle<T> weak_comp_handle = new_comp;
 
         m_components.insert({ typeid(T), std::move(new_comp) });
-
-        // Set cached components
-        if constexpr (std::is_same_v<T, TransformComponent>)
-            m_transform_component = weak_comp_handle;
 
         return weak_comp_handle;
     }

@@ -43,8 +43,7 @@ namespace game
 
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
 
-        std::shared_ptr<h2o::gfx::IPipeline>    m_pipeline     = nullptr;
-        std::shared_ptr<h2o::gfx::IVertexArray> m_vertex_array = nullptr;
+
         std::shared_ptr<h2o::gfx::Camera>       m_camera       = nullptr;
 
         h2o::gfx::IRenderer* m_renderer = nullptr;

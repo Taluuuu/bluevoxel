@@ -108,4 +108,4 @@ namespace h2o
 /**
  * Global engine instance
  */
-extern h2o::Engine* g_engine /* = nullptr */;
+inline h2o::Engine* g_engine = nullptr;

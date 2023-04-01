@@ -8,12 +8,16 @@ namespace h2o::gfx
     {
     public:
 
-        Camera(f32 fov, f32 aspect_ratio);
+        Camera(
+            f32 fov,
+            f32 aspect_ratio,
+            v3 position = v3(0.0f),
+            v3 rotation = v3(0.0f));
 
         void update(const v3& position, const v3& rotation);
 
-        [[nodiscard]] const m4& proj_view() const { return m_proj_view; }
-        [[nodiscard]] const v3& front()     const { return m_front;     }
+        [[nodiscard]] m4 calc_proj_view() const;
+        [[nodiscard]] v3 calc_front() const;
 
     public:
 
@@ -25,8 +29,8 @@ namespace h2o::gfx
 
     private:
 
-        m4 m_proj_view{};
-        v3 m_front{};
+        v3 m_position;
+        v3 m_rotation;
 
     };
 }

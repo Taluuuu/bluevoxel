@@ -1,17 +1,17 @@
 #include "game_module.h"
 
 #include "core/engine.h"
-#include "core/log.h"
 #include "rendering/camera.h"
 #include "rendering/pipeline.h"
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
 #include "rendering/vertex_array.h"
 #include "rendering/buffer.h"
+#include "rendering/scene/rendering_scene_system.h"
+#include "rendering/scene/mesh_renderer_component.h"
 #include "input/input_module.h"
 #include "scene/scene_module.h"
 #include "scene/scene_headers.h"
-#include "scene/components/camera_component.h"
 #include "game_framework/actors/fps_character_actor.h"
 
 namespace game
@@ -25,40 +25,13 @@ namespace game
         input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
         input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
 
-        auto rendering_module = engine.get_module<h2o::RenderingModule>();
-        assert(rendering_module);
-        m_renderer = &rendering_module->renderer();
-
-        m_pipeline = (*m_renderer)
-            .create_pipeline()
-            .add_shader(h2o::gfx::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/triangle.vert")
-            .add_shader(h2o::gfx::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
-            .compile();
-
-        auto buffer = m_renderer->create_buffer();
-        m_vertex_array = m_renderer->create_vertex_array();
-
-        if (!m_pipeline || !m_vertex_array || !buffer)
-            return false;
-
-        const f32 vertices[] {
-            0.0f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,
-            0.0f,  0.5f,  0.0f,    0.0f, 1.0f, 0.0f, 1.0f,
-            0.0f, -0.5f, -0.5f,    0.0f, 0.0f, 1.0f, 1.0f,
-        };
-
-        buffer->update_data(vertices, sizeof(vertices));
-        m_vertex_array->attach_vertex_buffer(buffer, 0, 0, 7 * sizeof(f32));
-        m_vertex_array->setup_attribute(0, 0, 3, 0);
-        m_vertex_array->setup_attribute(1, 0, 4, 3 * sizeof(f32));
-
-        m_camera = std::make_shared<h2o::gfx::Camera>(90.0f, 800.0f / 600.0f);
-        m_camera->update({ -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
-
-        m_pipeline->set_uniform_mat4(0, m_camera->proj_view());
-
         m_scene = h2o::Scene::create(engine, "TestGameScene");
-        auto test_actor = m_scene->create_actor<h2o::FpsCharacterActor>("Player");
+        m_scene->add_system<h2o::RenderingSceneSystem>();
+
+        m_scene->spawn_actor<h2o::FpsCharacterActor>("Player");
+
+        auto triangle = m_scene->spawn_actor("Triangle");
+        triangle->add_component<h2o::MeshRendererComponent>();
 
         return true;
     }
@@ -72,20 +45,5 @@ namespace game
 
     void GameModule::tick(h2o::TickPhase phase, f64 delta_time)
     {
-        if (phase & h2o::TickPhase::Update)
-        {
-
-        }
-        else if (phase & h2o::TickPhase::Render)
-        {
-            assert(m_renderer && m_pipeline && m_vertex_array);
-
-            m_renderer->bind_pipeline(m_pipeline);
-            m_renderer->draw(*m_vertex_array);
-        }
-        else
-        {
-            assert(false);
-        }
     }
 }

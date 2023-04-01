@@ -6,7 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(RENDERING_SOURCES
     src/rendering_module.cpp
     src/pipeline.cpp
-    src/camera.cpp)
+    src/camera.cpp
+    src/scene/camera_component.cpp
+    src/scene/mesh_renderer_component.cpp
+    src/scene/rendering_scene_system.cpp)
 
 if(H2O_USE_VULKAN)
     list(APPEND RENDERING_SOURCES
@@ -35,6 +38,7 @@ add_library(h2o_rendering ${RENDERING_SOURCES})
 target_link_libraries(h2o_rendering
     PRIVATE
         h2o_core
+        h2o_scene
         h2o_windowing
 
         ${Vulkan_LIBRARIES}
@@ -52,6 +56,7 @@ target_include_directories(h2o_rendering
 
     PRIVATE
         h2o_core
+        h2o_scene
         h2o_windowing
 
         ${VULKAN_PATH}/Include/

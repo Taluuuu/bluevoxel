@@ -1,12 +1,8 @@
-#include  "scene/components/transform_component.h"
+#include "scene/transform.h"
 
 namespace h2o
 {
-    TransformComponent::TransformComponent(const ComponentInitializer& component_initializer)
-        : Component(component_initializer)
-    {}
-
-    m4 TransformComponent::model_matrix() const
+    m4 Transform::model_matrix() const
     {
         m4 model(1.0f);
 

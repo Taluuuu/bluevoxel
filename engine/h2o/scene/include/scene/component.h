@@ -9,10 +9,11 @@ namespace h2o
 {
     class Actor;
     class Component;
+    class Scene;
 
     struct ComponentInitializer
     {
-        WeakHandle<Actor> owner;
+        Actor& owner;
     };
 
     class Component
@@ -32,6 +33,10 @@ namespace h2o
          */
         template<class T = Actor>
         WeakHandle<T> owner() const;
+
+    protected:
+
+        Scene* const m_scene = nullptr;
 
     private:
 
