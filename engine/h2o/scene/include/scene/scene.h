@@ -82,6 +82,8 @@ namespace h2o
 
         WeakHandle<gfx::Camera> m_main_camera;
 
+        std::string_view m_name;
+
         Engine* const m_engine = nullptr;
 
     };

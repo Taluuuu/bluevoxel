@@ -7,6 +7,7 @@
 #include "scene/scene_module.h"
 #include "windowing/windowing_module.h"
 #include "game_framework/game_framework_module.h"
+#include "scene_rendering/scene_rendering_module.h"
 
 int main()
 {
@@ -23,6 +24,7 @@ int main()
         .add_module<h2o::InputModule>()
         .add_module<h2o::SceneModule>()
         .add_module<h2o::GameFrameworkModule>()
+        .add_module<h2o::SceneRenderingModule>()
         .add_module<game::GameModule>()
         .run();
 }

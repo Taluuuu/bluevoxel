@@ -1,6 +1,6 @@
 #include "game_framework/actors/fps_character_actor.h"
 
-#include "rendering/scene/camera_component.h"
+#include "scene_rendering/camera_component.h"
 #include "input/input_component.h"
 
 namespace h2o
@@ -17,10 +17,9 @@ namespace h2o
         assert(m_input);
 
         const v3 input = {
-            m_input->get_axis("move_x"),
-            0.0f,
-            m_input->get_axis("move_y") };
+            m_input->get_axis("move_y"), 0.0f,
+            m_input->get_axis("move_x") };
 
-        transform.position += v3(input.x, 0.0f, input.y) * delta_time;
+        transform.position += input * delta_time;
     }
 }

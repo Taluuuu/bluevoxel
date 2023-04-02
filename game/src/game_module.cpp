@@ -1,14 +1,8 @@
 #include "game_module.h"
 
 #include "core/engine.h"
-#include "rendering/camera.h"
-#include "rendering/pipeline.h"
-#include "rendering/rendering_module.h"
-#include "rendering/renderer.h"
-#include "rendering/vertex_array.h"
-#include "rendering/buffer.h"
-#include "rendering/scene/rendering_scene_system.h"
-#include "rendering/scene/mesh_renderer_component.h"
+#include "scene_rendering/rendering_scene_system.h"
+#include "scene_rendering/mesh_renderer_component.h"
 #include "input/input_module.h"
 #include "scene/scene_module.h"
 #include "scene/scene_headers.h"
@@ -28,18 +22,20 @@ namespace game
         m_scene = h2o::Scene::create(engine, "TestGameScene");
         m_scene->add_system<h2o::RenderingSceneSystem>();
 
-        m_scene->spawn_actor<h2o::FpsCharacterActor>("Player");
+        auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("Player");
+        player->transform.position = { -5.0f, 0.0f, 0.0f };
+        player->transform.rotation = { 0.0f, 0.0f, 0.0f };
 
         auto triangle = m_scene->spawn_actor("Triangle");
         triangle->add_component<h2o::MeshRendererComponent>();
+        triangle->transform.position = { 0.0f, 2.0f, 0.0f };
 
         return true;
     }
 
     std::vector<std::type_index> GameModule::dependencies() const
     {
-        return { typeid(h2o::RenderingModule),
-                 typeid(h2o::InputModule),
+        return { typeid(h2o::InputModule),
                  typeid(h2o::SceneModule) };
     }
 

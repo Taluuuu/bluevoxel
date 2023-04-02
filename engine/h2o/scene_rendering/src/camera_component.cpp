@@ -1,8 +1,8 @@
-#include "rendering/scene/camera_component.h"
+#include "scene_rendering/camera_component.h"
 
 #include "core/engine.h"
 #include "rendering/camera.h"
-#include "rendering/scene/rendering_scene_system.h"
+#include "scene_rendering/rendering_scene_system.h"
 #include "scene/scene.h"
 
 namespace h2o
@@ -20,6 +20,18 @@ namespace h2o
             transform.rotation);
 
         set_as_main_camera();
+
+        g_engine->register_tickable(this, TickPhase::PostUpdate);
+    }
+
+    void CameraComponent::tick(h2o::TickPhase phase, f64 delta_time)
+    {
+        // TODO: Transform ref in components
+        assert(owner());
+        auto& transform = owner()->transform;
+
+        if (m_camera)
+            m_camera->update(transform.position, transform.rotation);
     }
 
     void CameraComponent::set_as_main_camera() const

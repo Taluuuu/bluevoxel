@@ -1,7 +1,6 @@
 #include "rendering/rendering_module.h"
 
 #include "core/engine.h"
-#include "scene/scene_module.h"
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
 

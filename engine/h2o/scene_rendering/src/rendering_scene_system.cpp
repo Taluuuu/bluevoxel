@@ -1,4 +1,4 @@
-#include "rendering/scene/rendering_scene_system.h"
+#include "scene_rendering/rendering_scene_system.h"
 
 #include "core/log.h"
 #include "core/engine.h"
@@ -6,7 +6,8 @@
 #include "rendering/pipeline.h"
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
-#include "rendering/scene/mesh_renderer_component.h"
+#include "scene/actor.h"
+#include "scene_rendering/mesh_renderer_component.h"
 #include "windowing/windowing_module.h"
 #include "windowing/window.h"
 
@@ -42,7 +43,7 @@ namespace h2o
             .add_shader(h2o::gfx::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
             .compile();
 
-        g_engine->register_tickable(this, TickPhase::Render);
+        g_engine->register_tickable(this, TickPhase::Render | TickPhase::PreRender);
     }
 
     RenderingSceneSystem::~RenderingSceneSystem()
@@ -78,6 +79,12 @@ namespace h2o
             return;
         }
 
+        if (!m_pipeline)
+        {
+            log::warn("No pipeline bound on draw for Rendering Scene System.");
+            return;
+        }
+
         if (phase == TickPhase::PreRender)
         {
             m4 proj_view = m_main_camera->calc_proj_view();
@@ -88,8 +95,15 @@ namespace h2o
             m_renderer->bind_pipeline(m_pipeline);
             for (const auto& render_comp : m_mesh_renderer_components)
             {
-                // Render_comp should always be valid
-                //render_comp->
+                // TODO: Setting a weak handle not as a reference
+                //       for temporary use is inefficient
+
+                auto actor = render_comp->owner();
+                m_pipeline->set_uniform_mat4(1, actor->transform.model_matrix());
+
+                const auto& vao = render_comp->vao;
+                if (vao)
+                    m_renderer->draw(*vao);
             }
         }
     }

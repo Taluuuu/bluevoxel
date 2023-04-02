@@ -7,15 +7,19 @@ namespace h2o
 {
     Scene::~Scene()
     {
-        // TODO: Make sure m_engine is still alive at this point
+        m_actor_map.clear();
+        m_system_map.clear();
+
         if (auto scene_module = m_engine->get_module<SceneModule>())
-            scene_module->register_scene(*this);
+            scene_module->unregister_scene(*this);
     }
 
     Scene::Scene(Engine& engine, std::string_view name)
         : m_engine(&engine)
+        , m_name(name)
     {
-
+        if (auto scene_module = m_engine->get_module<SceneModule>())
+            scene_module->register_scene(*this);
     }
 
     std::shared_ptr<Scene> Scene::create(Engine& engine, std::string_view name)

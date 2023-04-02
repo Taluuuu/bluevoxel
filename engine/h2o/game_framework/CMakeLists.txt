@@ -13,6 +13,7 @@ target_link_libraries(h2o_game_framework
         h2o_core
         h2o_input
         h2o_scene
+        h2o_scene_rendering
         h2o_rendering)
 
 target_include_directories(h2o_game_framework
@@ -23,4 +24,5 @@ target_include_directories(h2o_game_framework
         h2o_core
         h2o_input
         h2o_scene
+        h2o_scene_rendering
         h2o_rendering)
