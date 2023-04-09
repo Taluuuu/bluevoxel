@@ -46,29 +46,4 @@ namespace h2o
         virtual void prepare() = 0;
 
     };
-
-    enum TickPhase : u32
-    {
-        PreUpdate   = 1 << 0,
-        Update      = 1 << 1,
-        PostUpdate  = 1 << 2,
-        PreRender   = 1 << 3,
-        Render      = 1 << 4,
-        PostRender  = 1 << 5,
-    };
-
-    inline TickPhase operator|(TickPhase lhs, TickPhase rhs)
-    {
-        return static_cast<TickPhase>(static_cast<u32>(lhs) | static_cast<u32>(rhs));
-    }
-
-    class ITickable
-    {
-    public:
-
-        virtual ~ITickable() = default;
-
-        virtual void tick(TickPhase phase, f64 delta_time) = 0;
-
-    };
 }

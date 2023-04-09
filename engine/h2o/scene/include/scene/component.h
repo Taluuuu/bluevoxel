@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/handle_types.h"
+#include "core/tickable.h"
 
 #include <memory>
 #include <string_view>
@@ -16,14 +17,14 @@ namespace h2o
         Actor& owner;
     };
 
-    class Component
+    class Component : public Tickable
     {
     public:
 
         explicit Component(const ComponentInitializer& component_initializer);
         Component(const Component&) = delete;
         Component(Component&&) = delete;
-        virtual ~Component() = default;
+        ~Component() override = default;
 
         /**
          * Get this component's owner actor

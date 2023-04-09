@@ -21,10 +21,10 @@ namespace h2o
 
         set_as_main_camera();
 
-        g_engine->register_tickable(this, TickPhase::PostUpdate);
+        set_tick_phases(PreRender);
     }
 
-    void CameraComponent::tick(h2o::TickPhase phase, f64 delta_time)
+    void CameraComponent::pre_render(f32 delta_time)
     {
         // TODO: Transform ref in components
         assert(owner());

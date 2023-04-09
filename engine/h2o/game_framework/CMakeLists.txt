@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_game_framework
     src/game_framework_module.cpp
-    src/actors/triangle_actor.cpp
     src/actors/fps_character_actor.cpp)
 
 target_link_libraries(h2o_game_framework

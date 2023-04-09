@@ -28,6 +28,18 @@ namespace h2o
                 m_key_states[*key_idx].pressed_this_frame = evt.pressed;
             });
 
+        windowing_module->window().mouse_moved_event().add_listener(m_mouse_moved_event_handle,
+            [&](MouseMovedEvent evt)
+            {
+                if (!is_first_input)
+                {
+                    m_mouse_delta = evt.new_position - m_mouse_pos;
+                    m_mouse_pos = evt.new_position;
+                }
+
+                is_first_input = false;
+            });
+
         return true;
     }
 
@@ -40,6 +52,8 @@ namespace h2o
     {
         for (auto& key_state : m_key_states)
             key_state.pressed_this_frame = false;
+
+        m_mouse_delta = { 0.0f, 0.0f };
     }
 
     void InputModule::register_axis(const std::string_view& name, Key negative, Key positive)
@@ -51,7 +65,20 @@ namespace h2o
             return;
         }
 
-        m_input_axes.insert({ name, { positive, negative } });
+        m_input_axes.insert({name, KeyAxis {positive, negative } });
+    }
+
+    void InputModule::register_axis(const std::string_view& name, MouseDelta mouse_delta, f32 sensitivity, bool invert)
+    {
+        const auto it = m_input_axes.find(name);
+        if (it != m_input_axes.end())
+        {
+            log::warn("Trying to register two axes with the same name: '{}'.", name);
+            return;
+        }
+
+        m_input_axes.insert(
+            { name, MouseDeltaAxis { mouse_delta, sensitivity, invert } });
     }
 
     f32 InputModule::get_axis(const std::string_view& name)
@@ -63,14 +90,28 @@ namespace h2o
             return 0.0f;
         }
 
-        // Currently only keyboard implementation
         const auto& axis = it->second;
 
-        const f32 value =
-            static_cast<f32>(key_state(axis.positive).held) -
-            static_cast<f32>(key_state(axis.negative).held);
+        if (auto key_axis = get_if<KeyAxis>(&axis))
+        {
+            return
+                static_cast<f32>(key_state(key_axis->positive).held) -
+                static_cast<f32>(key_state(key_axis->negative).held);
+        }
 
-        return value;
+        if (auto mouse_axis = get_if<MouseDeltaAxis>(&axis))
+        {
+            float val = 0.0f;
+            switch (mouse_axis->delta)
+            {
+            case MouseDelta::X: val = mouse_delta().x; break;
+            case MouseDelta::Y: val = mouse_delta().y; break;
+            }
+
+            return val * (mouse_axis->invert ? -1.0f : 1.0f) * mouse_axis->sensitivity;
+        }
+
+        return 0.0f;
     }
 
     KeyState InputModule::key_state(Key key) const

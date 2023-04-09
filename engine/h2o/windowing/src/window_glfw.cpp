@@ -44,6 +44,7 @@ namespace h2o
 
         glfwSetFramebufferSizeCallback(m_handle, framebuffer_size_callback);
         glfwSetKeyCallback(m_handle, key_callback);
+        glfwSetCursorPosCallback(m_handle, mouse_moved_callback);
     }
 
     Window_GLFW::Window_GLFW(Window_GLFW&& other) noexcept
@@ -117,6 +118,11 @@ namespace h2o
     Event<KeyChangedEvent>& Window_GLFW::key_changed_event()
     {
         return m_key_changed_event;
+    }
+
+    Event<MouseMovedEvent>& Window_GLFW::mouse_moved_event()
+    {
+        return m_mouse_moved_event;
     }
 
     static constexpr Key to_h2o_key(int keycode)
@@ -274,5 +280,13 @@ namespace h2o
         assert(window);
 
         window->m_resize_event.broadcast({{ width, height }});
+    }
+
+    void Window_GLFW::mouse_moved_callback(GLFWwindow* window_handle, double xpos, double ypos)
+    {
+        auto window = static_cast<Window_GLFW*>(glfwGetWindowUserPointer(window_handle));
+        assert(window);
+
+        window->m_mouse_moved_event.broadcast({{ static_cast<f32>(xpos), static_cast<f32>(ypos) }});
     }
 }

@@ -3,6 +3,7 @@
 #include "core/log.h"
 #include "core/types.h"
 #include "core/handle_types.h"
+#include "core/tickable.h"
 #include "scene/component.h"
 #include "transform.h"
 
@@ -19,10 +20,12 @@ namespace h2o
     struct ActorInitializer
     {
         std::string_view actor_name;
-        Scene* const scene;
+        Scene& scene;
     };
 
-    class Actor : public oup::enable_observer_from_this_unique<Actor>
+    class Actor
+        : public Tickable
+        , public oup::enable_observer_from_this_unique<Actor>
     {
     public:
 
@@ -38,6 +41,7 @@ namespace h2o
          * @return A pointer to the component instance or nullptr if none was found
          */
         template<class T>
+        requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
         WeakHandle<T> get_component();
 
         /**
@@ -49,12 +53,10 @@ namespace h2o
          * @return The created component or nullptr on failure
          */
         template<class T, typename... Args>
+        requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
         WeakHandle<T> add_component(Args... args);
 
-        // Temporary, will be replaced by a better ticking system
-        virtual void tick(f32 delta_time) {}
-
-        Scene* scene() const { return m_scene; }
+        Scene& scene() const { assert(m_scene); return *m_scene; }
 
     public:
 
@@ -73,12 +75,9 @@ namespace h2o
     };
 
     template<class T>
+    requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
     WeakHandle<T> Actor::get_component()
     {
-        static_assert(
-            std::is_base_of_v<Component, T>,
-            "T must derive from h2o::Component.");
-
         auto comp_it = m_components.find(typeid(T));
         return (comp_it == m_components.end()) ?
             nullptr :
@@ -86,12 +85,9 @@ namespace h2o
     }
 
     template<class T, typename... Args>
+    requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
     WeakHandle<T> Actor::add_component(Args... args)
     {
-        static_assert(
-            std::is_base_of_v<Component, T> && !std::is_same_v<Component, T>,
-            "T must derive from h2o::Component.");
-
         if (auto comp = get_component<T>())
         {
             log::warn("Only one instance of a component can be added to an actor ({}).", m_name);

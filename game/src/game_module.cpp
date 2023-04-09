@@ -12,19 +12,19 @@ namespace game
 {
     bool GameModule::init(h2o::Engine& engine)
     {
-        engine.register_tickable(this, h2o::TickPhase::Render | h2o::TickPhase::Update);
-
         auto input_module = engine.get_module<h2o::InputModule>();
         assert(input_module);
-        input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
-        input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
+        input_module->register_axis("move_x", h2o::Key::D, h2o::Key::A);
+        input_module->register_axis("move_y", h2o::Key::W, h2o::Key::S);
+        input_module->register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, false);
+        input_module->register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
 
         m_scene = h2o::Scene::create(engine, "TestGameScene");
         m_scene->add_system<h2o::RenderingSceneSystem>();
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("Player");
         player->transform.position = { -5.0f, 0.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 0.0f, 0.0f };
+        player->transform.rotation = { 0.0f, 0.0f, 90.0f };
 
         auto triangle = m_scene->spawn_actor("Triangle");
         triangle->add_component<h2o::MeshRendererComponent>();
@@ -37,9 +37,5 @@ namespace game
     {
         return { typeid(h2o::InputModule),
                  typeid(h2o::SceneModule) };
-    }
-
-    void GameModule::tick(h2o::TickPhase phase, f64 delta_time)
-    {
     }
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/core_interfaces.h"
 #include "core/module.h"
 
 #include <memory>
@@ -22,9 +21,7 @@ namespace h2o
 
 namespace game
 {
-    class GameModule
-        : public h2o::IModule
-        , public h2o::ITickable
+    class GameModule : public h2o::IModule
     {
     public:
 
@@ -35,9 +32,6 @@ namespace game
         bool init(h2o::Engine& engine) override;
         [[nodiscard]] std::string_view module_name() const override { return "game"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
-
-        // h2o::ITickable interface
-        void tick(h2o::TickPhase phase, f64 delta_time) override;
 
     private:
 

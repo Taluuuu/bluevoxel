@@ -31,19 +31,4 @@ namespace h2o
 
         return std::shared_ptr<Scene>(scene);
     }
-
-    void Scene::tick(f32 delta_time)
-    {
-        for (const auto& actor : m_actor_map)
-        {
-            assert(actor.second);
-            actor.second->tick(delta_time);
-        }
-    }
-
-    void Scene::set_main_camera(const OwningHandle<gfx::Camera>& camera)
-    {
-        m_main_camera = camera;
-        log::info("Set new main camera");
-    }
 }

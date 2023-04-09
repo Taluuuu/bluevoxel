@@ -18,6 +18,11 @@ namespace h2o
         bool pressed { false };
     };
 
+    struct MouseMovedEvent
+    {
+        v2 new_position {};
+    };
+
     class IWindow
     {
     public:
@@ -76,6 +81,8 @@ namespace h2o
         [[nodiscard]] virtual Event<WindowResizeEvent>& resize_event() = 0;
 
         [[nodiscard]] virtual Event<KeyChangedEvent>& key_changed_event() = 0;
+
+        [[nodiscard]] virtual Event<MouseMovedEvent>& mouse_moved_event() = 0;
         
     };
 }

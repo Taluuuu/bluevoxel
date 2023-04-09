@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/core_interfaces.h"
 #include "core/handle_types.h"
 #include "scene/scene_system.h"
 #include "core/events.h"
@@ -19,17 +18,15 @@ namespace h2o
 
     class MeshRendererComponent;
 
-    class RenderingSceneSystem
-        : public SceneSystem
-        , public ITickable
+    class RenderingSceneSystem : public SceneSystem
     {
     public:
 
         explicit RenderingSceneSystem(const SceneSystemInitializer& system_initializer);
         ~RenderingSceneSystem() override;
 
-        // ITickable interface
-        void tick(TickPhase phase, f64 delta_time) override;
+        // Tickable interface
+        void render(f32 delta_time) override;
 
         // Registered mesh renderer components MUST unregister themselves on delete
         void register_component(const MeshRendererComponent& renderer_component);

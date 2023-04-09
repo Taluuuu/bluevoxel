@@ -5,7 +5,6 @@
 
 #include <iostream>
 #include <magic_enum.hpp>
-#include <ranges>
 
 namespace h2o
 {
@@ -14,35 +13,19 @@ namespace h2o
     {
         assert(!g_engine);
         g_engine = this;
-
-        m_tickables.resize(magic_enum::enum_count<TickPhase>(), {});
     }
 
     Engine::~Engine()
     {
-        assert(g_engine);
-        g_engine = nullptr;
-
         while (!m_module_stack.empty())
         {
             auto& module = m_module_stack.top();
             module->cleanup();
             m_module_stack.pop();
         }
-    }
 
-    void Engine::register_tickable(ITickable* tickable, TickPhase tick_phases)
-    {
-        for (u32 i = 0; i < magic_enum::enum_count<TickPhase>(); i++)
-        {
-            auto tick_phase = static_cast<TickPhase>(1 << i);
-            auto& tickables = m_tickables[i];
-
-            std::erase(tickables, tickable);
-
-            if (tick_phase & tick_phases)
-                tickables.push_back(tickable);
-        }
+        assert(g_engine);
+        g_engine = nullptr;
     }
 
     void Engine::run()
@@ -53,12 +36,34 @@ namespace h2o
             update();
     }
 
+    void Engine::register_tickable(Tickable& tickable, TickPhase phases)
+    {
+        auto phase = static_cast<TickPhase>(1);
+        for (auto& tickables : m_tickables)
+        {
+            if (phase & phases)
+                tickables.push_back(&tickable);
+
+            phase = phase << 1;
+        }
+    }
+
+    void Engine::unregister_tickable(Tickable& tickable, TickPhase phases)
+    {
+        u32 index = 1;
+        for (auto& tickables : m_tickables)
+        {
+            if (index & phases)
+                std::erase(tickables, &tickable);
+
+            index = index << 1;
+        }
+    }
+
     void Engine::update() const
     {
         if (m_input_module)
-        {
             m_input_module->prepare();
-        }
 
         f64 delta_time = 0.0f;
         if (m_window_module)
@@ -67,19 +72,24 @@ namespace h2o
             delta_time = m_window_module->delta_time();
         }
 
-        TickPhase tick_phase = static_cast<TickPhase>(1);
-        for (const auto& modules_to_tick : m_tickables)
-        {
-            for (const auto& module_to_tick : modules_to_tick)
-                module_to_tick->tick(tick_phase, delta_time);
+        auto run_tick = [&](
+                const TickPhase tick_phase,
+                void(Tickable::*tick_function)(f32))
+            {
+                auto phase_idx = magic_enum::enum_index(tick_phase);
+                if (phase_idx.has_value())
+                {
+                    for (const auto& tickable: m_tickables[*phase_idx])
+                        (tickable->*tick_function)(static_cast<f32>(delta_time));
+                }
+            };
 
-            tick_phase = static_cast<TickPhase>(tick_phase << 1);
-        }
+        run_tick(Update,    &Tickable::update);
+        run_tick(PreRender, &Tickable::pre_render);
+        run_tick(Render,    &Tickable::render);
 
         if (m_window_module)
-        {
             m_window_module->swap_buffers(144.0);
-        }
     }
 
     void Engine::init_new_modules()

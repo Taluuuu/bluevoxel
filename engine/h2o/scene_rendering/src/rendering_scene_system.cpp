@@ -43,12 +43,44 @@ namespace h2o
             .add_shader(h2o::gfx::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
             .compile();
 
-        g_engine->register_tickable(this, TickPhase::Render | TickPhase::PreRender);
+        set_tick_phases(Render);
     }
 
     RenderingSceneSystem::~RenderingSceneSystem()
     {
         assert(m_mesh_renderer_components.empty());
+    }
+
+    void RenderingSceneSystem::render(f32 delta_time)
+    {
+        if (!m_main_camera)
+        {
+            log::warn("No main camera is attached to the Rendering Scene System.");
+            return;
+        }
+
+        if (!m_pipeline)
+        {
+            log::warn("No pipeline bound on draw for Rendering Scene System.");
+            return;
+        }
+
+        m4 proj_view = m_main_camera->calc_proj_view();
+        m_pipeline->set_uniform_mat4(0, proj_view);
+
+        m_renderer->bind_pipeline(m_pipeline);
+        for (const auto& render_comp : m_mesh_renderer_components)
+        {
+            // TODO: Setting a weak handle not as a reference
+            //       for temporary use is inefficient
+
+            auto actor = render_comp->owner();
+            //m_pipeline->set_uniform_mat4(1, actor->transform.model_matrix());
+
+            const auto& vao = render_comp->vao;
+            if (vao)
+                m_renderer->draw(*vao);
+        }
     }
 
     void RenderingSceneSystem::register_component(const MeshRendererComponent& renderer_component)
@@ -69,43 +101,6 @@ namespace h2o
     {
         auto num_erased = std::erase(m_mesh_renderer_components, &renderer_component);
         assert(num_erased == 1);
-    }
-
-    void RenderingSceneSystem::tick(TickPhase phase, f64 delta_time)
-    {
-        if (!m_main_camera)
-        {
-            log::warn("No main camera is attached to the Rendering Scene System.");
-            return;
-        }
-
-        if (!m_pipeline)
-        {
-            log::warn("No pipeline bound on draw for Rendering Scene System.");
-            return;
-        }
-
-        if (phase == TickPhase::PreRender)
-        {
-            m4 proj_view = m_main_camera->calc_proj_view();
-            m_pipeline->set_uniform_mat4(0, proj_view);
-        }
-        else if (phase == TickPhase::Render)
-        {
-            m_renderer->bind_pipeline(m_pipeline);
-            for (const auto& render_comp : m_mesh_renderer_components)
-            {
-                // TODO: Setting a weak handle not as a reference
-                //       for temporary use is inefficient
-
-                auto actor = render_comp->owner();
-                m_pipeline->set_uniform_mat4(1, actor->transform.model_matrix());
-
-                const auto& vao = render_comp->vao;
-                if (vao)
-                    m_renderer->draw(*vao);
-            }
-        }
     }
 
     void RenderingSceneSystem::set_main_camera(const WeakHandle<gfx::Camera>& camera)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/tickable.h"
+
 namespace h2o
 {
     class Scene;
@@ -9,18 +11,18 @@ namespace h2o
         Scene& owning_scene;
     };
 
-    class SceneSystem
+    class SceneSystem : public Tickable
     {
     public:
 
         explicit SceneSystem(const SceneSystemInitializer& system_initializer);
-        virtual ~SceneSystem() = default;
+        ~SceneSystem() override = default;
 
     protected:
 
         // The lifetime of a system is strictly inferior to its
         // owning scene, so a raw pointer here is fine
-        Scene* m_scene = nullptr;
+        Scene* const m_scene = nullptr;
 
     };
 }

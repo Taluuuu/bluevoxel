@@ -2,6 +2,7 @@
 
 #include "game_info.h"
 #include "core/core_interfaces.h" // Could probably be removed
+#include "tickable.h"
 
 #include <memory>
 #include <typeindex>
@@ -45,13 +46,14 @@ namespace h2o
 
         [[nodiscard]] const GameInfo& game_info() const { return m_game_info; }
 
-        void register_tickable(ITickable* tickable, TickPhase tick_phases);
-
         /**
          * @brief Run the engine. Contains the main loop.
          * 
          */
         void run();
+
+        void register_tickable(Tickable& tickable, TickPhase phases);
+        void unregister_tickable(Tickable& tickable, TickPhase phases);
 
     private:
     
@@ -70,11 +72,12 @@ namespace h2o
         std::unordered_map<std::type_index, IModule*> m_initialized_modules;
         std::stack<std::unique_ptr<IModule>> m_module_stack;
 
-        std::vector< std::vector<ITickable*> > m_tickables;
-
         // Queried interfaces
         IWindowModule* m_window_module = nullptr;
         IInputModule*  m_input_module  = nullptr;
+
+        using Tickables = std::vector<Tickable*>;
+        std::array<Tickables, tick_phase_count> m_tickables;
 
     };
 
@@ -86,8 +89,8 @@ namespace h2o
         std::type_index module_type(typeid(T));
 
         // Make sure the module hadn't already been added
-        assert( !m_initialized_modules.contains(module_type) &&
-            !m_modules_to_init.contains(module_type) );
+        assert(!m_initialized_modules.contains(module_type) &&
+               !m_modules_to_init.contains(module_type) );
 
         m_modules_to_init[module_type] = std::make_unique<T>(args...);
 

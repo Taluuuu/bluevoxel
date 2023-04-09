@@ -131,11 +131,17 @@ namespace h2o
         RightSuper,
         Menu
     };
+
     enum class MouseButton : i32
     {
         Left = 0,
         Right,
         Middle,
         Unknown
+    };
+
+    enum class MouseDelta : i32
+    {
+        X, Y
     };
 }

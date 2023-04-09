@@ -14,15 +14,15 @@
 
 namespace h2o
 {
-    void RenderingModule::tick(TickPhase phase, f64 delta_time)
+    void RenderingModule::pre_render(f32 delta_time)
     {
-        assert(m_renderer != nullptr);
+        assert(m_renderer);
         m_renderer->clear();
     }
 
     bool RenderingModule::init(Engine& engine)
     {
-        engine.register_tickable(this, TickPhase::PreRender);
+        set_tick_phases(PreRender);
 
         const auto windowing_module = engine.get_module<WindowingModule>();
         assert(windowing_module != nullptr);

@@ -3,7 +3,7 @@
 namespace h2o::gfx
 {
     Camera::Camera(f32 fov, f32 aspect_ratio, v3 position, v3 rotation)
-        : fov(fov)
+        : fov(glm::radians(fov))
         , aspect_ratio(aspect_ratio)
         , m_position(position)
         , m_rotation(rotation)

@@ -1,5 +1,6 @@
 #pragma
 
+#include "core/tickable.h"
 #include "core/log.h"
 #include "actor.h"
 #include "scene_system.h"
@@ -12,8 +13,6 @@ namespace h2o
     class Engine;
     class SceneSystem;
 
-    namespace gfx { class Camera; }
-
     class Scene final : public std::enable_shared_from_this<Scene>
     {
     public:
@@ -22,9 +21,9 @@ namespace h2o
         Scene(const Scene&) = delete;
 
         // A scene currently registers itself to the SceneModule by its memory address,
-        // so we want to make sure it doesn't move (for now)
+        // so we want to make sure it doesn't move
         Scene(Scene&&) = delete;
-        ~Scene();
+        virtual ~Scene();
 
     private:
 
@@ -68,19 +67,11 @@ namespace h2o
         template<class T>
         WeakHandle<T> get_system();
 
-        // TODO: Remove dependency on gfx module
-        void set_main_camera(const OwningHandle<gfx::Camera>& camera);
-
-        // TODO: Replace by a better ticking system
-        void tick(f32 delta_time);
-
     private:
 
         std::unordered_map< std::string_view, OwningHandle<Actor> > m_actor_map;
 
         std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map;
-
-        WeakHandle<gfx::Camera> m_main_camera;
 
         std::string_view m_name;
 
@@ -103,8 +94,11 @@ namespace h2o
         ActorInitializer actor_initializer
         {
             .actor_name = name,
-            .scene = this
+            .scene = *this
         };
+
+        //auto test = m_actor_map.try_emplace(name, std::forward(oup::make_observable_unique<T>(actor_initializer, args...)));
+        // Returns something useful
 
         OwningHandle<T> actor = oup::make_observable_unique<T>(actor_initializer, args...);
         WeakHandle<T> weak_actor_handle = actor;
