@@ -34,6 +34,7 @@ namespace h2o
         void poll_events() const override;
         [[nodiscard]] void* handle() const override;
         void swap_buffers(f64 max_fps) override;
+        void set_capture_mouse(bool capture) override;
         Event<WindowResizeEvent>& resize_event() override;
         Event<KeyChangedEvent>& key_changed_event() override;
         Event<MouseMovedEvent>& mouse_moved_event() override;

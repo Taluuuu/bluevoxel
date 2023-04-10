@@ -33,7 +33,7 @@ namespace h2o
 
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
-        [[nodiscard]] v2 mouse_delta() const { return m_mouse_delta; }
+        [[nodiscard]] v2 mouse_delta() const { return static_cast<f32>(m_mouse_captured) * m_mouse_delta; }
 
     private:
 
@@ -41,7 +41,8 @@ namespace h2o
         std::vector<KeyState> m_key_states;
         std::vector<KeyState> m_mouse_button_states;
         v2 m_mouse_pos{}, m_mouse_delta{};
-        bool is_first_input = false;
+        bool m_mouse_captured = false;
+        bool m_ignore_next_mouse_move = false;
 
         // Input configuration
         struct KeyAxis { Key positive, negative; };

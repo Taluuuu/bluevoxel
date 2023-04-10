@@ -14,7 +14,7 @@ namespace h2o
         explicit FpsCharacterActor(const ActorInitializer& actor_initializer);
         ~FpsCharacterActor() override = default;
 
-        void update(f32 delta_time);
+        void update(f32 delta_time) override;
 
     private:
 

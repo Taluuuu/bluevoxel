@@ -19,25 +19,36 @@ namespace h2o
         assert(windowing_module);
 
         windowing_module->window().key_changed_event().add_listener(m_key_state_event_handle,
-            [&](KeyChangedEvent evt)
+            [&, windowing_module](const KeyChangedEvent& evt)
             {
                 auto key_idx = magic_enum::enum_index(evt.key);
                 assert(key_idx.has_value());
 
                 m_key_states[*key_idx].held               = evt.pressed;
                 m_key_states[*key_idx].pressed_this_frame = evt.pressed;
+
+                // Hard-coded capture mouse key
+                if (evt.key == Key::Escape && evt.pressed)
+                {
+                    m_mouse_captured = !m_mouse_captured;
+                    windowing_module->window().set_capture_mouse(m_mouse_captured);
+                    m_mouse_delta = {};
+                    m_ignore_next_mouse_move = true;
+                }
             });
 
         windowing_module->window().mouse_moved_event().add_listener(m_mouse_moved_event_handle,
-            [&](MouseMovedEvent evt)
+            [&](const MouseMovedEvent& evt)
             {
-                if (!is_first_input)
-                {
-                    m_mouse_delta = evt.new_position - m_mouse_pos;
-                    m_mouse_pos = evt.new_position;
-                }
+                m_mouse_delta = evt.new_position - m_mouse_pos;
+                m_mouse_pos = evt.new_position;
 
-                is_first_input = false;
+                if (m_ignore_next_mouse_move)
+                {
+                    m_mouse_delta = {};
+                    m_ignore_next_mouse_move = false;
+                    return;
+                }
             });
 
         return true;
@@ -65,7 +76,7 @@ namespace h2o
             return;
         }
 
-        m_input_axes.insert({name, KeyAxis {positive, negative } });
+        m_input_axes.insert({name, KeyAxis { positive, negative } });
     }
 
     void InputModule::register_axis(const std::string_view& name, MouseDelta mouse_delta, f32 sensitivity, bool invert)

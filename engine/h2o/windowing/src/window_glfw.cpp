@@ -110,6 +110,12 @@ namespace h2o
         m_previous_time = curTime;
     }
 
+    void Window_GLFW::set_capture_mouse(bool capture)
+    {
+        glfwSetInputMode(m_handle, GLFW_CURSOR,
+            capture ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+    }
+
     Event<WindowResizeEvent>& Window_GLFW::resize_event()
     {
         return m_resize_event;

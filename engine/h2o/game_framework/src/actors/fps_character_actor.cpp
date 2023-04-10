@@ -23,13 +23,13 @@ namespace h2o
             m_input->get_axis("cam_y"), 0.0f };
 
         transform.rotation += cam_input;
-
-        f32 rot_y = glm::radians(transform.rotation.y);
-
+        transform.rotation.x = glm::clamp(transform.rotation.x, -89.0f, 89.0f);
+        
         const v2 move_input {
             m_input->get_axis("move_y"),
             m_input->get_axis("move_x") };
 
+        const f32 rot_y = glm::radians(transform.rotation.y);
         const v3 move_input_rotated {
             move_input.x * glm::cos(rot_y) - move_input.y * glm::sin(rot_y), 0.0f,
             move_input.x * glm::sin(rot_y) + move_input.y * glm::cos(rot_y) };
