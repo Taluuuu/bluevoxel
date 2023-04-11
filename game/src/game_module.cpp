@@ -24,12 +24,12 @@ namespace game
         m_scene->add_system<h2o::RenderingSceneSystem>();
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("Player");
-        player->transform.position = { -5.0f, 0.0f, 0.0f };
+        player->transform.position = { -1.0f, 0.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 90.0f };
 
         auto triangle = m_scene->spawn_actor("Triangle");
         triangle->add_component<h2o::MeshRendererComponent>();
-        triangle->transform.position = { 0.0f, 2.0f, 0.0f };
+        triangle->transform.position = { 0.0f, 0.0f, 0.0f };
 
         return true;
     }

@@ -8,7 +8,7 @@ namespace h2o
     FpsCharacterActor::FpsCharacterActor(const ActorInitializer& actor_initializer)
         : Actor(actor_initializer)
     {
-        m_camera = add_component<CameraComponent>();
+        add_component<CameraComponent>();
         m_input = add_component<InputComponent>();
 
         set_tick_phases(Update);

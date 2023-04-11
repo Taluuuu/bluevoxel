@@ -30,15 +30,20 @@ namespace h2o
             return;
 
         const f32 vertices[] {
-            0.0f, -0.5f,  0.5f,    1.0f, 0.0f, 0.0f, 1.0f,
-            0.0f,  0.5f,  0.0f,    0.0f, 1.0f, 0.0f, 1.0f,
-            0.0f, -0.5f, -0.5f,    0.0f, 0.0f, 1.0f, 1.0f,
+            0.0f, -0.5f, -0.5f,    0.0f, 1.0f,
+            0.0f,  0.5f, -0.5f,    0.0f, 0.0f,
+            0.0f, -0.5f,  0.5f,    1.0f, 1.0f,
+            0.0f, -0.5f,  0.5f,    1.0f, 1.0f,
+            0.0f,  0.5f, -0.5f,    0.0f, 0.0f,
+            0.0f,  0.5f,  0.5f,    1.0f, 0.0f,
         };
 
         buffer->update_data(vertices, sizeof(vertices));
-        vao->attach_vertex_buffer(buffer, 0, 0, 7 * sizeof(f32));
+        vao->attach_vertex_buffer(buffer, 0, 0, 5 * sizeof(f32));
         vao->setup_attribute(0, 0, 3, 0);
-        vao->setup_attribute(1, 0, 4, 3 * sizeof(f32));
+        vao->setup_attribute(1, 0, 2, 3 * sizeof(f32));
+
+        texture = renderer->create_texture("Resources/engine/textures/test.png");
     }
 
     MeshRendererComponent::~MeshRendererComponent()

@@ -13,15 +13,18 @@ namespace h2o::gfx
         Pipeline_OpenGL(const Pipeline_OpenGL&) = delete;
         Pipeline_OpenGL(Pipeline_OpenGL&& other) noexcept;
         ~Pipeline_OpenGL() override;
-    private:
-        explicit Pipeline_OpenGL(GLuint program);
 
     public:
 
         // IPipeline interface
-        void set_uniform_mat4(i32 location, const m4& value) override;
+        void set_uniform_mat4(i32 location, const m4& value) const override;
+        void set_uniform_int(i32 location, i32 value) const override;
 
         [[nodiscard]] GLuint handle() const { return m_program; }
+
+    private:
+
+        explicit Pipeline_OpenGL(GLuint program);
 
     private:
 

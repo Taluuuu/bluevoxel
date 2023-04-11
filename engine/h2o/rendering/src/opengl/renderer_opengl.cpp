@@ -7,6 +7,7 @@
 #include "pipeline_opengl.h"
 #include "buffer_opengl.h"
 #include "vertex_array_opengl.h"
+#include "texture_opengl.h"
 
 namespace h2o::gfx
 {
@@ -37,6 +38,11 @@ namespace h2o::gfx
         return std::make_shared<VertexArray_OpenGL>();
     }
 
+    std::shared_ptr<ITexture> Renderer_OpenGL::create_texture(const std::string& path)
+    {
+        return Texture_OpenGL::create(path);
+    }
+
     void Renderer_OpenGL::draw(const IVertexArray& vertex_array)
     {
         if (!m_bound_pipeline)
@@ -46,7 +52,7 @@ namespace h2o::gfx
         assert(vertex_array_gl);
 
         vertex_array_gl->bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
     }
 
     bool Renderer_OpenGL::init(IWindow& window, const GameInfo& game_info)

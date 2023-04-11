@@ -6,6 +6,7 @@
 #include "rendering/pipeline.h"
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
+#include "rendering/texture.h"
 #include "scene/actor.h"
 #include "scene_rendering/mesh_renderer_component.h"
 #include "windowing/windowing_module.h"
@@ -75,11 +76,16 @@ namespace h2o
             //       for temporary use is inefficient
 
             auto actor = render_comp->owner();
-            //m_pipeline->set_uniform_mat4(1, actor->transform.model_matrix());
+            m_pipeline->set_uniform_mat4(1, actor->transform.model_matrix());
+            m_pipeline->set_uniform_int(2, 0);
 
+            const auto& texture = render_comp->texture;
             const auto& vao = render_comp->vao;
-            if (vao)
+            if (vao && texture)
+            {
+                texture->bind(0);
                 m_renderer->draw(*vao);
+            }
         }
     }
 

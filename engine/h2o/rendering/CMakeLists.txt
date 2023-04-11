@@ -27,7 +27,8 @@ if(H2O_USE_OPENGL)
         src/opengl/buffer_opengl.cpp
         src/opengl/pipeline_opengl.cpp
         src/opengl/renderer_opengl.cpp
-        src/opengl/vertex_array_opengl.cpp)
+        src/opengl/vertex_array_opengl.cpp
+        src/opengl/texture_opengl.cpp)
 endif()
 
 add_library(h2o_rendering ${RENDERING_SOURCES})
@@ -43,7 +44,8 @@ target_link_libraries(h2o_rendering
 if (H2O_USE_OPENGL)
     target_link_libraries(h2o_rendering
         PRIVATE
-            glad)
+            glad
+            stb)
 endif()
 
 target_include_directories(h2o_rendering
@@ -55,7 +57,8 @@ target_include_directories(h2o_rendering
         h2o_windowing
 
         ${VULKAN_PATH}/Include/
-        glfw)
+        glfw
+        stb)
 
 if (H2O_USE_OPENGL)
     target_include_directories(h2o_rendering

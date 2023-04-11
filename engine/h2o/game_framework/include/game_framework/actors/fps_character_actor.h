@@ -19,7 +19,6 @@ namespace h2o
     private:
 
         WeakHandle<InputComponent> m_input = nullptr;
-        WeakHandle<CameraComponent> m_camera = nullptr;
 
     };
 }

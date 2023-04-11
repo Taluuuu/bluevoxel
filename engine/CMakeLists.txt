@@ -29,6 +29,9 @@ add_subdirectory(lib/Catch2)
 # observable_unique_ptr
 add_subdirectory(lib/observable_unique_ptr)
 
+# stb
+add_subdirectory(lib/stb)
+
 set(H2O_USE_GLFW True)
 set(H2O_USE_OPENGL True)
 set(H2O_USE_VULKAN False)

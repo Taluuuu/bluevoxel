@@ -18,7 +18,9 @@ namespace h2o::gfx
 
         virtual ~IPipeline() = default;
 
-        virtual void set_uniform_mat4(i32 location, const m4& value) = 0;
+        virtual void set_uniform_mat4(i32 location, const m4& value) const = 0;
+
+        virtual void set_uniform_int(i32 location, i32 value) const = 0;
 
     };
 

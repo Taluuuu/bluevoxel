@@ -4,7 +4,11 @@
 
 namespace h2o
 {
-    namespace gfx { class IVertexArray; }
+    namespace gfx
+    {
+        class IVertexArray;
+        class ITexture;
+    }
 
     class MeshRendererComponent : public Component
     {
@@ -17,6 +21,8 @@ namespace h2o
 
         // This will need a better abstraction down the line, like a Mesh class
         std::shared_ptr<gfx::IVertexArray> vao = nullptr;
+
+        std::shared_ptr<gfx::ITexture> texture = nullptr;
 
     };
 }

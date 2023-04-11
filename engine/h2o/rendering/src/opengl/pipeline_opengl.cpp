@@ -139,10 +139,6 @@ namespace h2o::gfx
         return std::shared_ptr<Pipeline_OpenGL>(new Pipeline_OpenGL(program));
     }
 
-    Pipeline_OpenGL::Pipeline_OpenGL(GLuint program)
-        : m_program(program)
-    {}
-
     Pipeline_OpenGL::Pipeline_OpenGL(Pipeline_OpenGL&& other) noexcept
     {
         m_program = other.m_program;
@@ -155,9 +151,19 @@ namespace h2o::gfx
             glDeleteProgram(m_program);
     }
 
-    void Pipeline_OpenGL::set_uniform_mat4(i32 location, const m4& value)
+    void Pipeline_OpenGL::set_uniform_mat4(i32 location, const m4& value) const
     {
         assert(m_program);
         glProgramUniformMatrix4fv(m_program, location, 1, GL_FALSE, glm::value_ptr(value));
     }
+
+    void Pipeline_OpenGL::set_uniform_int(i32 location, i32 value) const
+    {
+        assert(m_program);
+        glProgramUniform1i(m_program, location, value);
+    }
+
+    Pipeline_OpenGL::Pipeline_OpenGL(GLuint program)
+        : m_program(program)
+    {}
 }

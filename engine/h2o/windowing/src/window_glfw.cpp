@@ -282,6 +282,10 @@ namespace h2o
 
     void Window_GLFW::framebuffer_size_callback(GLFWwindow* window_handle, int width, int height)
     {
+        // This callback is called on minimize
+        if (width == 0 || height == 0)
+            return;
+
         auto window = static_cast<Window_GLFW*>(glfwGetWindowUserPointer(window_handle));
         assert(window);
 

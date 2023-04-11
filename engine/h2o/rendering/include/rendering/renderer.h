@@ -14,6 +14,7 @@ namespace h2o::gfx
     class IPipeline;
     class IBuffer;
     class IVertexArray;
+    class ITexture;
 
     class IRenderer
     {
@@ -31,6 +32,7 @@ namespace h2o::gfx
 
         virtual std::shared_ptr<IBuffer>      create_buffer() = 0;
         virtual std::shared_ptr<IVertexArray> create_vertex_array() = 0;
+        virtual std::shared_ptr<ITexture>     create_texture(const std::string& path) = 0;
         virtual void                          draw(const IVertexArray& vertex_array) = 0;
     };
 }
