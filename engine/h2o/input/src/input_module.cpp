@@ -28,27 +28,35 @@ namespace h2o
                 m_key_states[*key_idx].pressed_this_frame = evt.pressed;
 
                 // Hard-coded capture mouse key
-                if (evt.key == Key::Escape && evt.pressed)
+                if (evt.key == Key::Escape)
                 {
-                    m_mouse_captured = !m_mouse_captured;
-                    windowing_module->window().set_capture_mouse(m_mouse_captured);
-                    m_mouse_delta = {};
-                    m_ignore_next_mouse_move = true;
+                    if (evt.pressed)
+                    {
+                        m_mouse_captured = !m_mouse_captured;
+                        windowing_module->window().set_capture_mouse(m_mouse_captured);
+                    }
+
+                    // Hack, see comment below
+                    m_mouse_move_frames_to_ignore = 2;
                 }
             });
 
         windowing_module->window().mouse_moved_event().add_listener(m_mouse_moved_event_handle,
             [&](const MouseMovedEvent& evt)
             {
-                m_mouse_delta = evt.new_position - m_mouse_pos;
-                m_mouse_pos = evt.new_position;
+                if (m_mouse_captured)
+                    m_mouse_delta = evt.new_position - m_mouse_pos;
 
-                if (m_ignore_next_mouse_move)
+                // Hack to fix mouse jumping when spamming capture/release mouse
+                // while moving the mouse. Somehow sometimes a high delta is
+                // calculated by GLFW over two frames. This fixes it.
+                if (m_mouse_move_frames_to_ignore > 0)
                 {
                     m_mouse_delta = {};
-                    m_ignore_next_mouse_move = false;
-                    return;
+                    m_mouse_move_frames_to_ignore--;
                 }
+
+                m_mouse_pos = evt.new_position;
             });
 
         return true;
@@ -139,5 +147,10 @@ namespace h2o
         assert(btn_idx.has_value());
 
         return m_key_states[*btn_idx];
+    }
+
+    v2 InputModule::mouse_delta() const
+    {
+        return m_mouse_delta;
     }
 }

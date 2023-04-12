@@ -3,6 +3,8 @@
 #include "scene_rendering/camera_component.h"
 #include "input/input_component.h"
 
+#include <glm/gtx/norm.hpp>
+
 namespace h2o
 {
     FpsCharacterActor::FpsCharacterActor(const ActorInitializer& actor_initializer)
@@ -25,13 +27,17 @@ namespace h2o
         transform.rotation += cam_input;
         transform.rotation.x = glm::clamp(transform.rotation.x, -89.0f, 89.0f);
         
-        const v2 move_input {
+        v2 move_input {
             m_input->get_axis("move_y"),
             m_input->get_axis("move_x") };
 
+        if (glm::length2(move_input) > 0.1f)
+            move_input = glm::normalize(move_input);
+
         const f32 rot_y = glm::radians(transform.rotation.y);
-        const v3 move_input_rotated {
-            move_input.x * glm::cos(rot_y) - move_input.y * glm::sin(rot_y), 0.0f,
+        v3 move_input_rotated {
+            move_input.x * glm::cos(rot_y) - move_input.y * glm::sin(rot_y),
+            m_input->get_axis("fly"),
             move_input.x * glm::sin(rot_y) + move_input.y * glm::cos(rot_y) };
 
         transform.position += move_input_rotated * delta_time;

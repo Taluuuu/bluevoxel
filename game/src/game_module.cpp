@@ -17,6 +17,7 @@ namespace game
         assert(input_module);
         input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
         input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
+        input_module->register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
         input_module->register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, true);
         input_module->register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
 
