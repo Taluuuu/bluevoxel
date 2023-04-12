@@ -2,7 +2,7 @@
 
 #include "core/types.h"
 
-namespace h2o::vxl
+namespace h2o
 {
     struct Block
     {

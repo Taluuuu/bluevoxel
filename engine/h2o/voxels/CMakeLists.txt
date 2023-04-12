@@ -4,6 +4,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_voxels
+    src/chunk.cpp
     src/voxels_module.cpp
 )
 

@@ -13,6 +13,7 @@ namespace game
 {
     bool GameModule::init(h2o::Engine& engine)
     {
+        // Input setup
         auto input_module = engine.get_module<h2o::InputModule>();
         assert(input_module);
         input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);

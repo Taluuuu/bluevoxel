@@ -2,7 +2,7 @@
 
 #include "core/module.h"
 
-namespace h2o::vxl
+namespace h2o
 {
     class VoxelsModule : public IModule
     {
