@@ -45,7 +45,8 @@ if (H2O_USE_OPENGL)
     target_link_libraries(h2o_rendering
         PRIVATE
             glad
-            stb)
+            stb
+            imgui)
 endif()
 
 target_include_directories(h2o_rendering
@@ -58,7 +59,8 @@ target_include_directories(h2o_rendering
 
         ${VULKAN_PATH}/Include/
         glfw
-        stb)
+        stb
+        imgui)
 
 if (H2O_USE_OPENGL)
     target_include_directories(h2o_rendering

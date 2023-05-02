@@ -8,15 +8,21 @@ namespace h2o
 {
     enum TickPhase : u32
     {
-        Update    = 1 << 0,
-        PreRender = 1 << 1,
-        Render    = 1 << 2,
+        Update     = 1 << 0,
+        PreRender  = 1 << 1,
+        Render     = 1 << 2,
+        PostRender = 1 << 3,
     };
 
     inline constexpr TickPhase operator<<(TickPhase phase, int shift)
     {
         using type = std::underlying_type_t<TickPhase>;
         return static_cast<TickPhase>(static_cast<type>(phase) << shift);
+    }
+
+    inline TickPhase operator|(TickPhase lhs, TickPhase rhs)
+    {
+        return static_cast<TickPhase>(static_cast<u32>(lhs) | static_cast<u32>(rhs));
     }
 
     constexpr size_t tick_phase_count = magic_enum::enum_count<TickPhase>();
@@ -30,9 +36,10 @@ namespace h2o
         Tickable(Tickable&&) = delete;
         virtual ~Tickable();
 
-        virtual void update(f32 delta_time)     { assert(false); }
-        virtual void pre_render(f32 delta_time) { assert(false); }
-        virtual void render(f32 delta_time)     { assert(false); }
+        virtual void update(f32 delta_time)      { assert(false); }
+        virtual void pre_render(f32 delta_time)  { assert(false); }
+        virtual void render(f32 delta_time)      { assert(false); }
+        virtual void post_render(f32 delta_time) { assert(false); }
 
     protected:
 

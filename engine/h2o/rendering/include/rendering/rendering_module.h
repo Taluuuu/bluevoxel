@@ -18,13 +18,13 @@ namespace h2o
         RenderingModule() = default;
         ~RenderingModule() override = default;
 
-        // Tickable interface
-        void pre_render(f32 delta_time) override;
-
         // IModule interface
         bool init(Engine& engine) override;
         [[nodiscard]] std::string_view module_name() const override { return "h2o_rendering"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
+
+        // Tickable interface
+        void pre_render(f32 delta_time) override;
 
         [[nodiscard]] gfx::IRenderer& renderer() const;
 

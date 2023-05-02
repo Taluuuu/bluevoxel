@@ -9,6 +9,14 @@
 #include "vertex_array_opengl.h"
 #include "texture_opengl.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_opengl3.h>
+#if H2O_USE_GLFW
+#   include <backends/imgui_impl_glfw.h>
+#else
+#   error "Only GLFW backend is supported for ImGUI at the moment."
+#endif
+
 namespace h2o::gfx
 {
     PipelineCreateData Renderer_OpenGL::create_pipeline()
@@ -78,11 +86,32 @@ namespace h2o::gfx
                 glViewport(0, 0, static_cast<i32>(event.new_size.x), static_cast<i32>(event.new_size.y));
             });
 
+        // Init ImGui
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO();
+
+#if H2O_USE_GLFW
+        // TODO: Move this to windowing module ??
+        ImGui_ImplGlfw_InitForOpenGL(
+            static_cast<GLFWwindow*>(window.handle()), true);
+#endif
+        ImGui_ImplOpenGL3_Init();
+
         return true;
+    }
+
+    void Renderer_OpenGL::prepare()
+    {
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
     }
 
     void Renderer_OpenGL::clear()
     {
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 }

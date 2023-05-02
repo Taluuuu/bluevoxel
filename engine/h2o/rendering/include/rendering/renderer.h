@@ -23,6 +23,7 @@ namespace h2o::gfx
         virtual ~IRenderer() = default;
 
         virtual bool init(IWindow& window, const GameInfo& game_info) = 0;
+        virtual void prepare() = 0;
         virtual void clear() = 0;
 
         // Pipeline

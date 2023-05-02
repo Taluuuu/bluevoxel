@@ -14,15 +14,9 @@
 
 namespace h2o
 {
-    void RenderingModule::pre_render(f32 delta_time)
-    {
-        assert(m_renderer);
-        m_renderer->clear();
-    }
-
     bool RenderingModule::init(Engine& engine)
     {
-        set_tick_phases(PreRender);
+        set_tick_phases(PreRender | PostRender);
 
         const auto windowing_module = engine.get_module<WindowingModule>();
         assert(windowing_module != nullptr);
@@ -40,6 +34,13 @@ namespace h2o
     std::vector<std::type_index> RenderingModule::dependencies() const
     {
         return { typeid(WindowingModule) };
+    }
+
+    void RenderingModule::pre_render(f32 delta_time)
+    {
+        assert(m_renderer);
+        m_renderer->clear();
+        m_renderer->prepare();
     }
 
     gfx::IRenderer& RenderingModule::renderer() const

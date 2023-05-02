@@ -1,5 +1,21 @@
 cmake_minimum_required(VERSION 3.20)
 
+set(H2O_USE_GLFW True)
+set(H2O_USE_OPENGL True)
+set(H2O_USE_VULKAN False)
+
+if(H2O_USE_GLFW)
+    add_definitions(-DH2O_USE_GLFW)
+endif()
+
+if(H2O_USE_OPENGL)
+    add_definitions(-DH2O_USE_OPENGL)
+endif()
+
+if(H2O_USE_VULKAN)
+    add_definitions(-DH2O_USE_VULKAN)
+endif()
+
 # glfw
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -32,21 +48,10 @@ add_subdirectory(lib/observable_unique_ptr)
 # stb
 add_subdirectory(lib/stb)
 
-set(H2O_USE_GLFW True)
-set(H2O_USE_OPENGL True)
-set(H2O_USE_VULKAN False)
-
-if(H2O_USE_GLFW)
-    add_definitions(-DH2O_USE_GLFW)
-endif()
-
-if(H2O_USE_OPENGL)
-    add_definitions(-DH2O_USE_OPENGL)
-endif()
-
-if(H2O_USE_VULKAN)
-    add_definitions(-DH2O_USE_VULKAN)
-endif()
+# imgui
+set(IMGUI_USE_OPENGL ${H2O_USE_OPENGL})
+set(IMGUI_USE_GLFW ${H2O_USE_GLFW})
+add_subdirectory(lib/imgui)
 
 # Engine libraries
 add_subdirectory(h2o/core)
