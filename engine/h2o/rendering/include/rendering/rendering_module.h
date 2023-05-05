@@ -24,7 +24,8 @@ namespace h2o
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         // Tickable interface
-        void pre_render(f32 delta_time) override;
+        void frame_start(f32 delta_time) override;
+        void frame_end(f32 delta_time) override;
 
         [[nodiscard]] gfx::IRenderer& renderer() const;
 

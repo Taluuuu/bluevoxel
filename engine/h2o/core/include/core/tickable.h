@@ -8,10 +8,12 @@ namespace h2o
 {
     enum TickPhase : u32
     {
-        Update     = 1 << 0,
-        PreRender  = 1 << 1,
-        Render     = 1 << 2,
-        PostRender = 1 << 3,
+        FrameStart = 1 << 0,
+        Update     = 1 << 1,
+        PreRender  = 1 << 2,
+        Render     = 1 << 3,
+        PostRender = 1 << 4,
+        FrameEnd   = 1 << 5,
     };
 
     inline constexpr TickPhase operator<<(TickPhase phase, int shift)
@@ -36,10 +38,12 @@ namespace h2o
         Tickable(Tickable&&) = delete;
         virtual ~Tickable();
 
+        virtual void frame_start(f32 delta_time) { assert(false); }
         virtual void update(f32 delta_time)      { assert(false); }
         virtual void pre_render(f32 delta_time)  { assert(false); }
         virtual void render(f32 delta_time)      { assert(false); }
         virtual void post_render(f32 delta_time) { assert(false); }
+        virtual void frame_end(f32 delta_time)   { assert(false); }
 
     protected:
 

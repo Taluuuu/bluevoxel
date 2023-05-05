@@ -16,7 +16,7 @@ namespace h2o
 {
     bool RenderingModule::init(Engine& engine)
     {
-        set_tick_phases(PreRender | PostRender);
+        set_tick_phases(FrameStart | FrameEnd);
 
         const auto windowing_module = engine.get_module<WindowingModule>();
         assert(windowing_module != nullptr);
@@ -36,11 +36,16 @@ namespace h2o
         return { typeid(WindowingModule) };
     }
 
-    void RenderingModule::pre_render(f32 delta_time)
+    void RenderingModule::frame_start(f32 delta_time)
     {
         assert(m_renderer);
-        m_renderer->clear();
-        m_renderer->prepare();
+        m_renderer->start_frame();
+    }
+
+    void RenderingModule::frame_end(f32 delta_time)
+    {
+        assert(m_renderer);
+        m_renderer->end_frame();
     }
 
     gfx::IRenderer& RenderingModule::renderer() const

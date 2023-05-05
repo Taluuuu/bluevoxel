@@ -84,10 +84,14 @@ namespace h2o
                 }
             };
 
+        run_tick(FrameStart, &Tickable::frame_start);
+
         run_tick(Update,     &Tickable::update);
         run_tick(PreRender,  &Tickable::pre_render);
         run_tick(Render,     &Tickable::render);
         run_tick(PostRender, &Tickable::post_render);
+
+        run_tick(FrameEnd,   &Tickable::frame_end);
 
         if (m_window_module)
             m_window_module->swap_buffers(144.0);

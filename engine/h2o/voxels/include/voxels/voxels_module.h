@@ -8,7 +8,7 @@ namespace h2o
     {
     public:
 
-        // Module interface
+        // IModule interface
         [[nodiscard]] std::string_view module_name() const override { return "h2o_voxels"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
         

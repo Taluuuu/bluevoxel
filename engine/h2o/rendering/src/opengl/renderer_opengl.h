@@ -15,8 +15,8 @@ namespace h2o::gfx
 
         // IRenderer interface
         bool                          init(IWindow& window, const GameInfo& game_info)          override;
-        void                          prepare()                                                 override;
-        void                          clear()                                                   override;
+        void                          start_frame()                                             override;
+        void                          end_frame()                                               override;
         PipelineCreateData            create_pipeline()                                         override;
         std::shared_ptr<IPipeline>    compile_pipeline(const PipelineCreateData& create_data)   override;
         void                          bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;

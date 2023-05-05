@@ -9,6 +9,8 @@
 #include "game_framework/actors/fps_character_actor.h"
 #include "scene_rendering/scene_rendering_module.h"
 
+#include <imgui.h>
+
 namespace game
 {
     bool GameModule::init(h2o::Engine& engine)
@@ -33,6 +35,8 @@ namespace game
         triangle->add_component<h2o::MeshRendererComponent>();
         triangle->transform.position = { 0.0f, 0.0f, 0.0f };
 
+        set_tick_phases(h2o::Update);
+
         return true;
     }
 
@@ -41,5 +45,10 @@ namespace game
         return { typeid(h2o::InputModule),
                  typeid(h2o::SceneModule),
                  typeid(h2o::SceneRenderingModule) };
+    }
+
+    void GameModule::update(f32 delta_time)
+    {
+        ImGui::Text("TESTTT");
     }
 }

@@ -23,6 +23,8 @@ target_link_libraries(game
         h2o_rendering
         h2o_game_framework
         h2o_voxels
+
+        imgui
 )
 
 target_include_directories(game
@@ -36,7 +38,7 @@ target_include_directories(game
         h2o_game_framework
         h2o_voxels
 
-        include/
+        imgui
 )
 
 # Add this resource path

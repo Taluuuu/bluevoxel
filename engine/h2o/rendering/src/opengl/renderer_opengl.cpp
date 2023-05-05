@@ -95,23 +95,35 @@ namespace h2o::gfx
         ImGui_ImplGlfw_InitForOpenGL(
             static_cast<GLFWwindow*>(window.handle()), true);
 #endif
+
+#if H2O_USE_OPENGL
         ImGui_ImplOpenGL3_Init();
+#endif
 
         return true;
     }
 
-    void Renderer_OpenGL::prepare()
+    void Renderer_OpenGL::start_frame()
     {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+#if H2O_USE_OPENGL
         ImGui_ImplOpenGL3_NewFrame();
+#endif
+
+#if H2O_USE_GLFW
         ImGui_ImplGlfw_NewFrame();
+#endif
+
         ImGui::NewFrame();
     }
 
-    void Renderer_OpenGL::clear()
+    void Renderer_OpenGL::end_frame()
     {
         ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+#if H2O_USE_OPENGL
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
     }
 }
