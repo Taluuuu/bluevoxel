@@ -61,7 +61,8 @@ add_subdirectory(h2o/rendering)
 add_subdirectory(h2o/scene)
 add_subdirectory(h2o/scene_rendering)
 add_subdirectory(h2o/game_framework)
-add_subdirectory(h2o/voxels)
+add_subdirectory(h2o/voxel)
+add_subdirectory(h2o/voxel_rendering)
 add_subdirectory(tests)
 
 # Add this resource path

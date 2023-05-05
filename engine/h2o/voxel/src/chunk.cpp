@@ -1,4 +1,4 @@
-#include "voxels/chunk.h"
+#include "voxel/chunk.h"
 
 namespace h2o
 {

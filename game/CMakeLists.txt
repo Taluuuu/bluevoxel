@@ -22,7 +22,8 @@ target_link_libraries(game
         h2o_scene_rendering
         h2o_rendering
         h2o_game_framework
-        h2o_voxels
+        h2o_voxel
+        h2o_voxel_rendering
 
         imgui
 )
@@ -36,7 +37,8 @@ target_include_directories(game
         h2o_scene_rendering
         h2o_rendering
         h2o_game_framework
-        h2o_voxels
+        h2o_voxel
+        h2o_voxel_rendering
 
         imgui
 )
