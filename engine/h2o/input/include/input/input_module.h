@@ -19,7 +19,7 @@ namespace h2o
         InputModule() = default;
         ~InputModule() override = default;
 
-        // Module interface
+        // IModule interface
         bool init(Engine& engine) override;
         [[nodiscard]] std::string_view module_name() const override { return "h2o_input"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;

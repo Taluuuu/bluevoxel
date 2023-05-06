@@ -9,19 +9,19 @@
 
 namespace h2o
 {
+    template<size_t Size = 32>
     class Chunk
     {
     public:
 
-        explicit Chunk(size_t size);
+        explicit Chunk();
 
-        [[nodiscard]] size_t volume() const { return m_size * m_size * m_size; }
+        [[nodiscard]] size_t volume() const { return Size * Size * Size; }
+        [[nodiscard]] size_t size() const { return Size; }
 
     private:
 
         std::vector<Block> m_blocks;
-
-        size_t m_size;
 
     };
 }
