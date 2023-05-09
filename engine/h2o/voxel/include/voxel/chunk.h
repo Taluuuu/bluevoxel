@@ -9,15 +9,19 @@
 
 namespace h2o
 {
-    template<size_t Size = 32>
     class Chunk
     {
     public:
 
-        explicit Chunk();
+        Chunk();
 
-        [[nodiscard]] size_t volume() const { return Size * Size * Size; }
-        [[nodiscard]] size_t size() const { return Size; }
+        [[nodiscard]] Block get_block_at(const v3u& local_pos) const;
+        void set_block_at(const v3u& local_pos, Block block);
+
+    private:
+
+        static constexpr size_t to_index(const v3u& local_pos);
+        static constexpr bool is_valid_pos(const v3u& local_pos);
 
     private:
 

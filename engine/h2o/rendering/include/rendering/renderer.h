@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 namespace h2o
 {

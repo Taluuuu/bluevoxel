@@ -8,6 +8,8 @@
 #include "windowing/windowing_module.h"
 #include "game_framework/game_framework_module.h"
 #include "scene_rendering/scene_rendering_module.h"
+#include "voxel/voxel_module.h"
+#include "voxel_rendering/voxel_rendering_module.h"
 
 int main()
 {
@@ -25,6 +27,8 @@ int main()
         .add_module<h2o::SceneModule>()
         .add_module<h2o::GameFrameworkModule>()
         .add_module<h2o::SceneRenderingModule>()
+        .add_module<h2o::VoxelModule>()
+        .add_module<h2o::VoxelRenderingModule>()
         .add_module<game::GameModule>()
         .run();
 }

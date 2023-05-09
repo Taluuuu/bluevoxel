@@ -8,6 +8,8 @@
 #include "scene/scene_headers.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "scene_rendering/scene_rendering_module.h"
+#include "voxel/chunk_mgr.h"
+#include "voxel/chunk.h"
 
 #include <imgui.h>
 
@@ -26,6 +28,12 @@ namespace game
 
         m_scene = h2o::Scene::create(engine, "TestGameScene");
         m_scene->add_system<h2o::RenderingSceneSystem>();
+        const auto& chunk_mgr = m_scene->add_system<h2o::ChunkMgr>();
+        h2o::Chunk* chunk = chunk_mgr->get_chunk_at({ 0, 0, 0 });
+        if (chunk)
+        {
+            chunk->set_block_at({ 0, 0, 0 }, { 1, 0 });
+        }
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("Player");
         player->transform.position = { -1.0f, 0.0f, 0.0f };

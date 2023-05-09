@@ -1,11 +1,14 @@
 #pragma once
 
 #include "scene/component.h"
-// Could be a forward declaration but CLion linter doesn't like it
-#include "rendering/camera.h"
 
 namespace h2o
 {
+    namespace gfx
+    {
+        class Camera;
+    }
+
     class CameraComponent : public Component
     {
     public:
