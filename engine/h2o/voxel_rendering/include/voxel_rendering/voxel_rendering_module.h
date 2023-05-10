@@ -1,6 +1,10 @@
 #pragma once
 
 #include "core/module.h"
+#include "core/types.h"
+
+#include <unordered_map>
+#include <vector>
 
 namespace h2o
 {
@@ -20,6 +24,8 @@ namespace h2o
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
     private:
+
+        std::unordered_map<std::string, std::vector<std::vector<u32>>> m_block_models;
 
         VoxelModule* m_voxel_module = nullptr;
 

@@ -19,3 +19,6 @@
 [submodule "engine/lib/imgui"]
 	path = engine/lib/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "engine/lib/yaml-cpp"]
+	path = engine/lib/yaml-cpp
+	url = https://github.com/jbeder/yaml-cpp

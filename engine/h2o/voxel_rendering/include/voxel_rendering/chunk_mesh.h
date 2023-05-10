@@ -9,6 +9,7 @@ namespace h2o
     namespace gfx
     {
         class IVertexArray;
+        class IBuffer;
         class IRenderer;
     }
 
@@ -23,6 +24,7 @@ namespace h2o
     private:
 
         std::shared_ptr<gfx::IVertexArray> m_vertex_array = nullptr;
+        std::shared_ptr<gfx::IBuffer> m_buffer = nullptr;
 
     };
 }

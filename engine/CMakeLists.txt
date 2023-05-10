@@ -48,6 +48,9 @@ add_subdirectory(lib/observable_unique_ptr)
 # stb
 add_subdirectory(lib/stb)
 
+# yaml-cpp
+add_subdirectory(lib/yaml-cpp)
+
 # imgui
 set(IMGUI_USE_OPENGL ${H2O_USE_OPENGL})
 set(IMGUI_USE_GLFW ${H2O_USE_GLFW})

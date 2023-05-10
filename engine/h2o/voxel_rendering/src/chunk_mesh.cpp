@@ -57,7 +57,5 @@ namespace h2o
                 }
             }
         }
-
-//        m_vertex_array->attach_vertex_buffer();
     }
 }
