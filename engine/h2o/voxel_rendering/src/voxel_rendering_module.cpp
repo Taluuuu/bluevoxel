@@ -4,12 +4,13 @@
 #include "core/log.h"
 #include "voxel/voxel_module.h"
 #include "yaml-cpp/yaml.h"
+#include "rendering/rendering_module.h"
 
 namespace h2o
 {
     std::vector<std::type_index> VoxelRenderingModule::dependencies() const
     {
-        return { typeid(VoxelModule) };
+        return { typeid(VoxelModule), typeid(RenderingModule) };
     }
 
     bool VoxelRenderingModule::init(Engine& engine)
@@ -44,5 +45,11 @@ namespace h2o
         }
 
         return true;
+    }
+
+    const BlockModel* VoxelRenderingModule::get_model(const std::string& name) const
+    {
+        auto it = m_block_models.find(name);
+        return (it == m_block_models.end()) ? nullptr : &it->second;
     }
 }

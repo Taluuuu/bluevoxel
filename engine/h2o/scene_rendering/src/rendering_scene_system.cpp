@@ -40,8 +40,8 @@ namespace h2o
 
         m_pipeline = (*m_renderer)
             .create_pipeline()
-            .add_shader(h2o::gfx::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/triangle.vert")
-            .add_shader(h2o::gfx::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
+            .add_shader(gfx::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/triangle.vert")
+            .add_shader(gfx::ShaderStage::Fragment, "Resources/engine/shaders/opengl/triangle.frag")
             .compile();
 
         set_tick_phases(Render);

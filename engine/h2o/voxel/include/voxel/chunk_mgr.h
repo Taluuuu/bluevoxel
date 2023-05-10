@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/types.h"
 #include "scene/scene_system.h"
 
@@ -9,8 +10,9 @@
 namespace h2o
 {
     class Chunk;
-
     using ChunkPtr = std::unique_ptr<Chunk>;
+
+    struct ChunkEvent { Chunk& chunk; };
 
     class ChunkMgr : public SceneSystem
     {
@@ -20,6 +22,12 @@ namespace h2o
 
         [[nodiscard]] Chunk* get_chunk_at(const v3i& world_pos) const;
         [[nodiscard]] const std::vector<ChunkPtr>& get_chunks() const;
+
+        // Called when a chunk is modified
+        Event<ChunkEvent> on_chunk_updated;
+
+        // Called when a chunk is loaded
+        Event<ChunkEvent> on_chunk_loaded;
 
     private:
 

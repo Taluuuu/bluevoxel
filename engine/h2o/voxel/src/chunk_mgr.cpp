@@ -10,7 +10,7 @@ namespace h2o
         const u32 num_chunks = m_world_size * m_world_size;
         for (u32 i = 0; i < num_chunks; i++)
         {
-            m_chunks.push_back(std::make_unique<Chunk>());
+            m_chunks.push_back(std::make_unique<Chunk>(*this));
         }
     }
 

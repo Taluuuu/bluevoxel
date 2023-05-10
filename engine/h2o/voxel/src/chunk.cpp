@@ -1,10 +1,13 @@
 #include "voxel/chunk.h"
 
+#include "core/events.h"
 #include "voxel/voxel_constants.h"
+#include "voxel/chunk_mgr.h"
 
 namespace h2o
 {
-    Chunk::Chunk()
+    Chunk::Chunk(const ChunkMgr& chunk_mgr)
+        : m_chunk_mgr(&chunk_mgr)
     {
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
     }
@@ -19,6 +22,9 @@ namespace h2o
     {
         assert(is_valid_pos(local_pos));
         m_blocks[to_index(local_pos)] = block;
+
+        // Very temporary, call the chunk updated function every time a block is changed.
+        m_chunk_mgr->on_chunk_updated.broadcast({ *this });
     }
 
     constexpr size_t Chunk::to_index(const v3u& local_pos)
