@@ -9,13 +9,13 @@
 
 namespace h2o
 {
-    class ChunkMgr;
+    class ChunkSystem;
 
     class Chunk
     {
     public:
 
-        explicit Chunk(const ChunkMgr& chunk_mgr);
+        explicit Chunk(const ChunkSystem& chunk_mgr);
 
         [[nodiscard]] Block get_block_at(const v3u& local_pos) const;
         void set_block_at(const v3u& local_pos, Block block);
@@ -29,7 +29,7 @@ namespace h2o
 
         std::vector<Block> m_blocks;
 
-        const ChunkMgr* const m_chunk_mgr = nullptr;
+        const ChunkSystem* const m_chunk_mgr = nullptr;
 
     };
 }

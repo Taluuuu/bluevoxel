@@ -14,7 +14,7 @@
 
 namespace h2o
 {
-    RenderingSceneSystem::RenderingSceneSystem(const SceneSystemInitializer& system_initializer)
+    RenderingSystem::RenderingSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
     {
         auto rendering_module = g_engine->get_module<RenderingModule>();
@@ -38,6 +38,7 @@ namespace h2o
 
         (*m_renderer).create_pipeline();
 
+        // TODO: Move this to the system's init function
         m_pipeline = (*m_renderer)
             .create_pipeline()
             .add_shader(gfx::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/triangle.vert")
@@ -47,12 +48,12 @@ namespace h2o
         set_tick_phases(Render);
     }
 
-    RenderingSceneSystem::~RenderingSceneSystem()
+    RenderingSystem::~RenderingSystem()
     {
         assert(m_mesh_renderer_components.empty());
     }
 
-    void RenderingSceneSystem::render(f32 delta_time)
+    void RenderingSystem::render(f32 delta_time)
     {
         if (!m_main_camera)
         {
@@ -89,7 +90,7 @@ namespace h2o
         }
     }
 
-    void RenderingSceneSystem::register_component(const MeshRendererComponent& renderer_component)
+    void RenderingSystem::register_component(const MeshRendererComponent& renderer_component)
     {
 #ifndef NDEBUG
         auto result = std::find(
@@ -103,13 +104,13 @@ namespace h2o
         m_mesh_renderer_components.push_back(&renderer_component);
     }
 
-    void RenderingSceneSystem::unregister_component(const MeshRendererComponent& renderer_component)
+    void RenderingSystem::unregister_component(const MeshRendererComponent& renderer_component)
     {
         auto num_erased = std::erase(m_mesh_renderer_components, &renderer_component);
         assert(num_erased == 1);
     }
 
-    void RenderingSceneSystem::set_main_camera(const WeakHandle<gfx::Camera>& camera)
+    void RenderingSystem::set_main_camera(const WeakHandle<gfx::Camera>& camera)
     {
         m_main_camera = camera;
         if (m_main_camera)

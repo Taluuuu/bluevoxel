@@ -8,7 +8,7 @@
 #include "scene/scene_headers.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "scene_rendering/scene_rendering_module.h"
-#include "voxel/chunk_mgr.h"
+#include "voxel/chunk_system.h"
 #include "voxel/chunk.h"
 #include "voxel_rendering/chunk_rendering_system.h"
 
@@ -28,18 +28,14 @@ namespace game
         input_module->register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
 
         m_scene = h2o::Scene::create(engine, "TestGameScene");
-        m_scene->add_system<h2o::RenderingSceneSystem>();
-        const auto& chunk_mgr = m_scene->add_system<h2o::ChunkMgr>();
+        m_scene->add_system<h2o::RenderingSystem>();
+        m_scene->add_system<h2o::ChunkSystem>();
         m_scene->add_system<h2o::ChunkRenderingSystem>();
-        h2o::Chunk* chunk = chunk_mgr->get_chunk_at({ 0, 0, 0 });
-        if (chunk)
-        {
-            chunk->set_block_at({ 0, 0, 0 }, { 1, 0 });
-        }
+        m_scene->init();
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("Player");
         player->transform.position = { -1.0f, 0.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 0.0f, 90.0f };
+        player->transform.rotation = {  0.0f, 0.0f, 90.0f };
 
         auto triangle = m_scene->spawn_actor("Triangle");
         triangle->add_component<h2o::MeshRendererComponent>();
@@ -59,6 +55,8 @@ namespace game
 
     void GameModule::update(f32 delta_time)
     {
-        ImGui::Text("TESTTT");
+        ImGui::Text(":)");
+        if (ImGui::Button("Button WOW"))
+            h2o::log::info("Button click");
     }
 }

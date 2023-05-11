@@ -18,6 +18,8 @@ namespace h2o
         explicit SceneSystem(const SceneSystemInitializer& system_initializer);
         ~SceneSystem() override = default;
 
+        virtual bool init() { return true; }
+
     protected:
 
         // The lifetime of a system is strictly inferior to its

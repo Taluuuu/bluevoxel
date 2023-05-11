@@ -18,12 +18,12 @@ namespace h2o
 
     class MeshRendererComponent;
 
-    class RenderingSceneSystem : public SceneSystem
+    class RenderingSystem : public SceneSystem
     {
     public:
 
-        explicit RenderingSceneSystem(const SceneSystemInitializer& system_initializer);
-        ~RenderingSceneSystem() override;
+        explicit RenderingSystem(const SceneSystemInitializer& system_initializer);
+        ~RenderingSystem() override;
 
         // Tickable interface
         void render(f32 delta_time) override;

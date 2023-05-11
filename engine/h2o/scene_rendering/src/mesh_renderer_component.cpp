@@ -14,7 +14,7 @@ namespace h2o
         : Component(component_initializer)
     {
         // Register to rendering system
-        auto render_system = m_scene->get_system<RenderingSceneSystem>();
+        auto render_system = m_scene->get_system<RenderingSystem>();
         if (render_system)
             render_system->register_component(*this);
 
@@ -49,7 +49,7 @@ namespace h2o
     MeshRendererComponent::~MeshRendererComponent()
     {
         // Register to rendering system
-        auto render_system = m_scene->get_system<RenderingSceneSystem>();
+        auto render_system = m_scene->get_system<RenderingSystem>();
         if (render_system)
             render_system->unregister_component(*this);
     }

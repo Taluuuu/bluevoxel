@@ -14,11 +14,18 @@ namespace h2o
 
     struct ChunkEvent { Chunk& chunk; };
 
-    class ChunkMgr : public SceneSystem
+    /**
+     * A system meant to be added to scenes that generates a voxel world,
+     * allowing for easy access to its chunks.
+     */
+    class ChunkSystem : public SceneSystem
     {
     public:
 
-       explicit ChunkMgr(const SceneSystemInitializer& system_initializer);
+        explicit ChunkSystem(const SceneSystemInitializer& system_initializer);
+
+        // SceneSystem interface
+        bool init() override;
 
         [[nodiscard]] Chunk* get_chunk_at(const v3i& world_pos) const;
         [[nodiscard]] const std::vector<ChunkPtr>& get_chunks() const;

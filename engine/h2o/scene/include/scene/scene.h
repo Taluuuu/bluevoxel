@@ -25,12 +25,6 @@ namespace h2o
         Scene(Scene&&) = delete;
         virtual ~Scene();
 
-    private:
-
-        explicit Scene(Engine& engine, std::string_view name);
-
-    public:
-
         /**
          * Create a new scene
          *
@@ -38,6 +32,8 @@ namespace h2o
          * @return The created scene or nullptr on failure
          */
         static std::shared_ptr<Scene> create(Engine& engine, std::string_view name);
+
+        bool init();
 
         /**
          * Create and store a new actor of type T
@@ -66,6 +62,10 @@ namespace h2o
 
         template<class T>
         WeakHandle<T> get_system();
+
+    private:
+
+        explicit Scene(Engine& engine, std::string_view name);
 
     private:
 

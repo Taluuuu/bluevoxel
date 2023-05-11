@@ -2,11 +2,11 @@
 
 #include "core/events.h"
 #include "voxel/voxel_constants.h"
-#include "voxel/chunk_mgr.h"
+#include "voxel/chunk_system.h"
 
 namespace h2o
 {
-    Chunk::Chunk(const ChunkMgr& chunk_mgr)
+    Chunk::Chunk(const ChunkSystem& chunk_mgr)
         : m_chunk_mgr(&chunk_mgr)
     {
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
