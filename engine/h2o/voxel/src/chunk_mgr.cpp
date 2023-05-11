@@ -7,7 +7,7 @@ namespace h2o
     ChunkMgr::ChunkMgr(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
     {
-        const u32 num_chunks = m_world_size * m_world_size;
+        const u32 num_chunks = m_world_volume;
         for (u32 i = 0; i < num_chunks; i++)
         {
             m_chunks.push_back(std::make_unique<Chunk>(*this));

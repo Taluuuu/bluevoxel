@@ -97,7 +97,7 @@ namespace h2o
         void add_listener(EventHandle& handle, const std::function<void(const T&)>& callback)
         {
             handle.reset(this, s_next_handle_id++);
-            m_listeners.push_back({ callback, handle.m_id });
+            m_listeners.push_back({ callback, &handle, handle.m_id });
         }
 
         void remove_listener(const EventHandle& handle) override
@@ -114,6 +114,11 @@ namespace h2o
             if (id == ID_NONE)
                 return;
 
+            for (const auto& listener : m_listeners)
+            {
+                listener.handle->clear();
+            }
+
             const auto num_erased = std::erase_if(m_listeners,
                 [id](const auto& listener)
                 {
@@ -128,7 +133,8 @@ namespace h2o
         struct Listener
         {
             std::function<void(const T&)> callback;
-            i32 handle_id;
+            EventHandle* handle = nullptr;
+            i32 handle_id = ID_NONE;
         };
 
         std::vector<Listener> m_listeners;
