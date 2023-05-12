@@ -10,6 +10,7 @@
 #include "scene_rendering/scene_rendering_module.h"
 #include "voxel/chunk_system.h"
 #include "voxel/chunk.h"
+#include "voxel_rendering/voxel_rendering_module.h"
 #include "voxel_rendering/chunk_rendering_system.h"
 
 #include <imgui.h>
@@ -50,7 +51,8 @@ namespace game
     {
         return { typeid(h2o::InputModule),
                  typeid(h2o::SceneModule),
-                 typeid(h2o::SceneRenderingModule) };
+                 typeid(h2o::SceneRenderingModule),
+                 typeid(h2o::VoxelRenderingModule) };
     }
 
     void GameModule::update(f32 delta_time)

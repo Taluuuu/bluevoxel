@@ -7,24 +7,15 @@ namespace h2o
     ChunkSystem::ChunkSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
     {
-        const u32 num_chunks = m_world_volume;
-        for (u32 i = 0; i < num_chunks; i++)
-        {
-            m_chunks.push_back(std::make_unique<Chunk>(*this));
-        }
+
     }
 
-    Chunk* ChunkSystem::get_chunk_at(const v3i& world_pos) const
+    WeakHandle<Chunk> ChunkSystem::get_chunk_at(const v3i& world_pos) const
     {
         if (!is_valid_pos(world_pos))
             return nullptr;
 
-        return m_chunks[to_index(world_pos)].get();
-    }
-
-    const std::vector<ChunkPtr>& ChunkSystem::get_chunks() const
-    {
-        return m_chunks;
+        return m_chunks[to_index(world_pos)];
     }
 
     constexpr size_t ChunkSystem::to_index(const v3i& world_pos)
@@ -47,7 +38,12 @@ namespace h2o
 
     bool ChunkSystem::init()
     {
-        if (Chunk* chunk = get_chunk_at({ 0, 0, 0 }))
+        for (i32 x = 0; x < m_world_size;   x++)
+        for (i32 z = 0; z < m_world_size;   z++)
+        for (i32 y = 0; y < m_world_height; y++)
+            m_chunks.push_back(oup::make_observable_unique<Chunk>(*this, v3i{ x, y, z }));
+
+        if (WeakHandle<Chunk> chunk = get_chunk_at({ 0, 0, 0 }))
             chunk->set_block_at({ 0, 0, 0 }, { 1, 0 });
 
         return true;

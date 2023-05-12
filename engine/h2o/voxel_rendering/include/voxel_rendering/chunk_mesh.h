@@ -17,6 +17,9 @@ namespace h2o
     {
     public:
 
+        // TODO: Create a factory function returning an std::optional<ChunkMesh>? This could
+        //       allow skipping a null check in the rendering loop
+
         explicit ChunkMesh(gfx::IRenderer& renderer);
 
         void update(const Chunk& chunk);

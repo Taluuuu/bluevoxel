@@ -6,8 +6,9 @@
 
 namespace h2o
 {
-    Chunk::Chunk(const ChunkSystem& chunk_mgr)
+    Chunk::Chunk(const ChunkSystem& chunk_mgr, const v3i& chunk_pos)
         : m_chunk_mgr(&chunk_mgr)
+        , chunk_pos(chunk_pos)
     {
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
     }

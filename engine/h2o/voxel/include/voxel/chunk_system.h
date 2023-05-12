@@ -1,16 +1,15 @@
 #pragma once
 
 #include "core/events.h"
+#include "core/handle_types.h"
 #include "core/types.h"
 #include "scene/scene_system.h"
 
 #include <vector>
-#include <memory>
 
 namespace h2o
 {
     class Chunk;
-    using ChunkPtr = std::unique_ptr<Chunk>;
 
     struct ChunkEvent { Chunk& chunk; };
 
@@ -27,14 +26,11 @@ namespace h2o
         // SceneSystem interface
         bool init() override;
 
-        [[nodiscard]] Chunk* get_chunk_at(const v3i& world_pos) const;
-        [[nodiscard]] const std::vector<ChunkPtr>& get_chunks() const;
+        [[nodiscard]] WeakHandle<Chunk> get_chunk_at(const v3i& world_pos) const;
 
-        // Called when a chunk is modified
+        Event<ChunkEvent> on_chunk_created;
+        Event<ChunkEvent> on_chunk_deleted;
         Event<ChunkEvent> on_chunk_updated;
-
-        // Called when a chunk is loaded
-        Event<ChunkEvent> on_chunk_loaded;
 
     private:
 
@@ -43,7 +39,7 @@ namespace h2o
 
     private:
 
-        std::vector<ChunkPtr> m_chunks;
+        std::vector< OwningHandle<Chunk> > m_chunks;
 
         // Constants in chunks
         static constexpr u32 m_world_height = 1;

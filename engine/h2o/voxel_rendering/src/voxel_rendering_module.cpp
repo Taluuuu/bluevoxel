@@ -5,6 +5,8 @@
 #include "voxel/voxel_module.h"
 #include "yaml-cpp/yaml.h"
 #include "rendering/rendering_module.h"
+#include "rendering/renderer.h"
+#include "rendering/pipeline.h"
 
 namespace h2o
 {
@@ -16,7 +18,8 @@ namespace h2o
     bool VoxelRenderingModule::init(Engine& engine)
     {
         m_voxel_module = engine.get_module<VoxelModule>();
-        if (!m_voxel_module)
+        m_rendering_module = engine.get_module<RenderingModule>();
+        if (!m_voxel_module || !m_rendering_module)
             return false;
 
         // Load block models
@@ -44,6 +47,17 @@ namespace h2o
             return false;
         }
 
+        // Create rendering pipeline
+        auto& renderer = m_rendering_module->renderer();
+        m_pipeline = renderer
+            .create_pipeline()
+            .add_shader(gfx::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/chunk.vert")
+            .add_shader(gfx::ShaderStage::Fragment, "Resources/engine/shaders/opengl/chunk.frag")
+            .compile();
+
+//        if (!m_pipeline)
+//            return false;
+
         return true;
     }
 
@@ -51,5 +65,12 @@ namespace h2o
     {
         auto it = m_block_models.find(name);
         return (it == m_block_models.end()) ? nullptr : &it->second;
+    }
+
+    const gfx::IPipeline& VoxelRenderingModule::pipeline() const
+    {
+        // The pipeline should be valid here, otherwise the init would have failed.
+        assert(m_pipeline);
+        return *m_pipeline;
     }
 }

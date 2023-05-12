@@ -19,6 +19,8 @@ namespace h2o
         ~SceneSystem() override = default;
 
         virtual bool init() { return true; }
+        virtual void begin_play() {}
+        virtual void end_play() {}
 
     protected:
 

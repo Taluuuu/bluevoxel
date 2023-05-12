@@ -15,7 +15,7 @@ namespace h2o
     {
     public:
 
-        explicit Chunk(const ChunkSystem& chunk_mgr);
+        explicit Chunk(const ChunkSystem& chunk_mgr, const v3i& chunk_pos);
 
         [[nodiscard]] Block get_block_at(const v3u& local_pos) const;
         void set_block_at(const v3u& local_pos, Block block);
@@ -24,6 +24,10 @@ namespace h2o
 
         static constexpr size_t to_index(const v3u& local_pos);
         static constexpr bool is_valid_pos(const v3u& local_pos);
+
+    public:
+
+        const v3i chunk_pos;
 
     private:
 

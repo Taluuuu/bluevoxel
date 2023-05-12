@@ -17,6 +17,8 @@ namespace h2o
 
     Engine::~Engine()
     {
+        m_modules_to_init.clear();
+
         while (!m_module_stack.empty())
         {
             auto& module = m_module_stack.top();
