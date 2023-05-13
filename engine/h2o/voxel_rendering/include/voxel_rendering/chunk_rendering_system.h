@@ -15,7 +15,10 @@ namespace h2o
 {
     class VoxelRenderingModule;
 
-    namespace gfx { class IRenderer; }
+    namespace gfx
+    {
+        class IRenderer;
+    }
 
     class ChunkRenderingSystem : public SceneSystem
     {
@@ -39,6 +42,9 @@ namespace h2o
         std::unordered_map<v3i, size_t> m_mesh_index_map;
         // Vector for fast traversal
         std::vector<ChunkMesh> m_chunk_meshes;
+
+        VoxelRenderingModule* m_voxel_rendering_module = nullptr;
+        gfx::IRenderer* m_renderer = nullptr;
 
         EventHandle m_on_chunk_created_handle;
         EventHandle m_on_chunk_deleted_handle;

@@ -9,6 +9,7 @@
 #include "voxel/chunk_system.h"
 #include "voxel_rendering/chunk_mesh.h"
 #include "voxel_rendering/voxel_rendering_module.h"
+#include "rendering/pipeline.h"
 
 namespace h2o
 {
@@ -22,12 +23,15 @@ namespace h2o
         auto chunk_system = m_scene->get_system<ChunkSystem>();
         assert(chunk_system);
 
+        m_renderer = &rendering_module->renderer();
+
         // TODO: Create an event for when the chunk is fully generated; we probably don't want
         //       to create its mesh before then.
         chunk_system->on_chunk_created.add_listener(m_on_chunk_created_handle,
-            [this, rendering_module](const ChunkEvent& event)
+            [&](const ChunkEvent& event)
             {
-                create_mesh_at(rendering_module->renderer(), event.chunk.chunk_pos);
+                assert(m_renderer);
+                create_mesh_at(*m_renderer, event.chunk.chunk_pos);
             });
 
         chunk_system->on_chunk_deleted.add_listener(m_on_chunk_deleted_handle,
@@ -51,14 +55,16 @@ namespace h2o
 
     bool ChunkRenderingSystem::init()
     {
-        return true;
+        assert(m_renderer && m_voxel_rendering_module);
+        auto& pipeline = m_voxel_rendering_module->pipeline();
     }
 
     void ChunkRenderingSystem::render(f32 delta_time)
     {
+
         for (const auto& mesh : m_chunk_meshes)
         {
-//            mesh.
+//            mesh.vertex_array();
         }
     }
 
