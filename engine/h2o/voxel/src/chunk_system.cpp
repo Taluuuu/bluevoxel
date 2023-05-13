@@ -41,7 +41,12 @@ namespace h2o
         for (i32 x = 0; x < m_world_size;   x++)
         for (i32 z = 0; z < m_world_size;   z++)
         for (i32 y = 0; y < m_world_height; y++)
-            m_chunks.push_back(oup::make_observable_unique<Chunk>(*this, v3i{ x, y, z }));
+        {
+            const v3i chunk_pos { x, y, z };
+            auto chunk = oup::make_observable_unique<Chunk>(*this, chunk_pos);
+            on_chunk_created.broadcast({ *chunk });
+            m_chunks.push_back(std::move(chunk));
+        }
 
         if (WeakHandle<Chunk> chunk = get_chunk_at({ 0, 0, 0 }))
             chunk->set_block_at({ 0, 0, 0 }, { 1, 0 });

@@ -15,7 +15,9 @@ namespace h2o
 
     Block Chunk::get_block_at(const v3u& local_pos) const
     {
-        assert(is_valid_pos(local_pos));
+        if (!is_valid_pos(local_pos))
+            return Block::Air;
+
         return m_blocks[to_index(local_pos)];
     }
 

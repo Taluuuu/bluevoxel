@@ -27,9 +27,28 @@ namespace h2o
         // Current bit total: 54
     };
 
-    ChunkMesh::ChunkMesh(gfx::IRenderer& renderer)
+    ChunkMesh::ChunkMesh(gfx::IRenderer& renderer, const v3i& chunk_pos)
+        : m_chunk_pos(chunk_pos)
     {
         m_vertex_array = renderer.create_vertex_array();
+    }
+
+    ChunkMesh::ChunkMesh(ChunkMesh&& other) noexcept
+        : m_chunk_pos(other.m_chunk_pos)
+        , m_vertex_array(std::move(other.m_vertex_array))
+        , m_buffer(std::move(other.m_buffer))
+    {}
+
+    ChunkMesh& ChunkMesh::operator=(ChunkMesh&& other) noexcept
+    {
+        if (this != &other)
+        {
+            m_chunk_pos = other.m_chunk_pos;
+            m_vertex_array = std::move(other.m_vertex_array);
+            m_buffer = std::move(other.m_buffer);
+        }
+
+        return *this;
     }
 
     void ChunkMesh::update(const Chunk& chunk)
