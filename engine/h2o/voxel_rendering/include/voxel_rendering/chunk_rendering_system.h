@@ -26,9 +26,6 @@ namespace h2o
 
         explicit ChunkRenderingSystem(const SceneSystemInitializer& system_initializer);
 
-        // SceneSystem interface
-        bool init() override;
-
         void render(f32 delta_time) override;
 
     private:

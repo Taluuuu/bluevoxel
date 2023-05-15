@@ -7,6 +7,7 @@
 namespace h2o
 {
     class Chunk;
+    class VoxelRenderingModule;
 
     namespace gfx
     {
@@ -22,13 +23,14 @@ namespace h2o
         // TODO: Create a factory function returning an std::optional<ChunkMesh>? This could
         //       allow skipping a null check in the rendering loop
 
-        explicit ChunkMesh(gfx::IRenderer& renderer, const v3i& chunk_pos);
+        ChunkMesh(gfx::IRenderer& renderer, const v3i& chunk_pos);
         ChunkMesh(ChunkMesh&& other) noexcept;
         ChunkMesh& operator=(ChunkMesh&& other) noexcept;
 
-        void update(const Chunk& chunk);
+        void update(const VoxelRenderingModule& chunk_rendering_module, const Chunk& chunk);
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
+        [[nodiscard]] const gfx::IVertexArray& vertex_array() const;
 
     public:
 

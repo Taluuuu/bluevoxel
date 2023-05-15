@@ -1,32 +1,19 @@
 #include "voxel_rendering/chunk_mesh.h"
 
+#include "core/log.h"
 #include "rendering/renderer.h"
 #include "rendering/vertex_array.h"
 #include "voxel/chunk.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/direction.h"
+#include "voxel_rendering/voxel_rendering_module.h"
+#include "voxel_rendering/block_model.h"
 
+#include <array>
 #include <magic_enum.hpp>
 
 namespace h2o
 {
-    struct BlockVertex
-    {
-        // Vertex position
-        u64 x : 10;
-        u64 y : 10;
-        u64 z : 10;
-
-        // Texture coord
-        u64 u : 5;
-        u64 v : 5;
-
-        u64 tex_idx : 11;
-        u64 face_idx : 3;
-
-        // Current bit total: 54
-    };
-
     ChunkMesh::ChunkMesh(gfx::IRenderer& renderer, const v3i& chunk_pos)
         : m_chunk_pos(chunk_pos)
     {
@@ -51,9 +38,15 @@ namespace h2o
         return *this;
     }
 
-    void ChunkMesh::update(const Chunk& chunk)
+    void ChunkMesh::update(const VoxelRenderingModule& chunk_rendering_module, const Chunk& chunk)
     {
         std::vector<BlockVertex> vertices;
+        auto model = chunk_rendering_module.get_model("cube");
+        if (!model)
+        {
+            log::error("No cube model found :/");
+            return;
+        }
 
         for (i32 x = 0; x < voxel_constants::chunk_size; x++)
         for (i32 y = 0; y < voxel_constants::chunk_size; y++)
@@ -73,8 +66,19 @@ namespace h2o
                 if (neighbor_block == Block::Air)
                 {
                     // Draw this face
+                    vertices.push_back(BlockVertex
+                    {
+
+                    });
                 }
             }
         }
+    }
+
+    const gfx::IVertexArray& ChunkMesh::vertex_array() const
+    {
+        // TODO: Find a better way to check for vao validity
+        assert(m_vertex_array);
+        return *m_vertex_array;
     }
 }

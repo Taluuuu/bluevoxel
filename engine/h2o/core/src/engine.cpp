@@ -119,7 +119,7 @@ namespace h2o
             if (it == m_modules_to_init.end())
             {
                 // No more modules can be initialized
-                return;
+                break;
             }
 
             if (it->second->init(*this))
@@ -153,6 +153,11 @@ namespace h2o
                 // Don't try loading the module in subsequent runs
                 m_modules_to_init.erase(it->first);
             }
+        }
+
+        for (const auto& module : m_modules_to_init)
+        {
+            log::warn("Could not initialize all dependencies for module: '{}'", module.second->module_name());
         }
     }
 }

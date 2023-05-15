@@ -16,9 +16,9 @@ namespace h2o
     ChunkRenderingSystem::ChunkRenderingSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
     {
-        auto voxel_rendering_module = g_engine->get_module<VoxelRenderingModule>();
+        m_voxel_rendering_module = g_engine->get_module<VoxelRenderingModule>();
         auto rendering_module = g_engine->get_module<RenderingModule>();
-        assert(voxel_rendering_module && rendering_module);
+        assert(m_voxel_rendering_module && rendering_module);
 
         auto chunk_system = m_scene->get_system<ChunkSystem>();
         assert(chunk_system);
@@ -47,24 +47,20 @@ namespace h2o
                 assert(m_mesh_index_map.contains(chunk_pos));
 
                 // A bit sketchy, no checks
-                m_chunk_meshes[m_mesh_index_map[chunk_pos]].update(event.chunk);
+                m_chunk_meshes[m_mesh_index_map[chunk_pos]].update(
+                    *m_voxel_rendering_module, event.chunk);
             });
 
         set_tick_phases(Render);
     }
 
-    bool ChunkRenderingSystem::init()
-    {
-        assert(m_renderer && m_voxel_rendering_module);
-        auto& pipeline = m_voxel_rendering_module->pipeline();
-    }
-
     void ChunkRenderingSystem::render(f32 delta_time)
     {
+        m_renderer->bind_pipeline(m_voxel_rendering_module->pipeline());
 
         for (const auto& mesh : m_chunk_meshes)
         {
-//            mesh.vertex_array();
+            m_renderer->draw(mesh.vertex_array());
         }
     }
 

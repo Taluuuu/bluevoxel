@@ -2,6 +2,7 @@
 
 #include "core/module.h"
 #include "core/types.h"
+#include "voxel_rendering/block_model.h"
 
 #include <memory>
 #include <unordered_map>
@@ -13,8 +14,6 @@ namespace h2o
     class RenderingModule;
 
     namespace gfx { class IPipeline; }
-
-    using BlockModel = std::vector<std::vector<u32>>;
 
     class VoxelRenderingModule : public IModule
     {
@@ -30,7 +29,8 @@ namespace h2o
 
         [[nodiscard]] const BlockModel* get_model(const std::string& name) const;
 
-        [[nodiscard]] const gfx::IPipeline& pipeline() const;
+        // Return value is always valid or an assert fails
+        [[nodiscard]] const std::shared_ptr<gfx::IPipeline>& pipeline() const;
 
     private:
 
