@@ -14,6 +14,7 @@ target_link_libraries(h2o_voxel_rendering
         h2o_core
         h2o_rendering
         h2o_scene
+        h2o_scene_rendering
         h2o_voxel
         yaml-cpp
 )
@@ -26,6 +27,7 @@ target_include_directories(h2o_voxel_rendering
         h2o_core
         h2o_rendering
         h2o_scene
+        h2o_scene_rendering
         h2o_voxel
         yaml-cpp
 )

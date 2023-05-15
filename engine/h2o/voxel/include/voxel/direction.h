@@ -25,7 +25,7 @@ namespace h2o::voxel
         case YPos: return {  0,  1,  0  };
         case ZNeg: return {  0,  0, -1  };
         case ZPos: return {  0,  0,  1  };
-        default:   assert(false);
+        default: assert(false); return { 0, 0, 0 };
         }
     }
 }

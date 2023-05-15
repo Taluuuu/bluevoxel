@@ -33,6 +33,7 @@ namespace h2o
         void unregister_component(const MeshRendererComponent& renderer_component);
 
         void set_main_camera(const WeakHandle<gfx::Camera>& camera);
+        [[nodiscard]] const WeakHandle<gfx::Camera>& main_camera() const { return m_main_camera; }
 
     private:
 

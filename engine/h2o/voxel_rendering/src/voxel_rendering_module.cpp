@@ -40,7 +40,7 @@ namespace h2o
                     continue;
                 }
 
-                BlockModel model;
+                BlockModel model{};
                 for (const auto face : block_model["faces"])
                 {
                     const auto dir_name = face["dir"].as<std::string>();
@@ -54,18 +54,27 @@ namespace h2o
                         continue;
                     }
 
-                    const size_t dir_index = *magic_enum::enum_index(*dir);
-                    if (occluded)
-                    {
-                        model.occluded_vertices[dir_index];
-                    }
-                    else
-                    {
+                    const size_t face_idx = *magic_enum::enum_index(*dir);
 
+                    auto& dir_vertices = occluded ?
+                        model.occluded_vertices[face_idx] :
+                        model.unoccluded_vertices[face_idx];
+
+                    for (const auto& vertex : vertices)
+                    {
+                        dir_vertices.push_back(BlockVertex
+                        {
+                            .x = vertex[0],
+                            .y = vertex[1],
+                            .z = vertex[2],
+                            .u = vertex[3],
+                            .v = vertex[4],
+                            .face_idx = static_cast<u32>(face_idx),
+                        });
                     }
                 }
 
-//                m_block_models[name] = ;
+                m_block_models[name] = std::move(model);
             }
         }
         catch(const std::exception& e)

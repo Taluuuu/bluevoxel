@@ -51,7 +51,7 @@ namespace h2o::gfx
         return Texture_OpenGL::create(path);
     }
 
-    void Renderer_OpenGL::draw(const IVertexArray& vertex_array)
+    void Renderer_OpenGL::draw(const IVertexArray& vertex_array, i32 count)
     {
         if (!m_bound_pipeline)
             return;
@@ -60,7 +60,7 @@ namespace h2o::gfx
         assert(vertex_array_gl);
 
         vertex_array_gl->bind();
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawArrays(GL_TRIANGLES, 0, count);
     }
 
     bool Renderer_OpenGL::init(IWindow& window, const GameInfo& game_info)

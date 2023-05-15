@@ -31,13 +31,15 @@ namespace h2o
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
         [[nodiscard]] const gfx::IVertexArray& vertex_array() const;
+        [[nodiscard]] i32 vertex_count() const { return m_vertex_count; }
 
     public:
 
         std::shared_ptr<gfx::IVertexArray> m_vertex_array = nullptr;
         std::shared_ptr<gfx::IBuffer> m_buffer = nullptr;
 
-        v3i m_chunk_pos;
+        v3i m_chunk_pos { 0, 0, 0 };
+        i32 m_vertex_count { 0 };
 
     };
 }

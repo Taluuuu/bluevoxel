@@ -2,6 +2,7 @@
 
 #include "core/log.h"
 #include "rendering/renderer.h"
+#include "rendering/buffer.h"
 #include "rendering/vertex_array.h"
 #include "voxel/chunk.h"
 #include "voxel/voxel_constants.h"
@@ -18,6 +19,7 @@ namespace h2o
         : m_chunk_pos(chunk_pos)
     {
         m_vertex_array = renderer.create_vertex_array();
+        m_buffer = renderer.create_buffer();
     }
 
     ChunkMesh::ChunkMesh(ChunkMesh&& other) noexcept
@@ -40,7 +42,7 @@ namespace h2o
 
     void ChunkMesh::update(const VoxelRenderingModule& chunk_rendering_module, const Chunk& chunk)
     {
-        std::vector<BlockVertex> vertices;
+        std::vector<u32> vertices;
         auto model = chunk_rendering_module.get_model("cube");
         if (!model)
         {
@@ -65,14 +67,29 @@ namespace h2o
 
                 if (neighbor_block == Block::Air)
                 {
-                    // Draw this face
-                    vertices.push_back(BlockVertex
+                    for (const auto& vertex : model->occluded_vertices[dir])
                     {
+                        auto temp = vertex.to_array();
+                        vertices.push_back(temp[0]);
+                        vertices.push_back(temp[1]);
+                    }
+                }
 
-                    });
+                for (const auto& vertex : model->unoccluded_vertices[dir])
+                {
+                    auto temp = vertex.to_array();
+                    vertices.push_back(temp[0]);
+                    vertices.push_back(temp[1]);
                 }
             }
         }
+
+        m_vertex_count = static_cast<i32>(vertices.size() / 2);
+
+        m_buffer->update_data(vertices.data(), vertices.size() * sizeof(u32));
+        m_vertex_array->attach_vertex_buffer(m_buffer, 0, 0, 2 * sizeof(u32));
+        m_vertex_array->setup_attribute(0, 0, gfx::AttributeType::U32, 1, 0);
+        m_vertex_array->setup_attribute(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
     }
 
     const gfx::IVertexArray& ChunkMesh::vertex_array() const

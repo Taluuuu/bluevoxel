@@ -41,11 +41,24 @@ namespace h2o::gfx
     void VertexArray_OpenGL::setup_attribute(
         u32 attribute_index,
         u32 binding_index,
+        AttributeType type,
         i32 size,
         u32 relative_offset)
     {
         glEnableVertexArrayAttrib(m_vertex_array, attribute_index);
-        glVertexArrayAttribFormat(m_vertex_array, attribute_index, size, GL_FLOAT, GL_FALSE, relative_offset);
+
+        switch (type)
+        {
+        case AttributeType::F32:
+            glVertexArrayAttribFormat(m_vertex_array, attribute_index, size, GL_FLOAT, GL_FALSE, relative_offset);
+            break;
+        case AttributeType::U32:
+            glVertexArrayAttribIFormat(m_vertex_array, attribute_index, size, GL_UNSIGNED_INT, relative_offset);
+            break;
+        default:
+            assert(false);
+        }
+
         glVertexArrayAttribBinding(m_vertex_array, attribute_index, binding_index);
     }
 }

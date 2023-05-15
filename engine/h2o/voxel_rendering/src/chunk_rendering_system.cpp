@@ -10,6 +10,8 @@
 #include "voxel_rendering/chunk_mesh.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 #include "rendering/pipeline.h"
+#include "scene_rendering/rendering_scene_system.h"
+#include "rendering/camera.h"
 
 namespace h2o
 {
@@ -56,11 +58,25 @@ namespace h2o
 
     void ChunkRenderingSystem::render(f32 delta_time)
     {
-        m_renderer->bind_pipeline(m_voxel_rendering_module->pipeline());
+        auto render_system = m_scene->get_system<RenderingSystem>();
+        if (!render_system)
+            return;
+
+        const auto& camera = render_system->main_camera();
+        if (!camera)
+            return;
+
+        // TODO: Baddd
+        const m4 proj_view = camera->calc_proj_view();
+
+        // Don't null check this, always valid
+        const auto& pipeline = m_voxel_rendering_module->pipeline();
+        pipeline->set_uniform_mat4(0, proj_view);
+        m_renderer->bind_pipeline(pipeline);
 
         for (const auto& mesh : m_chunk_meshes)
         {
-            m_renderer->draw(mesh.vertex_array());
+            m_renderer->draw(mesh.vertex_array(), mesh.vertex_count());
         }
     }
 

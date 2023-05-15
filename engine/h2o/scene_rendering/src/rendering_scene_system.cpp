@@ -85,7 +85,7 @@ namespace h2o
             if (vao && texture)
             {
                 texture->bind(0);
-                m_renderer->draw(*vao);
+                m_renderer->draw(*vao, 6);
             }
         }
     }
