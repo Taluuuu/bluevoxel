@@ -71,11 +71,13 @@ namespace h2o
 
         // Don't null check this, always valid
         const auto& pipeline = m_voxel_rendering_module->pipeline();
-        pipeline->set_uniform_mat4(0, proj_view);
+
         m_renderer->bind_pipeline(pipeline);
+        pipeline->set_uniform_mat4(0, proj_view);
 
         for (const auto& mesh : m_chunk_meshes)
         {
+            pipeline->set_uniform_ivec3(1, mesh.m_chunk_pos);
             m_renderer->draw(mesh.vertex_array(), mesh.vertex_count());
         }
     }

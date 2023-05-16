@@ -16,6 +16,10 @@ namespace h2o
 
         void update(f32 delta_time) override;
 
+    public:
+
+        f32 move_speed = 10.0f;
+
     private:
 
         WeakHandle<InputComponent> m_input = nullptr;

@@ -40,6 +40,6 @@ namespace h2o
             m_input->get_axis("fly"),
             move_input.x * glm::sin(rot_y) + move_input.y * glm::cos(rot_y) };
 
-        transform.position += move_input_rotated * delta_time;
+        transform.position += move_input_rotated * move_speed * delta_time;
     }
 }

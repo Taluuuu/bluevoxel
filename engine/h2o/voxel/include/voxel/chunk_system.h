@@ -42,7 +42,7 @@ namespace h2o
         std::vector< OwningHandle<Chunk> > m_chunks;
 
         // Constants in chunks
-        static constexpr u32 m_world_height = 1;
+        static constexpr u32 m_world_height = 5;
         static constexpr u32 m_world_size = 5;
         static constexpr u32 m_world_area = m_world_size * m_world_size;
         static constexpr u32 m_world_volume = m_world_area * m_world_height;

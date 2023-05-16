@@ -157,6 +157,12 @@ namespace h2o::gfx
         glProgramUniformMatrix4fv(m_program, location, 1, GL_FALSE, glm::value_ptr(value));
     }
 
+    void Pipeline_OpenGL::set_uniform_ivec3(i32 location, const v3i &value) const
+    {
+        assert(m_program);
+        glProgramUniform3i(m_program, location, value.x, value.y, value.z);
+    }
+
     void Pipeline_OpenGL::set_uniform_int(i32 location, i32 value) const
     {
         assert(m_program);

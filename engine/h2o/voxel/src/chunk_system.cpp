@@ -1,6 +1,7 @@
 #include "voxel/chunk_system.h"
 
 #include "voxel/chunk.h"
+#include "voxel/voxel_constants.h"
 
 namespace h2o
 {
@@ -48,8 +49,16 @@ namespace h2o
             m_chunks.push_back(std::move(chunk));
         }
 
-        if (WeakHandle<Chunk> chunk = get_chunk_at({ 0, 0, 0 }))
-            chunk->set_block_at({ 0, 0, 0 }, { 1, 0 });
+        for (const auto& chunk : m_chunks)
+        {
+            if (!chunk)
+                continue;
+
+            for (i32 i = 0; i < voxel_constants::chunk_size; i++)
+                chunk->set_block_at({ i, i, i }, { 1, 0 });
+
+            on_chunk_updated.broadcast({ *chunk });
+        }
 
         return true;
     }

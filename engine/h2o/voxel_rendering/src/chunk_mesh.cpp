@@ -67,16 +67,24 @@ namespace h2o
 
                 if (neighbor_block == Block::Air)
                 {
-                    for (const auto& vertex : model->occluded_vertices[dir])
+                    for (auto vertex : model->occluded_vertices[dir])
                     {
+                        vertex.x += x * 8;
+                        vertex.y += y * 8;
+                        vertex.z += z * 8;
+
                         auto temp = vertex.to_array();
                         vertices.push_back(temp[0]);
                         vertices.push_back(temp[1]);
                     }
                 }
 
-                for (const auto& vertex : model->unoccluded_vertices[dir])
+                for (auto vertex : model->unoccluded_vertices[dir])
                 {
+                    vertex.x += x * 8;
+                    vertex.y += y * 8;
+                    vertex.z += z * 8;
+
                     auto temp = vertex.to_array();
                     vertices.push_back(temp[0]);
                     vertices.push_back(temp[1]);
