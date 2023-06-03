@@ -73,6 +73,9 @@ namespace h2o
                         vertex.y += y * 8;
                         vertex.z += z * 8;
 
+                        // Temporary
+                        vertex.tex_idx = 0;
+
                         auto temp = vertex.to_array();
                         vertices.push_back(temp[0]);
                         vertices.push_back(temp[1]);
@@ -84,6 +87,9 @@ namespace h2o
                     vertex.x += x * 8;
                     vertex.y += y * 8;
                     vertex.z += z * 8;
+
+                    // Temporary
+                    vertex.tex_idx = 0;
 
                     auto temp = vertex.to_array();
                     vertices.push_back(temp[0]);

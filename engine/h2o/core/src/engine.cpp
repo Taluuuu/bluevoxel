@@ -2,6 +2,7 @@
 
 #include "core/log.h"
 #include "core/module.h"
+#include "core/core_interfaces.h"
 
 #include <iostream>
 #include <magic_enum.hpp>
@@ -17,6 +18,9 @@ namespace h2o
 
     Engine::~Engine()
     {
+        // Stop holding resources
+        m_resource_mgr.unload_all();
+
         m_modules_to_init.clear();
 
         while (!m_module_stack.empty())

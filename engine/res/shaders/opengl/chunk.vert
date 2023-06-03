@@ -9,7 +9,6 @@ layout(location = 1) in uint vertex_data;
 
 layout(location = 0) uniform mat4 view_projection_mat;
 layout(location = 1) uniform ivec3 chunk_pos;
-layout(location = 2) uniform mat4 light_space_mat;
 
 out vec2 pass_uv;
 flat out uint pass_tex_index;

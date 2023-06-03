@@ -43,7 +43,7 @@ namespace h2o
         vao->setup_attribute(0, 0, gfx::AttributeType::F32, 3, 0);
         vao->setup_attribute(1, 0, gfx::AttributeType::F32, 2, 3 * sizeof(f32));
 
-        texture = renderer->create_texture("Resources/engine/textures/test.png");
+        texture = renderer->fetch_or_load_texture("Resources/engine/textures/test.png");
     }
 
     MeshRendererComponent::~MeshRendererComponent()

@@ -1,7 +1,8 @@
 #pragma once
 
+//#include "core/core_interfaces.h" // Could probably be removed
 #include "game_info.h"
-#include "core/core_interfaces.h" // Could probably be removed
+#include "resources.h"
 #include "tickable.h"
 
 #include <memory>
@@ -45,10 +46,11 @@ namespace h2o
         T* get_module() const;
 
         [[nodiscard]] const GameInfo& game_info() const { return m_game_info; }
+        [[nodiscard]] ResourceManager& resource_mgr() { return m_resource_mgr; }
 
         /**
          * @brief Run the engine. Contains the main loop.
-         * 
+         *
          */
         void run();
 
@@ -73,11 +75,13 @@ namespace h2o
         std::stack<std::unique_ptr<IModule>> m_module_stack;
 
         // Queried interfaces
-        IWindowModule* m_window_module = nullptr;
-        IInputModule*  m_input_module  = nullptr;
+        class IWindowModule* m_window_module = nullptr;
+        class IInputModule*  m_input_module  = nullptr;
 
         using Tickables = std::vector<Tickable*>;
         std::array<Tickables, tick_phase_count> m_tickables;
+
+        ResourceManager m_resource_mgr;
 
     };
 

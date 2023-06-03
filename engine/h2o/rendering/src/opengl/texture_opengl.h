@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rendering/texture.h"
+#include "core/resources.h"
 #include "core/types.h"
 
 #include <glad/gl.h>
@@ -9,29 +10,31 @@
 
 namespace h2o::gfx
 {
-    class Texture_OpenGL : public ITexture
+    class Texture_OpenGL
+        : public ITexture
+        , public IResource
     {
     public:
 
-        static std::shared_ptr<Texture_OpenGL> create(const std::string& path);
-
+        Texture_OpenGL() = default;
         Texture_OpenGL(const Texture_OpenGL&) = delete;
         Texture_OpenGL(Texture_OpenGL&&) = delete;
-        ~Texture_OpenGL() override = default;
+        ~Texture_OpenGL() override;
 
         // ITexture interface
         void bind(u32 index) const override;
+        [[nodiscard]] const TextureFormat& format() const override;
+
+        // IResource interface
+        bool load(const std::string& path) override;
+
+        [[nodiscard]] GLuint handle() const { return m_handle; }
 
     private:
 
-        Texture_OpenGL(GLuint handle, v2i size, i32 nb_channels);
+        GLuint m_handle { 0 };
 
-    private:
-
-        GLuint m_handle{};
-
-        v2i m_size{};
-        i32 m_nb_channels{};
+        TextureFormat m_texture_format{};
 
     };
 }

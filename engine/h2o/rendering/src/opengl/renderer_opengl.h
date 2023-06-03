@@ -14,16 +14,17 @@ namespace h2o::gfx
         Renderer_OpenGL() = default;
 
         // IRenderer interface
-        bool                          init(IWindow& window, const GameInfo& game_info)          override;
-        void                          start_frame()                                             override;
-        void                          end_frame()                                               override;
-        PipelineCreateData            create_pipeline()                                         override;
-        std::shared_ptr<IPipeline>    compile_pipeline(const PipelineCreateData& create_data)   override;
-        void                          bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;
-        std::shared_ptr<IBuffer>      create_buffer()                                           override;
-        std::shared_ptr<IVertexArray> create_vertex_array()                                     override;
-        std::shared_ptr<ITexture>     create_texture(const std::string& path)                   override;
-        void                          draw(const IVertexArray& vertex_array, i32 count)         override;
+        bool init(IWindow& window, const GameInfo& game_info) override;
+        void start_frame() override;
+        void end_frame()  override;
+        PipelineCreateData create_pipeline() override;
+        std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data) override;
+        void bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;
+        std::shared_ptr<IBuffer> create_buffer() override;
+        std::shared_ptr<IVertexArray> create_vertex_array() override;
+        std::shared_ptr<ITexture> fetch_or_load_texture(const std::string& path) override;
+        std::shared_ptr<ITextureArray> create_texture_array(size_t array_size) override;
+        void draw(const IVertexArray& vertex_array, i32 count) override;
 
     private:
 

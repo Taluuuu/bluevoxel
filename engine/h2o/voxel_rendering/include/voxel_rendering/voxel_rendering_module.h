@@ -13,7 +13,11 @@ namespace h2o
     class VoxelModule;
     class RenderingModule;
 
-    namespace gfx { class IPipeline; }
+    namespace gfx
+    {
+        class IPipeline;
+        class ITextureArray;
+    }
 
     class VoxelRenderingModule : public IModule
     {
@@ -31,12 +35,14 @@ namespace h2o
 
         // Return value is always valid or an assert fails
         [[nodiscard]] const std::shared_ptr<gfx::IPipeline>& pipeline() const;
+        [[nodiscard]] const std::shared_ptr<gfx::ITextureArray>& block_textures() const;
 
     private:
 
         std::unordered_map< std::string, BlockModel > m_block_models;
 
         std::shared_ptr<gfx::IPipeline> m_pipeline = nullptr;
+        std::shared_ptr<gfx::ITextureArray> m_block_textures = nullptr;
 
         VoxelModule* m_voxel_module = nullptr;
         RenderingModule* m_rendering_module = nullptr;

@@ -1,6 +1,7 @@
 #include "renderer_opengl.h"
 
 #include "core/log.h"
+#include "core/engine.h"
 #include "core/game_info.h"
 #include "rendering/pipeline.h"
 #include "windowing/window.h"
@@ -8,6 +9,7 @@
 #include "buffer_opengl.h"
 #include "vertex_array_opengl.h"
 #include "texture_opengl.h"
+#include "texture_array_opengl.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -31,6 +33,7 @@ namespace h2o::gfx
 
     void Renderer_OpenGL::bind_pipeline(const std::shared_ptr<IPipeline>& pipeline)
     {
+        // TODO: Shader pipelines should use the resource manager
         m_bound_pipeline = std::dynamic_pointer_cast<Pipeline_OpenGL>(pipeline);
         if (m_bound_pipeline)
             glUseProgram(m_bound_pipeline->handle());
@@ -46,9 +49,14 @@ namespace h2o::gfx
         return std::make_shared<VertexArray_OpenGL>();
     }
 
-    std::shared_ptr<ITexture> Renderer_OpenGL::create_texture(const std::string& path)
+    std::shared_ptr<ITexture> Renderer_OpenGL::fetch_or_load_texture(const std::string& path)
     {
-        return Texture_OpenGL::create(path);
+        return g_engine->resource_mgr().fetch<Texture_OpenGL>(path);
+    }
+
+    std::shared_ptr<ITextureArray> Renderer_OpenGL::create_texture_array(size_t array_size)
+    {
+        return std::make_shared<TextureArray_OpenGL>(array_size);
     }
 
     void Renderer_OpenGL::draw(const IVertexArray& vertex_array, i32 count)
@@ -76,9 +84,9 @@ namespace h2o::gfx
 
         glViewport(0, 0, window.window_size().x, window.window_size().y);
         glClearColor(0.0f, 0.1f, 0.2f, 1.0f);
-        glEnable(GL_DEBUG_OUTPUT);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
+        // glEnable(GL_DEBUG_OUTPUT);
+        glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
 
         window.resize_event().add_listener(m_window_resize_event_handle,
             [](const WindowResizeEvent& event)

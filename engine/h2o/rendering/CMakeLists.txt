@@ -28,7 +28,8 @@ if(H2O_USE_OPENGL)
         src/opengl/pipeline_opengl.cpp
         src/opengl/renderer_opengl.cpp
         src/opengl/vertex_array_opengl.cpp
-        src/opengl/texture_opengl.cpp)
+        src/opengl/texture_opengl.cpp
+        src/opengl/texture_array_opengl.cpp)
 endif()
 
 add_library(h2o_rendering ${RENDERING_SOURCES})

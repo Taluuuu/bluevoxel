@@ -10,8 +10,9 @@
 #include "voxel_rendering/chunk_mesh.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 #include "rendering/pipeline.h"
-#include "scene_rendering/rendering_scene_system.h"
 #include "rendering/camera.h"
+#include "rendering/texture_array.h"
+#include "scene_rendering/rendering_scene_system.h"
 
 namespace h2o
 {
@@ -69,11 +70,15 @@ namespace h2o
         // TODO: Baddd
         const m4 proj_view = camera->calc_proj_view();
 
-        // Don't null check this, always valid
+        // Don't null check these, always valid
         const auto& pipeline = m_voxel_rendering_module->pipeline();
+        const auto& block_textures = m_voxel_rendering_module->block_textures();
 
         m_renderer->bind_pipeline(pipeline);
         pipeline->set_uniform_mat4(0, proj_view);
+
+        block_textures->bind(0);
+        pipeline->set_uniform_int(2, 0);
 
         for (const auto& mesh : m_chunk_meshes)
         {

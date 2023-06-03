@@ -7,6 +7,7 @@
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
 #include "rendering/pipeline.h"
+#include "rendering/texture_array.h"
 #include "voxel_rendering/block_model.h"
 #include "voxel/direction.h"
 
@@ -77,14 +78,23 @@ namespace h2o
                 m_block_models[name] = std::move(model);
             }
         }
-        catch(const std::exception& e)
+        catch (const std::exception& e)
         {
             log::error("Failed to import block models: {}", e.what());
             return false;
         }
 
-        // Create rendering pipeline
         auto& renderer = m_rendering_module->renderer();
+
+        // Load textures
+        m_block_textures = renderer.create_texture_array(1);
+        if (!m_block_textures)
+            return false;
+
+        if (auto tex = renderer.fetch_or_load_texture("Resources/engine/textures/test.png"))
+            m_block_textures->set_texture(0, tex);
+
+        // Create rendering pipeline
         m_pipeline = renderer
             .create_pipeline()
             .add_shader(gfx::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/chunk.vert")
@@ -108,5 +118,11 @@ namespace h2o
         // The pipeline should be valid here, otherwise the init would have failed.
         assert(m_pipeline);
         return m_pipeline;
+    }
+
+    const std::shared_ptr<gfx::ITextureArray>& VoxelRenderingModule::block_textures() const
+    {
+        assert(m_block_textures);
+        return m_block_textures;
     }
 }
