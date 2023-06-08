@@ -2,16 +2,16 @@
 
 #include "core/engine.h"
 #include "core/log.h"
-#include "voxel/voxel_module.h"
-#include "yaml-cpp/yaml.h"
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
 #include "rendering/pipeline.h"
 #include "rendering/texture_array.h"
 #include "voxel_rendering/block_model.h"
 #include "voxel/direction.h"
+#include "voxel/voxel_module.h"
 
 #include <magic_enum.hpp>
+#include <yaml-cpp/yaml.h>
 
 namespace h2o
 {
@@ -111,6 +111,11 @@ namespace h2o
     {
         auto it = m_block_models.find(name);
         return (it == m_block_models.end()) ? nullptr : &it->second;
+    }
+
+    const BlockModel* VoxelRenderingModule::get_model(BlockID id) const
+    {
+        return nullptr;
     }
 
     const std::shared_ptr<gfx::IPipeline>& VoxelRenderingModule::pipeline() const

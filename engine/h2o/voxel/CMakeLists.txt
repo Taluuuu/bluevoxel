@@ -12,9 +12,10 @@ add_library(h2o_voxel
 
 target_link_libraries(h2o_voxel
     PRIVATE
-        magic_enum
         h2o_core
         h2o_scene
+        magic_enum
+        yaml-cpp
 )
 
 target_include_directories(h2o_voxel
@@ -22,7 +23,8 @@ target_include_directories(h2o_voxel
         include/
 
     PRIVATE
-        magic_enum
         h2o_core
         h2o_scene
+        magic_enum
+        yaml-cpp
 )

@@ -2,6 +2,7 @@
 
 #include "core/module.h"
 #include "core/types.h"
+#include "voxel/block.h"
 #include "voxel_rendering/block_model.h"
 
 #include <memory>
@@ -32,6 +33,7 @@ namespace h2o
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         [[nodiscard]] const BlockModel* get_model(const std::string& name) const;
+        [[nodiscard]] const BlockModel* get_model(BlockID id) const;
 
         // Return value is always valid or an assert fails
         [[nodiscard]] const std::shared_ptr<gfx::IPipeline>& pipeline() const;

@@ -57,7 +57,6 @@ namespace h2o::gfx
         assert(tex_gl);
         assert(tex_gl->handle() != 0);
 
-        assert(m_handle);
         glCopyImageSubData(
             tex_gl->handle(), GL_TEXTURE_2D,       0, 0, 0, 0,
             m_handle,         GL_TEXTURE_2D_ARRAY, 0, 0, 0, index,

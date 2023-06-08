@@ -1,0 +1,21 @@
+block_types:
+  - name: grass_block
+    id: 1
+    model: cube
+    textures:
+      - grass_block_side.png
+      - grass_block_side.png
+      - dirt_block.png
+      - grass_block_top.png
+      - grass_block_side.png
+      - grass_block_side.png
+  - name: dirt_block
+    id: 2
+    model: cube
+    textures:
+      - dirt_block.png
+      - dirt_block.png
+      - dirt_block.png
+      - dirt_block.png
+      - dirt_block.png
+      - dirt_block.png

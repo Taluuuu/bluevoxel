@@ -1,6 +1,10 @@
 #pragma once
 
 #include "core/module.h"
+#include "voxel/block.h"
+
+#include <optional>
+#include <vector>
 
 namespace h2o
 {
@@ -9,8 +13,16 @@ namespace h2o
     public:
 
         // IModule interface
+        [[nodiscard]] bool init(Engine& engine) override;
         [[nodiscard]] std::string_view module_name() const override { return "h2o_voxel"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
-        
+
+        [[nodiscard]] const BlockType* get_block_type(BlockID id) const;
+        [[nodiscard]] const std::vector<std::optional<BlockType>>& block_types() const { return m_block_types; }
+
+    private:
+
+        std::vector<std::optional<BlockType>> m_block_types;
+
     };
 }

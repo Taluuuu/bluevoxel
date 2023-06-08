@@ -2,8 +2,20 @@
 
 #include "core/types.h"
 
+#include <string>
+#include <vector>
+
 namespace h2o
 {
+    using BlockID = u16;
+
+    struct BlockType
+    {
+        std::string name;
+        std::string model_name;
+        std::vector<std::string> texture_names;
+    };
+
     struct Block
     {
         u64 id   : 16 { 0 };
