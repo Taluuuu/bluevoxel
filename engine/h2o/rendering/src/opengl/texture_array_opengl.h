@@ -15,7 +15,7 @@ namespace h2o::gfx
     {
     public:
 
-        TextureArray_OpenGL(size_t array_size);
+        explicit TextureArray_OpenGL(size_t array_size);
         TextureArray_OpenGL(const TextureArray_OpenGL&) = delete;
         TextureArray_OpenGL(TextureArray_OpenGL&&) = delete;
         ~TextureArray_OpenGL() override;

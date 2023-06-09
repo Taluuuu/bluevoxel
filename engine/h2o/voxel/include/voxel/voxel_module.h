@@ -18,7 +18,7 @@ namespace h2o
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         [[nodiscard]] const BlockType* get_block_type(BlockID id) const;
-        [[nodiscard]] const std::vector<std::optional<BlockType>>& block_types() const { return m_block_types; }
+        [[nodiscard]] size_t block_type_count() const;
 
     private:
 

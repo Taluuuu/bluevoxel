@@ -20,18 +20,31 @@ namespace h2o
             for (const auto block_type : block_types)
             {
                 const u16 id = block_type["id"].as<u16>();
+                const auto name = block_type["name"].as<std::string>();
+
+                // This could be expanded upon if more block ids get reserved.
+                if (id == 0)
+                {
+                    log::warn("Block type with name '{}' uses reserved id: {}.", name, id);
+                    continue;
+                }
+
                 const auto model_name = block_type["model"].as<std::string>();
                 const auto texture_names = block_type["textures"].as<std::vector<std::string>>();
 
+                if (id >= result.size())
+                    result.resize(id + 1);
 
+                result[id] = { name, model_name, texture_names };
             }
-
         }
         catch (const std::exception& e)
         {
             log::error("Failed to import block types: {}", e.what());
             return false;
         }
+
+        m_block_types = std::move(result);
 
         return true;
     }
@@ -51,5 +64,10 @@ namespace h2o
             return &*block_type;
 
         return nullptr;
+    }
+
+    size_t VoxelModule::block_type_count() const
+    {
+        return m_block_types.size();
     }
 }

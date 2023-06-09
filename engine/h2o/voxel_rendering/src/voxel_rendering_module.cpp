@@ -35,7 +35,7 @@ namespace h2o
             for (const auto block_model : block_models)
             {
                 const auto name = block_model["name"].as<std::string>();
-                if (m_block_models.find(name) != m_block_models.end())
+                if (block_model_exists(name))
                 {
                     log::warn("Multiple block models found with name: '{}'", name);
                     continue;
@@ -75,13 +75,57 @@ namespace h2o
                     }
                 }
 
-                m_block_models[name] = std::move(model);
+                add_block_model(name, std::move(model));
             }
         }
         catch (const std::exception& e)
         {
             log::error("Failed to import block models: {}", e.what());
             return false;
+        }
+
+        u32 current_tex_index = 0;
+        std::unordered_map<std::string, u32> texture_index_map;
+
+        size_t block_type_count = m_voxel_module->block_type_count();
+        m_block_model_indices_by_block_id.resize(block_type_count);
+        m_texture_indices_by_block_id.resize(block_type_count);
+
+        for (size_t i = 0; i < block_type_count; i++)
+        {
+            const BlockType* block_type = m_voxel_module->get_block_type(i);
+            if (!block_type)
+                continue;
+
+            // Set model index
+            auto model_index = get_model_index(block_type->model_name);
+            if (!model_index.has_value())
+            {
+                log::error("Invalid block model '{}' requested for block '{}'.",
+                    block_type->model_name, block_type->name);
+
+                return false;
+            }
+
+            assert(i < m_block_model_indices_by_block_id.size());
+            m_block_model_indices_by_block_id[i] = *model_index;
+
+            // Set block textures
+            const auto& tex_names = block_type->texture_names;
+            std::vector<u32> block_tex_indices(tex_names.size(), 0);
+            for (size_t j = 0; j < tex_names.size(); j++)
+            {
+                const auto& tex_name = tex_names[j];
+
+                const auto tex_it = texture_index_map.find(tex_name);
+                if (tex_it == texture_index_map.end())
+                    texture_index_map[tex_name] = current_tex_index++;
+
+                block_tex_indices[j] = texture_index_map[tex_name];
+            }
+
+            // TODO: Make sure the block type has the right amount of textures
+            m_texture_indices_by_block_id[i] = std::move(block_tex_indices);
         }
 
         auto& renderer = m_rendering_module->renderer();
@@ -109,13 +153,34 @@ namespace h2o
 
     const BlockModel* VoxelRenderingModule::get_model(const std::string& name) const
     {
-        auto it = m_block_models.find(name);
-        return (it == m_block_models.end()) ? nullptr : &it->second;
+        auto it = m_block_model_indices_by_name.find(name);
+        if (it == m_block_model_indices_by_name.end())
+            return nullptr;
+
+        assert(it->second < m_block_models.size());
+        return &m_block_models[it->second];
     }
 
-    const BlockModel* VoxelRenderingModule::get_model(BlockID id) const
+    const BlockModel* VoxelRenderingModule::get_model_safe(BlockID id) const
     {
-        return nullptr;
+        assert(id);
+        if (id > m_block_model_indices_by_block_id.size())
+            return nullptr;
+
+        u32 model_index = m_block_model_indices_by_block_id[id];
+        if (model_index > m_block_models.size())
+            return nullptr;
+
+        return &m_block_models[model_index];
+    }
+
+    const BlockModel* VoxelRenderingModule::get_model_fast(BlockID id) const
+    {
+        assert(id);
+        assert(id < m_block_model_indices_by_block_id.size());
+        u32 model_index = m_block_model_indices_by_block_id[id];
+        assert(model_index < m_block_models.size());
+        return &m_block_models[model_index];
     }
 
     const std::shared_ptr<gfx::IPipeline>& VoxelRenderingModule::pipeline() const
@@ -129,5 +194,30 @@ namespace h2o
     {
         assert(m_block_textures);
         return m_block_textures;
+    }
+
+    std::optional<u32> VoxelRenderingModule::get_model_index(const std::string& name) const
+    {
+        const auto it = m_block_model_indices_by_name.find(name);
+        if (it == m_block_model_indices_by_name.end())
+            return std::nullopt;
+
+        return it->second;
+    }
+
+    bool VoxelRenderingModule::block_model_exists(const std::string& name) const
+    {
+        return get_model_index(name).has_value();
+    }
+
+    void VoxelRenderingModule::add_block_model(const std::string& name, BlockModel&& block_model)
+    {
+        // Does this block model already exist ?
+        assert(!block_model_exists(name));
+
+        const u32 new_index = m_block_models.size();
+        m_block_models.emplace_back(std::move(block_model));
+
+        m_block_model_indices_by_name[name] = new_index;
     }
 }
