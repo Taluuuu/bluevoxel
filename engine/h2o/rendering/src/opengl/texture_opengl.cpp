@@ -25,7 +25,10 @@ namespace h2o::gfx
         unsigned char* data = stbi_load(path.c_str(), &width, &height, &nb_channels, 0);
 
         if (!data)
+        {
+            log::warn("Could not load texture at path: {}", path);
             return false;
+        }
 
         glCreateTextures(GL_TEXTURE_2D, 1, &m_handle);
 

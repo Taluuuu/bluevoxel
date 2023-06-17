@@ -6,8 +6,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 add_library(h2o_voxel
     src/block.cpp
     src/chunk.cpp
-    src/chunk_system.cpp
     src/voxel_module.cpp
+    src/voxel_pack.cpp
+    src/chunk_system.cpp
 )
 
 target_link_libraries(h2o_voxel

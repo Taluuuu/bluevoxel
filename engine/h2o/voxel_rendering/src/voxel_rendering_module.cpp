@@ -9,12 +9,17 @@
 #include "voxel_rendering/block_model.h"
 #include "voxel/direction.h"
 #include "voxel/voxel_module.h"
+#include "voxel/voxel_pack.h"
 
 #include <magic_enum.hpp>
 #include <yaml-cpp/yaml.h>
 
 namespace h2o
 {
+    VoxelRenderingModule::VoxelRenderingModule(const std::shared_ptr<VoxelPack>& voxel_pack)
+        : m_voxel_pack(voxel_pack)
+    {}
+
     std::vector<std::type_index> VoxelRenderingModule::dependencies() const
     {
         return { typeid(VoxelModule), typeid(RenderingModule) };
@@ -22,6 +27,12 @@ namespace h2o
 
     bool VoxelRenderingModule::init(Engine& engine)
     {
+        if (!m_voxel_pack)
+        {
+            log::error("No usable voxel pack found in voxel rendering module.");
+            return false;
+        }
+
         m_voxel_module = engine.get_module<VoxelModule>();
         m_rendering_module = engine.get_module<RenderingModule>();
         if (!m_voxel_module || !m_rendering_module)
@@ -30,7 +41,7 @@ namespace h2o
         // Load block models
         try
         {
-            const auto root = YAML::LoadFile("Resources/engine/voxels/block_models.yaml");
+            const auto root = YAML::LoadFile(m_voxel_pack->block_models_path().string());
             const auto block_models = root["block_models"];
             for (const auto block_model : block_models)
             {
@@ -42,36 +53,45 @@ namespace h2o
                 }
 
                 BlockModel model{};
-                for (const auto face : block_model["faces"])
+                for (const auto face_yml : block_model["faces"])
                 {
-                    const auto dir_name = face["dir"].as<std::string>();
-                    const bool occluded = face["occluded"].as<bool>();
-                    const auto vertices = face["vertices"].as<std::vector<std::array<u32, 5>>>();
+                    const auto vertices = face_yml["vertices"].as<std::vector<std::array<u32, 5>>>();
+                    const auto occluded_by_yml = face_yml["occluded_by"];
 
-                    const auto dir = magic_enum::enum_cast<voxel::Direction>(dir_name);
-                    if (!dir || !magic_enum::enum_index(*dir))
-                    {
-                        log::error("Failed to import block model '{}'; invalid face direction: '{}'", name, dir_name);
-                        continue;
-                    }
-
-                    const size_t face_idx = *magic_enum::enum_index(*dir);
-
-                    auto& dir_vertices = occluded ?
-                        model.occluded_vertices[face_idx] :
-                        model.unoccluded_vertices[face_idx];
-
+                    std::vector<BlockVertex> face_vertices;
+                    face_vertices.reserve(vertices.size());
                     for (const auto& vertex : vertices)
                     {
-                        dir_vertices.push_back(BlockVertex
+                        face_vertices.push_back(BlockVertex
+                            {
+                                .x = vertex[0],
+                                .y = vertex[1],
+                                .z = vertex[2],
+                                .u = vertex[3],
+                                .v = vertex[4],
+                            });
+                    }
+
+                    if (occluded_by_yml)
+                    {
+                        // An occluder is specified
+                        const auto occluder_name = occluded_by_yml.as<std::string>();
+                        const auto occluder = magic_enum::enum_cast<voxel::Direction>(occluder_name);
+
+                        if (!occluder)
                         {
-                            .x = vertex[0],
-                            .y = vertex[1],
-                            .z = vertex[2],
-                            .u = vertex[3],
-                            .v = vertex[4],
-                            .face_idx = static_cast<u32>(face_idx),
-                        });
+                            log::error("Failed to import block model '{}'; invalid occluder name: '{}'", name, occluder_name);
+                            continue;
+                        }
+
+                        const auto face_idx = magic_enum::enum_index(*occluder);
+                        assert(face_idx);
+
+                        model.occluded_vertices[*face_idx].emplace_back(std::move(face_vertices));
+                    }
+                    else
+                    {
+                        model.unoccluded_vertices.emplace_back(std::move(face_vertices));
                     }
                 }
 
@@ -84,8 +104,8 @@ namespace h2o
             return false;
         }
 
-        u32 current_tex_index = 0;
-        std::unordered_map<std::string, u32> texture_index_map;
+        i32 current_tex_index = 0;
+        std::unordered_map<std::string, i32> texture_index_map;
 
         size_t block_type_count = m_voxel_module->block_type_count();
         m_block_model_indices_by_block_id.resize(block_type_count);
@@ -131,12 +151,21 @@ namespace h2o
         auto& renderer = m_rendering_module->renderer();
 
         // Load textures
-        m_block_textures = renderer.create_texture_array(1);
+        m_block_textures = renderer.create_texture_array(texture_index_map.size());
         if (!m_block_textures)
             return false;
 
-        if (auto tex = renderer.fetch_or_load_texture("Resources/engine/textures/test.png"))
-            m_block_textures->set_texture(0, tex);
+        for (const auto& [tex_name, tex_index] : texture_index_map)
+        {
+            auto tex = renderer.fetch_or_load_texture(
+                (m_voxel_pack->textures_path() / fs::path(tex_name)).string());
+
+            if (!tex)
+                continue;
+
+            assert(tex_index < texture_index_map.size());
+            m_block_textures->set_texture(tex_index, tex);
+        }
 
         // Create rendering pipeline
         m_pipeline = renderer
@@ -181,6 +210,13 @@ namespace h2o
         u32 model_index = m_block_model_indices_by_block_id[id];
         assert(model_index < m_block_models.size());
         return &m_block_models[model_index];
+    }
+
+    const std::vector<u32>& VoxelRenderingModule::get_textures_fast(BlockID id) const
+    {
+        assert(id);
+        assert(id < m_texture_indices_by_block_id.size());
+        return m_texture_indices_by_block_id[id];
     }
 
     const std::shared_ptr<gfx::IPipeline>& VoxelRenderingModule::pipeline() const

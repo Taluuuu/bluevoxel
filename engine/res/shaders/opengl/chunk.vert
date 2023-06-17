@@ -12,7 +12,6 @@ layout(location = 1) uniform ivec3 chunk_pos;
 
 out vec2 pass_uv;
 flat out uint pass_tex_index;
-flat out uint pass_face_index;
 
 void main()
 {
@@ -31,5 +30,4 @@ void main()
     ) / float(TEX_COORD_DETAIL);
 
     pass_tex_index  = bitfieldExtract(vertex_data, 10, 11);
-    pass_face_index = bitfieldExtract(vertex_data, 21, 3);
 }

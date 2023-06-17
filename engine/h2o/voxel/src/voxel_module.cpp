@@ -1,21 +1,31 @@
 #include "voxel/voxel_module.h"
 
 #include "core/log.h"
-#include "core/types.h"
 #include "voxel/block.h"
+#include "voxel/voxel_pack.h"
 
 #include <optional>
 #include <yaml-cpp/yaml.h>
 
 namespace h2o
 {
+    VoxelModule::VoxelModule(const std::shared_ptr<VoxelPack>& voxel_pack)
+        : m_voxel_pack(voxel_pack)
+    {}
+
     bool VoxelModule::init(Engine& engine)
     {
+        if (!m_voxel_pack)
+        {
+            log::error("No usable voxel pack found in voxel module.");
+            return false;
+        }
+
         std::vector<std::optional<BlockType>> result;
 
         try
         {
-            const auto root = YAML::LoadFile("Resources/engine/voxels/block_types.yaml");
+            const auto root = YAML::LoadFile(m_voxel_pack->block_types_path().string());
             const auto block_types = root["block_types"];
             for (const auto block_type : block_types)
             {

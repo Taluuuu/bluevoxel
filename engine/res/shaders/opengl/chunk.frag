@@ -2,7 +2,6 @@
 
 in vec2 pass_uv;
 flat in uint pass_tex_index;
-flat in uint pass_face_index;
 
 layout(location = 2) uniform sampler2DArray block_textures;
 

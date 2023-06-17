@@ -12,6 +12,7 @@
 namespace h2o
 {
     class VoxelModule;
+    class VoxelPack;
     class RenderingModule;
 
     namespace gfx
@@ -24,7 +25,7 @@ namespace h2o
     {
     public:
 
-        VoxelRenderingModule() = default;
+        explicit VoxelRenderingModule(const std::shared_ptr<VoxelPack>& voxel_pack);
         ~VoxelRenderingModule() override = default;
 
         // IModule interface
@@ -35,6 +36,7 @@ namespace h2o
         [[nodiscard]] const BlockModel* get_model(const std::string& name) const;
         [[nodiscard]] const BlockModel* get_model_safe(BlockID id) const;
         [[nodiscard]] const BlockModel* get_model_fast(BlockID id) const;
+        [[nodiscard]] const std::vector<u32>& get_textures_fast(BlockID id) const;
 
         // Return value is always valid or an assert fails
         [[nodiscard]] const std::shared_ptr<gfx::IPipeline>& pipeline() const;
@@ -63,6 +65,8 @@ namespace h2o
         // Module refs
         VoxelModule* m_voxel_module = nullptr;
         RenderingModule* m_rendering_module = nullptr;
+
+        std::shared_ptr<VoxelPack> m_voxel_pack = nullptr;
 
     };
 }

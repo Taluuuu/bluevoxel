@@ -9,6 +9,7 @@ namespace h2o::gfx
     TextureArray_OpenGL::TextureArray_OpenGL(size_t array_size)
     {
         m_textures.resize(array_size);
+        glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_handle);
     }
 
     TextureArray_OpenGL::~TextureArray_OpenGL()
@@ -22,17 +23,19 @@ namespace h2o::gfx
 
         const auto& tex_format = texture->format();
 
-        if (!m_handle)
+        if (!m_texture_format.has_value())
         {
-            glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &m_handle);
+            // Get the texture resolution from the first attached texture
             glTextureStorage3D(m_handle, 1, GL_RGBA8,
-                tex_format.size.x, tex_format.size.y, m_textures.size());
+                tex_format.size.x, tex_format.size.y, GLsizei(m_textures.size()));
 
             // Set texture parameters
             glTextureParameteri(m_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
             glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+            m_texture_format = texture->format();
         }
 
         if (m_texture_format.has_value() && m_texture_format != tex_format)
@@ -49,8 +52,6 @@ namespace h2o::gfx
             log::warn("Invalid index for texture in texture array");
             return;
         }
-
-        m_texture_format = texture->format();
 
         auto& tex_gl = m_textures[index];
         tex_gl = std::dynamic_pointer_cast<Texture_OpenGL>(texture);

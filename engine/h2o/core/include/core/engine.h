@@ -1,6 +1,5 @@
 #pragma once
 
-//#include "core/core_interfaces.h" // Could probably be removed
 #include "game_info.h"
 #include "resources.h"
 #include "tickable.h"

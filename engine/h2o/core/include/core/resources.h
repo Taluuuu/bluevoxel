@@ -13,6 +13,8 @@ namespace h2o
     {
     public:
 
+        virtual ~IResource() = default;
+
         virtual bool load(const std::string& path) = 0;
 
     };

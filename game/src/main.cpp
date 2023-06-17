@@ -9,6 +9,7 @@
 #include "game_framework/game_framework_module.h"
 #include "scene_rendering/scene_rendering_module.h"
 #include "voxel/voxel_module.h"
+#include "voxel/voxel_pack.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 
 int main()
@@ -16,9 +17,13 @@ int main()
     h2o::Engine engine(
         h2o::GameInfo
         {
-            .game_name = "haaaaa"
+            .game_name = "Voxel Playground"
         }
     );
+
+    const auto voxel_pack = engine
+        .resource_mgr()
+        .fetch<h2o::VoxelPack>("Resources/game/voxel/pack.yml");
 
     engine
         .add_module<h2o::WindowingModule>()
@@ -27,8 +32,8 @@ int main()
         .add_module<h2o::SceneModule>()
         .add_module<h2o::GameFrameworkModule>()
         .add_module<h2o::SceneRenderingModule>()
-        .add_module<h2o::VoxelModule>()
-        .add_module<h2o::VoxelRenderingModule>()
+        .add_module<h2o::VoxelModule>(voxel_pack)
+        .add_module<h2o::VoxelRenderingModule>(voxel_pack)
         .add_module<game::GameModule>()
         .run();
 }
