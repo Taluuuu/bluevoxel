@@ -52,6 +52,11 @@ namespace h2o
                     continue;
                 }
 
+                // An index that keeps track of the order in which faces are defined.
+                // This is a bit of a hack as the tex_idx defined here is not the same as the tex_idx that
+                // is sent to the gpu, which is defined per-block.
+                u32 tex_idx = 0;
+
                 BlockModel model{};
                 for (const auto face_yml : block_model["faces"])
                 {
@@ -69,8 +74,11 @@ namespace h2o
                                 .z = vertex[2],
                                 .u = vertex[3],
                                 .v = vertex[4],
+                                .tex_idx = tex_idx
                             });
                     }
+
+                    tex_idx++;
 
                     if (occluded_by_yml)
                     {
@@ -84,10 +92,10 @@ namespace h2o
                             continue;
                         }
 
-                        const auto face_idx = magic_enum::enum_index(*occluder);
-                        assert(face_idx);
+                        const auto dir_idx = magic_enum::enum_index(*occluder);
+                        assert(dir_idx);
 
-                        model.occluded_vertices[*face_idx].emplace_back(std::move(face_vertices));
+                        model.occluded_vertices[*dir_idx].emplace_back(std::move(face_vertices));
                     }
                     else
                     {

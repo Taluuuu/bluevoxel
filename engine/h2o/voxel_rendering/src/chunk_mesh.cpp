@@ -43,17 +43,22 @@ namespace h2o
     void ChunkMesh::update(const VoxelRenderingModule& chunk_rendering_module, const Chunk& chunk)
     {
         std::vector<u32> vertices;
-//        auto model = chunk_rendering_module.get_model("cube");
-//        if (!model)
-//        {
-//            log::error("No cube model found :/");
-//            return;
-//        }
 
         const auto append_face = [&vertices]
-            (const v3i& pos, const BlockModel& model)
+            (const v3i& pos, const BlockModel& model, const std::vector<u32>& textures, const std::vector<BlockVertex>& face)
             {
+                for (BlockVertex vertex : face)
+                {
+                    vertex.x += pos.x * 8;
+                    vertex.y += pos.y * 8;
+                    vertex.z += pos.z * 8;
 
+                    vertex.tex_idx = textures[vertex.tex_idx];
+
+                    auto temp = vertex.to_array();
+                    vertices.push_back(temp[0]);
+                    vertices.push_back(temp[1]);
+                }
             };
 
         for (i32 x = 0; x < voxel_constants::chunk_size; x++)
@@ -70,8 +75,6 @@ namespace h2o
             if (!model)
                 continue;
 
-            // Get texture index
-            size_t tex_idx = 0;
             const auto& textures = chunk_rendering_module.get_textures_fast(block.id);
 
             for (u32 dir = 0; dir < magic_enum::enum_count<voxel::Direction>(); dir++)
@@ -82,44 +85,12 @@ namespace h2o
                 if (neighbor_block == Block::Air)
                 {
                     for (const auto& face : model->occluded_vertices[dir])
-                    {
-                        for (BlockVertex vertex : face)
-                        {
-                            vertex.x += x * 8;
-                            vertex.y += y * 8;
-                            vertex.z += z * 8;
-
-                            assert(tex_idx < textures.size());
-                            vertex.tex_idx = textures[tex_idx];
-
-                            auto temp = vertex.to_array();
-                            vertices.push_back(temp[0]);
-                            vertices.push_back(temp[1]);
-                        }
-
-                        tex_idx++;
-                    }
+                        append_face(pos, *model, textures, face);
                 }
             }
 
             for (const auto& face : model->unoccluded_vertices)
-            {
-                for (BlockVertex vertex : face)
-                {
-                    vertex.x += x * 8;
-                    vertex.y += y * 8;
-                    vertex.z += z * 8;
-
-                    assert(tex_idx < textures.size());
-                    vertex.tex_idx = textures[tex_idx];
-
-                    auto temp = vertex.to_array();
-                    vertices.push_back(temp[0]);
-                    vertices.push_back(temp[1]);
-                }
-
-                tex_idx++;
-            }
+                append_face(pos, *model, textures, face);
         }
 
         m_vertex_count = static_cast<i32>(vertices.size() / 2);

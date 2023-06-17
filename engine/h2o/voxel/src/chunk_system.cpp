@@ -7,9 +7,7 @@ namespace h2o
 {
     ChunkSystem::ChunkSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
-    {
-
-    }
+    {}
 
     WeakHandle<Chunk> ChunkSystem::get_chunk_at(const v3i& world_pos) const
     {
@@ -54,8 +52,20 @@ namespace h2o
             if (!chunk)
                 continue;
 
-            for (i32 i = 0; i < voxel_constants::chunk_size; i++)
-                chunk->set_block_at({ i, i, i }, { 1, 0 });
+            // Temp world gen :))
+            for (i32 x = 0; x < voxel_constants::chunk_size; x++)
+            for (i32 z = 0; z < voxel_constants::chunk_size; z++)
+            for (i32 y = 0; y < voxel_constants::chunk_size / 2; y++)
+            {
+                if (y == voxel_constants::chunk_size / 2 - 1)
+                {
+                    chunk->set_block_at({ x, y, z }, { 1, 0 });
+                }
+                else
+                {
+                    chunk->set_block_at({ x, y, z }, { 2, 0 });
+                }
+            }
 
             on_chunk_updated.broadcast({ *chunk });
         }
