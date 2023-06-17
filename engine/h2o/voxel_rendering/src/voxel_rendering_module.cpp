@@ -61,6 +61,12 @@ namespace h2o
                 for (const auto face_yml : block_model["faces"])
                 {
                     const auto vertices = face_yml["vertices"].as<std::vector<std::array<u32, 5>>>();
+                    if (vertices.size() % 3 != 0)
+                    {
+                        log::error("Number of vertices for faces in block model '{}' must be a multiple of 3.", name);
+                        return false;
+                    }
+
                     const auto occluded_by_yml = face_yml["occluded_by"];
 
                     std::vector<BlockVertex> face_vertices;
@@ -140,6 +146,19 @@ namespace h2o
 
             // Set block textures
             const auto& tex_names = block_type->texture_names;
+
+            const auto model = get_model_safe(i);
+            assert(model);
+            size_t num_model_faces = model->unoccluded_vertices.size();
+            for (const auto& faces : model->occluded_vertices)
+                num_model_faces += faces.size();
+
+            if (num_model_faces != tex_names.size())
+            {
+                log::error("Mismatch between number of faces and number of textures for block: {}", block_type->name);
+                return false;
+            }
+
             std::vector<u32> block_tex_indices(tex_names.size(), 0);
             for (size_t j = 0; j < tex_names.size(); j++)
             {
