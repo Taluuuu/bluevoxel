@@ -21,6 +21,9 @@ namespace h2o
         u64 id   : 16 { 0 };
         u64 data : 48 { 0 };
 
+        Block(u64 id) : id{id}, data{0} {}
+        Block(u64 id, u64 data) : id{id}, data{data} {}
+
         static const Block Air;
     };
 

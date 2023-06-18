@@ -83,7 +83,7 @@ namespace h2o::gfx
         log::info("Loaded OpenGL {}.{}.", GLAD_VERSION_MAJOR(version), GLAD_VERSION_MINOR(version));
 
         glViewport(0, 0, window.window_size().x, window.window_size().y);
-        glClearColor(0.0f, 0.1f, 0.2f, 1.0f);
+        glClearColor(0.53f, 0.81f, 0.92f, 1.0f);
         // glEnable(GL_DEBUG_OUTPUT);
         glEnable(GL_DEPTH_TEST);
         glEnable(GL_CULL_FACE);

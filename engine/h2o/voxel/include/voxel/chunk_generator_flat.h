@@ -1,0 +1,25 @@
+#pragma once
+
+#include "chunk_generator_base.h"
+#include "voxel/block.h"
+#include "core/types.h"
+
+#include <vector>
+
+namespace h2o
+{
+    class ChunkGenerator_Flat : public ChunkGenerator_Base
+    {
+    public:
+
+        explicit ChunkGenerator_Flat(const ChunkSystem& chunk_system);
+
+        // ChunkGenerator_Base interface
+        void gen_chunk(Chunk& chunk) override;
+
+    public:
+
+        std::vector<Block> block_layers;
+
+    };
+}

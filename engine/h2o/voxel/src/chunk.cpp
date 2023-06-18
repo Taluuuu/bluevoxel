@@ -1,6 +1,5 @@
 #include "voxel/chunk.h"
 
-#include "core/events.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/chunk_system.h"
 
@@ -24,6 +23,9 @@ namespace h2o
     void Chunk::set_block_at(const v3u& local_pos, Block block)
     {
         assert(is_valid_pos(local_pos));
+
+        // TODO: Check if the block is valid
+
         m_blocks[to_index(local_pos)] = block;
 
         // Very temporary, call the chunk updated function every time a block is changed.

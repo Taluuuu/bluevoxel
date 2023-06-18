@@ -57,8 +57,8 @@ namespace game
 
     void GameModule::update(f32 delta_time)
     {
-        ImGui::Text(":)");
-        if (ImGui::Button("Button WOW"))
-            h2o::log::info("Button click");
+//        ImGui::Text(":)");
+//        if (ImGui::Button("Button WOW"))
+//            h2o::log::info("Button click");
     }
 }

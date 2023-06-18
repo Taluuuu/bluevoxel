@@ -5,11 +5,14 @@
 #include "core/types.h"
 #include "scene/scene_system.h"
 
+#include <glm/gtx/hash.hpp>
+#include <memory>
 #include <vector>
 
 namespace h2o
 {
     class Chunk;
+    class ChunkGenerator_Base;
 
     struct ChunkEvent { Chunk& chunk; };
 
@@ -25,8 +28,7 @@ namespace h2o
 
         // SceneSystem interface
         bool init() override;
-
-        [[nodiscard]] WeakHandle<Chunk> get_chunk_at(const v3i& world_pos) const;
+        void update(f32 delta_time) override;
 
         Event<ChunkEvent> on_chunk_created;
         Event<ChunkEvent> on_chunk_deleted;
@@ -34,12 +36,13 @@ namespace h2o
 
     private:
 
-        static constexpr size_t to_index(const v3i& world_pos);
-        static constexpr bool is_valid_pos(const v3i& world_pos);
+        using ChunkPtr = std::shared_ptr<Chunk>;
+        std::vector<ChunkPtr> m_loaded_chunks;
+        std::unordered_map<v2i, std::vector<ChunkPtr>> m_world_chunks;
 
-    private:
+        v3i m_last_player_chunk_pos{};
 
-        std::vector< OwningHandle<Chunk> > m_chunks;
+        std::unique_ptr<ChunkGenerator_Base> m_chunk_generator { nullptr };
 
         // Constants in chunks
         static constexpr u32 m_world_height = 5;

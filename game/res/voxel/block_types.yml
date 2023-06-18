@@ -19,3 +19,13 @@ block_types:
       - dirt_block.png
       - dirt_block.png
       - dirt_block.png
+  - name: dirt_block
+    id: 3
+    model: cube
+    textures:
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png

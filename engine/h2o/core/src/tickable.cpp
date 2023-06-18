@@ -12,6 +12,7 @@ namespace h2o
         g_engine->unregister_tickable(*this, m_tick_phases);
     }
 
+    // TODO: This implementation does not work for child classes
     void Tickable::set_tick_phases(TickPhase tick_phases)
     {
         assert(g_engine);

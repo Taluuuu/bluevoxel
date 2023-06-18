@@ -1,13 +1,11 @@
 #include "voxel_rendering/chunk_rendering_system.h"
 
 #include "core/engine.h"
-#include "core/log.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
 #include "voxel/chunk.h"
 #include "voxel/chunk_system.h"
-#include "voxel_rendering/chunk_mesh.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 #include "rendering/pipeline.h"
 #include "rendering/camera.h"
