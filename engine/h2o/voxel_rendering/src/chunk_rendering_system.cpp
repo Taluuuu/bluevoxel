@@ -35,8 +35,8 @@ namespace h2o
             [&](const PlayerChangedChunkEvent& event)
             {
                 m_chunk_rendering_region->set_corner_pos({
-                    event.new_chunk_pos.x,
-                    event.new_chunk_pos.z });
+                    event.new_chunk_pos.x - m_chunk_rendering_region->size() / 2,
+                    event.new_chunk_pos.z - m_chunk_rendering_region->size() / 2 });
             });
 
         // TODO: Create an event for when the chunk is fully generated; we probably don't want

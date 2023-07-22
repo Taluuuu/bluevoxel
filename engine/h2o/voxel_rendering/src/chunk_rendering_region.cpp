@@ -47,26 +47,36 @@ namespace h2o
 
     void ChunkRenderingRegion::on_indices_changed(const std::vector<i32>& new_to_old_indices)
     {
+        assert(m_voxel_rendering_module);
+
         std::vector<ChunkMeshColumnPtr> new_chunk_meshes(new_to_old_indices.size());
-        for (i32 i = 0; i < new_to_old_indices.size(); i++)
+
+        for (i32 i = 0; i < size(); i++)
+        for (i32 k = 0; k < size(); k++)
         {
-            const i32 old_idx = new_to_old_indices[i];
+            const i32 new_idx = i * i32(size()) + k;
+            const i32 old_idx = new_to_old_indices[new_idx];
             if (old_idx != -1)
             {
-                new_chunk_meshes[i] = std::move(m_chunk_mesh_columns[old_idx]);
+                new_chunk_meshes[new_idx] = std::move(m_chunk_mesh_columns[old_idx]);
             }
 
-            if (!new_chunk_meshes[i])
+            if (!new_chunk_meshes[new_idx])
             {
                 // Make new chunk mesh column
                 auto new_column = std::make_unique<ChunkMeshColumn>();
                 for (i32 j = 0; j < new_column->size(); j++)
                 {
+                    const v3i chunk_pos = v3i{ corner_pos().x, 0, corner_pos().y } + v3i{i, j, k};
+
                     auto& chunk_mesh = (*new_column)[j];
-                    chunk_mesh.init(*m_renderer, v3i{ corner_pos().x, j, corner_pos().y });
+                    chunk_mesh.init(*m_renderer, chunk_pos);
+
+                    if (Chunk* chunk = get_chunk_at(chunk_pos))
+                        chunk_mesh.update(*m_voxel_rendering_module, *chunk);
                 }
 
-                new_chunk_meshes[i] = std::move(new_column);
+                new_chunk_meshes[new_idx] = std::move(new_column);
             }
         }
 
