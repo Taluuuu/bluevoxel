@@ -11,6 +11,7 @@ add_library(h2o_voxel
     src/voxel_module.cpp
     src/voxel_pack.cpp
     src/chunk_system.cpp
+    src/chunk_region.cpp
 )
 
 target_link_libraries(h2o_voxel

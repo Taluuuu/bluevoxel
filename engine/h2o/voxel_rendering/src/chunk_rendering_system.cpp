@@ -7,6 +7,7 @@
 #include "voxel/chunk.h"
 #include "voxel/chunk_system.h"
 #include "voxel_rendering/voxel_rendering_module.h"
+#include "voxel_rendering/chunk_rendering_region.h"
 #include "rendering/pipeline.h"
 #include "rendering/camera.h"
 #include "rendering/texture_array.h"
@@ -26,31 +27,43 @@ namespace h2o
 
         m_renderer = &rendering_module->renderer();
 
+        assert(m_renderer);
+        m_chunk_rendering_region = std::make_unique<ChunkRenderingRegion>(*m_renderer, *m_voxel_rendering_module, chunk_system);
+        m_chunk_rendering_region->init({ 0, 0 }, 5); // bad
+
+        chunk_system->on_player_changed_chunk.add_listener(m_on_player_changed_chunk_handle,
+            [&](const PlayerChangedChunkEvent& event)
+            {
+                m_chunk_rendering_region->set_corner_pos({
+                    event.new_chunk_pos.x,
+                    event.new_chunk_pos.z });
+            });
+
         // TODO: Create an event for when the chunk is fully generated; we probably don't want
         //       to create its mesh before then.
-        chunk_system->on_chunk_created.add_listener(m_on_chunk_created_handle,
-            [&](const ChunkEvent& event)
-            {
-                assert(m_renderer);
-                create_mesh_at(*m_renderer, event.chunk.chunk_pos);
-            });
-
-        chunk_system->on_chunk_deleted.add_listener(m_on_chunk_deleted_handle,
-            [&](const ChunkEvent& event)
-            {
-                erase_mesh_at(event.chunk.chunk_pos);
-            });
-
-        chunk_system->on_chunk_updated.add_listener(m_on_chunk_updated_handle,
-            [&](const ChunkEvent& event)
-            {
-                const v3i& chunk_pos = event.chunk.chunk_pos;
-                assert(m_mesh_index_map.contains(chunk_pos));
-
-                // A bit sketchy, no checks
-                m_chunk_meshes[m_mesh_index_map[chunk_pos]].update(
-                    *m_voxel_rendering_module, event.chunk);
-            });
+//        chunk_system->on_chunk_loaded.add_listener(m_on_chunk_created_handle,
+//            [&](const ChunkEvent& event)
+//            {
+//                assert(m_renderer);
+//                create_mesh_at(*m_renderer, event.chunk.chunk_pos);
+//            });
+//
+//        chunk_system->on_chunk_unloaded.add_listener(m_on_chunk_deleted_handle,
+//            [&](const ChunkEvent& event)
+//            {
+//                erase_mesh_at(event.chunk.chunk_pos);
+//            });
+//
+//        chunk_system->on_chunk_updated.add_listener(m_on_chunk_updated_handle,
+//            [&](const ChunkEvent& event)
+//            {
+//                const v3i& chunk_pos = event.chunk.chunk_pos;
+//                assert(m_mesh_index_map.contains(chunk_pos));
+//
+//                // A bit sketchy, no checks
+//                m_chunk_meshes[m_mesh_index_map[chunk_pos]].update(
+//                    *m_voxel_rendering_module, event.chunk);
+//            });
 
         set_tick_phases(Render);
     }
@@ -78,33 +91,35 @@ namespace h2o
         block_textures->bind(0);
         pipeline->set_uniform_int(2, 0);
 
-        for (const auto& mesh : m_chunk_meshes)
-        {
-            pipeline->set_uniform_ivec3(1, mesh.m_chunk_pos);
-            m_renderer->draw(mesh.vertex_array(), mesh.vertex_count());
-        }
+        assert(m_chunk_rendering_region);
+        m_chunk_rendering_region->for_each_chunk_mesh(
+            [&](const ChunkMesh& chunk_mesh)
+            {
+                pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos());
+                m_renderer->draw(chunk_mesh.vertex_array(), chunk_mesh.vertex_count());
+            });
     }
 
-    void ChunkRenderingSystem::create_mesh_at(gfx::IRenderer& renderer, const v3i& chunk_pos)
-    {
-        assert(!m_mesh_index_map.contains(chunk_pos));
-
-        m_chunk_meshes.emplace_back(renderer, chunk_pos);
-        m_mesh_index_map[chunk_pos] = m_chunk_meshes.size() - 1;
-    }
-
-    void ChunkRenderingSystem::erase_mesh_at(const v3i& chunk_pos)
-    {
-        assert(m_mesh_index_map.contains(chunk_pos));
-
-        size_t index = m_mesh_index_map[chunk_pos];
-
-        m_chunk_meshes[index] = std::move(m_chunk_meshes.back());
-        m_chunk_meshes.pop_back();
-
-        const auto& moved_mesh = m_chunk_meshes[index];
-        m_mesh_index_map[moved_mesh.chunk_pos()] = index;
-
-        m_mesh_index_map.erase(chunk_pos);
-    }
+//    void ChunkRenderingSystem::create_mesh_at(gfx::IRenderer& renderer, const v3i& chunk_pos)
+//    {
+//        assert(!m_mesh_index_map.contains(chunk_pos));
+//
+//        m_chunk_meshes.emplace_back(renderer, chunk_pos);
+//        m_mesh_index_map[chunk_pos] = m_chunk_meshes.size() - 1;
+//    }
+//
+//    void ChunkRenderingSystem::erase_mesh_at(const v3i& chunk_pos)
+//    {
+//        assert(m_mesh_index_map.contains(chunk_pos));
+//
+//        size_t index = m_mesh_index_map[chunk_pos];
+//
+//        m_chunk_meshes[index] = std::move(m_chunk_meshes.back());
+//        m_chunk_meshes.pop_back();
+//
+//        const auto& moved_mesh = m_chunk_meshes[index];
+//        m_mesh_index_map[moved_mesh.chunk_pos()] = index;
+//
+//        m_mesh_index_map.erase(chunk_pos);
+//    }
 }

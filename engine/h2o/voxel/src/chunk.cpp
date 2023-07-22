@@ -5,10 +5,11 @@
 
 namespace h2o
 {
-    Chunk::Chunk(const ChunkSystem& chunk_mgr, const v3i& chunk_pos)
-        : m_chunk_mgr(&chunk_mgr)
-        , chunk_pos(chunk_pos)
+    void Chunk::init(const ChunkSystem& chunk_system, const v3i& chunk_pos)
     {
+        m_chunk_system = &chunk_system;
+        m_chunk_pos = chunk_pos;
+
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
     }
 
@@ -27,9 +28,6 @@ namespace h2o
         // TODO: Check if the block is valid
 
         m_blocks[to_index(local_pos)] = block;
-
-        // Very temporary, call the chunk updated function every time a block is changed.
-        // m_chunk_mgr->on_chunk_updated.broadcast({ *this });
     }
 
     constexpr size_t Chunk::to_index(const v3u& local_pos)

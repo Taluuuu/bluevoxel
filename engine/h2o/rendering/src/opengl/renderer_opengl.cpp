@@ -61,7 +61,7 @@ namespace h2o::gfx
 
     void Renderer_OpenGL::draw(const IVertexArray& vertex_array, i32 count)
     {
-        if (!m_bound_pipeline)
+        if (!m_bound_pipeline || !count)
             return;
 
         auto vertex_array_gl = dynamic_cast<const VertexArray_OpenGL*>(&vertex_array);

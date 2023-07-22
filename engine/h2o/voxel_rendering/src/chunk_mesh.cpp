@@ -15,13 +15,6 @@
 
 namespace h2o
 {
-    ChunkMesh::ChunkMesh(gfx::IRenderer& renderer, const v3i& chunk_pos)
-        : m_chunk_pos(chunk_pos)
-    {
-        m_vertex_array = renderer.create_vertex_array();
-        m_buffer = renderer.create_buffer();
-    }
-
     ChunkMesh::ChunkMesh(ChunkMesh&& other) noexcept
         : m_chunk_pos(other.m_chunk_pos)
         , m_vertex_array(std::move(other.m_vertex_array))
@@ -40,8 +33,21 @@ namespace h2o
         return *this;
     }
 
+    void ChunkMesh::init(gfx::IRenderer& renderer, const v3i& chunk_pos)
+    {
+        assert(!m_vertex_array && !m_buffer);
+
+        m_chunk_pos = chunk_pos;
+
+        m_vertex_array = renderer.create_vertex_array();
+        m_buffer = renderer.create_buffer();
+    }
+
     void ChunkMesh::update(const VoxelRenderingModule& chunk_rendering_module, const Chunk& chunk)
     {
+        if (!m_vertex_array || !m_buffer)
+            return;
+
         std::vector<u32> vertices;
 
         const auto append_face = [&vertices]

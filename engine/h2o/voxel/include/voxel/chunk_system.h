@@ -1,8 +1,8 @@
 #pragma once
 
+#include "chunk_ptr.h"
 #include "core/events.h"
 #include "core/handle_types.h"
-#include "core/types.h"
 #include "scene/scene_system.h"
 
 #include <glm/gtx/hash.hpp>
@@ -11,10 +11,10 @@
 
 namespace h2o
 {
-    class Chunk;
     class ChunkGenerator_Base;
 
     struct ChunkEvent { Chunk& chunk; };
+    struct PlayerChangedChunkEvent { v3i new_chunk_pos; };
 
     /**
      * A system meant to be added to scenes that generates a voxel world,
@@ -30,25 +30,25 @@ namespace h2o
         bool init() override;
         void update(f32 delta_time) override;
 
-        Event<ChunkEvent> on_chunk_created;
-        Event<ChunkEvent> on_chunk_deleted;
+        [[nodiscard]] ChunkColumnPtr fetch_chunk_column(v2i chunk_location) const;
+        [[nodiscard]] ChunkColumnPtr fetch_or_create_chunk_column(v2i chunk_location);
+
+        Event<ChunkEvent> on_chunk_loaded;
+        Event<ChunkEvent> on_chunk_unloaded;
         Event<ChunkEvent> on_chunk_updated;
+        Event<PlayerChangedChunkEvent> on_player_changed_chunk;
+
+    protected:
+
+        ChunkColumnPtr create_chunk_column(v2i chunk_location) const;
 
     private:
 
-        using ChunkPtr = std::shared_ptr<Chunk>;
-        std::vector<ChunkPtr> m_loaded_chunks;
-        std::unordered_map<v2i, std::vector<ChunkPtr>> m_world_chunks;
-
-        v3i m_last_player_chunk_pos{};
+        std::unordered_map<v2i, ChunkColumnPtr> m_loaded_chunks;
 
         std::unique_ptr<ChunkGenerator_Base> m_chunk_generator { nullptr };
 
-        // Constants in chunks
-        static constexpr u32 m_world_height = 5;
-        static constexpr u32 m_world_size = 5;
-        static constexpr u32 m_world_area = m_world_size * m_world_size;
-        static constexpr u32 m_world_volume = m_world_area * m_world_height;
+        v3i m_last_player_chunk_pos{};
 
     };
 }

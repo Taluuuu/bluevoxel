@@ -13,12 +13,10 @@
 
 namespace h2o
 {
+    // Forward declarations
+    class ChunkRenderingRegion;
     class VoxelRenderingModule;
-
-    namespace gfx
-    {
-        class IRenderer;
-    }
+    namespace gfx { class IRenderer; }
 
     class ChunkRenderingSystem : public SceneSystem
     {
@@ -30,22 +28,20 @@ namespace h2o
 
     private:
 
-        void create_mesh_at(gfx::IRenderer& renderer, const v3i& chunk_pos);
-        void erase_mesh_at(const v3i& chunk_pos);
+//        void create_mesh_at(gfx::IRenderer& renderer, const v3i& chunk_pos);
+//        void erase_mesh_at(const v3i& chunk_pos);
 
     private:
-
-        // Map for fast retrieval of chunk meshes by their world position
-        std::unordered_map<v3i, size_t> m_mesh_index_map;
-        // Vector for fast traversal
-        std::vector<ChunkMesh> m_chunk_meshes;
 
         VoxelRenderingModule* m_voxel_rendering_module = nullptr;
         gfx::IRenderer* m_renderer = nullptr;
 
+        std::unique_ptr<ChunkRenderingRegion> m_chunk_rendering_region { nullptr };
+
         EventHandle m_on_chunk_created_handle;
         EventHandle m_on_chunk_deleted_handle;
         EventHandle m_on_chunk_updated_handle;
+        EventHandle m_on_player_changed_chunk_handle;
 
     };
 }

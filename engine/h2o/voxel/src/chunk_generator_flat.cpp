@@ -15,7 +15,7 @@ namespace h2o
         for (i32 y = 0; y < voxel_constants::chunk_size; y++)
         for (i32 z = 0; z < voxel_constants::chunk_size; z++)
         {
-            i32 world_y = chunk.chunk_pos.y * voxel_constants::chunk_size + y;
+            i32 world_y = chunk.chunk_pos().y * voxel_constants::chunk_size + y;
             if (world_y < block_layers.size())
             {
                 chunk.set_block_at({ x, y, z }, block_layers[world_y]);
