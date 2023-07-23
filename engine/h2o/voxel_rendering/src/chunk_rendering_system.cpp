@@ -53,7 +53,7 @@ namespace h2o
 
         i32 new_size = i32(m_chunk_rendering_region->size());
         if (ImGui::SliderInt("World Size", &new_size, 0, 32))
-            m_chunk_rendering_region->set_size(new_size);
+            m_chunk_rendering_region->set_size(new_size); // Not perfect, corner pos does not update.
     }
 
     void ChunkRenderingSystem::render(f32 delta_time)

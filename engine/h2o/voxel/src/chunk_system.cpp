@@ -48,14 +48,16 @@ namespace h2o
         return (it == m_loaded_chunks.end()) ? nullptr : it->second;
     }
 
-    ChunkColumnPtr ChunkSystem::fetch_or_create_chunk_column(v2i chunk_location)
+    void ChunkSystem::fetch_or_create_chunk_column(
+        v2i chunk_location,
+        const std::function<void(const ChunkColumnPtr&)>& chunk_fetch_callback)
     {
         if (auto chunk_col = fetch_chunk_column(chunk_location))
-            return chunk_col;
+            chunk_fetch_callback(chunk_col);
 
         auto chunk_col = create_chunk_column(chunk_location);
         m_loaded_chunks[chunk_location] = chunk_col;
-        return chunk_col;
+        chunk_fetch_callback(chunk_col);
     }
 
     ChunkColumnPtr ChunkSystem::create_chunk_column(v2i chunk_location) const
@@ -67,7 +69,7 @@ namespace h2o
         {
             chunk.init(*this, { chunk_location.x, y++, chunk_location.y });
             m_chunk_generator->gen_chunk(chunk);
-            on_chunk_updated.broadcast({ chunk });
+//            on_chunk_updated.broadcast({ chunk });
         }
 
         return chunk_col;

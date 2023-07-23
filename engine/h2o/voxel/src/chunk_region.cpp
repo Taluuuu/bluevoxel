@@ -75,8 +75,11 @@ namespace h2o
             return;
 
         const v2i old_corner_pos = corner_pos();
-
         const auto new_to_old_indices = gen_new_to_old_indices(new_corner_pos, new_size);
+
+        m_corner_pos = new_corner_pos;
+        m_size = new_size;
+
         std::vector<ChunkColumnPtr> new_chunks(new_size * new_size, nullptr);
         for (i32 i = 0; i < new_size; i++)
         for (i32 j = 0; j < new_size; j++)
@@ -90,14 +93,17 @@ namespace h2o
             }
             else
             {
-                new_chunks[new_idx] = m_chunk_system->fetch_or_create_chunk_column(
-                    {i + old_corner_pos.x, j + old_corner_pos.y});
+                const v2i chunk_pos { i + old_corner_pos.x, j + old_corner_pos.y };
+                m_chunk_system->fetch_or_create_chunk_column(chunk_pos,
+                    [&, new_idx](const ChunkColumnPtr& chunk_col)
+                    {
+//                        if (in_region_bounds())
+                        new_chunks[new_idx] = chunk_col;
+                    });
             }
         }
 
         m_chunks_in_region = std::move(new_chunks);
-        m_corner_pos = new_corner_pos;
-        m_size = new_size;
 
         on_indices_changed(new_to_old_indices);
     }
