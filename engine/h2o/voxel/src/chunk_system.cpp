@@ -38,35 +38,8 @@ namespace h2o
         if (player_chunk_pos == m_last_player_chunk_pos)
             return;
 
-        on_player_changed_chunk.broadcast({ player_chunk_pos });
+        on_player_changed_chunk.broadcast({ m_last_player_chunk_pos, player_chunk_pos });
         m_last_player_chunk_pos = player_chunk_pos;
-
-//        const std::vector<ChunkPtr> old_loaded_chunks = std::move(m_loaded_chunks);
-//        m_loaded_chunks = std::vector<ChunkPtr>();
-//
-//        for (i32 i = 0; i < m_world_size; i++)
-//        for (i32 j = 0; j < m_world_size; j++)
-//        {
-//            const i32 offset = m_world_size / 2;
-//            const v2i world_pos = {
-//                i + player_chunk_pos.x - offset,
-//                j + player_chunk_pos.z - offset };
-//
-//            const auto chunk_col_it = m_world_chunks.find(world_pos);
-//            if (chunk_col_it != m_world_chunks.end())
-//            {
-//                // Copy found chunk column to loaded chunks.
-//                m_loaded_chunks.insert(
-//                    m_loaded_chunks.end(),
-//                    chunk_col_it->second.begin(),
-//                    chunk_col_it->second.end());
-//
-//                continue;
-//            }
-//
-//            // No chunk column was found at this location; create new.
-//
-//        }
     }
 
     ChunkColumnPtr ChunkSystem::fetch_chunk_column(v2i chunk_location) const

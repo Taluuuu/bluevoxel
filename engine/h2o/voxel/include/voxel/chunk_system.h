@@ -14,7 +14,7 @@ namespace h2o
     class ChunkGenerator_Base;
 
     struct ChunkEvent { Chunk& chunk; };
-    struct PlayerChangedChunkEvent { v3i new_chunk_pos; };
+    struct PlayerChangedChunkEvent { v3i old_chunk_pos; v3i new_chunk_pos; };
 
     /**
      * A system meant to be added to scenes that generates a voxel world,

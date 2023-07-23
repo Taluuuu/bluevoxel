@@ -15,10 +15,9 @@ namespace h2o
     {
     public:
 
-        ChunkRegion(const WeakHandle<ChunkSystem>& chunk_system);
+        explicit ChunkRegion(const WeakHandle<ChunkSystem>& chunk_system);
         virtual ~ChunkRegion() = default;
 
-        void init(v2i corner_pos, u32 size);
         void set_size(u32 new_size);
         void set_corner_pos(v2i new_corner_pos);
 

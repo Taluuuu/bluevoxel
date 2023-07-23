@@ -12,11 +12,6 @@ namespace h2o
         : m_chunk_system(chunk_system)
     {}
 
-    void ChunkRegion::init(v2i corner_pos, u32 size)
-    {
-        update(corner_pos, size);
-    }
-
     void ChunkRegion::set_corner_pos(v2i new_corner_pos)
     {
         update(new_corner_pos, m_size);
@@ -80,7 +75,6 @@ namespace h2o
             return;
 
         const v2i old_corner_pos = corner_pos();
-        const u32 old_size = size();
 
         const auto new_to_old_indices = gen_new_to_old_indices(new_corner_pos, new_size);
         std::vector<ChunkColumnPtr> new_chunks(new_size * new_size, nullptr);

@@ -24,12 +24,8 @@ namespace h2o
 
         explicit ChunkRenderingSystem(const SceneSystemInitializer& system_initializer);
 
+        void update(f32 delta_time) override;
         void render(f32 delta_time) override;
-
-    private:
-
-//        void create_mesh_at(gfx::IRenderer& renderer, const v3i& chunk_pos);
-//        void erase_mesh_at(const v3i& chunk_pos);
 
     private:
 
