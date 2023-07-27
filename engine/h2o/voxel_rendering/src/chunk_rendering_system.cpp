@@ -30,7 +30,7 @@ namespace h2o
 
         assert(m_renderer);
         m_chunk_rendering_region = std::make_unique<ChunkRenderingRegion>(*m_renderer, *m_voxel_rendering_module, chunk_system);
-        m_chunk_rendering_region->set_size(5);
+        m_chunk_rendering_region->update(v2i{-2, -1}, 3);
 
         chunk_system->on_player_changed_chunk.add_listener(m_on_player_changed_chunk_handle,
             [&](const PlayerChangedChunkEvent& event)
@@ -42,6 +42,8 @@ namespace h2o
                 m_chunk_rendering_region->set_corner_pos({
                     event.new_chunk_pos.x - m_chunk_rendering_region->size() / 2,
                     event.new_chunk_pos.z - m_chunk_rendering_region->size() / 2 });
+
+                m_last_player_chunk = { event.new_chunk_pos.x, event.new_chunk_pos.z };
             });
 
         set_tick_phases(Update | Render);
@@ -53,7 +55,10 @@ namespace h2o
 
         i32 new_size = i32(m_chunk_rendering_region->size());
         if (ImGui::SliderInt("World Size", &new_size, 0, 32))
-            m_chunk_rendering_region->set_size(new_size); // Not perfect, corner pos does not update.
+        {
+            const v2i new_corner_pos = m_last_player_chunk - new_size / 2;
+            m_chunk_rendering_region->update(new_corner_pos, new_size);
+        }
     }
 
     void ChunkRenderingSystem::render(f32 delta_time)

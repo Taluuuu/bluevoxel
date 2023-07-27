@@ -21,7 +21,7 @@ namespace h2o
                 if (!in_region_bounds(chunk_pos))
                     return;
 
-                const v3i local_pos = to_local_chunk_pos(chunk_pos);
+                const v3i local_pos = to_local_chunk_pos_3d(chunk_pos);
                 const size_t index = to_index({ local_pos.x, local_pos.z });
                 const auto& mesh_column = m_chunk_mesh_columns[index];
                 if (!mesh_column)
@@ -66,7 +66,7 @@ namespace h2o
         m_chunk_mesh_columns = std::move(new_chunk_meshes);
     }
 
-    void ChunkRenderingRegion::on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i chunk_col_pos)
+    void ChunkRenderingRegion::on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i local_chunk_pos)
     {
         // Make new chunk mesh column
         auto new_column = std::make_unique<ChunkMeshColumn>();
@@ -79,11 +79,7 @@ namespace h2o
             chunk_mesh.update(*m_voxel_rendering_module, chunk);
         }
 
-        // TODO: Create chunk column class
-        assert(in_region_bounds(chunk_col_pos));
-        const v2i rel_chunk_col_pos = chunk_col_pos - corner_pos();
-        const size_t idx = rel_chunk_col_pos.x * size() + rel_chunk_col_pos.y;
-
-        m_chunk_mesh_columns[idx] = std::move(new_column);
+        const size_t index = to_index(local_chunk_pos);
+        m_chunk_mesh_columns[index] = std::move(new_column);
     }
 }

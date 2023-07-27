@@ -34,6 +34,8 @@ namespace h2o
 
         std::unique_ptr<ChunkRenderingRegion> m_chunk_rendering_region { nullptr };
 
+        v2i m_last_player_chunk {0, 0};
+
         EventHandle m_on_chunk_created_handle;
         EventHandle m_on_chunk_deleted_handle;
         EventHandle m_on_chunk_updated_handle;

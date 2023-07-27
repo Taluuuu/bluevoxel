@@ -35,14 +35,14 @@ namespace h2o
         }
 
         const v3i player_chunk_pos = world_to_chunk_pos(player->transform.position);
-        if (player_chunk_pos == m_last_player_chunk_pos)
-            return;
-
-        on_player_changed_chunk.broadcast({ m_last_player_chunk_pos, player_chunk_pos });
-        m_last_player_chunk_pos = player_chunk_pos;
+        if (player_chunk_pos != m_last_player_chunk_pos)
+        {
+            on_player_changed_chunk.broadcast({m_last_player_chunk_pos, player_chunk_pos});
+            m_last_player_chunk_pos = player_chunk_pos;
+        }
 
         // Load new chunk(s)
-        i32 left_to_load = 5;
+        i32 left_to_load = 1;
         while (!chunk_load_queue.empty() && left_to_load > 0)
         {
             const auto& request = chunk_load_queue[0];
@@ -67,7 +67,10 @@ namespace h2o
         const std::function<void(const ChunkColumnPtr&)>& chunk_fetch_callback)
     {
         if (auto chunk_col = fetch_chunk_column(chunk_location))
+        {
             chunk_fetch_callback(chunk_col);
+            return;
+        }
 
         chunk_load_queue.push_back({ chunk_location, chunk_fetch_callback });
     }

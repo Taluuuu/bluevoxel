@@ -24,7 +24,7 @@ namespace h2o
 
         // ChunkRegion interface
         void on_indices_changed(const std::vector<i32>& new_to_old_indices) override;
-        void on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i chunk_col_pos) override;
+        void on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i local_chunk_pos) override;
 
     private:
 

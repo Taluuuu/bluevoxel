@@ -20,6 +20,7 @@ namespace h2o
 
         void set_size(u32 new_size);
         void set_corner_pos(v2i new_corner_pos);
+        void update(v2i new_corner_pos, u32 new_size);
 
         void for_each_chunk(const std::function<void(Chunk&)>& fun) const;
         [[nodiscard]] Chunk* get_chunk_at(const v3i& chunk_pos) const;
@@ -34,9 +35,10 @@ namespace h2o
         // Override to run movement logic when the chunk region changes size
         // or moves. This function is also called on init.
         virtual void on_indices_changed(const std::vector<i32>& new_to_old_indices) {}
-        virtual void on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i chunk_col_pos) {}
+        virtual void on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i local_chunk_pos) {}
 
-        [[nodiscard]] constexpr v3i to_local_chunk_pos(const v3i& chunk_pos) const;
+        [[nodiscard]] v3i to_local_chunk_pos_3d(const v3i& chunk_pos) const;
+        [[nodiscard]] v2i to_local_chunk_pos_2d(v2i chunk_pos) const;
 
         // Make an index into an array of size m_size * m_size
         [[nodiscard]] constexpr size_t to_index(v2i pos) const;
@@ -47,8 +49,6 @@ namespace h2o
         // indices into the old array of chunks to move. If a given chunk is
         // in the new array but not in the old one, an index of -1 is placed.
         [[nodiscard]] std::vector<i32> gen_new_to_old_indices(v2i new_corner_pos, u32 new_size) const;
-
-        void update(v2i new_corner_pos, u32 new_size);
 
     private:
 
