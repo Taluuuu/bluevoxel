@@ -16,10 +16,7 @@ namespace h2o
     struct ChunkEvent { Chunk& chunk; };
     struct PlayerChangedChunkEvent { v3i old_chunk_pos; v3i new_chunk_pos; };
 
-//    struct ChunkFetchResult
-//    {
-//
-//    };
+    using ChunkFetchCallback = std::function<void(const ChunkColumnPtr&)>;
 
     /**
      * A system meant to be added to scenes that generates a voxel world,
@@ -50,6 +47,13 @@ namespace h2o
         ChunkColumnPtr create_chunk_column(v2i chunk_location) const;
 
     private:
+
+        struct ChunkLoadRequest
+        {
+            v2i chunk_pos;
+            ChunkFetchCallback fetch_callback;
+        };
+        std::vector<ChunkLoadRequest> chunk_load_queue;
 
         std::unordered_map<v2i, ChunkColumnPtr> m_loaded_chunks;
 

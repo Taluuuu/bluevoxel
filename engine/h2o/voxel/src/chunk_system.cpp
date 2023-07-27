@@ -40,6 +40,20 @@ namespace h2o
 
         on_player_changed_chunk.broadcast({ m_last_player_chunk_pos, player_chunk_pos });
         m_last_player_chunk_pos = player_chunk_pos;
+
+        // Load new chunk(s)
+        i32 left_to_load = 5;
+        while (!chunk_load_queue.empty() && left_to_load > 0)
+        {
+            const auto& request = chunk_load_queue[0];
+            const auto chunk_col = create_chunk_column(request.chunk_pos);
+
+            m_loaded_chunks[request.chunk_pos] = chunk_col;
+            request.fetch_callback(chunk_col);
+
+            chunk_load_queue.erase(chunk_load_queue.cbegin());
+            left_to_load--;
+        }
     }
 
     ChunkColumnPtr ChunkSystem::fetch_chunk_column(v2i chunk_location) const
@@ -55,9 +69,7 @@ namespace h2o
         if (auto chunk_col = fetch_chunk_column(chunk_location))
             chunk_fetch_callback(chunk_col);
 
-        auto chunk_col = create_chunk_column(chunk_location);
-        m_loaded_chunks[chunk_location] = chunk_col;
-        chunk_fetch_callback(chunk_col);
+        chunk_load_queue.push_back({ chunk_location, chunk_fetch_callback });
     }
 
     ChunkColumnPtr ChunkSystem::create_chunk_column(v2i chunk_location) const
@@ -69,7 +81,6 @@ namespace h2o
         {
             chunk.init(*this, { chunk_location.x, y++, chunk_location.y });
             m_chunk_generator->gen_chunk(chunk);
-//            on_chunk_updated.broadcast({ chunk });
         }
 
         return chunk_col;

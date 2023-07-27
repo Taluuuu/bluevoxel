@@ -27,12 +27,14 @@ namespace h2o
         [[nodiscard]] v2i corner_pos() const { return m_corner_pos; }
         [[nodiscard]] u32 size() const { return m_size; }
         [[nodiscard]] bool in_region_bounds(const v3i& chunk_pos) const;
+        [[nodiscard]] bool in_region_bounds(v2i chunk_pos) const;
 
     protected:
 
         // Override to run movement logic when the chunk region changes size
         // or moves. This function is also called on init.
         virtual void on_indices_changed(const std::vector<i32>& new_to_old_indices) {}
+        virtual void on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i chunk_col_pos) {}
 
         [[nodiscard]] constexpr v3i to_local_chunk_pos(const v3i& chunk_pos) const;
 
