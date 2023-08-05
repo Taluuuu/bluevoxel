@@ -1,9 +1,9 @@
 #pragma once
 
 #include "chunk_mesh.h"
+#include "core/distance_queue.h"
 #include "core/events.h"
 #include "core/tickable.h"
-#include "voxel/chunk_distance.h"
 #include "voxel/chunk_region.h"
 
 #include <array>
@@ -34,7 +34,7 @@ namespace h2o
 
         using ChunkMeshColumn = std::array<ChunkMesh, voxel_constants::vertical_chunk_count>;
         // Chunk mesh columns should be easy to move.
-        using ChunkMeshColumnPtr = std::unique_ptr<ChunkMeshColumn>;
+        using ChunkMeshColumnOwner = std::unique_ptr<ChunkMeshColumn>;
 
         [[nodiscard]] std::array<Chunk*, 6> fetch_chunk_neighbours(const v3i& chunk_pos) const;
         [[nodiscard]] bool are_surrounding_chunks_loaded(v2i chunk_pos) const;
@@ -48,18 +48,18 @@ namespace h2o
 
         [[nodiscard]] ChunkMeshColumn* fetch_or_create_chunk_mesh_column(v2i chunk_col_pos);
         [[nodiscard]] ChunkMeshColumn* fetch_chunk_mesh_column(v2i chunk_col_pos) const;
-        [[nodiscard]] ChunkMeshColumnPtr create_chunk_mesh_column(v2i chunk_col_pos) const;
+        [[nodiscard]] ChunkMeshColumnOwner create_chunk_mesh_column(v2i chunk_col_pos) const;
 
         void update_next_chunk_mesh();
 
     public:
 
-        v3 player_pos;
+        v3 player_pos{};
 
     private:
 
-        std::vector<ChunkMeshColumnPtr> m_chunk_mesh_columns;
-        ChunkDistanceQueue m_chunks_to_mesh;
+        std::vector<ChunkMeshColumnOwner> m_chunk_mesh_columns;
+        DistanceQueue<ChunkWeakHandle> m_chunks_to_mesh;
 
         EventHandle m_on_chunk_updated_handle;
 

@@ -94,7 +94,7 @@ namespace h2o
     {
         assert(m_voxel_rendering_module);
 
-        std::vector<ChunkMeshColumnPtr> new_chunk_meshes(new_to_old_indices.size());
+        std::vector<ChunkMeshColumnOwner> new_chunk_meshes(new_to_old_indices.size());
 
         for (i32 i = 0; i < size(); i++)
         for (i32 k = 0; k < size(); k++)
@@ -115,27 +115,24 @@ namespace h2o
         if (chunk_mesh_col)
             return;
 
+        // Enqueue chunk for mesh update
         const v2i world_chunk_col_pos = local_chunk_pos + corner_pos();
         for (i32 j = 0; j < voxel_constants::vertical_chunk_count; j++)
         {
             const auto& chunk = (*chunk_col)[j];
 
-            assert(!chunk.m_blocks.empty());
-
             if (chunk.is_empty())
                 continue; // Empty chunk; no need to mesh.
 
-            if (voxel::chunk_distance_queue_contains(m_chunks_to_mesh, chunk))
+            ChunkWeakHandle chunk_weak_handle { chunk_col, j };
+            if (util::distance_queue_contains(m_chunks_to_mesh, chunk_weak_handle))
                 continue;
 
-            const v3 chunk_world_pos = chunk_to_world_pos({ world_chunk_col_pos.x, j, world_chunk_col_pos.y });
+            DistanceQueueElem<ChunkWeakHandle> distance_queue_elem {
+                chunk_weak_handle,
+                glm::distance2(v2(chunk.chunk_pos()), v2(corner_pos())) };
 
-            const ChunkDistance chunk_distance{
-                &chunk,
-                glm::distance2(chunk_world_pos, player_pos)};
-
-            // Enqueue chunk meshing
-            voxel::chunk_distance_queue_insert(m_chunks_to_mesh, chunk_distance);
+            util::distance_queue_insert(m_chunks_to_mesh, distance_queue_elem);
         }
     }
 
@@ -166,7 +163,7 @@ namespace h2o
         return m_chunk_mesh_columns[to_index(*local_chunk_pos)].get();
     }
 
-    ChunkRenderingRegion::ChunkMeshColumnPtr ChunkRenderingRegion::create_chunk_mesh_column(v2i chunk_col_pos) const
+    ChunkRenderingRegion::ChunkMeshColumnOwner ChunkRenderingRegion::create_chunk_mesh_column(v2i chunk_col_pos) const
     {
         auto new_column = std::make_unique<ChunkMeshColumn>();
 
@@ -179,14 +176,15 @@ namespace h2o
 
     void ChunkRenderingRegion::update_next_chunk_mesh()
     {
-        auto chunk_distance = voxel::chunk_distance_queue_pop(m_chunks_to_mesh,
-            [&](const ChunkDistance& chunk) -> bool { return true; });
+        auto chunk_distance = util::distance_queue_pop<ChunkWeakHandle>(m_chunks_to_mesh,
+            [](const DistanceQueueElem<ChunkWeakHandle>& chunk) -> bool { return true; });
 
         if (!chunk_distance)
             return;
 
-        auto chunk = chunk_distance->chunk;
-        assert(chunk);
+        const auto chunk = chunk_distance->value.chunk();
+        if (!chunk)
+            return;
 
         const v3i& chunk_pos = chunk->chunk_pos();
         const v2i chunk_col_pos { chunk_pos.x, chunk_pos.z };

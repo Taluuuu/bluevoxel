@@ -65,7 +65,7 @@ namespace h2o
     }
 
     void ChunkSystem::fetch_or_create_chunk_column(
-        v2i chunk_location, const ChunkFetchCallback& chunk_fetch_callback)
+        v2i chunk_location, f32 distance, const ChunkFetchCallback& chunk_fetch_callback)
     {
         if (auto chunk_col = fetch_chunk_column(chunk_location))
         {
@@ -81,7 +81,7 @@ namespace h2o
         );
 
         if (load_request_it == m_chunk_load_queue.end())
-            m_chunk_load_queue.push_back({ chunk_location, chunk_fetch_callback });
+            m_chunk_load_queue.push_back({ chunk_location, distance, chunk_fetch_callback });
     }
 
     OwningHandle<ChunkColumn> ChunkSystem::create_chunk_column(v2i chunk_location) const
@@ -91,7 +91,7 @@ namespace h2o
         i32 y = 0;
         for (auto& chunk : *chunk_col)
         {
-            chunk.init(*this, { chunk_location.x, y++, chunk_location.y });
+            chunk.init({ chunk_location.x, y++, chunk_location.y });
             m_chunk_generator->gen_chunk(chunk);
         }
 

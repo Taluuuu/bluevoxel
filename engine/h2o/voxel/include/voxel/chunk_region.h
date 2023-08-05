@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chunk_ptr.h"
+#include "chunk_types.h"
 #include "core/handle_types.h"
 #include "core/types.h"
 

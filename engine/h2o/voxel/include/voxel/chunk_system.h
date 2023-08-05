@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chunk_ptr.h"
+#include "chunk_types.h"
 #include "core/events.h"
 #include "core/handle_types.h"
 #include "scene/scene_system.h"
@@ -37,7 +37,7 @@ namespace h2o
 
         [[nodiscard]] WeakHandle<ChunkColumn> fetch_chunk_column(v2i chunk_location) const;
         void fetch_or_create_chunk_column(
-            v2i chunk_location, const ChunkFetchCallback& chunk_fetch_callback);
+            v2i chunk_location, f32 distance, const ChunkFetchCallback& chunk_fetch_callback);
 
         Event<ChunkEvent> on_chunk_loaded;
         Event<ChunkEvent> on_chunk_unloaded;
@@ -53,6 +53,7 @@ namespace h2o
         struct ChunkLoadRequest
         {
             v2i chunk_pos;
+            f32 distance;
             ChunkFetchCallback fetch_callback;
         };
         std::vector<ChunkLoadRequest> m_chunk_load_queue;

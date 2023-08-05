@@ -17,7 +17,7 @@ namespace h2o
 
         Chunk() = default;
 
-        void init(const ChunkSystem& chunk_system, const v3i& chunk_pos);
+        void init(const v3i& chunk_pos);
 
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
@@ -36,8 +36,6 @@ namespace h2o
         v3i m_chunk_pos{};
 
         bool m_is_empty = true;
-
-        const ChunkSystem* m_chunk_system = nullptr;
 
     };
 }

@@ -5,9 +5,8 @@
 
 namespace h2o
 {
-    void Chunk::init(const ChunkSystem& chunk_system, const v3i& chunk_pos)
+    void Chunk::init(const v3i& chunk_pos)
     {
-        m_chunk_system = &chunk_system;
         m_chunk_pos = chunk_pos;
 
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
@@ -15,8 +14,6 @@ namespace h2o
 
     Block Chunk::get_block_at(const v3i& local_pos) const
     {
-        assert(m_is_initialized);
-
         if (!is_valid_pos(local_pos))
             return Block::Air;
 
@@ -25,8 +22,6 @@ namespace h2o
 
     void Chunk::set_block_at(const v3i& local_pos, Block block)
     {
-        assert(m_is_initialized);
-
         assert(is_valid_pos(local_pos));
 
         // TODO: Check if the block is valid

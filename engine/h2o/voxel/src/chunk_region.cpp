@@ -4,6 +4,7 @@
 #include "voxel/chunk_system.h"
 
 #include <cassert>
+#include <glm/gtx/norm.hpp>
 #include <optional>
 
 namespace h2o
@@ -36,20 +37,20 @@ namespace h2o
 
         std::vector< WeakHandle<ChunkColumn> > new_chunks(new_size * new_size, nullptr);
         for (i32 i = 0; i < new_size; i++)
-            for (i32 j = 0; j < new_size; j++)
-            {
-                const i32 new_idx = i * i32(new_size) + j;
-                const i32 old_idx = new_to_old_indices[new_idx];
+        for (i32 j = 0; j < new_size; j++)
+        {
+            const i32 new_idx = i * i32(new_size) + j;
+            const i32 old_idx = new_to_old_indices[new_idx];
 
-                if (old_idx != -1)
-                {
-                    new_chunks[new_idx] = m_chunks_in_region[old_idx];
-                }
-                else
-                {
-                    rel_chunk_positions_to_load.emplace_back(i, j);
-                }
+            if (old_idx != -1)
+            {
+                new_chunks[new_idx] = m_chunks_in_region[old_idx];
             }
+            else
+            {
+                rel_chunk_positions_to_load.emplace_back(i, j);
+            }
+        }
 
         m_chunks_in_region = std::move(new_chunks);
 
@@ -58,7 +59,9 @@ namespace h2o
         for (v2i rel_chunk_pos : rel_chunk_positions_to_load)
         {
             const v2i world_chunk_pos = rel_chunk_pos + new_corner_pos;
-            m_chunk_system->fetch_or_create_chunk_column(world_chunk_pos,
+            m_chunk_system->fetch_or_create_chunk_column(
+                world_chunk_pos,
+                glm::distance2(v2(new_corner_pos), v2(world_chunk_pos)),
                 [&, world_chunk_pos](const WeakHandle<ChunkColumn>& chunk_col)
                 {
                     assert(chunk_col && !chunk_col->empty());
@@ -70,7 +73,8 @@ namespace h2o
                         m_chunks_in_region[to_index(*local_chunk_pos)] = chunk_col;
                         on_chunk_fetched(chunk_col, *local_chunk_pos);
                     }
-                });
+                }
+            );
         }
     }
 
