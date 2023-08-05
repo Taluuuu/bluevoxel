@@ -85,7 +85,7 @@ namespace h2o
 
             for (u32 dir = 0; dir < magic_enum::enum_count<voxel::Direction>(); dir++)
             {
-                const v3i offset = voxel::to_vec(dir);
+                const v3i offset = voxel::to_vec3(dir);
                 const Block neighbor_block = chunk.get_block_at(offset + pos);
 
                 if (neighbor_block == Block::Air)

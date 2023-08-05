@@ -28,6 +28,10 @@ namespace h2o
         // TODO: Check if the block is valid
 
         m_blocks[to_index(local_pos)] = block;
+
+        // TODO: Add way for is_empty to be reset to true
+        if (block != Block::Air)
+            m_is_empty = false;
     }
 
     constexpr size_t Chunk::to_index(const v3u& local_pos)

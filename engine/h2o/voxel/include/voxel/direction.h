@@ -15,7 +15,7 @@ namespace h2o::voxel
 
     constexpr size_t dir_count = magic_enum::enum_count<Direction>();
 
-    constexpr v3i to_vec(u32 direction)
+    constexpr v3i to_vec3(u32 direction)
     {
         switch (direction)
         {
@@ -25,7 +25,19 @@ namespace h2o::voxel
         case YPos: return {  0,  1,  0  };
         case ZNeg: return {  0,  0, -1  };
         case ZPos: return {  0,  0,  1  };
-        default: assert(false); return { 0, 0, 0 };
+        default:   return {  0,  0,  0  };
+        }
+    }
+
+    constexpr v2i to_vec2(u32 direction)
+    {
+        switch (direction)
+        {
+        case XNeg: return { -1,  0 };
+        case XPos: return {  1,  0 };
+        case ZNeg: return {  0, -1 };
+        case ZPos: return {  0,  1 };
+        default:   return {  0,  0 };
         }
     }
 }

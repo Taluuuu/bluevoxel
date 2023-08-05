@@ -27,8 +27,9 @@ namespace h2o
         void init(gfx::IRenderer& renderer, const v3i& chunk_pos);
         void update(const VoxelRenderingModule& chunk_rendering_module, const Chunk& chunk);
 
-        [[nodiscard]] const v3i& chunk_pos()    const { return m_chunk_pos;    }
-        [[nodiscard]]       i32  vertex_count() const { return m_vertex_count; }
+        [[nodiscard]] const v3i& chunk_pos()    const { return m_chunk_pos;               }
+        [[nodiscard]]       i32  vertex_count() const { return m_vertex_count;            }
+        [[nodiscard]]       bool is_ready()     const { return m_vertex_array != nullptr; }
         [[nodiscard]] const gfx::IVertexArray& vertex_array() const;
 
     private:

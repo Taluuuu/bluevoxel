@@ -14,15 +14,15 @@ namespace h2o
 
     void ChunkRegion::set_corner_pos(v2i new_corner_pos)
     {
-        update(new_corner_pos, m_size);
+        update_data(new_corner_pos, m_size);
     }
 
     void ChunkRegion::set_size(u32 new_size)
     {
-        update(m_corner_pos, new_size);
+        update_data(m_corner_pos, new_size);
     }
 
-    void ChunkRegion::update(v2i new_corner_pos, u32 new_size)
+    void ChunkRegion::update_data(v2i new_corner_pos, u32 new_size)
     {
         assert(m_chunk_system);
 
@@ -61,15 +61,14 @@ namespace h2o
             m_chunk_system->fetch_or_create_chunk_column(world_chunk_pos,
                 [&, world_chunk_pos](const ChunkColumnPtr& chunk_col)
                 {
-                    if (in_region_bounds(world_chunk_pos))
-                    {
-                        assert(chunk_col && !chunk_col->empty());
+                    assert(chunk_col && !chunk_col->empty());
 
-                        // Recompute local chunk pos as the size or corner of the chunk region
-                        // might have changed by the time we receive the new chunk.
-                        const v2i local_chunk_pos = to_local_chunk_pos_2d(world_chunk_pos);
-                        m_chunks_in_region[to_index(local_chunk_pos)] = chunk_col;
-                        on_chunk_fetched(chunk_col, local_chunk_pos);
+                    // Recompute local chunk pos as the size or corner of the chunk region
+                    // might have changed by the time we receive the new chunk.
+                    if (const auto local_chunk_pos = to_local_chunk_pos_2d(world_chunk_pos))
+                    {
+                        m_chunks_in_region[to_index(*local_chunk_pos)] = chunk_col;
+                        on_chunk_fetched(chunk_col, *local_chunk_pos);
                     }
                 });
         }
@@ -92,13 +91,23 @@ namespace h2o
         if (!in_region_bounds(chunk_pos))
             return nullptr;
 
-        const v3i local_pos = to_local_chunk_pos_3d(chunk_pos);
-        const size_t index = to_index({ local_pos.x, local_pos.z });
-        const auto& chunk_col = m_chunks_in_region[index];
-        if (!chunk_col)
-            return nullptr;
+        if (const auto chunk_col = get_chunk_col_at({ chunk_pos.x, chunk_pos.z }))
+            return &(*chunk_col)[chunk_pos.y]; // assumes chunk positions go from 0 to whatever;
 
-        return &(*chunk_col)[local_pos.y];
+        return nullptr;
+    }
+
+    ChunkColumnPtr ChunkRegion::get_chunk_col_at(v2i chunk_col_pos) const
+    {
+        if (const auto local_pos = to_local_chunk_pos_2d(chunk_col_pos))
+        {
+            const size_t index = to_index({ local_pos->x, local_pos->y });
+            const auto& chunk_col = m_chunks_in_region[index];
+            if (chunk_col)
+                return chunk_col;
+        }
+
+        return nullptr;
     }
 
     bool ChunkRegion::in_region_bounds(const v3i& chunk_pos) const
@@ -122,13 +131,15 @@ namespace h2o
             chunk_pos.y >= min.y && chunk_pos.y < max.y;
     }
 
-    v3i ChunkRegion::to_local_chunk_pos_3d(const v3i& chunk_pos) const
+    std::optional<v3i> ChunkRegion::to_local_chunk_pos_3d(const v3i& chunk_pos) const
     {
+        if (!in_region_bounds(chunk_pos)) return std::nullopt;
         return chunk_pos - v3i{ m_corner_pos.x, 0, m_corner_pos.y };
     }
 
-    v2i ChunkRegion::to_local_chunk_pos_2d(v2i chunk_pos) const
+    std::optional<v2i> ChunkRegion::to_local_chunk_pos_2d(v2i chunk_pos) const
     {
+        if (!in_region_bounds(chunk_pos)) return std::nullopt;
         return chunk_pos - m_corner_pos;
     }
 

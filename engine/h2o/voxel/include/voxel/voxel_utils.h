@@ -54,4 +54,9 @@ namespace h2o
             non_stupid_mod(block_pos.z, voxel_constants::chunk_size)
         };
     }
+
+    constexpr v3 chunk_to_world_pos(const v3i& chunk_pos)
+    {
+        return chunk_pos * voxel_constants::chunk_size;
+    }
 }

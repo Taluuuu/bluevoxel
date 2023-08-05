@@ -21,6 +21,7 @@ namespace h2o
 
         [[nodiscard]] Block get_block_at(const v3u& local_pos) const;
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
+        [[nodiscard]] bool is_empty() const { return m_is_empty; }
         void set_block_at(const v3u& local_pos, Block block);
 
     private:
@@ -33,6 +34,8 @@ namespace h2o
         std::vector<Block> m_blocks;
 
         v3i m_chunk_pos{};
+
+        bool m_is_empty = true;
 
         const ChunkSystem* m_chunk_system = nullptr;
 

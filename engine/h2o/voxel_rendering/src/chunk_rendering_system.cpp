@@ -30,7 +30,7 @@ namespace h2o
 
         assert(m_renderer);
         m_chunk_rendering_region = std::make_unique<ChunkRenderingRegion>(*m_renderer, *m_voxel_rendering_module, chunk_system);
-        m_chunk_rendering_region->update(v2i{-2, -1}, 3);
+        m_chunk_rendering_region->update_data(v2i{-2, -1}, 3);
 
         chunk_system->on_player_changed_chunk.add_listener(m_on_player_changed_chunk_handle,
             [&](const PlayerChangedChunkEvent& event)
@@ -53,11 +53,22 @@ namespace h2o
     {
         ImGui::Text("Voxel Settings");
 
-        i32 new_size = i32(m_chunk_rendering_region->size());
-        if (ImGui::SliderInt("World Size", &new_size, 0, 32))
+        if (m_chunk_rendering_region)
         {
-            const v2i new_corner_pos = m_last_player_chunk - new_size / 2;
-            m_chunk_rendering_region->update(new_corner_pos, new_size);
+            i32 new_size = i32(m_chunk_rendering_region->size());
+            if (ImGui::SliderInt("World Size", &new_size, 0, 32))
+            {
+                const v2i new_corner_pos = m_last_player_chunk - new_size / 2;
+                m_chunk_rendering_region->update_data(new_corner_pos, new_size);
+            }
+
+            // TODO: This needs to be standardized
+            const auto player = m_scene->get_actor("Player");
+            if (player)
+            {
+                const v3& player_pos = player->transform.position;
+                m_chunk_rendering_region->player_pos = player_pos;
+            }
         }
     }
 
@@ -88,8 +99,12 @@ namespace h2o
         m_chunk_rendering_region->for_each_chunk_mesh(
             [&](const ChunkMesh& chunk_mesh)
             {
-                pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos());
-                m_renderer->draw(chunk_mesh.vertex_array(), chunk_mesh.vertex_count());
-            });
+                if (chunk_mesh.is_ready())
+                {
+                    pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos());
+                    m_renderer->draw(chunk_mesh.vertex_array(), chunk_mesh.vertex_count());
+                }
+            }
+        );
     }
 }
