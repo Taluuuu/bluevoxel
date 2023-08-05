@@ -62,6 +62,16 @@ namespace h2o
                 m_chunk_rendering_region->update_data(new_corner_pos, new_size);
             }
 
+            auto chunk_system = m_scene->get_system<ChunkSystem>();
+            if (chunk_system)
+            {
+                ImGui::Text("Chunks pending generation: %i",
+                    chunk_system->num_chunks_waiting_generation());
+            }
+
+            ImGui::Text("Chunks pending mesh update: %i",
+                m_chunk_rendering_region->num_chunks_pending_mesh_update());
+
             // TODO: This needs to be standardized
             const auto player = m_scene->get_actor("Player");
             if (player)

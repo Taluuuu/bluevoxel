@@ -27,6 +27,9 @@ namespace h2o
 
         void for_each_chunk_mesh(const std::function<void(ChunkMesh&)>& fun) const;
 
+        [[nodiscard]] i32 num_chunks_pending_mesh_update() const
+        { return i32(m_chunks_to_mesh.size()); }
+
     protected:
 
         using ChunkMeshColumn = std::array<ChunkMesh, voxel_constants::vertical_chunk_count>;
@@ -39,7 +42,15 @@ namespace h2o
 
         // ChunkRegion interface
         void on_indices_changed(const std::vector<i32>& new_to_old_indices) override;
-        void on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i local_chunk_pos) override;
+        void on_chunk_fetched(const WeakHandle<ChunkColumn>& chunk_col, v2i local_chunk_pos) override;
+
+    private:
+
+        [[nodiscard]] ChunkMeshColumn* fetch_or_create_chunk_mesh_column(v2i chunk_col_pos);
+        [[nodiscard]] ChunkMeshColumn* fetch_chunk_mesh_column(v2i chunk_col_pos) const;
+        [[nodiscard]] ChunkMeshColumnPtr create_chunk_mesh_column(v2i chunk_col_pos) const;
+
+        void update_next_chunk_mesh();
 
     public:
 

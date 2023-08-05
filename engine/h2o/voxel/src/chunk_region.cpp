@@ -34,7 +34,7 @@ namespace h2o
         std::vector<v2i> rel_chunk_positions_to_load;
         rel_chunk_positions_to_load.reserve(new_size * new_size);
 
-        std::vector<ChunkColumnPtr> new_chunks(new_size * new_size, nullptr);
+        std::vector< WeakHandle<ChunkColumn> > new_chunks(new_size * new_size, nullptr);
         for (i32 i = 0; i < new_size; i++)
             for (i32 j = 0; j < new_size; j++)
             {
@@ -59,7 +59,7 @@ namespace h2o
         {
             const v2i world_chunk_pos = rel_chunk_pos + new_corner_pos;
             m_chunk_system->fetch_or_create_chunk_column(world_chunk_pos,
-                [&, world_chunk_pos](const ChunkColumnPtr& chunk_col)
+                [&, world_chunk_pos](const WeakHandle<ChunkColumn>& chunk_col)
                 {
                     assert(chunk_col && !chunk_col->empty());
 
@@ -97,7 +97,7 @@ namespace h2o
         return nullptr;
     }
 
-    ChunkColumnPtr ChunkRegion::get_chunk_col_at(v2i chunk_col_pos) const
+    WeakHandle<ChunkColumn> ChunkRegion::get_chunk_col_at(v2i chunk_col_pos) const
     {
         if (const auto local_pos = to_local_chunk_pos_2d(chunk_col_pos))
         {

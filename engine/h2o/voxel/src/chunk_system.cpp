@@ -43,28 +43,29 @@ namespace h2o
 
         // Load new chunk(s)
         i32 left_to_load = 1;
-        while (!chunk_load_queue.empty() && left_to_load > 0)
+        while (!m_chunk_load_queue.empty() && left_to_load > 0)
         {
-            const auto& request = chunk_load_queue[0];
-            const auto chunk_col = create_chunk_column(request.chunk_pos);
+            const auto& request = m_chunk_load_queue[0];
 
-            m_loaded_chunks[request.chunk_pos] = chunk_col;
-            request.fetch_callback(chunk_col);
+            auto chunk_col = create_chunk_column(request.chunk_pos);
 
-            chunk_load_queue.erase(chunk_load_queue.cbegin());
+            WeakHandle<ChunkColumn> weak_chunk_col = chunk_col;
+            m_loaded_chunks[request.chunk_pos] = std::move(chunk_col);
+            request.fetch_callback(weak_chunk_col);
+
+            m_chunk_load_queue.erase(m_chunk_load_queue.cbegin());
             left_to_load--;
         }
     }
 
-    ChunkColumnPtr ChunkSystem::fetch_chunk_column(v2i chunk_location) const
+    WeakHandle<ChunkColumn> ChunkSystem::fetch_chunk_column(v2i chunk_location) const
     {
         const auto it = m_loaded_chunks.find(chunk_location);
-        return (it == m_loaded_chunks.end()) ? nullptr : it->second;
+        return (it == m_loaded_chunks.end()) ? nullptr : WeakHandle<ChunkColumn>(it->second);
     }
 
     void ChunkSystem::fetch_or_create_chunk_column(
-        v2i chunk_location,
-        const std::function<void(const ChunkColumnPtr&)>& chunk_fetch_callback)
+        v2i chunk_location, const ChunkFetchCallback& chunk_fetch_callback)
     {
         if (auto chunk_col = fetch_chunk_column(chunk_location))
         {
@@ -72,12 +73,20 @@ namespace h2o
             return;
         }
 
-        chunk_load_queue.push_back({ chunk_location, chunk_fetch_callback });
+        const auto load_request_it = std::find_if(m_chunk_load_queue.begin(), m_chunk_load_queue.end(),
+            [chunk_location](const ChunkLoadRequest& item) -> bool
+            {
+                return item.chunk_pos == chunk_location;
+            }
+        );
+
+        if (load_request_it == m_chunk_load_queue.end())
+            m_chunk_load_queue.push_back({ chunk_location, chunk_fetch_callback });
     }
 
-    ChunkColumnPtr ChunkSystem::create_chunk_column(v2i chunk_location) const
+    OwningHandle<ChunkColumn> ChunkSystem::create_chunk_column(v2i chunk_location) const
     {
-        auto chunk_col = std::make_shared<ChunkColumn>();
+        auto chunk_col = oup::make_observable_unique<ChunkColumn>();
 
         i32 y = 0;
         for (auto& chunk : *chunk_col)

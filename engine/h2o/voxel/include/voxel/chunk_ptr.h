@@ -9,5 +9,4 @@ namespace h2o
 {
     class Chunk;
     using ChunkColumn = std::array<Chunk, voxel_constants::vertical_chunk_count>;
-    using ChunkColumnPtr = std::shared_ptr<ChunkColumn>;
 }

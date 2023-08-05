@@ -25,7 +25,7 @@ namespace h2o
 
         void for_each_chunk(const std::function<void(Chunk&)>& fun) const;
         [[nodiscard]] Chunk* get_chunk_at(const v3i& chunk_pos) const;
-        [[nodiscard]] ChunkColumnPtr get_chunk_col_at(v2i chunk_col_pos) const;
+        [[nodiscard]] WeakHandle<ChunkColumn> get_chunk_col_at(v2i chunk_col_pos) const;
 
         [[nodiscard]] v2i corner_pos() const { return m_corner_pos; }
         [[nodiscard]] v2i center_pos() const { return m_corner_pos + v2i{ size() / 2, size() / 2 }; }
@@ -38,7 +38,7 @@ namespace h2o
         // Override to run movement logic when the chunk region changes size
         // or moves. This function is also called on init.
         virtual void on_indices_changed(const std::vector<i32>& new_to_old_indices) {}
-        virtual void on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i local_chunk_pos) {}
+        virtual void on_chunk_fetched(const WeakHandle<ChunkColumn>& chunk_col, v2i local_chunk_pos) {}
 
         [[nodiscard]] std::optional<v3i> to_local_chunk_pos_3d(const v3i& chunk_pos) const;
         [[nodiscard]] std::optional<v2i> to_local_chunk_pos_2d(v2i chunk_pos) const;
@@ -57,7 +57,7 @@ namespace h2o
 
         WeakHandle<ChunkSystem> m_chunk_system = nullptr;
 
-        std::vector<ChunkColumnPtr> m_chunks_in_region;
+        std::vector< WeakHandle<ChunkColumn> > m_chunks_in_region;
 
         v2i m_corner_pos { 0, 0 };
         u32 m_size { 0 };

@@ -13,16 +13,20 @@ namespace h2o
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
     }
 
-    Block Chunk::get_block_at(const v3u& local_pos) const
+    Block Chunk::get_block_at(const v3i& local_pos) const
     {
+        assert(m_is_initialized);
+
         if (!is_valid_pos(local_pos))
             return Block::Air;
 
         return m_blocks[to_index(local_pos)];
     }
 
-    void Chunk::set_block_at(const v3u& local_pos, Block block)
+    void Chunk::set_block_at(const v3i& local_pos, Block block)
     {
+        assert(m_is_initialized);
+
         assert(is_valid_pos(local_pos));
 
         // TODO: Check if the block is valid
@@ -34,7 +38,7 @@ namespace h2o
             m_is_empty = false;
     }
 
-    constexpr size_t Chunk::to_index(const v3u& local_pos)
+    constexpr size_t Chunk::to_index(const v3i& local_pos)
     {
         return
             local_pos.x * voxel_constants::chunk_area +
@@ -42,7 +46,7 @@ namespace h2o
             local_pos.z;
     }
 
-    constexpr bool Chunk::is_valid_pos(const v3u& local_pos)
+    constexpr bool Chunk::is_valid_pos(const v3i& local_pos)
     {
         return
             local_pos.x >= 0 && local_pos.x < voxel_constants::chunk_size &&

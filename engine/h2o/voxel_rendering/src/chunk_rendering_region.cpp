@@ -39,42 +39,7 @@ namespace h2o
 
     void ChunkRenderingRegion::update(f32 delta_time)
     {
-        auto chunk_distance = voxel::chunk_distance_queue_pop(m_chunks_to_mesh,
-            [&](const ChunkDistance& chunk) -> bool { return true; });
-
-        if (!chunk_distance)
-            return;
-
-        auto chunk = chunk_distance->chunk;
-        assert(chunk);
-
-        const v3i& chunk_pos = chunk->chunk_pos();
-        const v2i chunk_col_pos { chunk_pos.x, chunk_pos.z };
-        const auto local_chunk_col_pos = to_local_chunk_pos_2d(chunk_col_pos);
-        if (!local_chunk_col_pos)
-            return;
-
-        // Create chunk mesh column if it does not already exist.
-        auto chunk_col_mesh = get_chunk_mesh_col_at(chunk_col_pos);
-        if (!chunk_col_mesh)
-        {
-            auto new_column = std::make_unique<ChunkMeshColumn>();
-            chunk_col_mesh = new_column.get();
-
-            const size_t index = to_index(*local_chunk_col_pos);
-
-            m_chunk_mesh_columns[index] = std::move(new_column);
-
-            i32 i = 0;
-            for (auto& chunk_mesh : *chunk_col_mesh)
-                chunk_mesh.init(*m_renderer, { chunk_col_pos.x, i++, chunk_col_pos.y });
-        }
-
-        assert(chunk_col_mesh);
-
-        auto& chunk_mesh = (*chunk_col_mesh)[chunk_pos.y];
-
-        chunk_mesh.update(*m_voxel_rendering_module, *chunk);
+        update_next_chunk_mesh();
     }
 
     void ChunkRenderingRegion::for_each_chunk_mesh(const std::function<void(ChunkMesh&)>& fun) const
@@ -144,7 +109,7 @@ namespace h2o
         m_chunk_mesh_columns = std::move(new_chunk_meshes);
     }
 
-    void ChunkRenderingRegion::on_chunk_fetched(const ChunkColumnPtr& chunk_col, v2i local_chunk_pos)
+    void ChunkRenderingRegion::on_chunk_fetched(const WeakHandle<ChunkColumn>& chunk_col, v2i local_chunk_pos)
     {
         const auto& chunk_mesh_col = m_chunk_mesh_columns[to_index(local_chunk_pos)];
         if (chunk_mesh_col)
@@ -153,41 +118,85 @@ namespace h2o
         const v2i world_chunk_col_pos = local_chunk_pos + corner_pos();
         for (i32 j = 0; j < voxel_constants::vertical_chunk_count; j++)
         {
-            if ((*chunk_col)[j].is_empty())
+            const auto& chunk = (*chunk_col)[j];
+
+            assert(!chunk.m_blocks.empty());
+
+            if (chunk.is_empty())
+                continue; // Empty chunk; no need to mesh.
+
+            if (voxel::chunk_distance_queue_contains(m_chunks_to_mesh, chunk))
                 continue;
 
-            const v3 chunk_world_pos = chunk_to_world_pos({world_chunk_col_pos.x, j, world_chunk_col_pos.y});
+            const v3 chunk_world_pos = chunk_to_world_pos({ world_chunk_col_pos.x, j, world_chunk_col_pos.y });
 
             const ChunkDistance chunk_distance{
-                &(*chunk_col)[j],
+                &chunk,
                 glm::distance2(chunk_world_pos, player_pos)};
 
             // Enqueue chunk meshing
             voxel::chunk_distance_queue_insert(m_chunks_to_mesh, chunk_distance);
         }
+    }
 
-//        for (i32 i = 0; i < size(); i++)
-//        for (i32 k = 0; k < size(); k++)
-//        {
-//            const auto& chunk_mesh_col = m_chunk_mesh_columns[to_index({i, k})];
-//            if (chunk_mesh_col)
-//                continue;
-//
-//            const v2i world_chunk_col_pos = local_chunk_pos + corner_pos();
-//            for (i32 j = 0; j < voxel_constants::vertical_chunk_count; j++)
-//            {
-//                if ((*chunk_col)[j].is_empty())
-//                    continue;
-//
-//                const v3 chunk_world_pos = chunk_to_world_pos({ world_chunk_col_pos.x, j, world_chunk_col_pos.y });
-//
-//                const ChunkDistance chunk_distance {
-//                    &(*chunk_col)[j],
-//                    glm::distance2(chunk_world_pos, player_pos) };
-//
-//                // Enqueue chunk meshing
-//                voxel::chunk_distance_queue_insert(m_chunks_to_mesh, chunk_distance);
-//            }
-//        }
+    ChunkRenderingRegion::ChunkMeshColumn* ChunkRenderingRegion::fetch_or_create_chunk_mesh_column(v2i chunk_col_pos)
+    {
+        if (auto chunk_mesh_col = fetch_chunk_mesh_column(chunk_col_pos))
+            return chunk_mesh_col;
+
+        auto local_chunk_col_pos = to_local_chunk_pos_2d(chunk_col_pos);
+        if (!local_chunk_col_pos)
+            return nullptr;
+
+        auto chunk_mesh_col = create_chunk_mesh_column(chunk_col_pos);
+        assert(chunk_mesh_col);
+
+        auto chunk_mesh_col_ptr = chunk_mesh_col.get();
+        m_chunk_mesh_columns[to_index(*local_chunk_col_pos)] = std::move(chunk_mesh_col);
+
+        return chunk_mesh_col_ptr;
+    }
+
+    ChunkRenderingRegion::ChunkMeshColumn* ChunkRenderingRegion::fetch_chunk_mesh_column(v2i chunk_col_pos) const
+    {
+        auto local_chunk_pos = to_local_chunk_pos_2d(chunk_col_pos);
+        if (!local_chunk_pos)
+            return nullptr;
+
+        return m_chunk_mesh_columns[to_index(*local_chunk_pos)].get();
+    }
+
+    ChunkRenderingRegion::ChunkMeshColumnPtr ChunkRenderingRegion::create_chunk_mesh_column(v2i chunk_col_pos) const
+    {
+        auto new_column = std::make_unique<ChunkMeshColumn>();
+
+        i32 i = 0;
+        for (auto& chunk_mesh : *new_column)
+            chunk_mesh.init(*m_renderer, { chunk_col_pos.x, i++, chunk_col_pos.y });
+
+        return new_column;
+    }
+
+    void ChunkRenderingRegion::update_next_chunk_mesh()
+    {
+        auto chunk_distance = voxel::chunk_distance_queue_pop(m_chunks_to_mesh,
+            [&](const ChunkDistance& chunk) -> bool { return true; });
+
+        if (!chunk_distance)
+            return;
+
+        auto chunk = chunk_distance->chunk;
+        assert(chunk);
+
+        const v3i& chunk_pos = chunk->chunk_pos();
+        const v2i chunk_col_pos { chunk_pos.x, chunk_pos.z };
+
+        auto chunk_mesh_column = fetch_or_create_chunk_mesh_column(chunk_col_pos);
+        if (!chunk_mesh_column)
+            return;
+
+        auto& chunk_mesh = (*chunk_mesh_column)[chunk_pos.y];
+
+        chunk_mesh.update(*m_voxel_rendering_module, *chunk);
     }
 }

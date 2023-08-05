@@ -16,7 +16,7 @@ namespace h2o
     struct ChunkEvent { Chunk& chunk; };
     struct PlayerChangedChunkEvent { v3i old_chunk_pos; v3i new_chunk_pos; };
 
-    using ChunkFetchCallback = std::function<void(const ChunkColumnPtr&)>;
+    using ChunkFetchCallback = std::function<void(const WeakHandle<ChunkColumn>&)>;
 
     /**
      * A system meant to be added to scenes that generates a voxel world,
@@ -32,10 +32,12 @@ namespace h2o
         bool init() override;
         void update(f32 delta_time) override;
 
-        [[nodiscard]] ChunkColumnPtr fetch_chunk_column(v2i chunk_location) const;
+        [[nodiscard]] i32 num_chunks_waiting_generation() const
+        { return i32(m_chunk_load_queue.size()); }
+
+        [[nodiscard]] WeakHandle<ChunkColumn> fetch_chunk_column(v2i chunk_location) const;
         void fetch_or_create_chunk_column(
-            v2i chunk_location,
-            const std::function<void(const ChunkColumnPtr&)>& chunk_fetch_callback);
+            v2i chunk_location, const ChunkFetchCallback& chunk_fetch_callback);
 
         Event<ChunkEvent> on_chunk_loaded;
         Event<ChunkEvent> on_chunk_unloaded;
@@ -44,7 +46,7 @@ namespace h2o
 
     protected:
 
-        ChunkColumnPtr create_chunk_column(v2i chunk_location) const;
+        [[nodiscard]] OwningHandle<ChunkColumn> create_chunk_column(v2i chunk_location) const;
 
     private:
 
@@ -53,9 +55,9 @@ namespace h2o
             v2i chunk_pos;
             ChunkFetchCallback fetch_callback;
         };
-        std::vector<ChunkLoadRequest> chunk_load_queue;
+        std::vector<ChunkLoadRequest> m_chunk_load_queue;
 
-        std::unordered_map<v2i, ChunkColumnPtr> m_loaded_chunks;
+        std::unordered_map<v2i, OwningHandle<ChunkColumn>> m_loaded_chunks;
 
         std::unique_ptr<ChunkGenerator_Base> m_chunk_generator { nullptr };
 

@@ -6,24 +6,25 @@
 #include <optional>
 #include <vector>
 
-class Chunk;
-
 namespace h2o
 {
+    class Chunk;
+
     struct ChunkDistance
     {
-        Chunk* chunk { nullptr };
+        const Chunk* chunk { nullptr };
         f32 distance { 0.0f };
 
         [[nodiscard]] bool operator<(const ChunkDistance& other) const
         { return distance < other.distance; }
-
     };
 
     using ChunkDistanceQueue = std::vector<ChunkDistance>;
 
     namespace voxel
     {
+        bool chunk_distance_queue_contains(const ChunkDistanceQueue& queue, const Chunk& chunk);
+
         // Insert chunk based on its distance value
         void chunk_distance_queue_insert(ChunkDistanceQueue& queue, const ChunkDistance& chunk_distance);
 
