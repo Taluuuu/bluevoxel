@@ -32,6 +32,7 @@ namespace h2o
         [[nodiscard]] u32 size() const { return m_size; }
         [[nodiscard]] bool in_region_bounds(const v3i& chunk_pos) const;
         [[nodiscard]] bool in_region_bounds(v2i chunk_pos) const;
+        [[nodiscard]] ChunkSystem& chunk_system() const;
 
     protected:
 

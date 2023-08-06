@@ -1,7 +1,8 @@
 #pragma once
 
-#include "core/types.h"
 #include "block.h"
+#include "core/types.h"
+#include "voxel/voxel_constants.h"
 
 #include <cstddef>
 #include <iterator>
@@ -24,10 +25,13 @@ namespace h2o
         [[nodiscard]] bool is_empty() const { return m_is_empty; }
         void set_block_at(const v3i& local_pos, Block block);
 
-    private:
-
-        static constexpr size_t to_index(const v3i& local_pos);
-        static constexpr bool is_valid_pos(const v3i& local_pos);
+        static constexpr bool is_valid_pos(const v3i& local_pos)
+        {
+            return
+                local_pos.x >= 0 && local_pos.x < voxel_constants::chunk_size &&
+                local_pos.y >= 0 && local_pos.y < voxel_constants::chunk_size &&
+                local_pos.z >= 0 && local_pos.z < voxel_constants::chunk_size;
+        }
 
     private:
 

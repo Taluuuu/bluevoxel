@@ -135,6 +135,12 @@ namespace h2o
             chunk_pos.y >= min.y && chunk_pos.y < max.y;
     }
 
+    ChunkSystem& ChunkRegion::chunk_system() const
+    {
+        assert(m_chunk_system);
+        return *m_chunk_system;
+    }
+
     std::optional<v3i> ChunkRegion::to_local_chunk_pos_3d(const v3i& chunk_pos) const
     {
         if (!in_region_bounds(chunk_pos)) return std::nullopt;

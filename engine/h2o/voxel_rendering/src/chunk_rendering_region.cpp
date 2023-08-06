@@ -23,15 +23,22 @@ namespace h2o
             {
                 const v3i& chunk_pos = event.chunk.chunk_pos();
 
-                if (const auto local_pos = to_local_chunk_pos_3d(chunk_pos))
-                {
-                    const size_t index = to_index({ local_pos->x, local_pos->z });
-                    if (const auto& mesh_column = m_chunk_mesh_columns[index])
-                    {
-                        auto& chunk_mesh = (*mesh_column)[chunk_pos.y];
-                        chunk_mesh.update(voxel_rendering_module, event.chunk);
-                    }
-                }
+                // TODO: Insert from weak chunk handle into the chunks to mesh queue
+//                util::distance_queue_insert(m_chunks_to_mesh, event.chunk
+
+                const auto local_pos = to_local_chunk_pos_3d(chunk_pos);
+                if (!local_pos)
+                    return;
+
+                const size_t index = to_index({ local_pos->x, local_pos->z });
+                const auto& mesh_column = m_chunk_mesh_columns[index];
+                if (!mesh_column)
+                    return;
+
+                auto& chunk_mesh = (*mesh_column)[chunk_pos.y];
+
+                std::array<Chunk*, 6> adjacent_chunks { nullptr };
+                chunk_mesh.update(voxel_rendering_module, event.chunk, adjacent_chunks);
             });
 
         set_tick_phases(TickPhase::Update);
@@ -39,7 +46,10 @@ namespace h2o
 
     void ChunkRenderingRegion::update(f32 delta_time)
     {
-        update_next_chunk_mesh();
+        remove_out_of_range_chunk_mesh_requests();
+
+        for (i32 i = 0; i < 5; i++)
+            update_next_chunk_mesh();
     }
 
     void ChunkRenderingRegion::for_each_chunk_mesh(const std::function<void(ChunkMesh&)>& fun) const
@@ -173,9 +183,52 @@ namespace h2o
         return new_column;
     }
 
+    bool ChunkRenderingRegion::fetch_adjacent_chunks(v3i chunk_pos, std::array<Chunk*, 6>& out_adj_chunks) const
+    {
+        for (u32 dir = 0; dir < 6; dir++)
+        {
+            const v3i offset = voxel::to_vec3(dir);
+
+            const i32 y = offset.y + chunk_pos.y;
+            if (y < 0 || y >= voxel_constants::vertical_chunk_count)
+                continue;
+
+            const auto adj_chunk_col = chunk_system().fetch_chunk_column(
+                v2i{ chunk_pos.x, chunk_pos.z } + v2i{ offset.x, offset.z });
+
+            if (!adj_chunk_col)
+                return false;
+
+            out_adj_chunks[dir] = &(*adj_chunk_col)[y];
+        }
+
+        return true;
+    }
+
+    void ChunkRenderingRegion::remove_out_of_range_chunk_mesh_requests()
+    {
+        while (util::distance_queue_pop<ChunkWeakHandle>(m_chunks_to_mesh,
+            [&](const ChunkWeakHandle& elem)
+            {
+                assert(elem.chunk());
+                return !in_region_bounds(elem.chunk()->chunk_pos());
+            })
+        );
+    }
+
     void ChunkRenderingRegion::update_next_chunk_mesh()
     {
-        auto chunk_weak_handle = util::distance_queue_pop<ChunkWeakHandle>(m_chunks_to_mesh);
+        // Get the closest chunk that has all its neighbours loaded. Get its adjacent chunks.
+        std::array<Chunk*, 6> adj_chunks { nullptr };
+        auto chunk_weak_handle = util::distance_queue_pop<ChunkWeakHandle>(m_chunks_to_mesh,
+            [&](const ChunkWeakHandle& elem) -> bool
+            {
+                assert(elem.chunk());
+
+                adj_chunks.fill(nullptr);
+                return fetch_adjacent_chunks(elem.chunk()->chunk_pos(), adj_chunks);
+            }
+        );
 
         if (!chunk_weak_handle)
             return;
@@ -193,6 +246,6 @@ namespace h2o
 
         auto& chunk_mesh = (*chunk_mesh_column)[chunk_pos.y];
 
-        chunk_mesh.update(*m_voxel_rendering_module, *chunk);
+        chunk_mesh.update(*m_voxel_rendering_module, *chunk, adj_chunks);
     }
 }

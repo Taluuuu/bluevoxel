@@ -2,6 +2,7 @@
 
 #include "core/types.h"
 
+#include <array>
 #include <memory>
 
 namespace h2o
@@ -25,7 +26,10 @@ namespace h2o
         ChunkMesh& operator=(ChunkMesh&& other) noexcept;
 
         void init(gfx::IRenderer& renderer, const v3i& chunk_pos);
-        void update(const VoxelRenderingModule& chunk_rendering_module, const Chunk& chunk);
+        void update(
+            const VoxelRenderingModule& chunk_rendering_module,
+            const Chunk& chunk,
+            const std::array<Chunk*, 6>& adjacent_chunks);
 
         [[nodiscard]] const v3i& chunk_pos()    const { return m_chunk_pos;               }
         [[nodiscard]]       i32  vertex_count() const { return m_vertex_count;            }

@@ -25,10 +25,8 @@ namespace h2o
         Block(u64 id, u64 data) : id{id}, data{data} {}
 
         static const Block Air;
-    };
 
-    inline bool operator==(Block lhs, Block rhs)
-    {
-        return lhs.id == rhs.id && lhs.data == rhs.data;
-    }
+        bool operator==(Block other) const
+        { return id == other.id && data == other.data; }
+    };
 }

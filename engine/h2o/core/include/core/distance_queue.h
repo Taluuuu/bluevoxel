@@ -71,12 +71,12 @@ namespace h2o
         template<class T>
         std::optional<T> distance_queue_pop(
             DistanceQueue<T>& queue,
-            std::function<bool(const DistanceQueueElem<T>&)> predicate)
+            std::function<bool(const T&)> predicate)
         {
             for (i32 i = 0; i < queue.size(); i++)
             {
                 const auto elem = queue[i];
-                if (predicate(elem))
+                if (predicate(elem.value))
                 {
                     queue.erase(queue.cbegin() + i);
                     return elem.value;

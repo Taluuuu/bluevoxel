@@ -50,6 +50,9 @@ namespace h2o
         [[nodiscard]] ChunkMeshColumn* fetch_chunk_mesh_column(v2i chunk_col_pos) const;
         [[nodiscard]] ChunkMeshColumnOwner create_chunk_mesh_column(v2i chunk_col_pos) const;
 
+        [[nodiscard]] bool fetch_adjacent_chunks(v3i chunk_pos, std::array<Chunk*, 6>& out_adj_chunks) const;
+
+        void remove_out_of_range_chunk_mesh_requests();
         void update_next_chunk_mesh();
 
     public:

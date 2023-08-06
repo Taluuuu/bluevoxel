@@ -83,6 +83,8 @@ namespace h2o
             return;
         }
 
+        // In the future we might want to add every request, but right now
+        // it's not needed and slows things down.
         if (!util::distance_queue_contains_by_predicate<ChunkLoadRequest>(m_chunk_load_queue,
             [chunk_location](const ChunkLoadRequest& request) -> bool
             {

@@ -7,6 +7,7 @@
 #include "voxel/chunk.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/direction.h"
+#include "voxel/voxel_utils.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 #include "voxel_rendering/block_model.h"
 
@@ -43,15 +44,22 @@ namespace h2o
         m_buffer = renderer.create_buffer();
     }
 
-    void ChunkMesh::update(const VoxelRenderingModule& chunk_rendering_module, const Chunk& chunk)
+    void ChunkMesh::update(
+        const VoxelRenderingModule& chunk_rendering_module,
+        const Chunk& chunk,
+        const std::array<Chunk*, 6>& adjacent_chunks)
     {
         if (!m_vertex_array || !m_buffer)
             return;
 
         std::vector<u32> vertices;
 
-        const auto append_face = [&vertices]
-            (const v3i& pos, const BlockModel& model, const std::vector<u32>& textures, const std::vector<BlockVertex>& face)
+        const auto append_face =
+            [&vertices](
+                const v3i& pos,
+                const BlockModel& model,
+                const std::vector<u32>& textures,
+                const std::vector<BlockVertex>& face)
             {
                 for (BlockVertex vertex : face)
                 {
@@ -65,6 +73,24 @@ namespace h2o
                     vertices.push_back(temp[0]);
                     vertices.push_back(temp[1]);
                 }
+            };
+
+        const auto get_adj_block_at =
+            [&chunk, &adjacent_chunks](const v3i& block_pos, u32 direction) -> Block
+            {
+                const v3i offset = voxel::to_vec3(direction);
+                const v3i adj_pos = block_pos + offset;
+
+                if (Chunk::is_valid_pos(adj_pos))
+                    return chunk.get_block_at(adj_pos);
+
+                if (Chunk* adj_chunk = adjacent_chunks[direction])
+                {
+                    const v3i pos_in_chunk = block_pos_to_within_chunk(adj_pos);
+                    return adj_chunk->get_block_at(pos_in_chunk);
+                }
+
+                return Block::Air;
             };
 
         for (i32 x = 0; x < voxel_constants::chunk_size; x++)
@@ -83,12 +109,9 @@ namespace h2o
 
             const auto& textures = chunk_rendering_module.get_textures_fast(block.id);
 
-            for (u32 dir = 0; dir < magic_enum::enum_count<voxel::Direction>(); dir++)
+            for (u32 dir = 0; dir < voxel::dir_count; dir++)
             {
-                const v3i offset = voxel::to_vec3(dir);
-                const Block neighbor_block = chunk.get_block_at(offset + pos);
-
-                if (neighbor_block == Block::Air)
+                if (get_adj_block_at(pos, dir) == Block::Air)
                 {
                     for (const auto& face : model->occluded_vertices[dir])
                         append_face(pos, *model, textures, face);
