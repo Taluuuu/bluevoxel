@@ -90,13 +90,13 @@ namespace h2o
         }
     }
 
-    Chunk* ChunkRegion::get_chunk_at(const v3i& chunk_pos) const
+    ChunkWeakHandle ChunkRegion::get_chunk_at(const v3i& chunk_pos) const
     {
         if (!in_region_bounds(chunk_pos))
             return nullptr;
 
         if (const auto chunk_col = get_chunk_col_at({ chunk_pos.x, chunk_pos.z }))
-            return &(*chunk_col)[chunk_pos.y]; // assumes chunk positions go from 0 to whatever;
+            return ChunkWeakHandle { chunk_col, chunk_pos.y }; // assumes chunk positions go from 0 to whatever;
 
         return nullptr;
     }

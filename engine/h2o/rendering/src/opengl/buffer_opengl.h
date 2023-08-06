@@ -15,7 +15,7 @@ namespace h2o::gfx
         ~Buffer_OpenGL() override;
 
         // IBuffer interface
-        void update_data(const void* data, size_t size) override;
+        void update_data(const void* data, i32 size) override;
 
         [[nodiscard]] GLuint handle() const { return m_buffer; }
 

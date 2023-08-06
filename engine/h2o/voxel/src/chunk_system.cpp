@@ -103,10 +103,9 @@ namespace h2o
 
         i32 y = 0;
         for (auto& chunk : *chunk_col)
-        {
             chunk.init({ chunk_location.x, y++, chunk_location.y });
-            m_chunk_generator->gen_chunk(chunk);
-        }
+
+        m_chunk_generator->gen_chunk(*chunk_col);
 
         return chunk_col;
     }

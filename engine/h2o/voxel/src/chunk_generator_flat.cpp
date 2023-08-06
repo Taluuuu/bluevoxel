@@ -9,20 +9,23 @@ namespace h2o
         : ChunkGenerator_Base(chunk_system)
     {}
 
-    void ChunkGenerator_Flat::gen_chunk(Chunk& chunk)
+    void ChunkGenerator_Flat::gen_chunk(ChunkColumn& chunk_col)
     {
-        for (i32 x = 0; x < voxel_constants::chunk_size; x++)
-        for (i32 y = 0; y < voxel_constants::chunk_size; y++)
-        for (i32 z = 0; z < voxel_constants::chunk_size; z++)
+        for (auto& chunk : chunk_col)
         {
-            i32 world_y = chunk.chunk_pos().y * voxel_constants::chunk_size + y;
-            if (world_y < block_layers.size())
+            for (i32 x = 0; x < voxel_constants::chunk_size; x++)
+            for (i32 y = 0; y < voxel_constants::chunk_size; y++)
+            for (i32 z = 0; z < voxel_constants::chunk_size; z++)
             {
-                chunk.set_block_at({ x, y, z }, block_layers[world_y]);
-            }
-            else
-            {
-                chunk.set_block_at({ x, y, z }, Block::Air);
+                i32 world_y = chunk.chunk_pos().y * voxel_constants::chunk_size + y;
+                if (world_y < block_layers.size())
+                {
+                    chunk.set_block_at({ x, y, z }, block_layers[world_y]);
+                }
+                else
+                {
+                    chunk.set_block_at({ x, y, z }, Block::Air);
+                }
             }
         }
     }

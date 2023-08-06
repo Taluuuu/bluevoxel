@@ -14,7 +14,7 @@ namespace h2o
 {
     class ChunkGenerator_Base;
 
-    struct ChunkEvent { Chunk& chunk; };
+    struct ChunkEvent { const ChunkWeakHandle& chunk_handle; };
     struct PlayerChangedChunkEvent { v3i old_chunk_pos; v3i new_chunk_pos; };
 
     using ChunkFetchCallback = std::function<void(const WeakHandle<ChunkColumn>&)>;
@@ -40,8 +40,6 @@ namespace h2o
         void fetch_or_create_chunk_column(
             v2i chunk_location, f32 distance, const ChunkFetchCallback& chunk_fetch_callback);
 
-        Event<ChunkEvent> on_chunk_loaded;
-        Event<ChunkEvent> on_chunk_unloaded;
         Event<ChunkEvent> on_chunk_updated;
         Event<PlayerChangedChunkEvent> on_player_changed_chunk;
 

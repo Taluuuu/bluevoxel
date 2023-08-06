@@ -15,7 +15,7 @@ namespace h2o
         explicit ChunkGenerator_Flat(const ChunkSystem& chunk_system);
 
         // ChunkGenerator_Base interface
-        void gen_chunk(Chunk& chunk) override;
+        void gen_chunk(ChunkColumn& chunk_col) override;
 
     public:
 

@@ -19,8 +19,11 @@ namespace h2o::gfx
             glDeleteBuffers(1, &m_buffer);
     }
 
-    void Buffer_OpenGL::update_data(const void* data, size_t size)
+    void Buffer_OpenGL::update_data(const void* data, i32 size)
     {
-        glNamedBufferStorage(m_buffer, static_cast<GLsizeiptr>(size), data, GL_DYNAMIC_STORAGE_BIT);
+        // Does not work after the first send, not sure if it is better.
+        // glNamedBufferStorage(m_buffer, static_cast<GLsizeiptr>(size), data, GL_DYNAMIC_STORAGE_BIT);
+
+        glNamedBufferData(m_buffer, size, data, GL_STATIC_DRAW);
     }
 }

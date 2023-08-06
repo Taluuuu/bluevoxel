@@ -36,10 +36,6 @@ namespace h2o
         // Chunk mesh columns should be easy to move.
         using ChunkMeshColumnOwner = std::unique_ptr<ChunkMeshColumn>;
 
-        [[nodiscard]] std::array<Chunk*, 6> fetch_chunk_neighbours(const v3i& chunk_pos) const;
-        [[nodiscard]] bool are_surrounding_chunks_loaded(v2i chunk_pos) const;
-        [[nodiscard]] ChunkMeshColumn* get_chunk_mesh_col_at(v2i chunk_pos) const;
-
         // ChunkRegion interface
         void on_indices_changed(const std::vector<i32>& new_to_old_indices) override;
         void on_chunk_fetched(const WeakHandle<ChunkColumn>& chunk_col, v2i local_chunk_pos) override;

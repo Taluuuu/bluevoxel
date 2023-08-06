@@ -122,12 +122,16 @@ namespace h2o
                 append_face(pos, *model, textures, face);
         }
 
+        if (m_vertex_count == 0)
+        {
+            m_vertex_array->attach_vertex_buffer(m_buffer, 0, 0, 2 * sizeof(u32));
+            m_vertex_array->setup_attribute(0, 0, gfx::AttributeType::U32, 1, 0);
+            m_vertex_array->setup_attribute(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
+        }
+
         m_vertex_count = static_cast<i32>(vertices.size() / 2);
 
         m_buffer->update_data(vertices.data(), vertices.size() * sizeof(u32));
-        m_vertex_array->attach_vertex_buffer(m_buffer, 0, 0, 2 * sizeof(u32));
-        m_vertex_array->setup_attribute(0, 0, gfx::AttributeType::U32, 1, 0);
-        m_vertex_array->setup_attribute(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
     }
 
     const gfx::IVertexArray& ChunkMesh::vertex_array() const

@@ -53,32 +53,45 @@ namespace h2o
     {
         ImGui::Text("Voxel Settings");
 
-        if (m_chunk_rendering_region)
+        auto chunk_system = m_scene->get_system<ChunkSystem>();
+        if (!m_chunk_rendering_region || !chunk_system)
+            return;
+
+        i32 new_size = i32(m_chunk_rendering_region->size());
+        if (ImGui::SliderInt("World Size", &new_size, 0, 64))
         {
-            i32 new_size = i32(m_chunk_rendering_region->size());
-            if (ImGui::SliderInt("World Size", &new_size, 0, 64))
-            {
-                const v2i new_corner_pos = m_last_player_chunk - new_size / 2;
-                m_chunk_rendering_region->update_data(new_corner_pos, new_size);
-            }
+            const v2i new_corner_pos = m_last_player_chunk - new_size / 2;
+            m_chunk_rendering_region->update_data(new_corner_pos, new_size);
+        }
 
-            auto chunk_system = m_scene->get_system<ChunkSystem>();
-            if (chunk_system)
-            {
-                ImGui::Text("Chunks pending generation: %i",
-                    chunk_system->num_chunks_waiting_generation());
-            }
+        if (chunk_system)
+        {
+            ImGui::Text("Chunks pending generation: %i",
+                chunk_system->num_chunks_waiting_generation());
+        }
 
-            ImGui::Text("Chunks pending mesh update: %i",
-                m_chunk_rendering_region->num_chunks_pending_mesh_update());
+        ImGui::Text("Chunks pending mesh update: %i",
+            m_chunk_rendering_region->num_chunks_pending_mesh_update());
 
-            // TODO: This needs to be standardized
-            const auto player = m_scene->get_actor("Player");
-            if (player)
+        if (ImGui::Button("Place test block"))
+        {
+            auto chunk_handle = m_chunk_rendering_region->get_chunk_at({ 0, 0, 0 });
+            if (Chunk* chunk = chunk_handle.chunk())
             {
-                const v3& player_pos = player->transform.position;
-                m_chunk_rendering_region->player_pos = player_pos;
+                for (i32 x = 0; x < 32; x++)
+                for (i32 z = 0; z < 32; z++)
+                    chunk->set_block_at({ x, 20, z }, 3);
+
+                chunk_system->on_chunk_updated.broadcast(ChunkEvent{ chunk_handle });
             }
+        }
+
+        // TODO: This needs to be standardized
+        const auto player = m_scene->get_actor("Player");
+        if (player)
+        {
+            const v3& player_pos = player->transform.position;
+            m_chunk_rendering_region->player_pos = player_pos;
         }
     }
 

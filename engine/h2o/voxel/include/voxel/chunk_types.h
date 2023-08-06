@@ -19,6 +19,12 @@ namespace h2o
         WeakHandle<ChunkColumn> chunk_column;
         i32 height;
 
+        ChunkWeakHandle(std::nullptr_t)
+            : chunk_column(nullptr), height(0) {}
+
+        ChunkWeakHandle(const WeakHandle<ChunkColumn>& chunk_column, i32 height)
+            : chunk_column(chunk_column), height(height) {}
+
         [[nodiscard]] Chunk* chunk() const;
         [[nodiscard]] bool operator==(const ChunkWeakHandle& other) const;
     };

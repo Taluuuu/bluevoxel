@@ -12,7 +12,7 @@ namespace h2o::gfx
 
         virtual ~IBuffer() = default;
 
-        virtual void update_data(const void* data, size_t size) = 0;
+        virtual void update_data(const void* data, i32 size) = 0;
 
     };
 }

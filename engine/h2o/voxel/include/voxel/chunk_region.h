@@ -24,7 +24,7 @@ namespace h2o
         void update_data(v2i new_corner_pos, u32 new_size);
 
         void for_each_chunk(const std::function<void(Chunk&)>& fun) const;
-        [[nodiscard]] Chunk* get_chunk_at(const v3i& chunk_pos) const;
+        [[nodiscard]] ChunkWeakHandle get_chunk_at(const v3i& chunk_pos) const;
         [[nodiscard]] WeakHandle<ChunkColumn> get_chunk_col_at(v2i chunk_col_pos) const;
 
         [[nodiscard]] v2i corner_pos() const { return m_corner_pos; }
