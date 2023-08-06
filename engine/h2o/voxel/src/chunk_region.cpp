@@ -61,7 +61,7 @@ namespace h2o
             const v2i world_chunk_pos = rel_chunk_pos + new_corner_pos;
             m_chunk_system->fetch_or_create_chunk_column(
                 world_chunk_pos,
-                glm::distance2(v2(new_corner_pos), v2(world_chunk_pos)),
+                glm::distance2(v2(center_pos()), v2(world_chunk_pos)),
                 [&, world_chunk_pos](const WeakHandle<ChunkColumn>& chunk_col)
                 {
                     assert(chunk_col && !chunk_col->empty());

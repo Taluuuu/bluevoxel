@@ -125,14 +125,13 @@ namespace h2o
                 continue; // Empty chunk; no need to mesh.
 
             ChunkWeakHandle chunk_weak_handle { chunk_col, j };
-            if (util::distance_queue_contains(m_chunks_to_mesh, chunk_weak_handle))
-                continue;
-
-            DistanceQueueElem<ChunkWeakHandle> distance_queue_elem {
-                chunk_weak_handle,
-                glm::distance2(v2(chunk.chunk_pos()), v2(corner_pos())) };
-
-            util::distance_queue_insert(m_chunks_to_mesh, distance_queue_elem);
+            if (!util::distance_queue_contains(m_chunks_to_mesh, chunk_weak_handle))
+            {
+                util::distance_queue_insert(
+                    m_chunks_to_mesh,
+                    chunk_weak_handle,
+                    glm::distance2(v2(world_chunk_col_pos), v2(center_pos())));
+            }
         }
     }
 
@@ -176,13 +175,12 @@ namespace h2o
 
     void ChunkRenderingRegion::update_next_chunk_mesh()
     {
-        auto chunk_distance = util::distance_queue_pop<ChunkWeakHandle>(m_chunks_to_mesh,
-            [](const DistanceQueueElem<ChunkWeakHandle>& chunk) -> bool { return true; });
+        auto chunk_weak_handle = util::distance_queue_pop<ChunkWeakHandle>(m_chunks_to_mesh);
 
-        if (!chunk_distance)
+        if (!chunk_weak_handle)
             return;
 
-        const auto chunk = chunk_distance->value.chunk();
+        const auto chunk = chunk_weak_handle->chunk();
         if (!chunk)
             return;
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chunk_types.h"
+#include "core/distance_queue.h"
 #include "core/events.h"
 #include "core/handle_types.h"
 #include "scene/scene_system.h"
@@ -53,10 +54,11 @@ namespace h2o
         struct ChunkLoadRequest
         {
             v2i chunk_pos;
-            f32 distance;
             ChunkFetchCallback fetch_callback;
+
+            bool operator==(const auto& other) const { return chunk_pos == other.chunk_pos; }
         };
-        std::vector<ChunkLoadRequest> m_chunk_load_queue;
+        DistanceQueue<ChunkLoadRequest> m_chunk_load_queue;
 
         std::unordered_map<v2i, OwningHandle<ChunkColumn>> m_loaded_chunks;
 

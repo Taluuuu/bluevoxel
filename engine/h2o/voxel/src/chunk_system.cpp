@@ -45,15 +45,25 @@ namespace h2o
         i32 left_to_load = 1;
         while (!m_chunk_load_queue.empty() && left_to_load > 0)
         {
-            const auto& request = m_chunk_load_queue[0];
+            const auto request = util::distance_queue_pop(m_chunk_load_queue);
+            assert(request);
 
-            auto chunk_col = create_chunk_column(request.chunk_pos);
+            // Check if chunk already exists
+            WeakHandle<ChunkColumn> weak_chunk_col { nullptr };
+            if (const auto chunk_col = fetch_chunk_column(request->chunk_pos))
+                weak_chunk_col = chunk_col;
 
-            WeakHandle<ChunkColumn> weak_chunk_col = chunk_col;
-            m_loaded_chunks[request.chunk_pos] = std::move(chunk_col);
-            request.fetch_callback(weak_chunk_col);
+            if (!weak_chunk_col)
+            {
+                auto chunk_col = create_chunk_column(request->chunk_pos);
+                weak_chunk_col = chunk_col;
 
-            m_chunk_load_queue.erase(m_chunk_load_queue.cbegin());
+                m_loaded_chunks[request->chunk_pos] = std::move(chunk_col);
+            }
+
+            assert(weak_chunk_col);
+            request->fetch_callback(weak_chunk_col);
+
             left_to_load--;
         }
     }
@@ -73,15 +83,16 @@ namespace h2o
             return;
         }
 
-        const auto load_request_it = std::find_if(m_chunk_load_queue.begin(), m_chunk_load_queue.end(),
-            [chunk_location](const ChunkLoadRequest& item) -> bool
+        if (!util::distance_queue_contains_by_predicate<ChunkLoadRequest>(m_chunk_load_queue,
+            [chunk_location](const ChunkLoadRequest& request) -> bool
             {
-                return item.chunk_pos == chunk_location;
-            }
-        );
-
-        if (load_request_it == m_chunk_load_queue.end())
-            m_chunk_load_queue.push_back({ chunk_location, distance, chunk_fetch_callback });
+                return request.chunk_pos == chunk_location;
+            }))
+        {
+            util::distance_queue_insert(
+                m_chunk_load_queue,
+                ChunkLoadRequest { chunk_location, chunk_fetch_callback }, distance);
+        }
     }
 
     OwningHandle<ChunkColumn> ChunkSystem::create_chunk_column(v2i chunk_location) const

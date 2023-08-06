@@ -26,7 +26,7 @@ namespace h2o
         template<class T>
         bool distance_queue_contains(const DistanceQueue<T>& queue, const T& value)
         {
-            auto value_it = std::find_if(queue.begin(), queue.end(),
+            const auto value_it = std::find_if(queue.begin(), queue.end(),
                 [&value](const DistanceQueueElem<T>& item) -> bool
                 {
                     return item.value == value;
@@ -37,11 +37,27 @@ namespace h2o
         }
 
         template<class T>
-        void distance_queue_insert(DistanceQueue<T>& queue, const DistanceQueueElem<T>& elem)
+        bool distance_queue_contains_by_predicate(
+            const DistanceQueue<T>& queue,
+            const std::function<bool(const T&)>& predicate)
         {
+            const auto value_it = std::find_if(queue.begin(), queue.end(),
+                [&predicate](const DistanceQueueElem<T>& item) -> bool
+                {
+                    return predicate(item.value);
+                }
+            );
+
+            return value_it != queue.end();
+        }
+
+        template<class T>
+        void distance_queue_insert(DistanceQueue<T>& queue, const T& value, f32 distance)
+        {
+            const DistanceQueueElem<T> elem { value, distance };
             for (i32 i = 0; i < queue.size(); i++)
             {
-                if (elem.distance < queue[i].distance)
+                if (distance < queue[i].distance)
                 {
                     queue.insert(queue.cbegin() + i, elem);
                     return;
@@ -53,21 +69,33 @@ namespace h2o
 
         // Pop if predicate is evaluated to true
         template<class T>
-        std::optional< DistanceQueueElem<T> > distance_queue_pop(
+        std::optional<T> distance_queue_pop(
             DistanceQueue<T>& queue,
             std::function<bool(const DistanceQueueElem<T>&)> predicate)
         {
             for (i32 i = 0; i < queue.size(); i++)
             {
-                auto value = queue[i];
-                if (predicate(value))
+                const auto elem = queue[i];
+                if (predicate(elem))
                 {
                     queue.erase(queue.cbegin() + i);
-                    return value;
+                    return elem.value;
                 }
             }
 
             return std::nullopt;
+        }
+
+        template<class T>
+        std::optional<T> distance_queue_pop(DistanceQueue<T>& queue)
+        {
+            if (queue.empty())
+                return std::nullopt;
+
+            const auto elem = queue[0];
+            queue.erase(queue.cbegin());
+
+            return elem.value;
         }
     }
 }
