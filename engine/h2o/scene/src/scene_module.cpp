@@ -1,5 +1,7 @@
 #include "scene/scene_module.h"
 
+#include <algorithm>
+
 #include "core/engine.h"
 #include "scene/scene.h"
 

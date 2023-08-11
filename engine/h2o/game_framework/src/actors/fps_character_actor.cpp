@@ -2,6 +2,7 @@
 
 #include "scene_rendering/camera_component.h"
 #include "input/input_component.h"
+#include "rendering/camera.h"
 
 #include <glm/gtx/norm.hpp>
 

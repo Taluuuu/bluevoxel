@@ -8,9 +8,11 @@
 #include "scene/scene_headers.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "scene_rendering/scene_rendering_module.h"
-#include "voxel/chunk_system.h"
 #include "voxel/chunk.h"
+#include "voxel/chunk_generator_base.h"
+#include "voxel/chunk_system.h"
 #include "voxel_rendering/voxel_rendering_module.h"
+#include "voxel_rendering/chunk_rendering_region.h"
 #include "voxel_rendering/chunk_rendering_system.h"
 
 #include <imgui.h>

@@ -29,7 +29,7 @@ namespace h2o
         m_renderer = &rendering_module->renderer();
 
         assert(m_renderer);
-        m_chunk_rendering_region = std::make_unique<ChunkRenderingRegion>(*m_renderer, *m_voxel_rendering_module, chunk_system);
+        m_chunk_rendering_region = std::make_unique<ChunkRenderingRegion>(*m_renderer, *m_voxel_rendering_module, *chunk_system);
         m_chunk_rendering_region->update_data(v2i{-8, -8}, 16);
 
         chunk_system->on_player_changed_chunk.add_listener(m_on_player_changed_chunk_handle,
@@ -82,7 +82,7 @@ namespace h2o
                 for (i32 z = 0; z < 32; z++)
                     chunk->set_block_at({ x, 20, z }, 3);
 
-                chunk_system->on_chunk_updated.broadcast(ChunkEvent{ chunk_handle });
+                chunk_system->on_chunk_updated.broadcast(ChunkUpdateEvent{ chunk_handle });
             }
         }
 

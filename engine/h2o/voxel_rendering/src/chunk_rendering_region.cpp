@@ -13,13 +13,13 @@ namespace h2o
     ChunkRenderingRegion::ChunkRenderingRegion(
         gfx::IRenderer& renderer,
         const VoxelRenderingModule& voxel_rendering_module,
-        const WeakHandle<ChunkSystem>& chunk_system)
+        ChunkSystem& chunk_system)
         : ChunkRegion(chunk_system)
         , m_renderer(&renderer)
         , m_voxel_rendering_module(&voxel_rendering_module)
     {
-        chunk_system->on_chunk_updated.add_listener(m_on_chunk_updated_handle,
-            [&](const ChunkEvent& event)
+        chunk_system.on_chunk_updated.add_listener(m_on_chunk_updated_handle,
+            [&](const ChunkUpdateEvent& event)
             {
                 Chunk* chunk = event.chunk_handle.chunk();
 
@@ -31,7 +31,8 @@ namespace h2o
                     m_chunks_to_mesh,
                     event.chunk_handle,
                     glm::distance2(v2(chunk_pos.x, chunk_pos.z), v2(center_pos())));
-            });
+            }
+        );
 
         set_tick_phases(TickPhase::Update);
     }
@@ -40,7 +41,7 @@ namespace h2o
     {
         remove_out_of_range_chunk_mesh_requests();
 
-        for (i32 i = 0; i < 1; i++)
+        for (i32 i = 0; i < 5; i++)
             update_next_chunk_mesh();
     }
 
@@ -75,14 +76,9 @@ namespace h2o
         m_chunk_mesh_columns = std::move(new_chunk_meshes);
     }
 
-    void ChunkRenderingRegion::on_chunk_fetched(const WeakHandle<ChunkColumn>& chunk_col, v2i local_chunk_pos)
+    void ChunkRenderingRegion::on_chunk_fetched(const WeakHandle<ChunkColumn>& chunk_col)
     {
-        const auto& chunk_mesh_col = m_chunk_mesh_columns[to_index(local_chunk_pos)];
-        if (chunk_mesh_col)
-            return;
-
         // Enqueue chunk for mesh update
-        const v2i world_chunk_col_pos = local_chunk_pos + corner_pos();
         for (i32 j = 0; j < voxel_constants::vertical_chunk_count; j++)
         {
             const auto& chunk = (*chunk_col)[j];
@@ -96,9 +92,52 @@ namespace h2o
                 util::distance_queue_insert(
                     m_chunks_to_mesh,
                     chunk_weak_handle,
-                    glm::distance2(v2(world_chunk_col_pos), v2(center_pos())));
+                    glm::distance2(v2(chunk_col->chunk_column_pos()), v2(center_pos())));
             }
         }
+
+//        const v2i world_chunk_pos = chunk_col->chunk_column_pos();
+//
+//        // Enqueue chunk for mesh update
+//        for (i32 j = 0; j < voxel_constants::vertical_chunk_count; j++)
+//        {
+//            const auto& chunk = (*chunk_col)[j];
+//
+//            if (chunk.is_empty())
+//                continue; // Empty chunk; no need to mesh.
+//
+//            ChunkWeakHandle chunk_weak_handle { chunk_col, j };
+//            if (!util::distance_queue_contains(m_chunks_to_mesh, chunk_weak_handle))
+//            {
+//                util::distance_queue_insert(
+//                    m_chunks_to_mesh,
+//                    chunk_weak_handle,
+//                    glm::distance2(v2(world_chunk_pos), v2(center_pos())));
+//            }
+//        }
+
+//        const auto& chunk_mesh_col = m_chunk_mesh_columns[to_index(local_chunk_pos)];
+//        if (chunk_mesh_col)
+//            return;
+//
+//        // Enqueue chunk for mesh update
+//        const v2i world_chunk_col_pos = local_chunk_pos + corner_pos();
+//        for (i32 j = 0; j < voxel_constants::vertical_chunk_count; j++)
+//        {
+//            const auto& chunk = (*chunk_col)[j];
+//
+//            if (chunk.is_empty())
+//                continue; // Empty chunk; no need to mesh.
+//
+//            ChunkWeakHandle chunk_weak_handle { chunk_col, j };
+//            if (!util::distance_queue_contains(m_chunks_to_mesh, chunk_weak_handle))
+//            {
+//                util::distance_queue_insert(
+//                    m_chunks_to_mesh,
+//                    chunk_weak_handle,
+//                    glm::distance2(v2(world_chunk_col_pos), v2(center_pos())));
+//            }
+//        }
     }
 
     ChunkRenderingRegion::ChunkMeshColumn* ChunkRenderingRegion::fetch_or_create_chunk_mesh_column(v2i chunk_col_pos)
@@ -141,6 +180,7 @@ namespace h2o
 
     bool ChunkRenderingRegion::fetch_adjacent_chunks(v3i chunk_pos, std::array<Chunk*, 6>& out_adj_chunks) const
     {
+        // TODO: This can surely be replaced with a static chunk region
         for (u32 dir = 0; dir < 6; dir++)
         {
             const v3i offset = voxel::to_vec3(dir);
@@ -152,7 +192,7 @@ namespace h2o
             const auto adj_chunk_col = chunk_system().fetch_chunk_column(
                 v2i{ chunk_pos.x, chunk_pos.z } + v2i{ offset.x, offset.z });
 
-            if (!adj_chunk_col)
+            if (!adj_chunk_col || !adj_chunk_col->is_generated())
                 return false;
 
             out_adj_chunks[dir] = &(*adj_chunk_col)[y];

@@ -1,10 +1,11 @@
 #pragma once
 
-#include "chunk_types.h"
 #include "core/distance_queue.h"
 #include "core/events.h"
 #include "core/handle_types.h"
 #include "scene/scene_system.h"
+#include "voxel/chunk_region.h"
+#include "voxel/voxel_constants.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -14,7 +15,12 @@ namespace h2o
 {
     class ChunkGenerator_Base;
 
-    struct ChunkEvent { const ChunkWeakHandle& chunk_handle; };
+    class ChunkColumn;
+    class ChunkRegion;
+    struct ChunkWeakHandle;
+
+    struct ChunkUpdateEvent { const ChunkWeakHandle& chunk_handle; };
+    struct ChunkColumnLoadEvent { const WeakHandle<ChunkColumn>& chunk_handle; };
     struct PlayerChangedChunkEvent { v3i old_chunk_pos; v3i new_chunk_pos; };
 
     using ChunkFetchCallback = std::function<void(const WeakHandle<ChunkColumn>&)>;
@@ -33,14 +39,20 @@ namespace h2o
         bool init() override;
         void update(f32 delta_time) override;
 
-        [[nodiscard]] i32 num_chunks_waiting_generation() const
-        { return i32(m_chunk_load_queue.size()); }
+        [[nodiscard]] i32 num_chunks_waiting_generation() const;
 
-        [[nodiscard]] WeakHandle<ChunkColumn> fetch_chunk_column(v2i chunk_location) const;
-        void fetch_or_create_chunk_column(
-            v2i chunk_location, f32 distance, const ChunkFetchCallback& chunk_fetch_callback);
+        [[nodiscard]] WeakHandle<ChunkColumn> fetch_chunk_column(v2i chunk_col_pos) const;
+        [[nodiscard]] WeakHandle<ChunkColumn> fetch_or_create_chunk_column(v2i chunk_col_pos);
 
-        Event<ChunkEvent> on_chunk_updated;
+        void request_chunk_generation(
+            const WeakHandle<ChunkColumn>& chunk_col,
+            i32 queried_stage = voxel_constants::max_generation_stage);
+//        void request_chunk_generation(const StaticChunkRegion& chunk_region, i32 queried_stage);
+
+    public:
+
+        Event<ChunkColumnLoadEvent> on_chunk_column_loaded;
+        Event<ChunkUpdateEvent> on_chunk_updated;
         Event<PlayerChangedChunkEvent> on_player_changed_chunk;
 
     protected:
@@ -49,15 +61,13 @@ namespace h2o
 
     private:
 
-        struct ChunkLoadRequest
+        struct ChunkGenRequest
         {
-            v2i chunk_pos;
-            ChunkFetchCallback fetch_callback;
-
-            bool operator==(const auto& other) const { return chunk_pos == other.chunk_pos; }
+            StaticChunkRegion gen_region;
+            WeakHandle<ChunkColumn> chunk_column;
         };
-        DistanceQueue<ChunkLoadRequest> m_chunk_load_queue;
 
+        std::vector< std::vector<ChunkGenRequest> > m_chunk_gen_queues;
         std::unordered_map<v2i, OwningHandle<ChunkColumn>> m_loaded_chunks;
 
         std::unique_ptr<ChunkGenerator_Base> m_chunk_generator { nullptr };

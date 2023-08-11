@@ -2,6 +2,7 @@
 
 #include "voxel/chunk.h"
 #include "voxel/chunk_system.h"
+#include "voxel/voxel_utils.h"
 
 #include <cassert>
 #include <glm/gtx/norm.hpp>
@@ -9,9 +10,17 @@
 
 namespace h2o
 {
-    ChunkRegion::ChunkRegion(const WeakHandle<ChunkSystem>& chunk_system)
-        : m_chunk_system(chunk_system)
-    {}
+    ChunkRegion::ChunkRegion(ChunkSystem& chunk_system)
+        : m_chunk_system(&chunk_system)
+    {
+        chunk_system.on_chunk_column_loaded.add_listener(m_on_chunk_loaded_handle,
+            [&](const ChunkColumnLoadEvent& event)
+            {
+                if (in_region_bounds(event.chunk_handle->chunk_column_pos()))
+                    on_chunk_fetched(event.chunk_handle);
+            }
+        );
+    }
 
     void ChunkRegion::set_corner_pos(v2i new_corner_pos)
     {
@@ -59,22 +68,34 @@ namespace h2o
         for (v2i rel_chunk_pos : rel_chunk_positions_to_load)
         {
             const v2i world_chunk_pos = rel_chunk_pos + new_corner_pos;
-            m_chunk_system->fetch_or_create_chunk_column(
-                world_chunk_pos,
-                glm::distance2(v2(center_pos()), v2(world_chunk_pos)),
-                [&, world_chunk_pos](const WeakHandle<ChunkColumn>& chunk_col)
-                {
-                    assert(chunk_col && !chunk_col->empty());
 
-                    // Recompute local chunk pos as the size or corner of the chunk region
-                    // might have changed by the time we receive the new chunk.
-                    if (const auto local_chunk_pos = to_local_chunk_pos_2d(world_chunk_pos))
-                    {
-                        m_chunks_in_region[to_index(*local_chunk_pos)] = chunk_col;
-                        on_chunk_fetched(chunk_col, *local_chunk_pos);
-                    }
-                }
-            );
+            const auto chunk_col = m_chunk_system->fetch_or_create_chunk_column(world_chunk_pos);
+
+            m_chunks_in_region[to_index(rel_chunk_pos)] = chunk_col;
+            if (chunk_col->is_generated())
+            {
+                on_chunk_fetched(chunk_col);
+            }
+            else
+            {
+                m_chunk_system->request_chunk_generation(chunk_col);
+            }
+
+
+//                glm::distance2(v2(center_pos()), v2(world_chunk_pos)),
+//                [&, world_chunk_pos](const WeakHandle<ChunkColumn>& chunk_col)
+//                {
+//                    assert(chunk_col);
+//
+//                    // Recompute local chunk pos as the size or corner of the chunk region
+//                    // might have changed by the time we receive the new chunk.
+//                    if (const auto local_chunk_pos = to_local_chunk_pos_2d(world_chunk_pos))
+//                    {
+//                        m_chunks_in_region[to_index(*local_chunk_pos)] = chunk_col;
+//                        on_chunk_fetched(chunk_col, *local_chunk_pos);
+//                    }
+//                }
+//            );
         }
     }
 
@@ -153,11 +174,6 @@ namespace h2o
         return chunk_pos - m_corner_pos;
     }
 
-    constexpr size_t ChunkRegion::to_index(v2i pos) const
-    {
-        return pos.x * m_size + pos.y;
-    }
-
     std::vector<i32> ChunkRegion::gen_new_to_old_indices(v2i new_corner_pos, u32 new_size) const
     {
         const auto in_bounds = [](v2i pos, u32 size) -> bool
@@ -187,5 +203,110 @@ namespace h2o
         }
 
         return new_indices;
+    }
+
+    StaticChunkRegion::StaticChunkRegion(v2i corner, i32 size, ChunkSystem& chunk_system)
+        : m_corner(corner)
+        , m_size(size)
+    {
+        m_chunks_in_region.resize(size * size, nullptr);
+
+        for (i32 i = 0; i < size; i++ )
+        for (i32 j = 0; j < size; j++ )
+        {
+            const v2i local_chunk_pos { i, j };
+            const v2i chunk_col_pos = local_chunk_pos + corner;
+
+            if (const auto local_chunk_col_pos = to_local_chunk_pos(chunk_col_pos))
+            {
+                const size_t index = to_index(*local_chunk_col_pos);
+                m_chunks_in_region[index] = chunk_system.fetch_or_create_chunk_column(chunk_col_pos);
+            }
+        }
+    }
+
+    WeakHandle<ChunkColumn> StaticChunkRegion::get_center_chunk() const
+    {
+        const size_t index = to_index({ m_size / 2, m_size / 2 });
+        assert(index < m_chunks_in_region.size());
+        return m_chunks_in_region[index];
+    }
+
+    WeakHandle<ChunkColumn> StaticChunkRegion::get_chunk_col_at(v2i chunk_col_pos) const
+    {
+        if (const auto local_chunk_col_pos = to_local_chunk_pos(chunk_col_pos))
+        {
+            const size_t index = to_index(*local_chunk_col_pos);
+            return m_chunks_in_region[index];
+        }
+
+        return nullptr;
+    }
+
+    Block* StaticChunkRegion::get_block_ptr_at(v3i block_pos, BlockPositionSpace block_pos_type) const
+    {
+        const v3i relative_chunk_pos = block_to_chunk_pos(block_pos);
+        v3i local_chunk_pos{};
+        switch (block_pos_type)
+        {
+        case BlockPositionSpace::RelativeToCorner:
+            local_chunk_pos = relative_chunk_pos;
+            break;
+        case BlockPositionSpace::RelativeToCenterChunk:
+            local_chunk_pos = relative_chunk_pos - v3i{ m_size, 0, m_size } / 2;
+            break;
+        default:
+        case BlockPositionSpace::World:
+            local_chunk_pos = relative_chunk_pos - v3i{ m_corner.x, 0, m_corner.y };
+            break;
+        }
+
+        assert(
+            local_chunk_pos.x >= 0 || relative_chunk_pos.x < m_size ||
+            local_chunk_pos.y >= 0 || relative_chunk_pos.y < voxel_constants::vertical_chunk_count ||
+            local_chunk_pos.z >= 0 || relative_chunk_pos.z < m_size);
+
+        const v3i pos_in_chunk = block_pos_to_within_chunk(block_pos);
+
+        const size_t index = to_index({ local_chunk_pos.x, local_chunk_pos.z });
+        const auto& chunk_col = m_chunks_in_region[index];
+        auto& chunk = (*chunk_col)[local_chunk_pos.y];
+
+        return chunk.get_block_ptr_at(pos_in_chunk);
+    }
+
+    void StaticChunkRegion::for_each_chunk_column(const std::function<void(const WeakHandle<ChunkColumn>&)>& fun) const
+    {
+        for (i32 i = 0; i < m_size; i++)
+        for (i32 j = 0; j < m_size; j++)
+        {
+            const v2i chunk_col_pos = m_corner + v2i{ i, j };
+            const auto chunk_col = get_chunk_col_at(chunk_col_pos);
+
+            fun(chunk_col);
+        }
+    }
+
+    bool StaticChunkRegion::is_in_region(v2i chunk_col_pos) const
+    {
+        const v2i min = m_corner;
+        const v2i max = m_corner + v2i{ m_size, m_size };
+
+        return
+            chunk_col_pos.x >= min.x && chunk_col_pos.y >= min.y &&
+            chunk_col_pos.x  < max.x && chunk_col_pos.y  < max.y;
+    }
+
+    std::optional<v2i> StaticChunkRegion::to_local_chunk_pos(v2i chunk_col_pos) const
+    {
+        if (!is_in_region(chunk_col_pos))
+            return std::nullopt;
+
+        return chunk_col_pos - m_corner;
+    }
+
+    size_t StaticChunkRegion::to_index(v2i local_chunk_pos) const
+    {
+        return local_chunk_pos.x * m_size + local_chunk_pos.y;
     }
 }

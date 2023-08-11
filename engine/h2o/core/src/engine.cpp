@@ -4,7 +4,7 @@
 #include "core/module.h"
 #include "core/core_interfaces.h"
 
-#include <iostream>
+#include <algorithm>
 #include <magic_enum.hpp>
 
 namespace h2o

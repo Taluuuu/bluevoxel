@@ -2,9 +2,9 @@
 
 #include "chunk_mesh.h"
 #include "core/distance_queue.h"
-#include "core/events.h"
 #include "core/tickable.h"
 #include "voxel/chunk_region.h"
+#include "voxel/voxel_constants.h"
 
 #include <array>
 #include <memory>
@@ -20,7 +20,7 @@ namespace h2o
         ChunkRenderingRegion(
             gfx::IRenderer& renderer,
             const VoxelRenderingModule& voxel_rendering_module,
-            const WeakHandle<ChunkSystem>& chunk_system);
+            ChunkSystem& chunk_system);
 
         // Tickable interface
         void update(f32 delta_time) override;
@@ -38,7 +38,7 @@ namespace h2o
 
         // ChunkRegion interface
         void on_indices_changed(const std::vector<i32>& new_to_old_indices) override;
-        void on_chunk_fetched(const WeakHandle<ChunkColumn>& chunk_col, v2i local_chunk_pos) override;
+        void on_chunk_fetched(const WeakHandle<ChunkColumn>& chunk_col) override;
 
     private:
 

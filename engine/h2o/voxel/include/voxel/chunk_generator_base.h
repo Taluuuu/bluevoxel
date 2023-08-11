@@ -1,11 +1,12 @@
 #pragma once
 
-#include "voxel/chunk_types.h"
+#include "core/types.h"
 
 namespace h2o
 {
-    class Chunk;
+    class ChunkColumn;
     class ChunkSystem;
+    class StaticChunkRegion;
 
     class ChunkGenerator_Base
     {
@@ -14,7 +15,8 @@ namespace h2o
         explicit ChunkGenerator_Base(const ChunkSystem& chunk_system);
         virtual ~ChunkGenerator_Base() = default;
 
-        virtual void gen_chunk(ChunkColumn& chunk_column) = 0;
+        virtual void run_generation_step(ChunkColumn& chunk_col, StaticChunkRegion& chunk_region) const = 0;
+        [[nodiscard]] virtual i32 max_generation_stage() const = 0;
 
     protected:
 
