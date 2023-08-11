@@ -72,6 +72,11 @@ namespace h2o
 
                 if (chunk_cols_to_generate.empty())
                 {
+                    auto& chunk_col = gen_request.chunk_column;
+
+                    if (!chunk_col->is_initialized())
+                        chunk_col->init();
+
                     // Gen request can be completed
                     m_chunk_generator->run_generation_step(
                         *gen_request.chunk_column, gen_request.gen_region);

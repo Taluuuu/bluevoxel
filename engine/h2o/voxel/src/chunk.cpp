@@ -13,28 +13,31 @@ namespace h2o
             local_pos.z;
     }
 
-    void Chunk::init(const v3i& chunk_pos)
+    void Chunk::init()
     {
-        m_chunk_pos = chunk_pos;
-
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
     }
 
     Block Chunk::get_block_at(const v3i& local_pos) const
     {
         assert(is_valid_pos(local_pos));
+        assert(is_initialized());
+
         return m_blocks[to_index(local_pos)];
     }
 
     Block* Chunk::get_block_ptr_at(const v3i& local_pos)
     {
         assert(is_valid_pos(local_pos));
+        assert(is_initialized());
+
         return &m_blocks[to_index(local_pos)];
     }
 
     void Chunk::set_block_at(const v3i& local_pos, Block block)
     {
         assert(is_valid_pos(local_pos));
+        assert(is_initialized());
 
         // TODO: Check if the block is valid
 
@@ -66,7 +69,16 @@ namespace h2o
     {
         i32 y = 0;
         for (auto& chunk : m_chunks)
-            chunk.init({ chunk_col_pos.x, y++, chunk_col_pos.y });
+            chunk.m_chunk_pos = { chunk_col_pos.x, y++, chunk_col_pos.y };
+    }
+
+    void ChunkColumn::init()
+    {
+        assert(!m_is_initialized);
+        for (auto& chunk : m_chunks)
+            chunk.init();
+
+        m_is_initialized = true;
     }
 
     void ChunkColumn::increment_generation_stage()

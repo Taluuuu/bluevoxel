@@ -18,7 +18,7 @@ namespace h2o
 
         Chunk() = default;
 
-        void init(const v3i& chunk_pos);
+        void init();
 
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
         [[nodiscard]] Block* get_block_ptr_at(const v3i& local_pos);
@@ -37,6 +37,12 @@ namespace h2o
 
     private:
 
+        [[nodiscard]] bool is_initialized() const { return !m_blocks.empty(); }
+
+    private:
+
+        friend class ChunkColumn;
+
         std::vector<Block> m_blocks;
 
         v3i m_chunk_pos{};
@@ -50,6 +56,9 @@ namespace h2o
     public:
 
         explicit ChunkColumn(v2i chunk_col_pos);
+
+        void init();
+        [[nodiscard]] bool is_initialized() const { return m_is_initialized; }
 
         [[nodiscard]] v2i chunk_column_pos() const { return m_chunk_col_pos; }
 
@@ -140,6 +149,8 @@ namespace h2o
 
         v2i m_chunk_col_pos { 0, 0 };
 
+        bool m_is_initialized { false };
+
     };
 
     /**
@@ -158,5 +169,6 @@ namespace h2o
 
         [[nodiscard]] Chunk* chunk() const;
         [[nodiscard]] bool operator==(const ChunkWeakHandle& other) const;
+        [[nodiscard]] bool operator==(std::nullptr_t) const { return chunk_column == nullptr; }
     };
 }
