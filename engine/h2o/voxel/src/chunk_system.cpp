@@ -48,7 +48,7 @@ namespace h2o
         }
 
         bool should_continue = true;
-        for (i32 gen_stage = 0; gen_stage < m_chunk_gen_queues.size() && should_continue; gen_stage++)
+        for (i32 gen_stage = m_chunk_gen_queues.size() - 1; gen_stage >= 0 && should_continue; --gen_stage)
         {
             auto& gen_queue = m_chunk_gen_queues[gen_stage];
 
@@ -74,6 +74,7 @@ namespace h2o
                 {
                     auto& chunk_col = gen_request.chunk_column;
 
+                    // Init the chunk just before starting generation
                     if (!chunk_col->is_initialized())
                         chunk_col->init();
 
