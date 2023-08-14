@@ -39,7 +39,7 @@ namespace h2o
             chunk_col.increment_generation_stage();
             break;
         case 2:
-            chunk_col[0].set_block_at({0, 21, 0}, 2);
+//            chunk_col[0].set_block_at({0, 21, 0}, 2);
             chunk_col.finish_generation();
             break;
         default:
