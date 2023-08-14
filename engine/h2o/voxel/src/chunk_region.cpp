@@ -7,6 +7,7 @@
 #include <cassert>
 #include <glm/gtx/norm.hpp>
 #include <optional>
+#include <set>
 
 namespace h2o
 {
@@ -41,8 +42,19 @@ namespace h2o
         m_corner_pos = new_corner_pos;
         m_size = new_size;
 
-        std::vector<v2i> rel_chunk_positions_to_load;
-        rel_chunk_positions_to_load.reserve(new_size * new_size);
+        struct ChunkPosDistance
+        {
+            v2i local_pos{};
+            f32 distance{};
+
+            [[nodiscard]] bool operator<(const ChunkPosDistance& other) const
+            { return distance < other.distance; }
+
+            [[nodiscard]] bool operator==(const ChunkPosDistance& other) const
+            { return local_pos == other.local_pos; }
+        };
+
+        std::multiset<ChunkPosDistance> chunk_positions_to_load;
 
         std::vector< WeakHandle<ChunkColumn> > new_chunks(new_size * new_size, nullptr);
         for (i32 i = 0; i < new_size; i++)
@@ -57,7 +69,9 @@ namespace h2o
             }
             else
             {
-                rel_chunk_positions_to_load.emplace_back(i, j);
+                const v2i local_pos { i, j };
+                chunk_positions_to_load.emplace(local_pos,
+                    glm::distance2(v2(center_pos()), v2(corner_pos() + local_pos)));
             }
         }
 
@@ -65,13 +79,13 @@ namespace h2o
 
         on_indices_changed(new_to_old_indices);
 
-        for (v2i rel_chunk_pos : rel_chunk_positions_to_load)
+        for (const auto& local_chunk_pos : chunk_positions_to_load)
         {
-            const v2i world_chunk_pos = rel_chunk_pos + new_corner_pos;
+            const v2i world_chunk_pos = local_chunk_pos.local_pos + new_corner_pos;
 
             const auto chunk_col = m_chunk_system->fetch_or_create_chunk_column(world_chunk_pos);
 
-            m_chunks_in_region[to_index(rel_chunk_pos)] = chunk_col;
+            m_chunks_in_region[to_index(local_chunk_pos.local_pos)] = chunk_col;
             if (chunk_col->is_generated())
             {
                 on_chunk_fetched(chunk_col);
@@ -80,22 +94,6 @@ namespace h2o
             {
                 m_chunk_system->request_chunk_generation(chunk_col);
             }
-
-
-//                glm::distance2(v2(center_pos()), v2(world_chunk_pos)),
-//                [&, world_chunk_pos](const WeakHandle<ChunkColumn>& chunk_col)
-//                {
-//                    assert(chunk_col);
-//
-//                    // Recompute local chunk pos as the size or corner of the chunk region
-//                    // might have changed by the time we receive the new chunk.
-//                    if (const auto local_chunk_pos = to_local_chunk_pos_2d(world_chunk_pos))
-//                    {
-//                        m_chunks_in_region[to_index(*local_chunk_pos)] = chunk_col;
-//                        on_chunk_fetched(chunk_col, *local_chunk_pos);
-//                    }
-//                }
-//            );
         }
     }
 

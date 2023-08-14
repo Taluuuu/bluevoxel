@@ -47,9 +47,10 @@ namespace h2o
             m_last_player_chunk_pos = player_chunk_pos;
         }
 
-        while (!m_chunk_gen_stack.empty())
+        i32 chunk_generations = 0;
+        while (!m_chunk_gen_stack.empty() && chunk_generations < 5)
         {
-            auto& gen_request = m_chunk_gen_stack.top();
+            auto& gen_request = m_chunk_gen_stack.front();
 
             // Chunk columns that need to be generated up to gen_request.generation_stage - 1
             std::vector<WeakHandle<ChunkColumn>> chunk_cols_to_generate;
@@ -79,8 +80,8 @@ namespace h2o
                 if (gen_request.chunk_column->is_generated())
                     on_chunk_column_loaded.broadcast({ gen_request.chunk_column });
 
-                m_chunk_gen_stack.pop();
-//                break;
+                m_chunk_gen_stack.pop_front();
+                chunk_generations++;
             }
             else
             {
@@ -89,7 +90,8 @@ namespace h2o
                     const StaticChunkRegion gen_region(
                         chunk_col->chunk_column_pos() - v2i{ 1, 1 }, 3, *this);
 
-                    m_chunk_gen_stack.push({ gen_region, chunk_col, gen_request.gen_stage - 1 });
+                    m_chunk_gen_stack.emplace_front(
+                        gen_region, chunk_col, gen_request.gen_stage - 1);
                 }
             }
         }
@@ -207,7 +209,7 @@ namespace h2o
         const StaticChunkRegion gen_region(
             chunk_col->chunk_column_pos() - v2i{ 1, 1 }, 3, *this);
 
-        m_chunk_gen_stack.push({ gen_region, chunk_col, queried_stage });
+        m_chunk_gen_stack.emplace_back(gen_region, chunk_col, queried_stage);
 
 //        // Add a gen request to every stage's queue
 //        for (i32 i = queried_stage - 1; i >= 0; --i)

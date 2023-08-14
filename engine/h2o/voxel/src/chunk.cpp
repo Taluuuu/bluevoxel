@@ -9,8 +9,8 @@ namespace h2o
     {
         return
             local_pos.x * voxel_constants::chunk_area +
-            local_pos.y * voxel_constants::chunk_size +
-            local_pos.z;
+            local_pos.z * voxel_constants::chunk_size +
+            local_pos.y;
     }
 
     void Chunk::init()

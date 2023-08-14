@@ -9,7 +9,7 @@
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
-#include <stack>
+#include <deque>
 #include <vector>
 
 namespace h2o
@@ -62,14 +62,6 @@ namespace h2o
 
     private:
 
-//        struct ChunkGenRequest
-//        {
-//            StaticChunkRegion gen_region;
-//            WeakHandle<ChunkColumn> chunk_column;
-//        };
-//
-//        std::vector< std::vector<ChunkGenRequest> > m_chunk_gen_queues;
-
         struct ChunkGenRequest
         {
             StaticChunkRegion gen_region;
@@ -77,7 +69,7 @@ namespace h2o
             i32 gen_stage;
         };
 
-        std::stack<ChunkGenRequest> m_chunk_gen_stack;
+        std::deque<ChunkGenRequest> m_chunk_gen_stack;
         std::unordered_map<v2i, OwningHandle<ChunkColumn>> m_loaded_chunks;
 
         std::unique_ptr<ChunkGenerator_Base> m_chunk_generator { nullptr };
