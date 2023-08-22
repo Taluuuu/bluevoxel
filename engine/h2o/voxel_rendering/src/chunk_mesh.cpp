@@ -16,25 +16,28 @@
 
 namespace h2o
 {
-    ChunkMesh::ChunkMesh(ChunkMesh&& other) noexcept
-        : m_chunk_pos(other.m_chunk_pos)
-        , m_vertex_array(std::move(other.m_vertex_array))
-        , m_buffer(std::move(other.m_buffer))
-    {}
+//    ChunkMesh::ChunkMesh(ChunkMesh&& other) noexcept
+//        : m_chunk_pos(other.m_chunk_pos)
+//        , m_vertex_array(std::move(other.m_vertex_array))
+//        , m_buffer(std::move(other.m_buffer))
+//    {}
+//
+//    ChunkMesh& ChunkMesh::operator=(ChunkMesh&& other) noexcept
+//    {
+//        if (this != &other)
+//        {
+//            m_chunk_pos = other.m_chunk_pos;
+//            m_vertex_array = std::move(other.m_vertex_array);
+//            m_buffer = std::move(other.m_buffer);
+//        }
+//
+//        return *this;
+//    }
 
-    ChunkMesh& ChunkMesh::operator=(ChunkMesh&& other) noexcept
-    {
-        if (this != &other)
-        {
-            m_chunk_pos = other.m_chunk_pos;
-            m_vertex_array = std::move(other.m_vertex_array);
-            m_buffer = std::move(other.m_buffer);
-        }
-
-        return *this;
-    }
-
-    void ChunkMesh::init(gfx::IRenderer& renderer, const v3i& chunk_pos)
+    void ChunkMesh::init(
+        const VoxelRenderingModule& voxel_rendering_module,
+        gfx::IRenderer& renderer,
+        const v3i& chunk_pos)
     {
         assert(!m_vertex_array && !m_buffer);
 
@@ -42,15 +45,17 @@ namespace h2o
 
         m_vertex_array = renderer.create_vertex_array();
         m_buffer = renderer.create_buffer();
+
+        m_voxel_rendering_module = &voxel_rendering_module;
     }
 
     void ChunkMesh::update(
-        const VoxelRenderingModule& chunk_rendering_module,
         const Chunk& chunk,
         const std::array<Chunk*, 6>& adjacent_chunks)
     {
-        if (!m_vertex_array || !m_buffer)
-            return;
+        assert(m_vertex_array);
+        assert(m_buffer);
+        assert(m_voxel_rendering_module);
 
         std::vector<u32> vertices;
 
@@ -103,11 +108,11 @@ namespace h2o
             if (block == Block::Air)
                 continue;
 
-            const BlockModel* model = chunk_rendering_module.get_model_fast(block.id);
+            const BlockModel* model = m_voxel_rendering_module->get_model_fast(block.id);
             if (!model)
                 continue;
 
-            const auto& textures = chunk_rendering_module.get_textures_fast(block.id);
+            const auto& textures = m_voxel_rendering_module->get_textures_fast(block.id);
 
             for (u32 dir = 0; dir < voxel::dir_count; dir++)
             {

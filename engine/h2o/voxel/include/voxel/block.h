@@ -11,9 +11,11 @@ namespace h2o
 
     struct BlockType
     {
-        std::string name;
-        std::string model_name;
-        std::vector<std::string> texture_names;
+        std::string name{};
+        std::string model_name{};
+        std::string block_preset_name{};
+        std::vector<std::string> texture_names{};
+        BlockID block_id{};
     };
 
     struct Block

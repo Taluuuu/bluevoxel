@@ -1,5 +1,6 @@
 block_types:
   - name: grass_block
+    preset: normal
     id: 1
     model: cube
     textures:
@@ -10,6 +11,7 @@ block_types:
       - grass_block_side.png
       - grass_block_side.png
   - name: dirt_block
+    preset: normal
     id: 2
     model: cube
     textures:
@@ -20,6 +22,7 @@ block_types:
       - dirt_block.png
       - dirt_block.png
   - name: stone_block
+    preset: normal
     id: 3
     model: cube
     textures:

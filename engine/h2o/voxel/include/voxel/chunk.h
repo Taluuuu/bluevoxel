@@ -6,11 +6,13 @@
 #include "voxel/voxel_constants.h"
 
 #include <iterator>
+#include <set>
 #include <vector>
 
 namespace h2o
 {
     class ChunkSystem;
+    class VoxelModule;
 
     class Chunk
     {
@@ -18,10 +20,9 @@ namespace h2o
 
         Chunk() = default;
 
-        void init();
+        void init(const VoxelModule& voxel_module);
 
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
-        [[nodiscard]] Block* get_block_ptr_at(const v3i& local_pos);
         void set_block_at(const v3i& local_pos, Block block);
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
@@ -43,11 +44,14 @@ namespace h2o
 
         friend class ChunkColumn;
 
-        std::vector<Block> m_blocks;
+        std::vector<Block> m_blocks{};
+        std::set<u32> m_blocks_to_tick{};
 
         v3i m_chunk_pos{};
 
-        bool m_is_empty = true;
+        const VoxelModule* m_voxel_module { nullptr };
+
+        bool m_is_empty { true };
 
     };
 
@@ -57,7 +61,7 @@ namespace h2o
 
         explicit ChunkColumn(v2i chunk_col_pos);
 
-        void init();
+        void init(const VoxelModule& voxel_module);
         [[nodiscard]] bool is_initialized() const { return m_is_initialized; }
 
         [[nodiscard]] v2i chunk_column_pos() const { return m_chunk_col_pos; }

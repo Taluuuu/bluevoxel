@@ -57,8 +57,8 @@ namespace h2o
         template<class T = Actor>
         WeakHandle<T> get_actor(std::string_view name);
 
-        template<class T>
-        WeakHandle<T> add_system();
+        template<class T, class... Args>
+        WeakHandle<T> add_system(Args... args);
 
         template<class T>
         WeakHandle<T> get_system();
@@ -122,8 +122,8 @@ namespace h2o
         return oup::dynamic_pointer_cast<T>(actor);
     }
 
-    template<class T>
-    WeakHandle<T> Scene::add_system()
+    template<class T, class... Args>
+    WeakHandle<T> Scene::add_system(Args... args)
     {
         static_assert(
             std::is_base_of_v<SceneSystem, T> &&
@@ -140,7 +140,7 @@ namespace h2o
             .owning_scene = *this
         };
 
-        OwningHandle<T> system = oup::make_observable_unique<T>(system_initializer);
+        OwningHandle<T> system = oup::make_observable_unique<T>(system_initializer, args...);
         WeakHandle<T> weak_system_handle = system;
 
         m_system_map.insert({ typeid(T), std::move(system) });

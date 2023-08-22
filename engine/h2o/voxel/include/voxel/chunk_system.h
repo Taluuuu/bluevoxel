@@ -18,6 +18,7 @@ namespace h2o
 
     class ChunkColumn;
     class ChunkRegion;
+    class VoxelModule;
     struct ChunkWeakHandle;
 
     struct ChunkUpdateEvent { const ChunkWeakHandle& chunk_handle; };
@@ -34,7 +35,9 @@ namespace h2o
     {
     public:
 
-        explicit ChunkSystem(const SceneSystemInitializer& system_initializer);
+        explicit ChunkSystem(
+            const SceneSystemInitializer& system_initializer,
+            const VoxelModule& voxel_module);
 
         // SceneSystem interface
         bool init() override;
@@ -75,6 +78,8 @@ namespace h2o
         std::unique_ptr<ChunkGenerator_Base> m_chunk_generator { nullptr };
 
         v3i m_last_player_chunk_pos{};
+
+        const VoxelModule* const m_voxel_module { nullptr };
 
     };
 }

@@ -1,7 +1,8 @@
 #include "voxel/chunk.h"
 
-#include "voxel/voxel_constants.h"
 #include "voxel/chunk_system.h"
+#include "voxel/voxel_constants.h"
+#include "voxel/voxel_module.h"
 
 namespace h2o
 {
@@ -13,9 +14,10 @@ namespace h2o
             local_pos.y;
     }
 
-    void Chunk::init()
+    void Chunk::init(const VoxelModule& voxel_module)
     {
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
+        m_voxel_module = &voxel_module;
     }
 
     Block Chunk::get_block_at(const v3i& local_pos) const
@@ -26,14 +28,6 @@ namespace h2o
         return m_blocks[to_index(local_pos)];
     }
 
-    Block* Chunk::get_block_ptr_at(const v3i& local_pos)
-    {
-        assert(is_valid_pos(local_pos));
-        assert(is_initialized());
-
-        return &m_blocks[to_index(local_pos)];
-    }
-
     void Chunk::set_block_at(const v3i& local_pos, Block block)
     {
         assert(is_valid_pos(local_pos));
@@ -41,7 +35,8 @@ namespace h2o
 
         // TODO: Check if the block is valid
 
-        m_blocks[to_index(local_pos)] = block;
+        const size_t block_idx = to_index(local_pos);
+        m_blocks[block_idx] = block;
 
         if (block == Block::Air)
         {
@@ -62,6 +57,15 @@ namespace h2o
         {
             m_is_empty = false;
         }
+
+//        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
+//        {
+//            m_blocks_to_tick.insert(block_idx);
+//        }
+//        else
+//        {
+//            m_blocks_to_tick.erase(block_idx);
+//        }
     }
 
     ChunkColumn::ChunkColumn(v2i chunk_col_pos)
@@ -72,11 +76,11 @@ namespace h2o
             chunk.m_chunk_pos = { chunk_col_pos.x, y++, chunk_col_pos.y };
     }
 
-    void ChunkColumn::init()
+    void ChunkColumn::init(const VoxelModule& voxel_module)
     {
         assert(!m_is_initialized);
         for (auto& chunk : m_chunks)
-            chunk.init();
+            chunk.init(voxel_module);
 
         m_is_initialized = true;
     }

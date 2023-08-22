@@ -11,6 +11,7 @@
 #include "voxel/chunk.h"
 #include "voxel/chunk_generator_base.h"
 #include "voxel/chunk_system.h"
+#include "voxel/voxel_module.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 #include "voxel_rendering/chunk_rendering_region.h"
 #include "voxel_rendering/chunk_rendering_system.h"
@@ -30,9 +31,12 @@ namespace game
         input_module->register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, true);
         input_module->register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
 
+        auto voxel_module = engine.get_module<h2o::VoxelModule>();
+        assert(voxel_module);
+
         m_scene = h2o::Scene::create(engine, "TestGameScene");
         m_scene->add_system<h2o::RenderingSystem>();
-        m_scene->add_system<h2o::ChunkSystem>();
+        m_scene->add_system<h2o::ChunkSystem>(*voxel_module);
         m_scene->add_system<h2o::ChunkRenderingSystem>();
         m_scene->init();
 

@@ -171,9 +171,16 @@ namespace h2o
     {
         auto new_column = std::make_unique<ChunkMeshColumn>();
 
+        assert(m_voxel_rendering_module);
+
         i32 i = 0;
         for (auto& chunk_mesh : *new_column)
-            chunk_mesh.init(*m_renderer, { chunk_col_pos.x, i++, chunk_col_pos.y });
+        {
+            chunk_mesh.init(
+                *m_voxel_rendering_module,
+                *m_renderer,
+                { chunk_col_pos.x, i++, chunk_col_pos.y });
+        }
 
         return new_column;
     }
@@ -241,6 +248,6 @@ namespace h2o
 
         auto& chunk_mesh = (*chunk_mesh_column)[chunk_pos.y];
 
-        chunk_mesh.update(*m_voxel_rendering_module, *chunk, adj_chunks);
+        chunk_mesh.update(*chunk, adj_chunks);
     }
 }

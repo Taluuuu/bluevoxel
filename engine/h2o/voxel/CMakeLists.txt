@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_voxel
     src/block.cpp
+    src/block_preset_base.cpp
     src/chunk.cpp
     src/chunk_generation_queue.cpp
     src/chunk_generator_base.cpp

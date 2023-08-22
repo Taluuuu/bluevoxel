@@ -22,12 +22,15 @@ namespace h2o
     public:
 
         ChunkMesh() = default;
-        ChunkMesh(ChunkMesh&& other) noexcept;
-        ChunkMesh& operator=(ChunkMesh&& other) noexcept;
+//        ChunkMesh(ChunkMesh&& other) noexcept;
+//        ChunkMesh& operator=(ChunkMesh&& other) noexcept;
 
-        void init(gfx::IRenderer& renderer, const v3i& chunk_pos);
+        void init(
+            const VoxelRenderingModule& voxel_rendering_module,
+            gfx::IRenderer& renderer,
+            const v3i& chunk_pos);
+
         void update(
-            const VoxelRenderingModule& chunk_rendering_module,
             const Chunk& chunk,
             const std::array<Chunk*, 6>& adjacent_chunks);
 
@@ -38,8 +41,10 @@ namespace h2o
 
     private:
 
-        std::shared_ptr<gfx::IVertexArray> m_vertex_array = nullptr;
-        std::shared_ptr<gfx::IBuffer> m_buffer = nullptr;
+        std::shared_ptr<gfx::IVertexArray> m_vertex_array { nullptr };
+        std::shared_ptr<gfx::IBuffer> m_buffer { nullptr };
+
+        const VoxelRenderingModule* m_voxel_rendering_module { nullptr };
 
         v3i m_chunk_pos { 0, 0, 0 };
         i32 m_vertex_count { 0 };

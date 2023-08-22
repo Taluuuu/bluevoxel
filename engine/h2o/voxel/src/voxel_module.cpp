@@ -21,6 +21,8 @@ namespace h2o
             return false;
         }
 
+        register_block_preset("normal", std::make_unique<BlockPreset_Base>());
+
         std::vector<std::optional<BlockType>> result;
 
         try
@@ -29,8 +31,9 @@ namespace h2o
             const auto block_types = root["block_types"];
             for (const auto block_type : block_types)
             {
-                const u16 id = block_type["id"].as<u16>();
+                const auto id = block_type["id"].as<BlockID>();
                 const auto name = block_type["name"].as<std::string>();
+                const auto preset_name = block_type["preset"].as<std::string>();
 
                 // This could be expanded upon if more block ids get reserved.
                 if (id == 0)
@@ -45,13 +48,35 @@ namespace h2o
                 if (id >= result.size())
                     result.resize(id + 1);
 
-                result[id] = { name, model_name, texture_names };
+                result[id] = { name, model_name, preset_name, texture_names, id };
             }
         }
         catch (const std::exception& e)
         {
             log::error("Failed to import block types: {}", e.what());
             return false;
+        }
+
+        // Block presets ini
+        m_block_presets_per_id.resize(result.size());
+        m_block_preset_flags_per_id.resize(result.size());
+        for (const auto& block_type : result)
+        {
+            if (!block_type.has_value())
+                continue;
+
+            const auto block_id = block_type->block_id;
+            const auto preset_name = block_type->block_preset_name;
+
+            const auto preset_it = m_block_presets.find(preset_name);
+            if (preset_it == m_block_presets.end() || !preset_it->second)
+            {
+                log::warn("No block preset with name '{}' found.", preset_name);
+                continue;
+            }
+
+            m_block_presets_per_id[block_id] = preset_it->second.get();
+            m_block_preset_flags_per_id[block_id] = preset_it->second->preset_flags();
         }
 
         m_block_types = std::move(result);
@@ -79,5 +104,20 @@ namespace h2o
     size_t VoxelModule::block_type_count() const
     {
         return m_block_types.size();
+    }
+
+    const BlockPreset_Base* VoxelModule::get_block_preset(BlockID id) const
+    {
+        return m_block_presets_per_id[id];
+    }
+
+    BlockPresetFlags VoxelModule::get_block_preset_data(BlockID id) const
+    {
+        return m_block_preset_flags_per_id[id];
+    }
+
+    void VoxelModule::register_block_preset(const std::string& name, std::shared_ptr<BlockPreset_Base>&& preset)
+    {
+        m_block_presets.emplace(name, std::move(preset));
     }
 }

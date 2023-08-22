@@ -12,8 +12,11 @@
 
 namespace h2o
 {
-    ChunkSystem::ChunkSystem(const SceneSystemInitializer& system_initializer)
+    ChunkSystem::ChunkSystem(
+        const SceneSystemInitializer& system_initializer,
+        const VoxelModule& voxel_module)
         : SceneSystem(system_initializer)
+        , m_voxel_module(&voxel_module)
     {
         // Setup flat world gen
         auto flat_generator = std::make_unique<ChunkGenerator_Flat>(*this);
@@ -32,6 +35,8 @@ namespace h2o
 
     void ChunkSystem::update(f32 delta_time)
     {
+        assert(m_voxel_module);
+
         // This is a bad way of getting the player, but it works for now.
         const auto player = m_scene->get_actor("Player");
         if (!player)
@@ -71,7 +76,7 @@ namespace h2o
 
                 // Init the chunk just before starting generation
                 if (!chunk_col->is_initialized())
-                    chunk_col->init();
+                    chunk_col->init(*m_voxel_module);
 
                 // Gen request can be completed
                 m_chunk_generator->run_generation_step(

@@ -16,13 +16,6 @@ namespace h2o
     struct Block;
     struct ChunkWeakHandle;
 
-    enum class BlockPositionSpace
-    {
-        RelativeToCorner,
-        RelativeToCenterChunk,
-        World
-    };
-
     class ChunkRegion
     {
     public:
@@ -89,8 +82,6 @@ namespace h2o
 
         [[nodiscard]] WeakHandle<ChunkColumn> get_center_chunk() const;
         [[nodiscard]] WeakHandle<ChunkColumn> get_chunk_col_at(v2i chunk_col_pos) const;
-
-        [[nodiscard]] Block* get_block_ptr_at(v3i block_pos, BlockPositionSpace block_pos_type) const;
 
         void for_each_chunk_column(const std::function<void(const WeakHandle<ChunkColumn>&)>& fun) const;
 

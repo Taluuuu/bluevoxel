@@ -241,38 +241,6 @@ namespace h2o
         return nullptr;
     }
 
-    Block* StaticChunkRegion::get_block_ptr_at(v3i block_pos, BlockPositionSpace block_pos_type) const
-    {
-        const v3i relative_chunk_pos = block_to_chunk_pos(block_pos);
-        v3i local_chunk_pos{};
-        switch (block_pos_type)
-        {
-        case BlockPositionSpace::RelativeToCorner:
-            local_chunk_pos = relative_chunk_pos;
-            break;
-        case BlockPositionSpace::RelativeToCenterChunk:
-            local_chunk_pos = relative_chunk_pos - v3i{ m_size, 0, m_size } / 2;
-            break;
-        default:
-        case BlockPositionSpace::World:
-            local_chunk_pos = relative_chunk_pos - v3i{ m_corner.x, 0, m_corner.y };
-            break;
-        }
-
-        assert(
-            local_chunk_pos.x >= 0 || relative_chunk_pos.x < m_size ||
-            local_chunk_pos.y >= 0 || relative_chunk_pos.y < voxel_constants::vertical_chunk_count ||
-            local_chunk_pos.z >= 0 || relative_chunk_pos.z < m_size);
-
-        const v3i pos_in_chunk = block_pos_to_within_chunk(block_pos);
-
-        const size_t index = to_index({ local_chunk_pos.x, local_chunk_pos.z });
-        const auto& chunk_col = m_chunks_in_region[index];
-        auto& chunk = (*chunk_col)[local_chunk_pos.y];
-
-        return chunk.get_block_ptr_at(pos_in_chunk);
-    }
-
     void StaticChunkRegion::for_each_chunk_column(const std::function<void(const WeakHandle<ChunkColumn>&)>& fun) const
     {
         for (i32 i = 0; i < m_size; i++)
