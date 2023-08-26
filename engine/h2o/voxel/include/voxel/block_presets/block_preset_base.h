@@ -1,6 +1,6 @@
 #pragma once
 
-#include "block.h"
+#include "voxel/block.h"
 
 namespace h2o
 {
@@ -15,7 +15,6 @@ namespace h2o
     {
     public:
 
-        [[nodiscard]] virtual bool should_tick(Block block) const { return false; }
         [[nodiscard]] virtual BlockPresetFlags preset_flags() const { return BlockPresetFlags{}; }
         virtual void tick(Block& block, Chunk& chunk, const v3i& local_block_pos) const;
 

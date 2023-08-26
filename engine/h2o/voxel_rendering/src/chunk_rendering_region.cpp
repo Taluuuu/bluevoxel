@@ -1,7 +1,7 @@
 #include "voxel_rendering/chunk_rendering_region.h"
 
 #include "core/log.h"
-#include "voxel/chunk.h"
+#include "voxel/chunk_column.h"
 #include "voxel/chunk_system.h"
 #include "voxel/direction.h"
 #include "voxel/voxel_utils.h"

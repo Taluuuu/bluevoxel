@@ -8,8 +8,8 @@
 #include "scene/scene_headers.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "scene_rendering/scene_rendering_module.h"
-#include "voxel/chunk.h"
-#include "voxel/chunk_generator_base.h"
+#include "voxel/chunk_column.h"
+#include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/chunk_system.h"
 #include "voxel/voxel_module.h"
 #include "voxel_rendering/voxel_rendering_module.h"
@@ -36,7 +36,7 @@ namespace game
 
         m_scene = h2o::Scene::create(engine, "TestGameScene");
         m_scene->add_system<h2o::RenderingSystem>();
-        m_scene->add_system<h2o::ChunkSystem>(*voxel_module);
+        m_scene->add_system<h2o::ChunkSystem, h2o::VoxelModule&>(*voxel_module);
         m_scene->add_system<h2o::ChunkRenderingSystem>();
         m_scene->init();
 

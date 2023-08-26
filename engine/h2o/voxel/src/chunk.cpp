@@ -14,6 +14,15 @@ namespace h2o
             local_pos.y;
     }
 
+    static v3i to_local_block_pos(i32 block_idx)
+    {
+        return {
+            block_idx / voxel_constants::chunk_area,
+            block_idx % voxel_constants::chunk_size,
+            (block_idx / voxel_constants::chunk_size) % voxel_constants::chunk_size
+        };
+    }
+
     void Chunk::init(const VoxelModule& voxel_module)
     {
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
@@ -58,55 +67,26 @@ namespace h2o
             m_is_empty = false;
         }
 
-//        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
-//        {
-//            m_blocks_to_tick.insert(block_idx);
-//        }
-//        else
-//        {
-//            m_blocks_to_tick.erase(block_idx);
-//        }
+        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
+        {
+            m_blocks_to_tick.insert(block_idx);
+        }
+        else
+        {
+            m_blocks_to_tick.erase(block_idx);
+        }
     }
 
-    ChunkColumn::ChunkColumn(v2i chunk_col_pos)
-        : m_chunk_col_pos(chunk_col_pos)
+    void Chunk::tick()
     {
-        i32 y = 0;
-        for (auto& chunk : m_chunks)
-            chunk.m_chunk_pos = { chunk_col_pos.x, y++, chunk_col_pos.y };
-    }
+        for (const u32 block_idx : m_blocks_to_tick)
+        {
+            Block& block = m_blocks[block_idx];
+            auto block_preset = m_voxel_module->get_block_preset(block.id);
+            assert(block_preset);
 
-    void ChunkColumn::init(const VoxelModule& voxel_module)
-    {
-        assert(!m_is_initialized);
-        for (auto& chunk : m_chunks)
-            chunk.init(voxel_module);
-
-        m_is_initialized = true;
-    }
-
-    void ChunkColumn::increment_generation_stage()
-    {
-        m_generation_stage++;
-    }
-
-    void ChunkColumn::finish_generation()
-    {
-        m_generation_stage = voxel_constants::max_generation_stage;
-    }
-
-    Chunk* ChunkWeakHandle::chunk() const
-    {
-        if (!chunk_column)
-            return nullptr;
-
-        return &(*chunk_column)[height];
-    }
-
-    bool ChunkWeakHandle::operator==(const ChunkWeakHandle& other) const
-    {
-        return
-            chunk_column == other.chunk_column &&
-            height       == other.height;
+            block_preset->tick(
+                block, *this, to_local_block_pos(i32(block_idx)));
+        }
     }
 }

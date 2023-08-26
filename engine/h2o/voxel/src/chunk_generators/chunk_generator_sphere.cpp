@@ -1,6 +1,6 @@
-#include "voxel/chunk_generator_sphere.h"
+#include "voxel/chunk_generators/chunk_generator_sphere.h"
 
-#include "voxel/chunk.h"
+#include "voxel/chunk_column.h"
 #include "voxel/voxel_constants.h"
 
 namespace h2o

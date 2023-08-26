@@ -5,16 +5,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_voxel
     src/block.cpp
-    src/block_preset_base.cpp
+    src/block_presets/block_preset_base.cpp
+    src/block_presets/block_preset_crop.cpp
     src/chunk.cpp
+    src/chunk_column.cpp
     src/chunk_generation_queue.cpp
-    src/chunk_generator_base.cpp
-    src/chunk_generator_flat.cpp
-    src/chunk_generator_sphere.cpp
+    src/chunk_generators/chunk_generator_base.cpp
+    src/chunk_generators/chunk_generator_flat.cpp
+    src/chunk_generators/chunk_generator_sphere.cpp
     src/chunk_region.cpp
     src/chunk_system.cpp
+    src/chunk_weak_handle.cpp
     src/voxel_module.cpp
     src/voxel_pack.cpp
+    src/voxel_ray.cpp
 )
 
 target_link_libraries(h2o_voxel

@@ -1,6 +1,6 @@
 #include "voxel/chunk_region.h"
 
-#include "voxel/chunk.h"
+#include "voxel/chunk_column.h"
 #include "voxel/chunk_system.h"
 #include "voxel/voxel_utils.h"
 
@@ -21,6 +21,39 @@ namespace h2o
                     on_chunk_fetched(event.chunk_handle);
             }
         );
+    }
+
+    std::optional<Block> ChunkRegion::get_block_at(const v3i& block_pos) const
+    {
+        const v3i chunk_pos = block_to_chunk_pos(block_pos);
+        if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
+            return chunk->get_block_at(block_pos_to_within_chunk(block_pos));
+
+        return std::nullopt;
+    }
+
+    std::optional<Block> ChunkRegion::get_block_at(const v3i& block_pos, ChunkWeakHandle& out_chunk) const
+    {
+        const v3i chunk_pos = block_to_chunk_pos(block_pos);
+        if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
+        {
+            out_chunk = chunk;
+            return chunk->get_block_at(block_pos_to_within_chunk(block_pos));
+        }
+
+        return std::nullopt;
+    }
+
+    bool ChunkRegion::set_block_at(const v3i& block_pos, Block block) const
+    {
+        const v3i chunk_pos = block_to_chunk_pos(block_pos);
+        if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
+        {
+            chunk->set_block_at(block_pos_to_within_chunk(block_pos), block);
+            return true;
+        }
+
+        return false;
     }
 
     void ChunkRegion::set_corner_pos(v2i new_corner_pos)

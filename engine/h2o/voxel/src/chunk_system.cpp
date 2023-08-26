@@ -1,9 +1,9 @@
 #include "voxel/chunk_system.h"
 
 #include "scene/scene.h"
-#include "voxel/chunk.h"
-#include "voxel/chunk_generator_flat.h"
-#include "voxel/chunk_generator_sphere.h"
+#include "voxel/chunk_column.h"
+#include "voxel/chunk_generators/chunk_generator_flat.h"
+#include "voxel/chunk_generators/chunk_generator_sphere.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_utils.h"
 #include "voxel/chunk_region.h"
@@ -83,7 +83,13 @@ namespace h2o
                     *gen_request.chunk_column, gen_request.gen_region);
 
                 if (gen_request.chunk_column->is_generated())
-                    on_chunk_column_loaded.broadcast({ gen_request.chunk_column });
+                {
+                    on_chunk_column_loaded.broadcast({gen_request.chunk_column});
+
+                    // Start ticking the chunk.
+                    // TODO: Make an abstraction for this ? It seems kinda verbose
+                    m_chunk_tick_queue.push(gen_request.chunk_column);
+                }
 
                 m_chunk_gen_stack.pop_front();
                 chunk_generations++;
@@ -101,72 +107,22 @@ namespace h2o
             }
         }
 
-//        bool should_continue = true;
-//        for (i32 gen_stage = m_chunk_gen_queues.size() - 1; gen_stage >= 0 && should_continue; --gen_stage)
-//        {
-//            auto& gen_queue = m_chunk_gen_queues[gen_stage];
-//
-//            auto it = gen_queue.begin();
-//            while (it != gen_queue.end())
-//            {
-//                auto& gen_request = *it;
-//
-//                // Chunk columns that need to be generated up to gen_request.generation_stage - 1
-//                std::vector<WeakHandle<ChunkColumn>> chunk_cols_to_generate;
-//                chunk_cols_to_generate.reserve(9);
-//
-//                gen_request.gen_region.for_each_chunk_column(
-//                    [&](const WeakHandle<ChunkColumn>& chunk_col) -> void
-//                    {
-//                        assert(chunk_col);
-//                        if (chunk_col->generation_stage() < gen_stage - 1)
-//                            chunk_cols_to_generate.push_back(chunk_col);
-//                    }
-//                );
-//
-//                if (chunk_cols_to_generate.empty())
-//                {
-//                    auto& chunk_col = gen_request.chunk_column;
-//
-//                    // Init the chunk just before starting generation
-//                    if (!chunk_col->is_initialized())
-//                        chunk_col->init();
-//
-//                    // Gen request can be completed
-//                    m_chunk_generator->run_generation_step(
-//                        *gen_request.chunk_column, gen_request.gen_region);
-//
-//                    if (gen_request.chunk_column->is_generated())
-//                        on_chunk_column_loaded.broadcast({ gen_request.chunk_column });
-//
-//                    it = gen_queue.erase(it);
-//
-//                    should_continue = false;
-//                    break;
-//                }
-//                else
-//                {
-//                    for (const auto& chunk_col : chunk_cols_to_generate)
-//                    {
-//                        assert(chunk_col);
-//                        request_chunk_generation(chunk_col, gen_stage - 1);
-//                    }
-//
-//                    ++it;
-//                }
-//            }
-//        }
+        const i32 chunks_to_tick = std::min(i32(m_chunk_tick_queue.size()), 5);
+        for (i32 i = 0; i < chunks_to_tick; i++)
+        {
+            if (auto& chunk_col = m_chunk_tick_queue.front())
+            {
+                chunk_col->tick();
+                m_chunk_tick_queue.push(chunk_col); // Add to the back of the queue again
+            }
+
+            m_chunk_tick_queue.pop();
+        }
     }
 
     i32 ChunkSystem::num_chunks_waiting_generation() const
     {
-//        size_t total = 0;
-//        for (const auto& gen_queue : m_chunk_gen_queues)
-//            total += gen_queue.size();
-//
-//        return i32(total);
-
-        return m_chunk_gen_stack.size();
+        return i32(m_chunk_gen_stack.size());
     }
 
     WeakHandle<ChunkColumn> ChunkSystem::fetch_chunk_column(v2i chunk_col_pos) const
@@ -207,40 +163,10 @@ namespace h2o
         if (chunk_col->generation_stage() >= queried_stage)
             return;
 
-//        const v2 chunk_col_pos { chunk_col->chunk_column_pos() };
-//        const v2 player_chunk_pos { m_last_player_chunk_pos.x, m_last_player_chunk_pos.z };
-//        const f32 distance = glm::distance2(chunk_col_pos, player_chunk_pos);
-
         const StaticChunkRegion gen_region(
             chunk_col->chunk_column_pos() - v2i{ 1, 1 }, 3, *this);
 
         m_chunk_gen_stack.emplace_back(gen_region, chunk_col, queried_stage);
-
-//        // Add a gen request to every stage's queue
-//        for (i32 i = queried_stage - 1; i >= 0; --i)
-//        {
-//            auto& gen_queue = m_chunk_gen_queues[i];
-//
-//            bool queue_contains = false;
-//            for (const auto& gen_request : gen_queue)
-//            {
-//                if (gen_request.chunk_column == chunk_col)
-//                {
-//                    queue_contains = true;
-//                    break;
-//                }
-//            }
-//
-//            if (queue_contains)
-//                break;
-//
-//            const ChunkGenRequest gen_request {
-//                .gen_region = gen_region,
-//                .chunk_column = chunk_col,
-//            };
-//
-//            gen_queue.push_back(gen_request);
-//        }
     }
 
     OwningHandle<ChunkColumn> ChunkSystem::create_chunk_column(v2i chunk_location) const

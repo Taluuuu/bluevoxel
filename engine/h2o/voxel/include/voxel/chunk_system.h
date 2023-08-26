@@ -7,9 +7,10 @@
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_constants.h"
 
+#include <deque>
 #include <glm/gtx/hash.hpp>
 #include <memory>
-#include <deque>
+#include <queue>
 #include <vector>
 
 namespace h2o
@@ -73,7 +74,8 @@ namespace h2o
         };
 
         std::deque<ChunkGenRequest> m_chunk_gen_stack;
-        std::unordered_map<v2i, OwningHandle<ChunkColumn>> m_loaded_chunks;
+        std::unordered_map< v2i, OwningHandle<ChunkColumn> > m_loaded_chunks;
+        std::queue< WeakHandle<ChunkColumn> > m_chunk_tick_queue;
 
         std::unique_ptr<ChunkGenerator_Base> m_chunk_generator { nullptr };
 

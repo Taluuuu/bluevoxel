@@ -32,3 +32,14 @@ block_types:
       - stone_block.png
       - stone_block.png
       - stone_block.png
+  - name: test_crop
+    preset: crop
+    id: 4
+    model: cube
+    textures:
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png

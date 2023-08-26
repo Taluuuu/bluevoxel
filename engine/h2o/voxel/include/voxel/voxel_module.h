@@ -2,7 +2,7 @@
 
 #include "core/module.h"
 #include "voxel/block.h"
-#include "voxel/block_preset_base.h"
+#include "voxel/block_presets/block_preset_base.h"
 
 #include <memory>
 #include <optional>

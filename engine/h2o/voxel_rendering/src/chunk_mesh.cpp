@@ -57,6 +57,9 @@ namespace h2o
         assert(m_buffer);
         assert(m_voxel_rendering_module);
 
+        // TODO: Investigate the possibility of storing an array of u8 describing adjacent faces
+        //       that need to be added to the mesh. This array could be updated when we edit blocks
+
         std::vector<u32> vertices;
 
         const auto append_face =

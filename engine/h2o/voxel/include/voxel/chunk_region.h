@@ -1,5 +1,6 @@
 #pragma once
 
+#include "block_container_interface.h"
 #include "core/events.h"
 #include "core/handle_types.h"
 #include "core/types.h"
@@ -16,12 +17,17 @@ namespace h2o
     struct Block;
     struct ChunkWeakHandle;
 
-    class ChunkRegion
+    class ChunkRegion : public IBlockContainer
     {
     public:
 
         explicit ChunkRegion(ChunkSystem& chunk_system);
-        virtual ~ChunkRegion() = default;
+        ~ChunkRegion() override = default;
+
+        // IBlockContainer interface
+        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const override;
+        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, ChunkWeakHandle& out_chunk) const override;
+        bool set_block_at(const v3i& block_pos, Block block) const override;
 
         void set_size(u32 new_size);
         void set_corner_pos(v2i new_corner_pos);

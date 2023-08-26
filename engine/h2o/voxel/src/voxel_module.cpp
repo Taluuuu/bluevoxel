@@ -2,6 +2,7 @@
 
 #include "core/log.h"
 #include "voxel/block.h"
+#include "voxel/block_presets/block_preset_crop.h"
 #include "voxel/voxel_pack.h"
 
 #include <optional>
@@ -22,6 +23,7 @@ namespace h2o
         }
 
         register_block_preset("normal", std::make_unique<BlockPreset_Base>());
+        register_block_preset("crop", std::make_unique<BlockPreset_Crop>());
 
         std::vector<std::optional<BlockType>> result;
 

@@ -1,4 +1,4 @@
-#include "voxel/chunk_generator_base.h"
+#include "voxel/chunk_generators/chunk_generator_base.h"
 
 #include <cassert>
 

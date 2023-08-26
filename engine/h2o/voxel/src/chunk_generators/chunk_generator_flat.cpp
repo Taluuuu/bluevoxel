@@ -1,6 +1,6 @@
-#include "voxel/chunk_generator_flat.h"
+#include "voxel/chunk_generators/chunk_generator_flat.h"
 
-#include "voxel/chunk.h"
+#include "voxel/chunk_column.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_constants.h"
 
@@ -27,6 +27,9 @@ namespace h2o
                 y++;
             }
         }
+
+        // Really bad, for testing only
+        // chunk_col[0].set_block_at({ 0, 31, 0 }, { 4, 0 });
 
         chunk_col.finish_generation();
     }
