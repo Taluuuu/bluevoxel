@@ -52,7 +52,10 @@ namespace h2o
         std::unordered_map<std::string_view, InputMapping> m_input_axes;
 
         // Event handles
-        EventHandle m_key_state_event_handle, m_mouse_moved_event_handle;
+        EventHandle
+            m_key_state_event_handle,
+            m_mouse_button_state_event_handle,
+            m_mouse_moved_event_handle;
 
     };
 }

@@ -44,6 +44,8 @@ namespace h2o
 
         glfwSetFramebufferSizeCallback(m_handle, framebuffer_size_callback);
         glfwSetKeyCallback(m_handle, key_callback);
+        glfwSetMouseButtonCallback(m_handle, mouse_button_callback);
+        glfwSetMouseButtonCallback(m_handle, mouse_button_callback);
         glfwSetCursorPosCallback(m_handle, mouse_moved_callback);
     }
 
@@ -124,6 +126,11 @@ namespace h2o
     Event<KeyChangedEvent>& Window_GLFW::key_changed_event()
     {
         return m_key_changed_event;
+    }
+
+    Event<MouseButtonChangedEvent>& Window_GLFW::mouse_button_changed_event()
+    {
+        return m_mouse_button_changed_event;
     }
 
     Event<MouseMovedEvent>& Window_GLFW::mouse_moved_event()
@@ -278,6 +285,15 @@ namespace h2o
 
         if (action == GLFW_PRESS || action == GLFW_RELEASE)
             window->m_key_changed_event.broadcast({ to_h2o_key(key), action == GLFW_PRESS });
+    }
+
+    void Window_GLFW::mouse_button_callback(GLFWwindow* window_handle, int button, int action, int mods)
+    {
+        auto window = static_cast<Window_GLFW*>(glfwGetWindowUserPointer(window_handle));
+        assert(window);
+
+        if (action == GLFW_PRESS || action == GLFW_RELEASE)
+            window->m_mouse_button_changed_event.broadcast({ to_h2o_mouse_button(button), action == GLFW_PRESS });
     }
 
     void Window_GLFW::framebuffer_size_callback(GLFWwindow* window_handle, int width, int height)

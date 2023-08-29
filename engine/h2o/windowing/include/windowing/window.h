@@ -18,6 +18,12 @@ namespace h2o
         bool pressed { false };
     };
 
+    struct MouseButtonChangedEvent
+    {
+        MouseButton button { MouseButton::Unknown };
+        bool pressed { false };
+    };
+
     struct MouseMovedEvent
     {
         v2 new_position {};
@@ -81,9 +87,9 @@ namespace h2o
         virtual void set_capture_mouse(bool capture) = 0;
 
         [[nodiscard]] virtual Event<WindowResizeEvent>& resize_event() = 0;
-
+        
         [[nodiscard]] virtual Event<KeyChangedEvent>& key_changed_event() = 0;
-
+        [[nodiscard]] virtual Event<MouseButtonChangedEvent>& mouse_button_changed_event() = 0;
         [[nodiscard]] virtual Event<MouseMovedEvent>& mouse_moved_event() = 0;
         
     };

@@ -40,4 +40,10 @@ namespace h2o
         if (render_system)
             render_system->set_main_camera(m_camera);
     }
+
+    const gfx::Camera& CameraComponent::camera() const
+    {
+        assert(m_camera);
+        return *m_camera;
+    }
 }

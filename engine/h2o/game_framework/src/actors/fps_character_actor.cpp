@@ -12,6 +12,7 @@ namespace h2o
         : Actor(actor_initializer)
     {
         add_component<CameraComponent>();
+
         m_input = add_component<InputComponent>();
 
         set_tick_phases(Update);
@@ -19,7 +20,7 @@ namespace h2o
 
     void FpsCharacterActor::update(f32 delta_time)
     {
-        if (!m_input) return;
+        assert(m_input);
 
         const v3 cam_input {
             m_input->get_axis("cam_x"),

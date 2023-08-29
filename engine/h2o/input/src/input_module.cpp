@@ -13,7 +13,7 @@ namespace h2o
     bool InputModule::init(Engine& engine)
     {
         m_key_states.resize(magic_enum::enum_count<Key>(), {});
-        m_mouse_button_states.resize(magic_enum::enum_count<Key>(), {});
+        m_mouse_button_states.resize(magic_enum::enum_count<MouseButton>(), {});
 
         auto windowing_module = engine.get_module<WindowingModule>();
         assert(windowing_module);
@@ -39,6 +39,16 @@ namespace h2o
                     // Hack, see comment below
                     m_mouse_move_frames_to_ignore = 2;
                 }
+            });
+
+        windowing_module->window().mouse_button_changed_event().add_listener(m_mouse_button_state_event_handle,
+            [&, windowing_module](const MouseButtonChangedEvent& evt)
+            {
+                auto btn_idx = magic_enum::enum_index(evt.button);
+                assert(btn_idx.has_value());
+
+                m_mouse_button_states[*btn_idx].held               = evt.pressed;
+                m_mouse_button_states[*btn_idx].pressed_this_frame = evt.pressed;
             });
 
         windowing_module->window().mouse_moved_event().add_listener(m_mouse_moved_event_handle,
@@ -146,7 +156,7 @@ namespace h2o
         auto btn_idx = magic_enum::enum_index(button);
         assert(btn_idx.has_value());
 
-        return m_key_states[*btn_idx];
+        return m_mouse_button_states[*btn_idx];
     }
 
     v2 InputModule::mouse_delta() const

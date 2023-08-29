@@ -37,13 +37,15 @@ namespace h2o
         void set_capture_mouse(bool capture) override;
         Event<WindowResizeEvent>& resize_event() override;
         Event<KeyChangedEvent>& key_changed_event() override;
+        Event<MouseButtonChangedEvent>& mouse_button_changed_event() override;
         Event<MouseMovedEvent>& mouse_moved_event() override;
 
     private:
 
         static void key_callback(GLFWwindow* window_handle, int key, int scancode, int action, int mods);
+        static void mouse_button_callback(GLFWwindow* window_handle, int button, int action, int mods);
         static void framebuffer_size_callback(GLFWwindow* window_handle, int width, int height);
-        static void mouse_moved_callback(GLFWwindow* window, double xpos, double ypos);
+        static void mouse_moved_callback(GLFWwindow* window_handle, double xpos, double ypos);
 
     private:
         
@@ -51,6 +53,7 @@ namespace h2o
 
         Event<WindowResizeEvent> m_resize_event;
         Event<KeyChangedEvent> m_key_changed_event;
+        Event<MouseButtonChangedEvent> m_mouse_button_changed_event;
         Event<MouseMovedEvent> m_mouse_moved_event;
 
         f64 m_previous_time = 0.0f;

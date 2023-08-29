@@ -27,6 +27,9 @@ namespace h2o
         void update(f32 delta_time) override;
         void render(f32 delta_time) override;
 
+        [[nodiscard]] ChunkRenderingRegion* rendering_region() const
+        { return m_chunk_rendering_region.get(); }
+
     private:
 
         VoxelRenderingModule* m_voxel_rendering_module = nullptr;

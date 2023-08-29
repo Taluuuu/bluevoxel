@@ -19,6 +19,7 @@ namespace h2o
         // Component interface
         void pre_render(f32 delta_time) override;
 
+        [[nodiscard]] const gfx::Camera& camera() const;
         void set_as_main_camera() const;
 
     private:

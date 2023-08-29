@@ -12,6 +12,7 @@
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/chunk_system.h"
 #include "voxel/voxel_module.h"
+#include "voxel_rendering/block_placing_component.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 #include "voxel_rendering/chunk_rendering_region.h"
 #include "voxel_rendering/chunk_rendering_system.h"
@@ -41,9 +42,10 @@ namespace game
         m_scene->init();
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("Player");
+        player->add_component<h2o::BlockPlacingComponent>();
         player->transform.position = { 0.0f, 20.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 90.0f };
-        player->move_speed = 100.0f;
+        player->move_speed = 30.0f;
 
         auto triangle = m_scene->spawn_actor("Triangle");
         triangle->add_component<h2o::MeshRendererComponent>();

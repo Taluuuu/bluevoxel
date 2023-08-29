@@ -8,11 +8,13 @@ add_library(h2o_voxel_rendering
     src/chunk_rendering_region.cpp
     src/chunk_rendering_system.cpp
     src/voxel_rendering_module.cpp
+    src/block_placing_component.cpp
 )
 
 target_link_libraries(h2o_voxel_rendering
     PRIVATE
         h2o_core
+        h2o_input
         h2o_rendering
         h2o_scene
         h2o_scene_rendering
@@ -28,6 +30,7 @@ target_include_directories(h2o_voxel_rendering
 
     PRIVATE
         h2o_core
+        h2o_input
         h2o_rendering
         h2o_scene
         h2o_scene_rendering
