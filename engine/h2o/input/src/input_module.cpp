@@ -82,6 +82,9 @@ namespace h2o
         for (auto& key_state : m_key_states)
             key_state.pressed_this_frame = false;
 
+        for (auto& mouse_button_state : m_mouse_button_states)
+            mouse_button_state.pressed_this_frame = false;
+
         m_mouse_delta = { 0.0f, 0.0f };
     }
 
