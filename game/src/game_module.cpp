@@ -45,7 +45,7 @@ namespace game
         player->add_component<h2o::BlockPlacingComponent>();
         player->transform.position = { 0.0f, 20.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 90.0f };
-        player->move_speed = 30.0f;
+        player->move_speed = 10.0f;
 
         auto triangle = m_scene->spawn_actor("Triangle");
         triangle->add_component<h2o::MeshRendererComponent>();
