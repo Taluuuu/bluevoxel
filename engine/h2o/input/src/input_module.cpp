@@ -42,7 +42,7 @@ namespace h2o
             });
 
         windowing_module->window().mouse_button_changed_event().add_listener(m_mouse_button_state_event_handle,
-            [&, windowing_module](const MouseButtonChangedEvent& evt)
+            [&](const MouseButtonChangedEvent& evt)
             {
                 auto btn_idx = magic_enum::enum_index(evt.button);
                 assert(btn_idx.has_value());
