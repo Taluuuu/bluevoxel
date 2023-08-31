@@ -1,0 +1,70 @@
+#pragma once
+
+#include "chunk_column.h"
+#include "chunk_manager.h"
+#include "core/types.h"
+
+#include <glm/gtx/hash.hpp>
+#include <queue>
+#include <thread>
+#include <unordered_map>
+
+namespace h2o
+{
+    using ClientID = u32;
+
+    // This will be sent to the server by the client.
+    struct VoxelClientInput
+    {
+        std::queue<v2i> requested_chunks{};
+    };
+
+    // This is the data the server will send back to the client.
+    struct VoxelClientOutput
+    {
+        // Chunks that have been loaded by the chunk manager awaiting to be
+        // received by the client.
+        std::queue<WeakHandle<ChunkColumn>> pending_chunks{};
+    };
+
+    // This class will be adapted to be hosted on a server.
+    class ChunkServer
+    {
+    public:
+
+        ChunkServer() = default;
+        ~ChunkServer();
+
+        void start();
+        void stop();
+
+        void register_client(ClientID client_id, const VoxelClientInput& client_input);
+        void unregister_client(ClientID client_id);
+
+        [[nodiscard]] VoxelClientInput* client_input(ClientID client_id) ;
+        [[nodiscard]] VoxelClientOutput* client_outputs(ClientID client_id);
+
+    protected:
+
+        void run();
+
+        void request_chunk_loads();
+        void load_requested_chunks();
+
+    private:
+
+        // Networking
+        std::mutex m_client_inputs_mutex{};
+        std::unordered_map<ClientID, VoxelClientInput> m_client_inputs{};
+        std::mutex m_client_outputs_mutex{};
+        std::unordered_map<ClientID, VoxelClientOutput> m_client_outputs{};
+
+        // Storage
+        ChunkManager m_chunk_mgr{};
+
+        // Threading
+        std::thread m_thread{};
+        std::atomic_bool m_should_stop { true };
+
+    };
+}
