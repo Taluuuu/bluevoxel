@@ -30,6 +30,8 @@ namespace h2o
 
     bool ChunkSystem::init()
     {
+//        m_chunk_mgr.start();
+
         return true;
     }
 
