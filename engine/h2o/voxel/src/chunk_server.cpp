@@ -71,28 +71,28 @@ namespace h2o
 
     void ChunkServer::request_chunk_loads()
     {
-        const std::lock_guard clients_guard(m_client_inputs_mutex);
-        const std::lock_guard loaded_chunks_guard(m_chunk_mgr_mutex);
-
-        for (auto& [client_id, client_input] : m_client_inputs)
-        {
-            while (!client_input.requested_chunks.empty())
-            {
-                const v2i chunk_pos = client_input.requested_chunks.front();
-                client_input.requested_chunks.pop();
-
-                const auto chunk_it = m_loaded_chunks.find(chunk_pos);
-                if (chunk_it == m_loaded_chunks.end())
-                {
-                    // This will be where we check if the chunk can be loaded from disk.
-                    // For now, this chunk needs to be generated.
-
-                }
-                else
-                {
-
-                }
-            }
+//        const std::lock_guard clients_guard(m_client_inputs_mutex);
+//        const std::lock_guard loaded_chunks_guard(m_chunk_mgr_mutex);
+//
+//        for (auto& [client_id, client_input] : m_client_inputs)
+//        {
+//            while (!client_input.requested_chunks.empty())
+//            {
+//                const v2i chunk_pos = client_input.requested_chunks.front();
+//                client_input.requested_chunks.pop();
+//
+//                const auto chunk_it = m_loaded_chunks.find(chunk_pos);
+//                if (chunk_it == m_loaded_chunks.end())
+//                {
+//                    // This will be where we check if the chunk can be loaded from disk.
+//                    // For now, this chunk needs to be generated.
+//
+//                }
+//                else
+//                {
+//
+//                }
+//            }
 
 //            for (i32 i = -client_input.view_distance; i <= client_input.view_distance * 2; i++)
 //            for (i32 j = -client_input.view_distance; j <= client_input.view_distance * 2; j++)
@@ -110,7 +110,7 @@ namespace h2o
 //
 //                }
 //            }
-        }
+//        }
     }
 
     void ChunkServer::load_requested_chunks()

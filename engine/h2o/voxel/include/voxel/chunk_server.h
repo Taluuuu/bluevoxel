@@ -5,6 +5,7 @@
 #include "core/types.h"
 
 #include <glm/gtx/hash.hpp>
+#include <mutex>
 #include <queue>
 #include <thread>
 #include <unordered_map>
