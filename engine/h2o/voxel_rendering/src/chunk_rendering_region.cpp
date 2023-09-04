@@ -14,7 +14,7 @@ namespace h2o
         gfx::IRenderer& renderer,
         const VoxelRenderingModule& voxel_rendering_module,
         ChunkSystem& chunk_system)
-        : ChunkRegion(chunk_system)
+        : ChunkRegionOLD(chunk_system)
         , m_renderer(&renderer)
         , m_voxel_rendering_module(&voxel_rendering_module)
     {

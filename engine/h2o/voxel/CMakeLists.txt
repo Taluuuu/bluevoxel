@@ -13,9 +13,9 @@ add_library(h2o_voxel
     src/chunk_generators/chunk_generator_base.cpp
     src/chunk_generators/chunk_generator_flat.cpp
     src/chunk_generators/chunk_generator_sphere.cpp
-    src/chunk_manager.cpp
+        src/server/chunk_manager.cpp
     src/chunk_region.cpp
-    src/chunk_server.cpp
+        src/server/chunk_server.cpp
     src/chunk_system.cpp
     src/chunk_weak_handle.cpp
     src/voxel_module.cpp

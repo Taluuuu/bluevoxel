@@ -4,7 +4,7 @@
 #include "core/events.h"
 #include "core/handle_types.h"
 #include "scene/scene_system.h"
-#include "voxel/chunk_server.h" // TEMP
+#include "voxel/server/chunk_server.h" // TEMP
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_constants.h"
 
@@ -19,7 +19,7 @@ namespace h2o
     class ChunkGenerator_Base;
 
     class ChunkColumn;
-    class ChunkRegion;
+    class ChunkRegionOLD;
     class VoxelModule;
     struct ChunkWeakHandle;
 

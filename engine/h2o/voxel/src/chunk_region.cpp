@@ -11,7 +11,7 @@
 
 namespace h2o
 {
-    ChunkRegion::ChunkRegion(ChunkSystem& chunk_system)
+    ChunkRegionOLD::ChunkRegionOLD(ChunkSystem& chunk_system)
         : m_chunk_system(&chunk_system)
     {
         chunk_system.on_chunk_column_loaded.add_listener(m_on_chunk_loaded_handle,
@@ -23,7 +23,7 @@ namespace h2o
         );
     }
 
-    std::optional<Block> ChunkRegion::get_block_at(const v3i& block_pos) const
+    std::optional<Block> ChunkRegionOLD::get_block_at(const v3i& block_pos) const
     {
         const v3i chunk_pos = block_to_chunk_pos(block_pos);
         if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
@@ -32,7 +32,7 @@ namespace h2o
         return std::nullopt;
     }
 
-    std::optional<Block> ChunkRegion::get_block_at(const v3i& block_pos, ChunkWeakHandle& out_chunk) const
+    std::optional<Block> ChunkRegionOLD::get_block_at(const v3i& block_pos, ChunkWeakHandle& out_chunk) const
     {
         const v3i chunk_pos = block_to_chunk_pos(block_pos);
         if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
@@ -44,7 +44,7 @@ namespace h2o
         return std::nullopt;
     }
 
-    bool ChunkRegion::set_block_at(const v3i& block_pos, Block block) const
+    bool ChunkRegionOLD::set_block_at(const v3i& block_pos, Block block) const
     {
         const v3i chunk_pos = block_to_chunk_pos(block_pos);
         if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
@@ -56,17 +56,17 @@ namespace h2o
         return false;
     }
 
-    void ChunkRegion::set_corner_pos(v2i new_corner_pos)
+    void ChunkRegionOLD::set_corner_pos(v2i new_corner_pos)
     {
         update_data(new_corner_pos, m_size);
     }
 
-    void ChunkRegion::set_size(u32 new_size)
+    void ChunkRegionOLD::set_size(u32 new_size)
     {
         update_data(m_corner_pos, new_size);
     }
 
-    void ChunkRegion::update_data(v2i new_corner_pos, u32 new_size)
+    void ChunkRegionOLD::update_data(v2i new_corner_pos, u32 new_size)
     {
         assert(m_chunk_system);
 
@@ -130,7 +130,7 @@ namespace h2o
         }
     }
 
-    void ChunkRegion::for_each_chunk(const std::function<void(Chunk&)>& fun) const
+    void ChunkRegionOLD::for_each_chunk(const std::function<void(Chunk&)>& fun) const
     {
         for (const auto& chunk_col : m_chunks_in_region)
         {
@@ -142,7 +142,7 @@ namespace h2o
         }
     }
 
-    ChunkWeakHandle ChunkRegion::get_chunk_at(const v3i& chunk_pos) const
+    ChunkWeakHandle ChunkRegionOLD::get_chunk_at(const v3i& chunk_pos) const
     {
         if (!in_region_bounds(chunk_pos))
             return nullptr;
@@ -153,7 +153,7 @@ namespace h2o
         return nullptr;
     }
 
-    WeakHandle<ChunkColumn> ChunkRegion::get_chunk_col_at(v2i chunk_col_pos) const
+    WeakHandle<ChunkColumn> ChunkRegionOLD::get_chunk_col_at(v2i chunk_col_pos) const
     {
         if (const auto local_pos = to_local_chunk_pos_2d(chunk_col_pos))
         {
@@ -166,7 +166,7 @@ namespace h2o
         return nullptr;
     }
 
-    bool ChunkRegion::in_region_bounds(const v3i& chunk_pos) const
+    bool ChunkRegionOLD::in_region_bounds(const v3i& chunk_pos) const
     {
         const v3i min { m_corner_pos.x, 0, m_corner_pos.y };
         const v3i max = min + v3i{ m_size, voxel_constants::vertical_chunk_count, m_size };
@@ -177,7 +177,7 @@ namespace h2o
             chunk_pos.z >= min.z && chunk_pos.z < max.z;
     }
 
-    bool ChunkRegion::in_region_bounds(v2i chunk_pos) const
+    bool ChunkRegionOLD::in_region_bounds(v2i chunk_pos) const
     {
         const v2i min = m_corner_pos;
         const v2i max = min + v2i { m_size, m_size };
@@ -187,25 +187,25 @@ namespace h2o
             chunk_pos.y >= min.y && chunk_pos.y < max.y;
     }
 
-    ChunkSystem& ChunkRegion::chunk_system() const
+    ChunkSystem& ChunkRegionOLD::chunk_system() const
     {
         assert(m_chunk_system);
         return *m_chunk_system;
     }
 
-    std::optional<v3i> ChunkRegion::to_local_chunk_pos_3d(const v3i& chunk_pos) const
+    std::optional<v3i> ChunkRegionOLD::to_local_chunk_pos_3d(const v3i& chunk_pos) const
     {
         if (!in_region_bounds(chunk_pos)) return std::nullopt;
         return chunk_pos - v3i{ m_corner_pos.x, 0, m_corner_pos.y };
     }
 
-    std::optional<v2i> ChunkRegion::to_local_chunk_pos_2d(v2i chunk_pos) const
+    std::optional<v2i> ChunkRegionOLD::to_local_chunk_pos_2d(v2i chunk_pos) const
     {
         if (!in_region_bounds(chunk_pos)) return std::nullopt;
         return chunk_pos - m_corner_pos;
     }
 
-    std::vector<i32> ChunkRegion::gen_new_to_old_indices(v2i new_corner_pos, u32 new_size) const
+    std::vector<i32> ChunkRegionOLD::gen_new_to_old_indices(v2i new_corner_pos, u32 new_size) const
     {
         const auto in_bounds = [](v2i pos, u32 size) -> bool
         {

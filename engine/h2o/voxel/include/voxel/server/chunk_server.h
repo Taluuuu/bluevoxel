@@ -1,10 +1,11 @@
 #pragma once
 
-#include "chunk_column.h"
 #include "chunk_manager.h"
+#include "core/data_structures/thread_safe_priority_queue.h"
 #include "core/types.h"
+#include "voxel/chunk_column.h"
 
-#include <glm/gtx/hash.hpp>
+#include "glm/gtx/hash.hpp"
 #include <mutex>
 #include <queue>
 #include <thread>
@@ -42,7 +43,7 @@ namespace h2o
         void register_client(ClientID client_id, const VoxelClientInput& client_input);
         void unregister_client(ClientID client_id);
 
-        [[nodiscard]] VoxelClientInput* client_input(ClientID client_id) ;
+        [[nodiscard]] VoxelClientInput* client_input(ClientID client_id);
         [[nodiscard]] VoxelClientOutput* client_outputs(ClientID client_id);
 
     protected:
@@ -55,9 +56,9 @@ namespace h2o
     private:
 
         // Networking
-        std::mutex m_client_inputs_mutex{};
+        mutable std::mutex m_client_inputs_mutex{};
         std::unordered_map<ClientID, VoxelClientInput> m_client_inputs{};
-        std::mutex m_client_outputs_mutex{};
+        mutable std::mutex m_client_outputs_mutex{};
         std::unordered_map<ClientID, VoxelClientOutput> m_client_outputs{};
 
         // Storage

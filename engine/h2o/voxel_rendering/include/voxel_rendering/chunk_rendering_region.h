@@ -12,7 +12,7 @@
 namespace h2o
 {
     class ChunkRenderingRegion
-        : public ChunkRegion
+        : public ChunkRegionOLD
         , public Tickable
     {
     public:

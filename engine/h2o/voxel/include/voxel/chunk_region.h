@@ -17,12 +17,12 @@ namespace h2o
     struct Block;
     struct ChunkWeakHandle;
 
-    class ChunkRegion : public IBlockContainer
+    class ChunkRegionOLD : public IBlockContainer
     {
     public:
 
-        explicit ChunkRegion(ChunkSystem& chunk_system);
-        ~ChunkRegion() override = default;
+        explicit ChunkRegionOLD(ChunkSystem& chunk_system);
+        ~ChunkRegionOLD() override = default;
 
         // IBlockContainer interface
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const override;

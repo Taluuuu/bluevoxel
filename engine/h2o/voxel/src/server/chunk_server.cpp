@@ -1,4 +1,4 @@
-#include "voxel/chunk_server.h"
+#include "voxel/server/chunk_server.h"
 
 #include "core/log.h"
 
