@@ -1,7 +1,7 @@
 #pragma once
 
-#include <cassert>
 #include <mutex>
+#include <optional>
 #include <queue>
 
 namespace h2o
@@ -11,32 +11,43 @@ namespace h2o
     {
     public:
 
+        ThreadSafePriorityQueue() = default;
+//        ThreadSafePriorityQueue(const ThreadSafePriorityQueue& other) = delete;
+//        {
+//            std::lock_guard lock { other.m_mutex };
+//            m_queue = other.m_queue;
+//        }
+
+        ThreadSafePriorityQueue(ThreadSafePriorityQueue<PriorityType, ValueType>&& other)
+        {
+            std::lock_guard lock { other.m_mutex };
+            m_queue = std::move(other.m_queue);
+        }
+
+//        ThreadSafePriorityQueue& operator=(ThreadSafePriorityQueue other)
+//        {
+//            std::lock_guard lock { other.m_mutex };
+//            std::swap(m_queue, other.m_queue);
+//            return *this;
+//        }
+
         void push(const PriorityType& priority, const ValueType& value)
         {
             std::lock_guard lock { m_mutex };
             m_queue.emplace({ priority, value });
         }
 
-        ValueType pop()
+        std::optional<ValueType> pop()
         {
             std::lock_guard lock { m_mutex };
 
-            assert(!is_empty());
+            if (m_queue.empty())
+                return {};
+
+            ValueType val = m_queue.top();
             m_queue.pop();
-        }
 
-        const ValueType& top() const
-        {
-            std::lock_guard lock { m_mutex };
-
-            assert(!is_empty());
-            return m_queue.top();
-        }
-
-        [[nodiscard]] bool is_empty() const
-        {
-            std::lock_guard lock { m_mutex };
-            return m_queue.empty();
+            return val;
         }
 
     private:
@@ -50,7 +61,7 @@ namespace h2o
             { return priority < other.priority; }
         };
 
-        std::mutex m_mutex{};
+        mutable std::mutex m_mutex{};
         std::priority_queue<QueueElem> m_queue{};
 
     };

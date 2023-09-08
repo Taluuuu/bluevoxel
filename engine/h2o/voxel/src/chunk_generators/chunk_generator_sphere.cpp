@@ -42,4 +42,9 @@ namespace h2o
             chunk_col.finish_generation();
         }
     }
+
+    void ChunkGenerator_Sphere::run_generation_step(ChunkRegion& chunk_region) const
+    {
+
+    }
 }

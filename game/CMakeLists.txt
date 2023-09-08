@@ -23,6 +23,8 @@ target_link_libraries(game
         h2o_rendering
         h2o_game_framework
         h2o_voxel
+        h2o_voxel_client
+        h2o_voxel_server
         h2o_voxel_rendering
 
         imgui
@@ -38,6 +40,8 @@ target_include_directories(game
         h2o_rendering
         h2o_game_framework
         h2o_voxel
+        h2o_voxel_client
+        h2o_voxel_server
         h2o_voxel_rendering
 
         imgui

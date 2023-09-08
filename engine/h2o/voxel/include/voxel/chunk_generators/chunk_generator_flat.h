@@ -16,6 +16,7 @@ namespace h2o
 
         // ChunkGenerator_Base interface
         void run_generation_step(ChunkColumn& chunk_col, StaticChunkRegion& chunk_region) const override;
+        void run_generation_step(ChunkRegion& chunk_region) const override;
         [[nodiscard]] i32 max_generation_stage() const override { return 1; }
 
     public:

@@ -23,14 +23,16 @@ namespace h2o
         flat_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
         m_chunk_generator = std::move(flat_generator);
 
-//        m_chunk_gen_queues.resize(m_chunk_generator->max_generation_stage(), {});
-
         set_tick_phases(Update);
     }
 
     bool ChunkSystem::init()
     {
-//        m_chunk_mgr.start();
+        auto flat_generator = std::make_unique<ChunkGenerator_Flat>(*this);
+        flat_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
+        m_chunk_server.set_chunk_generator(std::move(flat_generator));
+
+        m_chunk_server.start();
 
         return true;
     }

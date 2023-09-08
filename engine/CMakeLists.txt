@@ -66,7 +66,9 @@ add_subdirectory(h2o/scene_rendering)
 add_subdirectory(h2o/game_framework)
 add_subdirectory(h2o/voxel)
 add_subdirectory(h2o/voxel_rendering)
-add_subdirectory(tests)
+add_subdirectory(h2o/voxel_client)
+add_subdirectory(h2o/voxel_server)
+#add_subdirectory(tests)
 
 # Add this resource path
 set(RESOURCE_PATHS ${RESOURCE_PATHS};${CMAKE_CURRENT_SOURCE_DIR}/res PARENT_SCOPE)

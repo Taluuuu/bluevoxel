@@ -84,7 +84,7 @@ namespace h2o
 
         const VoxelModule* const m_voxel_module { nullptr };
 
-        ChunkServer m_chunk_mgr{};
+        ChunkServer m_chunk_server{};
 
     };
 }

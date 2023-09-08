@@ -11,6 +11,8 @@
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_rendering/voxel_rendering_module.h"
+#include "voxel_client/voxel_client_module.h"
+#include "voxel_server/voxel_server_module.h"
 
 int main()
 {
@@ -33,6 +35,8 @@ int main()
         .add_module<h2o::GameFrameworkModule>()
         .add_module<h2o::SceneRenderingModule>()
         .add_module<h2o::VoxelModule>(voxel_pack)
+        .add_module<h2o::VoxelClientModule>()
+        .add_module<h2o::VoxelServerModule>()
         .add_module<h2o::VoxelRenderingModule>(voxel_pack)
         .add_module<game::GameModule>()
         .run();
