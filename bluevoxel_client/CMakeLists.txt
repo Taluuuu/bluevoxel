@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_executable(bluevoxel_client
-    src/client_module.cpp
+        src/bluevoxel_client_module.cpp
     src/main.cpp
 )
 

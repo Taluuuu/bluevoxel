@@ -4,7 +4,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_executable(bluevoxel_server
-    src/server_module.cpp
+        src/bluevoxel_server_module.cpp
     src/main.cpp
 )
 
@@ -16,13 +16,18 @@ set_target_properties(bluevoxel_server PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSI
 target_link_libraries(bluevoxel_server
     PRIVATE
         h2o_core
+        h2o_networking
         h2o_voxel
         h2o_voxel_server
 )
 
 target_include_directories(bluevoxel_server
+    PUBLIC
+        include/
+
     PRIVATE
         h2o_core
+        h2o_networking
         h2o_voxel
         h2o_voxel_server
 )

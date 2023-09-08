@@ -51,6 +51,12 @@ add_subdirectory(lib/stb)
 # yaml-cpp
 add_subdirectory(lib/yaml-cpp)
 
+# enet
+set(ENET_STATIC True)
+set(ENET_SHARED False)
+set(ENET_TEST False)
+add_subdirectory(lib/enet)
+
 # imgui
 set(IMGUI_USE_OPENGL ${H2O_USE_OPENGL})
 set(IMGUI_USE_GLFW ${H2O_USE_GLFW})
@@ -68,6 +74,7 @@ add_subdirectory(h2o/voxel)
 add_subdirectory(h2o/voxel_rendering)
 add_subdirectory(h2o/voxel_client)
 add_subdirectory(h2o/voxel_server)
+add_subdirectory(h2o/networking)
 #add_subdirectory(tests)
 
 # Add this resource path

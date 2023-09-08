@@ -1,7 +1,8 @@
-#include "client_module.h"
+#include "bluevoxel_client_module.h"
+
 #include "voxel_client/voxel_client_module.h"
 
-namespace client
+namespace bluevoxel
 {
     std::vector<std::type_index> ClientModule::dependencies() const
     {
