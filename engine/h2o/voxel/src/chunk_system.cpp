@@ -19,7 +19,7 @@ namespace h2o
         , m_voxel_module(&voxel_module)
     {
         // Setup flat world gen
-        auto flat_generator = std::make_unique<ChunkGenerator_Flat>(*this);
+        auto flat_generator = std::make_unique<ChunkGenerator_Flat>();
         flat_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
         m_chunk_generator = std::move(flat_generator);
 
@@ -28,12 +28,6 @@ namespace h2o
 
     bool ChunkSystem::init()
     {
-        auto flat_generator = std::make_unique<ChunkGenerator_Flat>(*this);
-        flat_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
-        m_chunk_server.set_chunk_generator(std::move(flat_generator));
-
-        m_chunk_server.start();
-
         return true;
     }
 

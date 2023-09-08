@@ -31,7 +31,7 @@ namespace game
         GameModule() = default;
         ~GameModule() override = default;
 
-        // h2o::Module interface
+        // h2o::IModule interface
         bool init(h2o::Engine& engine) override;
         [[nodiscard]] std::string_view module_name() const override { return "game"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;

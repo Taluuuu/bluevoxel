@@ -5,10 +5,6 @@
 
 namespace h2o
 {
-    ChunkGenerator_Sphere::ChunkGenerator_Sphere(const ChunkSystem& chunk_system)
-        : ChunkGenerator_Base(chunk_system)
-    {}
-
     void ChunkGenerator_Sphere::run_generation_step(ChunkColumn& chunk_col, StaticChunkRegion& chunk_region) const
     {
         if (chunk_col.generation_stage() == 0)

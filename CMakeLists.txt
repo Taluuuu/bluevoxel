@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 3.20)
 
 project(vulkan-test)
 
-set(GAME_NAME "Shhhh")
+set(GAME_NAME "BlueVoxel")
 
 file(REMOVE_RECURSE ${CMAKE_CURRENT_BINARY_DIR}/Resources)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/Resources)
 
 add_subdirectory(engine)
-add_subdirectory(game)
+add_subdirectory(bluevoxel_client)
+add_subdirectory(bluevoxel_server)
 
 foreach(RESOURCE_PATH ${RESOURCE_PATHS})
     # Find the name of the parent folder of each resource folder.

@@ -39,17 +39,13 @@ namespace h2o
         return m_window->delta_time();
     }
 
-    bool WindowingModule::should_close() const
-    {
-        assert(m_window != nullptr);
-        return m_window->should_close();
-    }
-
     void WindowingModule::poll_events() const
     {
         assert(m_window != nullptr);
         glfwPollEvents();
         m_window->poll_events();
+
+        g_engine->should_close = m_window->should_close();
     }
 
     void WindowingModule::swap_buffers(f64 max_fps) const

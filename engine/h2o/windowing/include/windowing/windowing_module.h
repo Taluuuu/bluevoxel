@@ -28,7 +28,6 @@ namespace h2o
 
         // IWindowModule interface
         [[nodiscard]] f64 delta_time() const override;
-        [[nodiscard]] bool should_close() const override;
         void poll_events() const override;
         void swap_buffers(f64 max_fps) const override;
 

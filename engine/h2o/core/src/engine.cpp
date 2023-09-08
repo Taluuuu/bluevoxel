@@ -38,7 +38,7 @@ namespace h2o
     {
         init_new_modules();
 
-        while (!m_window_module || !m_window_module->should_close())
+        while (!should_close)
             update();
     }
 

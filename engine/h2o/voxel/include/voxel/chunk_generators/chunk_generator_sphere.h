@@ -12,7 +12,7 @@ namespace h2o
     {
     public:
 
-        explicit ChunkGenerator_Sphere(const ChunkSystem& chunk_system);
+        ~ChunkGenerator_Sphere() override = default;
 
         // ChunkGenerator_Base interface
         void run_generation_step(ChunkColumn& chunk_col, StaticChunkRegion& chunk_region) const override;

@@ -56,6 +56,10 @@ namespace h2o
         void register_tickable(Tickable& tickable, TickPhase phases);
         void unregister_tickable(Tickable& tickable, TickPhase phases);
 
+    public:
+
+        bool should_close = false;
+
     private:
     
         void update() const;
@@ -92,8 +96,8 @@ namespace h2o
         std::type_index module_type(typeid(T));
 
         // Make sure the module hadn't already been added
-        assert(!m_initialized_modules.contains(module_type) &&
-               !m_modules_to_init.contains(module_type) );
+        assert(!m_initialized_modules.contains(module_type));
+        assert(!m_modules_to_init.contains(module_type));
 
         m_modules_to_init[module_type] = std::make_unique<T>(args...);
 

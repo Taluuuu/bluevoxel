@@ -18,13 +18,6 @@ namespace h2o
         [[nodiscard]] virtual f64 delta_time() const = 0;
 
         /**
-         * @brief Getter for if the window should close
-         * 
-         * @return true if the window should close
-         */
-        [[nodiscard]] virtual bool should_close() const = 0;
-
-        /**
          * @brief Poll the window for events
          * 
          */
