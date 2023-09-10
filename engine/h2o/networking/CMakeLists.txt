@@ -10,18 +10,19 @@ add_library(h2o_networking
 )
 
 target_link_libraries(h2o_networking
+    PUBLIC
+        enet
+
     PRIVATE
         h2o_core
-
-        enet_static
 )
 
 target_include_directories(h2o_networking
     PUBLIC
         include/
 
+        enet
+
     PRIVATE
         h2o_core
-
-        enet_static
 )

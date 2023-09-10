@@ -53,8 +53,6 @@ add_subdirectory(lib/yaml-cpp)
 
 # enet
 set(ENET_STATIC True)
-set(ENET_SHARED False)
-set(ENET_TEST False)
 add_subdirectory(lib/enet)
 
 # imgui

@@ -22,6 +22,3 @@
 [submodule "engine/lib/yaml-cpp"]
 	path = engine/lib/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
-[submodule "engine/lib/enet"]
-	path = engine/lib/enet
-	url = https://github.com/zpl-c/enet
