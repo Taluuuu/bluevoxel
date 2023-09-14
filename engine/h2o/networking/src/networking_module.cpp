@@ -4,6 +4,8 @@
 #include "networking/client.h"
 #include "networking/server.h"
 
+#include <steam/steamuniverse.h>
+
 namespace h2o
 {
     void NetworkingModule::register_server(Server& server)
@@ -26,13 +28,21 @@ namespace h2o
         m_connected_clients.erase(&client);
     }
 
+    static void debug_output(ESteamNetworkingSocketsDebugOutputType eType, const char *pszMsg)
+    {
+        log::info("GameNetworkingSockets Debug: {}", pszMsg);
+    }
+
     bool NetworkingModule::init(Engine& engine)
     {
-        if (enet_initialize() != 0)
+        SteamDatagramErrMsg err_msg;
+        if (!GameNetworkingSockets_Init(nullptr, err_msg))
         {
-            log::error("Failed to initialize ENet.");
+            log::error("Failed to init GameNetworkingSockets: '{}'", err_msg);
             return false;
         }
+
+        SteamNetworkingUtils()->SetDebugOutputFunction(k_ESteamNetworkingSocketsDebugOutputType_Msg, debug_output);
 
         return true;
     }
@@ -48,8 +58,6 @@ namespace h2o
             client->disconnect(false);
 
         m_connected_clients.clear();
-
-        enet_deinitialize();
     }
 
     std::vector<std::type_index> h2o::NetworkingModule::dependencies() const

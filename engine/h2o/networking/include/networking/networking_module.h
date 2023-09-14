@@ -21,6 +21,8 @@ namespace h2o
         void register_client(Client& client);
         void unregister_client(Client& client);
 
+//        void register_message_type();
+
         // IModule interface
         [[nodiscard]] bool init(Engine& engine) override;
         void cleanup() override;

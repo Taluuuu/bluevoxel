@@ -5,6 +5,8 @@
 
 namespace h2o
 {
+    Client* Client::s_callback_instance = nullptr;
+
     Client::~Client()
     {
         disconnect();
@@ -12,34 +14,29 @@ namespace h2o
 
     bool Client::connect(const std::string& hostname, u16 port)
     {
-        if (m_client)
-            return false;
+        if (m_connection_state != ConnectionState::Disconnected)
+            return true;
 
-        if (m_client = create_host(); !m_client)
-        {
-            log::error("Failed to create ENet client.");
-            return false;
-        }
+        m_interface = SteamNetworkingSockets();
 
-        if (m_peer = create_peer(hostname, port); !m_peer)
+        // TODO: Check if this is necessary
+        SteamNetworkingIPAddr address{}; address.Clear();
+        if (!address.ParseString(hostname.c_str()))
         {
-            log::error("Failed to create ENet peer.");
+            log::error("Invalid IP address: {}:{}", hostname, port);
             return false;
         }
+        address.m_port = port;
 
-        ENetEvent event;
-        if (enet_host_service(m_client, &event, 5000) > 0 &&
-            event.type == ENET_EVENT_TYPE_CONNECT)
+        m_connection_state = ConnectionState::Connecting;
+        log::info("Connecting to server at {}:{}", hostname, port);
+
+        SteamNetworkingConfigValue_t opt{};
+        opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)connection_status_changed_callback);
+        m_connection = m_interface->ConnectByIPAddress(address, 1, &opt);
+        if (m_connection == k_HSteamNetConnection_Invalid)
         {
-            log::info("Connected ENet client to {}:{}.", hostname, port);
-        }
-        else
-        {
-            enet_peer_reset(m_peer);
-            m_peer = nullptr;
-
-            log::error("Failed to connect ENet client to {}:{}.", hostname, port);
-
+            log::error("Failed to create connection.");
             return false;
         }
 
@@ -54,11 +51,14 @@ namespace h2o
 
     void Client::disconnect(bool unregister_from_module)
     {
-        if (!m_client)
+        if (m_connection_state == ConnectionState::Disconnected)
             return;
 
-        enet_host_destroy(m_client);
-        m_client = nullptr;
+        m_connection_state = ConnectionState::Disconnected;
+
+        m_interface->CloseConnection(m_connection, 0, nullptr, true);
+
+        set_tick_phases({});
 
         if (unregister_from_module)
         {
@@ -69,59 +69,98 @@ namespace h2o
         }
     }
 
+    void Client::send_message(const void* msg, size_t msg_len)
+    {
+        assert(m_connection_state == ConnectionState::Connected);
+        m_interface->SendMessageToConnection(m_connection, msg, msg_len, k_nSteamNetworkingSend_Reliable, nullptr);
+    }
+
     void Client::update(f32 delta_time)
     {
-        ENetEvent event;
-        while (enet_host_service(m_client, &event, 0) > 0)
+        if (m_connection_state != ConnectionState::Disconnected)
         {
-            switch (event.type)
-            {
-            case ENET_EVENT_TYPE_CONNECT:
-            {
-//                const auto& addr = event.peer->address.host.u;
-//                const std::string address_str = fmt::format(
-//                    "{:04x}:{:04x}:{:04x}:{:04x}:{:04x}:{:04x}:{:04x}:{:04x}",
-//                    addr.Word[0], addr.Word[1], addr.Word[2], addr.Word[3],
-//                    addr.Word[4], addr.Word[5], addr.Word[6], addr.Word[7]);
-//
-//                log::info("New client connected from {:x}:{}",
-//                    address_str, event.peer->address.port);
-
-                log::info("Connected to server !");
-
-                break;
-            }
-            case ENET_EVENT_TYPE_DISCONNECT:
-                log::info("Disconnected from server !");
-                break;
-            case ENET_EVENT_TYPE_RECEIVE:
-                enet_packet_destroy(event.packet);
-                break;
-            case ENET_EVENT_TYPE_NONE:
-                break;
-            }
+            poll_incoming_messages();
+            poll_connection_state_changes();
         }
     }
 
-    ENetHost* Client::create_host() const
+    void Client::poll_incoming_messages()
     {
-        if (auto host = enet_host_create(nullptr, 1, channel_count, 0, 0))
-            return host;
+        ISteamNetworkingMessage* incoming_messages { nullptr };
+        const i32 num_msgs = m_interface->ReceiveMessagesOnConnection(m_connection, &incoming_messages, INT_MAX);
 
-        return nullptr;
+        if (num_msgs < 0)
+        {
+            log::error("Error checking for messages.");
+            return;
+        }
+
+        for (i32 i = 0; i < num_msgs; i++)
+        {
+            ISteamNetworkingMessage* msg = incoming_messages + i;
+
+            // ...
+
+            msg->Release();
+        }
     }
 
-    ENetPeer* Client::create_peer(const std::string& hostname, u16 port) const
+    void Client::poll_connection_state_changes()
     {
-        assert(m_client);
+        s_callback_instance = this;
+        m_interface->RunCallbacks();
+    }
 
-        ENetAddress address;
-        enet_address_set_host(&address, hostname.c_str());
-        address.port = port;
+    void Client::connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info)
+    {
+        assert(s_callback_instance);
+        s_callback_instance->on_connection_status_changed(info);
+    }
 
-        if (auto peer = enet_host_connect(m_client, &address, channel_count, 0))
-            return peer;
+    void Client::on_connection_status_changed(SteamNetConnectionStatusChangedCallback_t* info)
+    {
+        assert(info->m_hConn == m_connection || m_connection == k_HSteamNetConnection_Invalid);
 
-        return nullptr;
+        switch (info->m_info.m_eState)
+        {
+        case k_ESteamNetworkingConnectionState_None:
+            // NOTE: We will get callbacks here when we destroy connections. You can ignore these.
+            break;
+
+        case k_ESteamNetworkingConnectionState_ClosedByPeer:
+        case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
+        {
+            m_connection_state = ConnectionState::Disconnected;
+
+            if (info->m_eOldState == k_ESteamNetworkingConnectionState_Connecting)
+            {
+                log::info("Could not connect to server: {}", info->m_info.m_szEndDebug);
+            }
+            else if (info->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
+            {
+                log::info("Lost contact with server: {}", info->m_info.m_szEndDebug);
+            }
+            else
+            {
+                log::info("Disconnected from server: {}", info->m_info.m_szEndDebug);
+            }
+
+            m_interface->CloseConnection(info->m_hConn, 0, nullptr, false);
+            m_connection = k_HSteamNetConnection_Invalid;
+            break;
+        }
+
+        case k_ESteamNetworkingConnectionState_Connecting:
+            m_connection_state = ConnectionState::Connecting;
+            break;
+
+        case k_ESteamNetworkingConnectionState_Connected:
+            m_connection_state = ConnectionState::Connected;
+            log::info("Connected to server.");
+            break;
+
+        default:
+            break;
+        }
     }
 }

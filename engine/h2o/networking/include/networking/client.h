@@ -2,10 +2,18 @@
 
 #include "core/tickable.h"
 
-#include <enet/enet.h>
+#include <steam/steamnetworkingsockets.h>
+#include <steam/isteamnetworkingutils.h>
 
 namespace h2o
 {
+    enum class ConnectionState
+    {
+        Disconnected,
+        Connecting,
+        Connected
+    };
+
     class Client : public Tickable
     {
     public:
@@ -16,20 +24,29 @@ namespace h2o
         bool connect(const std::string& hostname, u16 port);
         void disconnect(bool unregister_from_module = true);
 
+        void send_message(const void* msg, size_t msg_len);
+
+        [[nodiscard]] ConnectionState connection_state() const { return m_connection_state; }
+
         // Tickable interface
         void update(f32 delta_time) override;
 
     private:
 
-        [[nodiscard]] ENetHost* create_host() const;
-        [[nodiscard]] ENetPeer* create_peer(const std::string& hostname, u16 port) const;
+        void poll_incoming_messages();
+        void poll_connection_state_changes();
+
+        static void connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info);
+        void on_connection_status_changed(SteamNetConnectionStatusChangedCallback_t* info);
 
     private:
 
-        static constexpr size_t channel_count = 2;
+        ConnectionState m_connection_state = ConnectionState::Disconnected;
 
-        ENetHost* m_client { nullptr };
-        ENetPeer* m_peer { nullptr };
+        ISteamNetworkingSockets* m_interface { nullptr };
+        HSteamNetConnection m_connection{};
+
+        static Client* s_callback_instance;
 
     };
 }

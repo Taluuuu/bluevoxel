@@ -10,6 +10,7 @@ add_library(h2o_voxel_client
 target_link_libraries(h2o_voxel_client
     PRIVATE
         h2o_core
+        h2o_networking
         h2o_voxel
 )
 
@@ -19,5 +20,6 @@ target_include_directories(h2o_voxel_client
 
     PRIVATE
         h2o_core
+        h2o_networking
         h2o_voxel
 )

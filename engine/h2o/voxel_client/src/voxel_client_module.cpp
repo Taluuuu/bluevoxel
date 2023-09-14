@@ -1,5 +1,6 @@
 #include "voxel_client/voxel_client_module.h"
 
+#include "networking/networking_module.h"
 #include "voxel/voxel_module.h"
 
 namespace h2o
@@ -11,6 +12,9 @@ namespace h2o
 
     std::vector<std::type_index> VoxelClientModule::dependencies() const
     {
-        return { typeid(VoxelModule) };
+        return {
+            typeid(VoxelModule),
+            typeid(NetworkingModule)
+        };
     }
 }

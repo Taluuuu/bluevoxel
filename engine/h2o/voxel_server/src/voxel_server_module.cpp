@@ -30,6 +30,9 @@ namespace h2o
 
     std::vector<std::type_index> VoxelServerModule::dependencies() const
     {
-        return { typeid(NetworkingModule), typeid(VoxelModule) };
+        return {
+            typeid(VoxelModule),
+            typeid(NetworkingModule)
+        };
     }
 }

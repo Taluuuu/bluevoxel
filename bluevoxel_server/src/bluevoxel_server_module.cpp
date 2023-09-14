@@ -1,6 +1,5 @@
 #include "bluevoxel_server_module.h"
 
-#include "core/log.h"
 #include "networking/networking_module.h"
 #include "voxel_server/voxel_server_module.h"
 

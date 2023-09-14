@@ -51,9 +51,8 @@ add_subdirectory(lib/stb)
 # yaml-cpp
 add_subdirectory(lib/yaml-cpp)
 
-# enet
-set(ENET_STATIC True)
-add_subdirectory(lib/enet)
+# GameNetworkingSockets
+add_subdirectory(lib/GameNetworkingSockets)
 
 # imgui
 set(IMGUI_USE_OPENGL ${H2O_USE_OPENGL})

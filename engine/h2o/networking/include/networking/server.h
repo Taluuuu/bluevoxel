@@ -2,7 +2,9 @@
 
 #include "core/tickable.h"
 
-#include <enet/enet.h>
+#include <map>
+#include <steam/steamnetworkingsockets.h>
+#include <steam/isteamnetworkingutils.h>
 
 namespace h2o
 {
@@ -21,7 +23,24 @@ namespace h2o
 
     private:
 
-        ENetHost* m_server { nullptr };
+        void poll_incoming_messages();
+        void poll_connection_state_changes();
+
+        static void connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info);
+        void on_connection_status_changed(SteamNetConnectionStatusChangedCallback_t* info);
+
+    private:
+
+        ISteamNetworkingSockets* m_interface { nullptr };
+        HSteamListenSocket m_listen_socket{};
+        HSteamNetPollGroup m_poll_group{};
+
+        struct Client { i32 id{}; };
+        std::map<HSteamNetConnection, Client> m_client_map{};
+
+        bool m_is_active = false;
+
+        static Server* s_callback_instance;
 
     };
 }
