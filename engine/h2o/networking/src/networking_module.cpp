@@ -58,6 +58,8 @@ namespace h2o
             client->disconnect(false);
 
         m_connected_clients.clear();
+
+        GameNetworkingSockets_Kill();
     }
 
     std::vector<std::type_index> h2o::NetworkingModule::dependencies() const

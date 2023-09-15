@@ -56,7 +56,8 @@ namespace h2o
 
         m_connection_state = ConnectionState::Disconnected;
 
-        m_interface->CloseConnection(m_connection, 0, nullptr, true);
+        m_interface->CloseConnection(m_connection, 0, nullptr, false);
+        m_connection = k_HSteamNetConnection_Invalid;
 
         set_tick_phases({});
 
@@ -119,7 +120,8 @@ namespace h2o
 
     void Client::on_connection_status_changed(SteamNetConnectionStatusChangedCallback_t* info)
     {
-        assert(info->m_hConn == m_connection || m_connection == k_HSteamNetConnection_Invalid);
+        if (info->m_hConn != m_connection && m_connection == k_HSteamNetConnection_Invalid)
+            return;
 
         switch (info->m_info.m_eState)
         {
