@@ -1,10 +1,13 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/tickable.h"
+#include "networking_types.h"
 
 #include <map>
 #include <steam/steamnetworkingsockets.h>
 #include <steam/isteamnetworkingutils.h>
+#include <unordered_map>
 
 namespace h2o
 {
@@ -17,6 +20,9 @@ namespace h2o
 
         bool start(u16 port);
         void stop(bool unregister_from_module = false);
+
+        [[nodiscard]] Event<ReceivedMessageEvent>& handle_msg(MsgID id);
+        [[nodiscard]] Event<ReceivedMessageEvent>* get_msg_event(MsgID id);
 
         // Tickable interface
         void update(f32 delta_time) override;
@@ -37,6 +43,8 @@ namespace h2o
 
         struct Client { i32 id{}; };
         std::map<HSteamNetConnection, Client> m_client_map{};
+
+        std::unordered_map<MsgID, Event<ReceivedMessageEvent>> m_message_received_events{};
 
         bool m_is_active = false;
 

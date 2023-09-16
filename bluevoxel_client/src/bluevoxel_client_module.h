@@ -1,7 +1,10 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/module.h"
 #include "networking/client.h"
+
+#include <optional>
 
 namespace bluevoxel
 {
@@ -27,7 +30,9 @@ namespace bluevoxel
         std::string m_server_ip { "127.0.0.1" };
         i32 m_server_port { 1338 };
 
-        h2o::Client m_client{};
+        std::optional<h2o::Client> m_client{};
+
+        h2o::EventHandle m_on_client_created{};
 
     };
 }

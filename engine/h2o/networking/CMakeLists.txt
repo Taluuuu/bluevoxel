@@ -11,6 +11,7 @@ add_library(h2o_networking
 
 target_link_libraries(h2o_networking
     PUBLIC
+        bitsery
         GameNetworkingSockets::shared
 
     PRIVATE
@@ -21,6 +22,7 @@ target_include_directories(h2o_networking
     PUBLIC
         include/
 
+        bitsery
         GameNetworkingSockets::shared
 
     PRIVATE

@@ -25,3 +25,6 @@
 [submodule "engine/lib/GameNetworkingSockets"]
 	path = engine/lib/GameNetworkingSockets
 	url = https://github.com/ValveSoftware/GameNetworkingSockets
+[submodule "engine/lib/bitsery"]
+	path = engine/lib/bitsery
+	url = https://github.com/fraillt/bitsery

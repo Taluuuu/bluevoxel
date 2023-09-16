@@ -77,6 +77,20 @@ namespace h2o
         set_tick_phases({});
     }
 
+    Event<ReceivedMessageEvent>& Server::handle_msg(MsgID id)
+    {
+        const auto it = m_message_received_events.find(id);
+        assert(it == m_message_received_events.end());
+
+        return m_message_received_events[id];
+    }
+
+    Event<ReceivedMessageEvent>* Server::get_msg_event(MsgID id)
+    {
+        const auto it = m_message_received_events.find(id);
+        return it == m_message_received_events.end() ? nullptr : &it->second;
+    }
+
     void Server::update(f32 delta_time)
     {
         if (m_is_active)
@@ -103,7 +117,31 @@ namespace h2o
 
             auto it_client = m_client_map.find(incoming_messages->GetConnection());
 
-//            msg->GetData()
+            const void* msg_data = msg->GetData();
+            const u32   msg_size = msg->GetSize();
+            if (msg_size < sizeof(MsgID))
+            {
+                log::warn("Received invalid package.");
+                msg->Release();
+                continue;
+            }
+
+            const MsgID msg_id  = *static_cast<const MsgID*>(msg_data);
+
+            const auto event = get_msg_event(msg_id);
+            if (!event)
+            {
+                log::warn("Received message with id '{}' not being listened for.", msg_id);
+                msg->Release();
+                continue;
+            }
+
+            const u8* msg_start = static_cast<const u8*>(msg_data) + sizeof(MsgID);
+            const u8* msg_end   = msg_start + msg_size - sizeof(MsgID);
+            const std::vector<u8> buffer { msg_start, msg_end };
+
+            const ReceivedMessageEvent event_data { .msg { buffer } };
+            event->broadcast(event_data);
 
             msg->Release();
         }
@@ -143,8 +181,7 @@ namespace h2o
                 log::info("Client disconnected.");
 
                 m_client_map.erase(it_client);
-            }
-            else
+            } else
             {
                 assert(info->m_eOldState == k_ESteamNetworkingConnectionState_Connecting);
             }
@@ -161,7 +198,7 @@ namespace h2o
 
             if (m_interface->AcceptConnection(info->m_hConn) != k_EResultOK)
             {
-                m_interface->CloseConnection(info->m_hConn, 0, nullptr,  false);
+                m_interface->CloseConnection(info->m_hConn, 0, nullptr, false);
                 log::info("Can't accept connection. (It was already closed?)");
                 break;
             }

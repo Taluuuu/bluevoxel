@@ -28,9 +28,22 @@ namespace h2o
         m_connected_clients.erase(&client);
     }
 
-    static void debug_output(ESteamNetworkingSocketsDebugOutputType eType, const char *pszMsg)
+    static void debug_output(ESteamNetworkingSocketsDebugOutputType type, const char* msg)
     {
-        log::info("GameNetworkingSockets Debug: {}", pszMsg);
+        switch (type)
+        {
+        case k_ESteamNetworkingSocketsDebugOutputType_None:
+        case k_ESteamNetworkingSocketsDebugOutputType_Bug:
+        case k_ESteamNetworkingSocketsDebugOutputType_Error:
+        case k_ESteamNetworkingSocketsDebugOutputType_Important:
+        case k_ESteamNetworkingSocketsDebugOutputType_Warning:
+        case k_ESteamNetworkingSocketsDebugOutputType_Msg:
+            log::info("GameNetworkingSockets Debug: {}", msg);
+            break;
+
+        default:
+            break;
+        }
     }
 
     bool NetworkingModule::init(Engine& engine)

@@ -1,30 +1,35 @@
 #pragma once
 
 #include "core/tickable.h"
+#include "networking_types.h"
 
-#include <steam/steamnetworkingsockets.h>
+#include <bitsery/adapter/buffer.h>
+#include <bitsery/bitsery.h>
+#include <bitsery/brief_syntax.h>
+#include <bitsery/traits/vector.h>
 #include <steam/isteamnetworkingutils.h>
+#include <steam/steamnetworkingsockets.h>
+#include <vector>
 
 namespace h2o
 {
-    enum class ConnectionState
-    {
-        Disconnected,
-        Connecting,
-        Connected
-    };
+    class NetworkingModule;
 
     class Client : public Tickable
     {
     public:
 
-        Client() = default;
+        Client();
         ~Client() override;
 
         bool connect(const std::string& hostname, u16 port);
         void disconnect(bool unregister_from_module = true);
 
-        void send_message(const void* msg, size_t msg_len);
+        template<class MsgType>
+        void send_message(const MsgType& msg);
+
+//        template<class MsgType>
+//        Event<> fetch_on_message_received_event();
 
         [[nodiscard]] ConnectionState connection_state() const { return m_connection_state; }
 
@@ -46,7 +51,35 @@ namespace h2o
         ISteamNetworkingSockets* m_interface { nullptr };
         HSteamNetConnection m_connection{};
 
+        NetworkingModule* m_networking_module { nullptr };
+
         static Client* s_callback_instance;
 
     };
+
+    template<class MsgType>
+    void Client::send_message(const MsgType& msg)
+    {
+        assert(m_connection_state == ConnectionState::Connected);
+
+        using Buffer = std::vector<u8>;
+        using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
+
+        // Prefix the message
+        std::vector<u8> buffer{};
+        bitsery::quickSerialization<OutputAdapter>(buffer, msg);
+
+        // Slow and ugly, potentially not portable
+        // Will work for now :)
+        const MsgID id = MsgType::message_id;
+        buffer.insert(buffer.cbegin(), sizeof(id), 0);
+        memcpy(buffer.data(), &id, sizeof(id));
+
+        m_interface->SendMessageToConnection(
+            m_connection,
+            buffer.data(),
+            buffer.size(),
+            k_nSteamNetworkingSend_Reliable,
+            nullptr);
+    }
 }

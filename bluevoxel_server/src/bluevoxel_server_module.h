@@ -1,7 +1,10 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/module.h"
 #include "networking/server.h"
+
+#include <optional>
 
 namespace bluevoxel
 {
@@ -20,6 +23,8 @@ namespace bluevoxel
     private:
 
         h2o::Server m_server{};
+
+        h2o::EventHandle m_received_msg_handle{};
 
     };
 }
