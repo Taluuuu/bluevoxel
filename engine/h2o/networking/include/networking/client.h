@@ -2,6 +2,7 @@
 
 #include "core/tickable.h"
 #include "networking_types.h"
+#include "networking_utils.h"
 
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/bitsery.h>
@@ -27,9 +28,6 @@ namespace h2o
 
         template<class MsgType>
         void send_message(const MsgType& msg);
-
-//        template<class MsgType>
-//        Event<> fetch_on_message_received_event();
 
         [[nodiscard]] ConnectionState connection_state() const { return m_connection_state; }
 
@@ -62,12 +60,9 @@ namespace h2o
     {
         assert(m_connection_state == ConnectionState::Connected);
 
-        using Buffer = std::vector<u8>;
-        using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
-
         // Prefix the message
         std::vector<u8> buffer{};
-        bitsery::quickSerialization<OutputAdapter>(buffer, msg);
+        net_utils::serialize(msg, buffer);
 
         // Slow and ugly, potentially not portable
         // Will work for now :)

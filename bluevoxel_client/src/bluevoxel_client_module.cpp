@@ -2,6 +2,7 @@
 
 #include "core/engine.h"
 #include "networking/networking_module.h"
+#include "networking/test_message.h"
 #include "rendering/rendering_module.h"
 #include "voxel_client/voxel_client_module.h"
 

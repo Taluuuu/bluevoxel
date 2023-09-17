@@ -1,8 +1,10 @@
 #include "bluevoxel_server_module.h"
 
 #include "core/engine.h"
+#include "networking/message_ids.h"
 #include "networking/networking_module.h"
 #include "networking/networking_utils.h"
+#include "networking/test_message.h"
 #include "voxel_server/voxel_server_module.h"
 
 #include <vector>
@@ -14,7 +16,7 @@ namespace bluevoxel
         if (!m_server.start(1338))
             return false;
 
-        m_server.handle_msg(312).add_listener(m_received_msg_handle,
+        m_server.handle_msg(h2o::msg_ids::test).add_listener(m_received_msg_handle,
             [](const h2o::ReceivedMessageEvent& event)
             {
                 h2o::TestMessage test_msg;
