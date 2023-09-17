@@ -8,11 +8,6 @@ add_executable(bluevoxel_client
     src/main.cpp
 )
 
-set_target_properties(bluevoxel_client PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR}/..)
-set_target_properties(bluevoxel_client PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_CURRENT_BINARY_DIR}/..)
-set_target_properties(bluevoxel_client PROPERTIES RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${CMAKE_CURRENT_BINARY_DIR}/..)
-set_target_properties(bluevoxel_client PROPERTIES RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_CURRENT_BINARY_DIR}/..)
-
 target_link_libraries(bluevoxel_client
     PRIVATE
         h2o_core

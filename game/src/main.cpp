@@ -25,7 +25,7 @@ int main()
 
     const auto voxel_pack = engine
         .resource_mgr()
-        .fetch<h2o::VoxelPack>("Resources/game/voxel/pack.yml");
+        .fetch<h2o::VoxelPack>("../Resources/game/voxel/pack.yml");
 
     engine
         .add_module<h2o::WindowingModule>()
