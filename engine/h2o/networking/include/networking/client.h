@@ -29,6 +29,9 @@ namespace h2o
         template<class MsgType>
         void send_message(const MsgType& msg);
 
+        [[nodiscard]] Event<ReceivedMessageEvent>& handle_msg(MsgID id);
+        [[nodiscard]] Event<ReceivedMessageEvent>* get_msg_event(MsgID id);
+
         [[nodiscard]] ConnectionState connection_state() const { return m_connection_state; }
 
         // Tickable interface
@@ -48,6 +51,8 @@ namespace h2o
 
         ISteamNetworkingSockets* m_interface { nullptr };
         HSteamNetConnection m_connection{};
+
+        std::unordered_map<MsgID, Event<ReceivedMessageEvent>> m_message_received_events{};
 
         NetworkingModule* m_networking_module { nullptr };
 

@@ -53,10 +53,10 @@ namespace h2o
 
     void Server::stop(bool unregister_from_module)
     {
-        for (const auto& [connection, client] : m_client_map)
-            m_interface->CloseConnection(connection, 0, "Server is shutting down.", true);
+        for (const u32 client_id : m_client_ids)
+            m_interface->CloseConnection(client_id, 0, "Server is shutting down.", true);
 
-        m_client_map.clear();
+        m_client_ids.clear();
 
         m_interface->CloseListenSocket(m_listen_socket);
         m_listen_socket = k_HSteamListenSocket_Invalid;
@@ -115,10 +115,8 @@ namespace h2o
         {
             ISteamNetworkingMessage* msg = incoming_messages + i;
 
-            auto it_client = m_client_map.find(incoming_messages->GetConnection());
-
-            const void* msg_data = msg->GetData();
-            const u32   msg_size = msg->GetSize();
+            const u32   msg_size  = msg->GetSize();
+            const void* msg_data  = msg->GetData();
             if (msg_size < sizeof(MsgID))
             {
                 log::warn("Received invalid package.");
@@ -174,14 +172,12 @@ namespace h2o
             // before we accepted the connection.)
             if (info->m_eOldState == k_ESteamNetworkingConnectionState_Connected)
             {
-                auto it_client = m_client_map.find(info->m_hConn);
-                assert(it_client != m_client_map.end());
+                m_client_ids.erase(info->m_hConn);
 
                 // Handle disconnect...
                 log::info("Client disconnected.");
-
-                m_client_map.erase(it_client);
-            } else
+            }
+            else
             {
                 assert(info->m_eOldState == k_ESteamNetworkingConnectionState_Connecting);
             }
@@ -192,8 +188,6 @@ namespace h2o
 
         case k_ESteamNetworkingConnectionState_Connecting:
         {
-            assert(m_client_map.find(info->m_hConn) == m_client_map.end());
-
             log::info("Connection request from {}.", info->m_info.m_szConnectionDescription);
 
             if (m_interface->AcceptConnection(info->m_hConn) != k_EResultOK)
@@ -210,7 +204,7 @@ namespace h2o
                 break;
             }
 
-            m_client_map.emplace(info->m_hConn, 0);
+            m_client_ids.insert(info->m_hConn);
         }
 
         case k_ESteamNetworkingConnectionState_Connected:

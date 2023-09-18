@@ -69,6 +69,17 @@ namespace h2o
             m_networking_module->unregister_client(*this);
     }
 
+    Event<ReceivedMessageEvent>& Client::handle_msg(MsgID id)
+    {
+        return <#initializer#>;
+    }
+
+    Event<ReceivedMessageEvent>* Client::get_msg_event(MsgID id)
+    {
+        const auto it = m_message_received_events.find(id);
+        return it == m_message_received_events.end() ? nullptr : &it->second;
+    }
+
     void Client::update(f32 delta_time)
     {
         if (m_connection_state != ConnectionState::Disconnected)
@@ -93,7 +104,31 @@ namespace h2o
         {
             ISteamNetworkingMessage* msg = incoming_messages + i;
 
-            // ...
+            const u32   msg_size  = msg->GetSize();
+            const void* msg_data  = msg->GetData();
+            if (msg_size < sizeof(MsgID))
+            {
+                log::warn("Received invalid package.");
+                msg->Release();
+                continue;
+            }
+
+            const MsgID msg_id  = *static_cast<const MsgID*>(msg_data);
+
+            const auto event = get_msg_event(msg_id);
+            if (!event)
+            {
+                log::warn("Received message with id '{}' not being listened for.", msg_id);
+                msg->Release();
+                continue;
+            }
+
+            const u8* msg_start = static_cast<const u8*>(msg_data) + sizeof(MsgID);
+            const u8* msg_end   = msg_start + msg_size - sizeof(MsgID);
+            const std::vector<u8> buffer { msg_start, msg_end };
+
+            const ReceivedMessageEvent event_data { .msg { buffer } };
+            event->broadcast(event_data);
 
             msg->Release();
         }

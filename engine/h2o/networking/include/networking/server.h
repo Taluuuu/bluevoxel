@@ -9,6 +9,7 @@
 #include <steam/steamnetworkingsockets.h>
 #include <steam/isteamnetworkingutils.h>
 #include <unordered_map>
+#include <set>
 
 namespace h2o
 {
@@ -45,9 +46,7 @@ namespace h2o
         HSteamListenSocket m_listen_socket{};
         HSteamNetPollGroup m_poll_group{};
 
-        struct Client { i32 id{}; };
-        std::unordered_map<HSteamNetConnection, Client> m_steam_net_connection_to_client{};
-        std::unordered_map<Client, HSteamNetConnection> m_client_to_steam_net_connection{};
+        std::set<ClientID> m_client_ids{};
 
         std::unordered_map<MsgID, Event<ReceivedMessageEvent>> m_message_received_events{};
 
@@ -61,6 +60,7 @@ namespace h2o
     void Server::send_message(ClientID client_id, const MsgType& msg)
     {
         assert(m_is_active);
+        assert(m_client_ids.contains(client_id));
 
         // Prefix the message
         std::vector<u8> buffer{};
@@ -72,11 +72,11 @@ namespace h2o
         buffer.insert(buffer.cbegin(), sizeof(id), 0);
         memcpy(buffer.data(), &id, sizeof(id));
 
-//        m_interface->SendMessageToConnection(
-//            m_connection,
-//            buffer.data(),
-//            buffer.size(),
-//            k_nSteamNetworkingSend_Reliable,
-//            nullptr);
+        m_interface->SendMessageToConnection(
+            client_id,
+            buffer.data(),
+            buffer.size(),
+            k_nSteamNetworkingSend_Reliable,
+            nullptr);
     }
 }
