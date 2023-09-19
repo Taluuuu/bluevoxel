@@ -77,14 +77,6 @@ namespace h2o
         set_tick_phases({});
     }
 
-    Event<ReceivedMessageEvent>& Server::handle_msg(MsgID id)
-    {
-        const auto it = m_message_received_events.find(id);
-        assert(it == m_message_received_events.end());
-
-        return m_message_received_events[id];
-    }
-
     Event<ReceivedMessageEvent>* Server::get_msg_event(MsgID id)
     {
         const auto it = m_message_received_events.find(id);

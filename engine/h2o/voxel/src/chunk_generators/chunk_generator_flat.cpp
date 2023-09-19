@@ -1,8 +1,8 @@
 #include "voxel/chunk_generators/chunk_generator_flat.h"
 
 #include "voxel/chunk_column.h"
+#include "voxel/chunk_manager.h"
 #include "voxel/chunk_region.h"
-#include "voxel/server/chunk_manager.h"
 #include "voxel/voxel_constants.h"
 
 namespace h2o

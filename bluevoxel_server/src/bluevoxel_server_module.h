@@ -4,7 +4,9 @@
 #include "core/module.h"
 #include "networking/server.h"
 
-#include <optional>
+#include <memory>
+
+namespace h2o { class ChunkServer; }
 
 namespace bluevoxel
 {
@@ -23,6 +25,7 @@ namespace bluevoxel
     private:
 
         h2o::Server m_server{};
+        std::unique_ptr<h2o::ChunkServer> m_chunk_server { nullptr };
 
         h2o::EventHandle m_received_msg_handle{};
 

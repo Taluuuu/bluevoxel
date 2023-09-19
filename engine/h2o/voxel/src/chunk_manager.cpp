@@ -1,4 +1,4 @@
-#include "voxel_server/chunk_manager.h"
+#include "voxel/chunk_manager.h"
 
 #include "voxel/chunk_column.h"
 

@@ -17,9 +17,9 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override;
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
-    private:
-
-        ChunkServer m_chunk_server{};
+//    private:
+//
+//        ChunkServer m_chunk_server{};
 
     };
 }

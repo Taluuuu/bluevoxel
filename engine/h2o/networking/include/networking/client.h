@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/tickable.h"
 #include "networking_types.h"
 #include "networking_utils.h"

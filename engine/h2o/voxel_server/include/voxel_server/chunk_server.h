@@ -1,10 +1,11 @@
 #pragma once
 
-#include "chunk_manager.h"
 #include "core/data_structures/thread_safe_priority_queue.h"
+#include "core/events.h"
 #include "core/types.h"
 #include "voxel/chunk_column.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
+#include "voxel/chunk_manager.h"
 
 #include "glm/gtx/hash.hpp"
 #include <memory>
@@ -16,6 +17,7 @@
 namespace h2o
 {
     class ChunkGenerator_Base;
+    class Server;
 
     using ClientID = u32;
 
@@ -61,11 +63,13 @@ namespace h2o
     {
     public:
 
-        ChunkServer() = default;
+        explicit ChunkServer(Server& server);
         ~ChunkServer();
 
         void start();
         void stop();
+
+        [[nodiscard]] bool is_running() const;
 
         void register_client(ClientID client_id);
         void unregister_client(ClientID client_id);
@@ -82,8 +86,10 @@ namespace h2o
     private:
 
         // Networking
-        mutable std::mutex m_clients_mutex{};
-        std::unordered_map< ClientID, std::unique_ptr<VoxelClient> > m_clients{};
+//        mutable std::mutex m_clients_mutex{};
+//        std::unordered_map< ClientID, std::unique_ptr<VoxelClient> > m_clients{};
+        Server* const m_server { nullptr };
+        EventHandle m_received_chunk_request_handle{};
 
         // Storage
         ChunkManager m_chunk_mgr{};

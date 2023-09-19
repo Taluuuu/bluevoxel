@@ -5,6 +5,7 @@
 #include "networking/networking_module.h"
 #include "networking/networking_utils.h"
 #include "networking/test_message.h"
+#include "voxel_server/chunk_server.h"
 #include "voxel_server/voxel_server_module.h"
 
 #include <vector>
@@ -16,19 +17,25 @@ namespace bluevoxel
         if (!m_server.start(1338))
             return false;
 
-        m_server.handle_msg(h2o::msg_ids::test).add_listener(m_received_msg_handle,
-            [](const h2o::ReceivedMessageEvent& event)
+        m_chunk_server = std::make_unique<h2o::ChunkServer>(m_server);
+//        m_chunk_server->start();
+
+        m_server.handle_msg<h2o::TestMessage>(m_received_msg_handle,
+            [](const auto& test_msg)
             {
-                h2o::TestMessage test_msg;
-                if (h2o::net_utils::deserialize(event.msg, test_msg))
-                    h2o::log::info("Received data: {} - {}", test_msg.num, test_msg.text);
-            });
+                h2o::log::info("Received data: {} - {}", test_msg.num, test_msg.text);
+            }
+        );
 
         return true;
     }
 
     void BlueVoxelServerModule::cleanup()
     {
+//        assert(m_chunk_server->is_running());
+//        m_chunk_server->stop();
+//        m_chunk_server.reset();
+
         m_server.stop();
     }
 

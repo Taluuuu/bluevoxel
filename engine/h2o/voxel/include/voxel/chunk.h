@@ -37,6 +37,12 @@ namespace h2o
                 local_pos.z >= 0 && local_pos.z < voxel_constants::chunk_size;
         }
 
+        template<typename S>
+        void serialize(S& s)
+        {
+            s(m_blocks, m_blocks_to_tick, m_chunk_pos, m_is_empty);
+        }
+
     private:
 
         [[nodiscard]] bool is_initialized() const { return !m_blocks.empty(); }

@@ -13,9 +13,8 @@ add_library(h2o_voxel
     src/chunk_generators/chunk_generator_base.cpp
     src/chunk_generators/chunk_generator_flat.cpp
     src/chunk_generators/chunk_generator_sphere.cpp
-    src/server/chunk_manager.cpp
+    src/chunk_manager.cpp
     src/chunk_region.cpp
-    src/server/chunk_server.cpp
     src/chunk_system.cpp
     src/chunk_weak_handle.cpp
     src/voxel_module.cpp
@@ -24,6 +23,9 @@ add_library(h2o_voxel
 )
 
 target_link_libraries(h2o_voxel
+    PUBLIC
+        bitsery
+
     PRIVATE
         h2o_core
         h2o_scene
@@ -35,6 +37,7 @@ target_link_libraries(h2o_voxel
 target_include_directories(h2o_voxel
     PUBLIC
         include/
+        bitsery
 
     PRIVATE
         h2o_core

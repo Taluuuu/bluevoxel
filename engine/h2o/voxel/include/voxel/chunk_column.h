@@ -105,15 +105,21 @@ namespace h2o
             return {*this, voxel_constants::vertical_chunk_count};
         }
 
+        template<typename S>
+        void serialize(S& s)
+        {
+            s(m_chunks, m_generation_stage, m_chunk_col_pos, m_is_initialized);
+        }
+
     private:
 
         std::array<Chunk, voxel_constants::vertical_chunk_count> m_chunks{};
 
-        i32 m_generation_stage{0};
+        i32 m_generation_stage { 0 };
 
-        v2i m_chunk_col_pos{0, 0};
+        v2i m_chunk_col_pos { 0, 0 };
 
-        bool m_is_initialized{false};
+        bool m_is_initialized { false };
 
     };
 }

@@ -71,7 +71,10 @@ namespace h2o
 
     Event<ReceivedMessageEvent>& Client::handle_msg(MsgID id)
     {
-        return <#initializer#>;
+        const auto it = m_message_received_events.find(id);
+        assert(it == m_message_received_events.end());
+
+        return m_message_received_events[id];
     }
 
     Event<ReceivedMessageEvent>* Client::get_msg_event(MsgID id)

@@ -2,11 +2,19 @@
 
 #include "core/engine.h"
 #include "core/log.h"
+#include "networking/message_ids.h"
+#include "networking/server.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/voxel_module.h"
+#include "voxel/voxel_net_messages.h"
+
+#include <bitsery/brief_syntax/vector.h>
 
 namespace h2o
 {
+    ChunkServer::ChunkServer(Server& server)
+        : m_server(&server) {}
+
     ChunkServer::~ChunkServer()
     {
         stop();
@@ -16,6 +24,15 @@ namespace h2o
     {
         if (!m_thread.joinable())
         {
+            assert(m_server);
+
+            m_server->handle_msg<voxel::net::ChunkFetchRequest>(m_received_chunk_request_handle,
+                [](const auto& chunk_fetch_request)
+                {
+
+                }
+            );
+
             m_should_stop = false;
             m_thread = std::thread(&ChunkServer::run, this);
         }
@@ -25,34 +42,41 @@ namespace h2o
     {
         if (m_thread.joinable())
         {
+            assert(m_server);
+
             m_should_stop = true;
             m_thread.join();
         }
     }
 
+    bool ChunkServer::is_running() const
+    {
+        return m_thread.joinable();
+    }
+
     void ChunkServer::register_client(ClientID client_id)
     {
-        std::lock_guard lock(m_clients_mutex);
-
-        const auto it = m_clients.find(client_id);
-        if (it == m_clients.end())
-        {
-            m_clients[client_id] = std::make_unique<VoxelClient>();
-        }
-        else
-        {
-            log::warn("Trying to register two chunk loaders with the same id: {}", client_id);
-        }
+//        std::lock_guard lock(m_clients_mutex);
+//
+//        const auto it = m_clients.find(client_id);
+//        if (it == m_clients.end())
+//        {
+//            m_clients[client_id] = std::make_unique<VoxelClient>();
+//        }
+//        else
+//        {
+//            log::warn("Trying to register two chunk loaders with the same id: {}", client_id);
+//        }
     }
 
     void ChunkServer::unregister_client(ClientID client_id)
     {
-        std::lock_guard lock(m_clients_mutex);
-
-        if (m_clients.erase(client_id) == 0)
-        {
-            log::warn("Trying to remove a chunk loader with id '{}' when none was found.", client_id);
-        }
+//        std::lock_guard lock(m_clients_mutex);
+//
+//        if (m_clients.erase(client_id) == 0)
+//        {
+//            log::warn("Trying to remove a chunk loader with id '{}' when none was found.", client_id);
+//        }
     }
 
     void ChunkServer::set_chunk_generator(std::unique_ptr<ChunkGenerator_Base>&& chunk_generator)
@@ -103,32 +127,32 @@ namespace h2o
         std::priority_queue<ChunkGenRequest> gen_request_queue{};
 
         {
-            std::lock_guard clients_lock { m_clients_mutex };
-
-            for (auto& [client_id, client]: m_clients)
-            {
-                assert(client);
-
-                std::lock_guard client_lock{client->mutex};
-
-                auto& input = client->input;
-                auto& output = client->output;
-                auto& load_requests = input.load_requests;
-
-                while (!load_requests.empty())
-                {
-                    process_load_request(
-                        client_id,
-                        load_requests.front(),
-                        input.position,
-                        gen_level,
-                        gen_request_queue,
-                        output.loaded_chunks,
-                        m_chunk_mgr);
-
-                    load_requests.pop();
-                }
-            }
+//            std::lock_guard clients_lock { m_clients_mutex };
+//
+//            for (auto& [client_id, client]: m_clients)
+//            {
+//                assert(client);
+//
+//                std::lock_guard client_lock{client->mutex};
+//
+//                auto& input = client->input;
+//                auto& output = client->output;
+//                auto& load_requests = input.load_requests;
+//
+//                while (!load_requests.empty())
+//                {
+//                    process_load_request(
+//                        client_id,
+//                        load_requests.front(),
+//                        input.position,
+//                        gen_level,
+//                        gen_request_queue,
+//                        output.loaded_chunks,
+//                        m_chunk_mgr);
+//
+//                    load_requests.pop();
+//                }
+//            }
         }
 
         while (!gen_request_queue.empty())
@@ -170,17 +194,17 @@ namespace h2o
 
                 if (chunk_col->is_generated())
                 {
-                    std::lock_guard clients_lock { m_clients_mutex };
-
-                    auto client_it = m_clients.find(gen_request.requester_id);
-                    if (client_it != m_clients.end())
-                    {
-                        auto& client = client_it->second;
-
-                        std::lock_guard client_lock { client->mutex };
-
-                        client->output.loaded_chunks.push(chunk_col);
-                    }
+//                    std::lock_guard clients_lock { m_clients_mutex };
+//
+//                    auto client_it = m_clients.find(gen_request.requester_id);
+//                    if (client_it != m_clients.end())
+//                    {
+//                        auto& client = client_it->second;
+//
+//                        std::lock_guard client_lock { client->mutex };
+//
+//                        client->output.loaded_chunks.push(chunk_col);
+//                    }
                 }
 
                 chunk_gen_deque.pop_front();

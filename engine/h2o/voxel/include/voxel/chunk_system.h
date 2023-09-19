@@ -4,7 +4,6 @@
 #include "core/events.h"
 #include "core/handle_types.h"
 #include "scene/scene_system.h"
-#include "voxel/server/chunk_server.h" // TEMP
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_constants.h"
 

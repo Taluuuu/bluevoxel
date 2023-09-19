@@ -26,7 +26,9 @@ namespace h2o
         template<class MsgType>
         void send_message(ClientID client_id, const MsgType& msg);
 
-        [[nodiscard]] Event<ReceivedMessageEvent>& handle_msg(MsgID id);
+        template<class MsgType>
+        void handle_msg(EventHandle& event_handle, const std::function<void(const MsgType&)>& callback);
+
         [[nodiscard]] Event<ReceivedMessageEvent>* get_msg_event(MsgID id);
 
         // Tickable interface
@@ -78,5 +80,26 @@ namespace h2o
             buffer.size(),
             k_nSteamNetworkingSend_Reliable,
             nullptr);
+    }
+
+    template<class MsgType>
+    void Server::handle_msg(EventHandle& event_handle, const std::function<void(const MsgType&)>& callback)
+    {
+        const MsgID id = MsgType::message_id;
+
+        const auto it = m_message_received_events.find(id);
+        assert(it == m_message_received_events.end()); // Is msg handled multiple times ?
+
+        const auto event_lambda =
+            [callback](const ReceivedMessageEvent& event)
+            {
+                MsgType deserialized_msg;
+                if (!net_utils::deserialize(event.msg, deserialized_msg))
+                    return;
+
+                callback(deserialized_msg);
+            };
+
+        m_message_received_events[id].add_listener(event_handle, event_lambda);
     }
 }
