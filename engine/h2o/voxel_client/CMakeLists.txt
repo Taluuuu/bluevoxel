@@ -5,12 +5,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_voxel_client
     src/voxel_client_module.cpp
+    src/chunk_client.cpp
 )
 
 target_link_libraries(h2o_voxel_client
     PRIVATE
         h2o_core
         h2o_networking
+        h2o_scene
         h2o_voxel
 )
 
@@ -21,5 +23,6 @@ target_include_directories(h2o_voxel_client
     PRIVATE
         h2o_core
         h2o_networking
+        h2o_scene
         h2o_voxel
 )

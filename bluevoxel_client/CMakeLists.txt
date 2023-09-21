@@ -11,10 +11,12 @@ add_executable(bluevoxel_client
 target_link_libraries(bluevoxel_client
     PRIVATE
         h2o_core
+        h2o_game_framework
         h2o_input
         h2o_networking
         h2o_rendering
         h2o_scene
+        h2o_scene_rendering
         h2o_voxel
         h2o_voxel_client
         h2o_windowing
@@ -25,10 +27,12 @@ target_link_libraries(bluevoxel_client
 target_include_directories(bluevoxel_client
     PRIVATE
         h2o_core
+        h2o_game_framework
         h2o_input
         h2o_networking
         h2o_rendering
         h2o_scene
+        h2o_scene_rendering
         h2o_voxel
         h2o_voxel_client
         h2o_windowing

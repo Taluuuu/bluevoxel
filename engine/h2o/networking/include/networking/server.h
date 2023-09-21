@@ -13,11 +13,15 @@
 
 namespace h2o
 {
+    template<class T>
+    using MsgReceivedEventCallback = std::function<void(ClientID, const T&)>;
+
     class Server : public Tickable
     {
     public:
 
         Server() = default;
+        Server(const Server&) = delete;
         ~Server() override;
 
         bool start(u16 port);
@@ -27,7 +31,9 @@ namespace h2o
         void send_message(ClientID client_id, const MsgType& msg);
 
         template<class MsgType>
-        void handle_msg(EventHandle& event_handle, const std::function<void(const MsgType&)>& callback);
+        void handle_msg(
+            EventHandle& event_handle,
+            const MsgReceivedEventCallback<MsgType>& callback);
 
         [[nodiscard]] Event<ReceivedMessageEvent>* get_msg_event(MsgID id);
 
@@ -83,7 +89,9 @@ namespace h2o
     }
 
     template<class MsgType>
-    void Server::handle_msg(EventHandle& event_handle, const std::function<void(const MsgType&)>& callback)
+    void Server::handle_msg(
+        EventHandle& event_handle,
+        const MsgReceivedEventCallback<MsgType>& callback)
     {
         const MsgID id = MsgType::message_id;
 
@@ -97,7 +105,7 @@ namespace h2o
                 if (!net_utils::deserialize(event.msg, deserialized_msg))
                     return;
 
-                callback(deserialized_msg);
+                callback(event.client_id, deserialized_msg);
             };
 
         m_message_received_events[id].add_listener(event_handle, event_lambda);

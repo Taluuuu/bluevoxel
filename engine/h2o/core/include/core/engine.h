@@ -82,7 +82,7 @@ namespace h2o
         class IInputModule*  m_input_module  = nullptr;
 
         using Tickables = std::vector<Tickable*>;
-        std::array<Tickables, tick_phase_count> m_tickables;
+        std::array<Tickables, tick_phase_count> m_tickables{};
 
         ResourceManager m_resource_mgr;
 

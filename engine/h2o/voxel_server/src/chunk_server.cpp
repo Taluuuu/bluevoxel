@@ -22,31 +22,35 @@ namespace h2o
 
     void ChunkServer::start()
     {
-        if (!m_thread.joinable())
-        {
-            assert(m_server);
+        if (is_running())
+            return;
 
-            m_server->handle_msg<voxel::net::ChunkFetchRequest>(m_received_chunk_request_handle,
-                [](const auto& chunk_fetch_request)
-                {
+        assert(m_server);
 
-                }
-            );
+        // Bind messages
+        m_server->handle_msg<NetMsg_ChunkFetchRequest>(m_received_chunk_request_handle,
+            [&](ClientID client_id, const auto& chunk_fetch_request)
+            {
+                on_received_chunk_fetch_requests(client_id, chunk_fetch_request);
+            }
+        );
 
-            m_should_stop = false;
-            m_thread = std::thread(&ChunkServer::run, this);
-        }
+        m_should_stop = false;
+        m_thread = std::thread(&ChunkServer::run, this);
     }
 
     void ChunkServer::stop()
     {
-        if (m_thread.joinable())
-        {
-            assert(m_server);
+        if (!is_running())
+            return;
 
-            m_should_stop = true;
-            m_thread.join();
-        }
+        assert(m_server);
+
+        // Unbind messages
+        m_received_chunk_request_handle.reset();
+
+        m_should_stop = true;
+        m_thread.join();
     }
 
     bool ChunkServer::is_running() const
@@ -90,8 +94,8 @@ namespace h2o
 
         while (!m_should_stop)
         {
-            request_chunk_loads(chunk_gen_deque);
-            load_requested_chunks(chunk_gen_deque);
+            request_chunk_loads();
+            load_requested_chunks();
         }
     }
 
@@ -104,124 +108,159 @@ namespace h2o
         std::queue< std::shared_ptr<ChunkColumn> >& loaded_chunks,
         ChunkManager& chunk_mgr)
     {
-        auto chunk_col = chunk_mgr.fetch_chunk_at(chunk_pos);
-        if (chunk_col && chunk_col->is_generated())
-        {
-            loaded_chunks.push(chunk_col);
-            return;
-        }
-
-        const f32 distance = glm::length(v2(chunk_pos - client_pos));
-        const ChunkRegion chunk_region { chunk_pos, chunk_mgr };
-
-        gen_request_queue.emplace(
-            chunk_region, target_generation_level, distance, client_id);
+//        auto chunk_col = chunk_mgr.fetch_chunk_at(chunk_pos);
+//        if (chunk_col && chunk_col->is_generated())
+//        {
+//            loaded_chunks.push(chunk_col);
+//            return;
+//        }
+//
+//        const f32 distance = glm::length(v2(chunk_pos - client_pos));
+//        const ChunkRegion chunk_region { chunk_pos, chunk_mgr };
+//
+//        gen_request_queue.emplace(
+//            chunk_region, target_generation_level, distance, client_id);
     }
 
-    void ChunkServer::request_chunk_loads(std::deque<ChunkGenRequest>& chunk_gen_deque)
+    void ChunkServer::request_chunk_loads()
     {
-        assert(m_chunk_generator);
+//        assert(m_chunk_generator);
+//
+//        const i32 gen_level = m_chunk_generator->max_generation_stage();
+//
+//        std::priority_queue<ChunkGenRequest> gen_request_queue{};
+//
+//        {
+////            std::lock_guard clients_lock { m_clients_mutex };
+////
+////            for (auto& [client_id, client]: m_clients)
+////            {
+////                assert(client);
+////
+////                std::lock_guard client_lock{client->mutex};
+////
+////                auto& input = client->input;
+////                auto& output = client->output;
+////                auto& load_requests = input.load_requests;
+////
+////                while (!load_requests.empty())
+////                {
+////                    process_load_request(
+////                        client_id,
+////                        load_requests.front(),
+////                        input.position,
+////                        gen_level,
+////                        gen_request_queue,
+////                        output.loaded_chunks,
+////                        m_chunk_mgr);
+////
+////                    load_requests.pop();
+////                }
+////            }
+//        }
+//
+//        while (!gen_request_queue.empty())
+//            chunk_gen_deque.push_back(gen_request_queue.top());
+    }
 
-        const i32 gen_level = m_chunk_generator->max_generation_stage();
-
-        std::priority_queue<ChunkGenRequest> gen_request_queue{};
-
-        {
-//            std::lock_guard clients_lock { m_clients_mutex };
+    void ChunkServer::load_requested_chunks()
+    {
+//        auto voxel_module = g_engine->get_module<VoxelModule>();
+//        assert(voxel_module);
 //
-//            for (auto& [client_id, client]: m_clients)
-//            {
-//                assert(client);
+//        while (!chunk_gen_deque.empty())
+//        {
+//            auto& gen_request = chunk_gen_deque.front();
 //
-//                std::lock_guard client_lock{client->mutex};
+//            // Chunk columns that need to be generated up to gen_request.generation_stage - 1
+//            std::vector< std::shared_ptr<ChunkColumn> > chunk_cols_to_generate;
+//            chunk_cols_to_generate.reserve(9);
 //
-//                auto& input = client->input;
-//                auto& output = client->output;
-//                auto& load_requests = input.load_requests;
-//
-//                while (!load_requests.empty())
+//            gen_request.gen_region.for_each_chunk_column(
+//                [&](const std::shared_ptr<ChunkColumn>& chunk_col) -> void
 //                {
-//                    process_load_request(
-//                        client_id,
-//                        load_requests.front(),
-//                        input.position,
-//                        gen_level,
-//                        gen_request_queue,
-//                        output.loaded_chunks,
-//                        m_chunk_mgr);
-//
-//                    load_requests.pop();
+//                    assert(chunk_col);
+//                    if (chunk_col->generation_stage() < gen_request.gen_stage - 1)
+//                        chunk_cols_to_generate.push_back(chunk_col);
 //                }
+//            );
+//
+//            if (chunk_cols_to_generate.empty())
+//            {
+//                auto& chunk_col = gen_request.gen_region.center_chunk();
+//
+//                // Init the chunk just before starting generation
+//                if (!chunk_col->is_initialized())
+//                    chunk_col->init(*voxel_module);
+//
+//                // Gen request can be completed
+//                m_chunk_generator->run_generation_step(gen_request.gen_region);
+//
+//                if (chunk_col->is_generated())
+//                {
+////                    std::lock_guard clients_lock { m_clients_mutex };
+////
+////                    auto client_it = m_clients.find(gen_request.requester_id);
+////                    if (client_it != m_clients.end())
+////                    {
+////                        auto& client = client_it->second;
+////
+////                        std::lock_guard client_lock { client->mutex };
+////
+////                        client->output.loaded_chunks.push(chunk_col);
+////                    }
+//                }
+//
+////                chunk_gen_deque.pop_front();
 //            }
-        }
-
-        while (!gen_request_queue.empty())
-            chunk_gen_deque.push_back(gen_request_queue.top());
+//            else
+//            {
+////                for (const auto& chunk_col : chunk_cols_to_generate)
+////                {
+////                    const ChunkRegion gen_region { chunk_col->chunk_column_pos(), m_chunk_mgr };
+////
+////                    chunk_gen_deque.emplace_front(
+////                        gen_region,
+////                        gen_request.gen_stage - 1,
+////                        gen_request.distance,
+////                        gen_request.requester_id);
+////                }
+//            }
+//        }
     }
 
-    void ChunkServer::load_requested_chunks(std::deque<ChunkGenRequest>& chunk_gen_deque)
+    void ChunkServer::on_received_chunk_fetch_requests(
+        ClientID client_id,
+        const NetMsg_ChunkFetchRequest& chunk_fetch_request)
     {
-        auto voxel_module = g_engine->get_module<VoxelModule>();
-        assert(voxel_module);
+        std::lock_guard lock { m_chunk_fetch_requests_mutex };
 
-        while (!chunk_gen_deque.empty())
+        for (v2i requested_chunk : chunk_fetch_request.requested_chunks)
         {
-            auto& gen_request = chunk_gen_deque.front();
-
-            // Chunk columns that need to be generated up to gen_request.generation_stage - 1
-            std::vector< std::shared_ptr<ChunkColumn> > chunk_cols_to_generate;
-            chunk_cols_to_generate.reserve(9);
-
-            gen_request.gen_region.for_each_chunk_column(
-                [&](const std::shared_ptr<ChunkColumn>& chunk_col) -> void
+            // Either add this client id to an existing chunk fetch request or create a new one
+            auto it = std::find_if(m_chunk_fetch_requests.begin(), m_chunk_fetch_requests.end(),
+                [&](const auto& other) -> bool
                 {
-                    assert(chunk_col);
-                    if (chunk_col->generation_stage() < gen_request.gen_stage - 1)
-                        chunk_cols_to_generate.push_back(chunk_col);
+                    assert(other);
+                    return other->chunk_col_pos == requested_chunk;
                 }
             );
 
-            if (chunk_cols_to_generate.empty())
+            if (it != m_chunk_fetch_requests.end())
             {
-                auto& chunk_col = gen_request.gen_region.center_chunk();
+                auto& requesting_clients = (*it)->requesting_clients;
 
-                // Init the chunk just before starting generation
-                if (!chunk_col->is_initialized())
-                    chunk_col->init(*voxel_module);
-
-                // Gen request can be completed
-                m_chunk_generator->run_generation_step(gen_request.gen_region);
-
-                if (chunk_col->is_generated())
+                if (std::find(
+                    requesting_clients.begin(),
+                    requesting_clients.end(), client_id) != requesting_clients.end())
                 {
-//                    std::lock_guard clients_lock { m_clients_mutex };
-//
-//                    auto client_it = m_clients.find(gen_request.requester_id);
-//                    if (client_it != m_clients.end())
-//                    {
-//                        auto& client = client_it->second;
-//
-//                        std::lock_guard client_lock { client->mutex };
-//
-//                        client->output.loaded_chunks.push(chunk_col);
-//                    }
+                    (*it)->requesting_clients.push_back(client_id);
                 }
+                continue;
+            }
 
-                chunk_gen_deque.pop_front();
-            }
-            else
-            {
-                for (const auto& chunk_col : chunk_cols_to_generate)
-                {
-                    const ChunkRegion gen_region { chunk_col->chunk_column_pos(), m_chunk_mgr };
-                    
-                    chunk_gen_deque.emplace_front(
-                        gen_region,
-                        gen_request.gen_stage - 1,
-                        gen_request.distance,
-                        gen_request.requester_id);
-                }
-            }
+            const ChunkFetchRequest new_fetch_request{ { client_id }, requested_chunk };
+            m_chunk_fetch_requests.push_back(std::make_shared<ChunkFetchRequest>(new_fetch_request));
         }
     }
 }

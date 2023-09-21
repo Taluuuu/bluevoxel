@@ -7,12 +7,6 @@ namespace h2o
 {
     Client* Client::s_callback_instance = nullptr;
 
-    Client::Client()
-        : m_networking_module(g_engine->get_module<NetworkingModule>())
-    {
-        assert(m_networking_module);
-    }
-
     Client::~Client()
     {
         disconnect();
@@ -46,7 +40,9 @@ namespace h2o
             return false;
         }
 
-        m_networking_module->register_client(*this);
+        auto networking_module = g_engine->get_module<NetworkingModule>();
+        assert(networking_module);
+        networking_module->register_client(*this);
 
         set_tick_phases(TickPhase::Update);
 
@@ -66,7 +62,12 @@ namespace h2o
         set_tick_phases({});
 
         if (unregister_from_module)
-            m_networking_module->unregister_client(*this);
+        {
+            auto networking_module = g_engine->get_module<NetworkingModule>();
+            assert(networking_module);
+
+            networking_module->unregister_client(*this);
+        }
     }
 
     Event<ReceivedMessageEvent>& Client::handle_msg(MsgID id)

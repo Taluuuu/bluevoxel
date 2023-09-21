@@ -18,10 +18,10 @@ namespace bluevoxel
             return false;
 
         m_chunk_server = std::make_unique<h2o::ChunkServer>(m_server);
-//        m_chunk_server->start();
+        m_chunk_server->start();
 
         m_server.handle_msg<h2o::TestMessage>(m_received_msg_handle,
-            [](const auto& test_msg)
+            [](h2o::ClientID client_id, const auto& test_msg)
             {
                 h2o::log::info("Received data: {} - {}", test_msg.num, test_msg.text);
             }
@@ -35,6 +35,9 @@ namespace bluevoxel
 //        assert(m_chunk_server->is_running());
 //        m_chunk_server->stop();
 //        m_chunk_server.reset();
+
+        m_chunk_server->stop();
+        m_chunk_server.reset();
 
         m_server.stop();
     }

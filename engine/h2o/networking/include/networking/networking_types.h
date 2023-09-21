@@ -18,6 +18,7 @@ namespace h2o
 
     struct ReceivedMessageEvent
     {
+        ClientID client_id{};
         const std::vector<u8>& msg;
     };
 }

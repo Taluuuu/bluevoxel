@@ -21,7 +21,8 @@ namespace h2o
     {
     public:
 
-        Client();
+        Client() = default;
+        Client(const Client&) = delete;
         ~Client() override;
 
         bool connect(const std::string& hostname, u16 port);
@@ -34,6 +35,7 @@ namespace h2o
         [[nodiscard]] Event<ReceivedMessageEvent>* get_msg_event(MsgID id);
 
         [[nodiscard]] ConnectionState connection_state() const { return m_connection_state; }
+        [[nodiscard]] bool is_connected() const { return m_connection_state == ConnectionState::Connected; }
 
         // Tickable interface
         void update(f32 delta_time) override;
@@ -54,8 +56,6 @@ namespace h2o
         HSteamNetConnection m_connection{};
 
         std::unordered_map<MsgID, Event<ReceivedMessageEvent>> m_message_received_events{};
-
-        NetworkingModule* m_networking_module { nullptr };
 
         static Client* s_callback_instance;
 

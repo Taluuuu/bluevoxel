@@ -94,18 +94,20 @@ namespace h2o
 
     void Server::poll_incoming_messages()
     {
-        ISteamNetworkingMessage* incoming_messages { nullptr };
-        const i32 num_msgs = m_interface->ReceiveMessagesOnPollGroup(m_poll_group, &incoming_messages, INT_MAX);
-
-        if (num_msgs < 0)
+        // This is dumb
+        while (true)
         {
-            log::error("Error checking for messages.");
-            return;
-        }
+            ISteamNetworkingMessage* msg = nullptr;
+            const i32 num_msgs = m_interface->ReceiveMessagesOnPollGroup(m_poll_group, &msg, 1);
 
-        for (i32 i = 0; i < num_msgs; i++)
-        {
-            ISteamNetworkingMessage* msg = incoming_messages + i;
+            if (num_msgs == 0)
+                break;
+
+            if (num_msgs < 0)
+            {
+                log::error("Error checking for messages.");
+                break;
+            }
 
             const u32   msg_size  = msg->GetSize();
             const void* msg_data  = msg->GetData();
@@ -116,7 +118,7 @@ namespace h2o
                 continue;
             }
 
-            const MsgID msg_id  = *static_cast<const MsgID*>(msg_data);
+            const MsgID msg_id = *static_cast<const MsgID*>(msg_data);
 
             const auto event = get_msg_event(msg_id);
             if (!event)
@@ -130,11 +132,57 @@ namespace h2o
             const u8* msg_end   = msg_start + msg_size - sizeof(MsgID);
             const std::vector<u8> buffer { msg_start, msg_end };
 
-            const ReceivedMessageEvent event_data { .msg { buffer } };
+            const ReceivedMessageEvent event_data { msg->m_conn, buffer };
             event->broadcast(event_data);
 
             msg->Release();
         }
+
+        // This is not dumb but doesn't work
+//        ISteamNetworkingMessage* incoming_messages { nullptr };
+//        const i32 num_msgs = m_interface->ReceiveMessagesOnPollGroup(m_poll_group, &incoming_messages, 32);
+//
+//        if (num_msgs < 0)
+//        {
+//            log::error("Error checking for messages.");
+//            return;
+//        }
+//
+//        for (i32 i = 0; i < num_msgs; i++)
+//        {
+//            ISteamNetworkingMessage* msg = incoming_messages + i;
+//
+//            const u32   msg_size  = msg->GetSize();
+//            const void* msg_data  = msg->GetData();
+//            if (msg_size < sizeof(MsgID))
+//            {
+//                log::warn("Received invalid package.");
+//
+//                if (msg_size > 0)
+//                    msg->Release();
+//
+//                continue;
+//            }
+//
+//            const MsgID msg_id = *static_cast<const MsgID*>(msg_data);
+//
+//            const auto event = get_msg_event(msg_id);
+//            if (!event)
+//            {
+//                log::warn("Received message with id '{}' not being listened for.", msg_id);
+//                msg->Release();
+//                continue;
+//            }
+//
+//            const u8* msg_start = static_cast<const u8*>(msg_data) + sizeof(MsgID);
+//            const u8* msg_end   = msg_start + msg_size - sizeof(MsgID);
+//            const std::vector<u8> buffer { msg_start, msg_end };
+//
+//            const ReceivedMessageEvent event_data { msg->m_conn, buffer };
+//            event->broadcast(event_data);
+//
+//            msg->Release();
+//        }
     }
 
     void Server::connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info)

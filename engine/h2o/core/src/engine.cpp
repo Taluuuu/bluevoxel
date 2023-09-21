@@ -82,11 +82,11 @@ namespace h2o
                 const TickPhase tick_phase,
                 void(Tickable::*tick_function)(f32))
             {
-                auto phase_idx = magic_enum::enum_index(tick_phase);
-                if (phase_idx.has_value())
+                if (auto phase_idx = magic_enum::enum_index(tick_phase); phase_idx.has_value())
                 {
-                    for (const auto& tickable: m_tickables[*phase_idx])
-                        (tickable->*tick_function)(static_cast<f32>(delta_time));
+                    const auto& tickables = m_tickables[*phase_idx];
+                    for (size_t i = 0; i < tickables.size(); i++)
+                        (tickables[i]->*tick_function)(static_cast<f32>(delta_time));
                 }
             };
 

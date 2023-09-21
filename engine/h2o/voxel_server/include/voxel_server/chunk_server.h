@@ -3,11 +3,12 @@
 #include "core/data_structures/thread_safe_priority_queue.h"
 #include "core/events.h"
 #include "core/types.h"
+#include "networking/networking_types.h"
 #include "voxel/chunk_column.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/chunk_manager.h"
 
-#include "glm/gtx/hash.hpp"
+#include <glm/gtx/hash.hpp>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -18,33 +19,12 @@ namespace h2o
 {
     class ChunkGenerator_Base;
     class Server;
+    struct NetMsg_ChunkFetchRequest;
 
-    using ClientID = u32;
-
-    // This will be sent to the server by the client.
-    struct VoxelClientInput
+    struct ChunkFetchRequest
     {
-        // The client's position
-        v2i position{};
-
-        // The client's requested chunks
-        std::queue<v2i> load_requests{};
-    };
-
-    // This is the data the server will send back to the client.
-    struct VoxelClientOutput
-    {
-        // Chunks that have been loaded by the chunk manager awaiting to be
-        // received by the client.
-        std::queue< std::shared_ptr<ChunkColumn> > loaded_chunks{};
-    };
-
-    struct VoxelClient
-    {
-        VoxelClientInput input{};
-        VoxelClientOutput output{};
-
-        mutable std::mutex mutex{};
+        std::vector<ClientID> requesting_clients{};
+        v2i chunk_col_pos{};
     };
 
     struct ChunkGenRequest
@@ -52,7 +32,7 @@ namespace h2o
         ChunkRegion gen_region;
         i32 gen_stage { 0 };
         f32 distance { 0.0f };
-        ClientID requester_id { 0 };
+        std::shared_ptr<ChunkFetchRequest> fetch_request{};
 
         [[nodiscard]] bool operator<(const ChunkGenRequest& other) const
         { return distance < other.distance; }
@@ -80,14 +60,16 @@ namespace h2o
 
         void run();
 
-        void request_chunk_loads(std::deque<ChunkGenRequest>& chunk_gen_dequeue);
-        void load_requested_chunks(std::deque<ChunkGenRequest>& chunk_gen_dequeue);
+        void request_chunk_loads();
+        void load_requested_chunks();
+
+        void on_received_chunk_fetch_requests(
+            ClientID client_id,
+            const NetMsg_ChunkFetchRequest& chunk_fetch_request);
 
     private:
 
         // Networking
-//        mutable std::mutex m_clients_mutex{};
-//        std::unordered_map< ClientID, std::unique_ptr<VoxelClient> > m_clients{};
         Server* const m_server { nullptr };
         EventHandle m_received_chunk_request_handle{};
 
@@ -96,6 +78,12 @@ namespace h2o
 
         // Generation
         std::unique_ptr<ChunkGenerator_Base> m_chunk_generator{};
+
+        std::mutex m_chunk_fetch_requests_mutex{};
+        std::vector<std::shared_ptr<ChunkFetchRequest>> m_chunk_fetch_requests{};
+
+        std::mutex m_chunk_gen_dequeue_mutex{};
+        std::deque<ChunkGenRequest> m_chunk_gen_deque{};
 
         // Threading
         std::thread m_thread{};
