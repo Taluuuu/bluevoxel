@@ -12,6 +12,14 @@ namespace h2o
     {
         i32 x{}, z{};
 
+        ChunkColPos() = default;
+
+        ChunkColPos(i32 x, i32 z)
+            : x { x }, z { z } {}
+
+        ChunkColPos(v2i chunk_col_pos)
+            : x { chunk_col_pos.x }, z { chunk_col_pos.y } {}
+
         operator v2i() const
         { return { x, z }; }
 

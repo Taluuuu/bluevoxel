@@ -38,6 +38,11 @@ namespace h2o
         bool can_send_messages() const override;
         void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) override;
 
+    public:
+
+        struct OnConnectedEvent{};
+        Event<OnConnectedEvent> on_connected_to_server{};
+
     private:
 
         ConnectionState m_connection_state = ConnectionState::Disconnected;

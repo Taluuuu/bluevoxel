@@ -10,7 +10,7 @@ namespace h2o
         const v3 direction = glm::normalize(to_end);
         const f32 range = glm::length(to_end);
 
-        v3i current_voxel = world_to_block_pos(origin);
+        v3i current_voxel = voxel_utils::world_to_block_pos(origin);
 
         const v3i step {
             direction.x > 0.0f ? 1 : ((direction.x < 0.0f) ? -1 : 0),

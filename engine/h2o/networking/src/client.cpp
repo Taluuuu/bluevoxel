@@ -120,8 +120,9 @@ namespace h2o
             break;
 
         case k_ESteamNetworkingConnectionState_Connected:
-            m_connection_state = ConnectionState::Connected;
             log::info("Connected to server.");
+            m_connection_state = ConnectionState::Connected;
+            on_connected_to_server.broadcast({});
             break;
 
         default:

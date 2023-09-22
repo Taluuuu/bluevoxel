@@ -3,7 +3,7 @@
 #include "core/types.h"
 #include "voxel_constants.h"
 
-namespace h2o
+namespace h2o::voxel_utils
 {
     constexpr i32 non_stupid_mod(i32 x, i32 m)
     {

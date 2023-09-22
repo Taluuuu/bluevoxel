@@ -29,8 +29,9 @@ namespace h2o
 
         // Bind messages
         m_server->handle_message<NetMsg_ChunkFetchRequest>(m_received_chunk_request_handle,
-            [&](ClientID client_id, const auto& chunk_fetch_request)
+            [&](ClientID client_id, const NetMsg_ChunkFetchRequest& chunk_fetch_request)
             {
+                log::info("Received {} chunk fetch requests.", chunk_fetch_request.requested_chunks.size());
                 on_received_chunk_fetch_requests(client_id, chunk_fetch_request);
             }
         );

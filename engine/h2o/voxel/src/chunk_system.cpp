@@ -43,7 +43,7 @@ namespace h2o
             return;
         }
 
-        const v3i player_chunk_pos = world_to_chunk_pos(player->transform.position);
+        const v3i player_chunk_pos = voxel_utils::world_to_chunk_pos(player->transform.position);
         if (player_chunk_pos != m_last_player_chunk_pos)
         {
             on_player_changed_chunk.broadcast({m_last_player_chunk_pos, player_chunk_pos});

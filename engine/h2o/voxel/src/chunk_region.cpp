@@ -25,20 +25,20 @@ namespace h2o
 
     std::optional<Block> ChunkRegionOLD::get_block_at(const v3i& block_pos) const
     {
-        const v3i chunk_pos = block_to_chunk_pos(block_pos);
+        const v3i chunk_pos = voxel_utils::block_to_chunk_pos(block_pos);
         if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
-            return chunk->get_block_at(block_pos_to_within_chunk(block_pos));
+            return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
 
         return std::nullopt;
     }
 
     std::optional<Block> ChunkRegionOLD::get_block_at(const v3i& block_pos, ChunkWeakHandle& out_chunk) const
     {
-        const v3i chunk_pos = block_to_chunk_pos(block_pos);
+        const v3i chunk_pos = voxel_utils::block_to_chunk_pos(block_pos);
         if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
         {
             out_chunk = chunk;
-            return chunk->get_block_at(block_pos_to_within_chunk(block_pos));
+            return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
         }
 
         return std::nullopt;
@@ -46,10 +46,10 @@ namespace h2o
 
     bool ChunkRegionOLD::set_block_at(const v3i& block_pos, Block block) const
     {
-        const v3i chunk_pos = block_to_chunk_pos(block_pos);
+        const v3i chunk_pos = voxel_utils::block_to_chunk_pos(block_pos);
         if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
         {
-            chunk->set_block_at(block_pos_to_within_chunk(block_pos), block);
+            chunk->set_block_at(voxel_utils::block_pos_to_within_chunk(block_pos), block);
             return true;
         }
 
