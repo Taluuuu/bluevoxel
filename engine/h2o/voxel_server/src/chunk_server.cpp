@@ -28,7 +28,7 @@ namespace h2o
         assert(m_server);
 
         // Bind messages
-        m_server->handle_msg<NetMsg_ChunkFetchRequest>(m_received_chunk_request_handle,
+        m_server->handle_message<NetMsg_ChunkFetchRequest>(m_received_chunk_request_handle,
             [&](ClientID client_id, const auto& chunk_fetch_request)
             {
                 on_received_chunk_fetch_requests(client_id, chunk_fetch_request);

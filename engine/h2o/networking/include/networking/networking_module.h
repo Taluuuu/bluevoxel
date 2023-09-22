@@ -9,11 +9,9 @@
 
 namespace h2o
 {
-    class Client;
-    class Server;
+    class NetPeer;
 
-    struct ServerCreatedEvent { Server& server; };
-    struct ClientCreatedEvent { Client& client; };
+    struct PeerCreatedEvent { NetPeer& peer; };
 
     class NetworkingModule : public IModule
     {
@@ -21,11 +19,8 @@ namespace h2o
 
         ~NetworkingModule() override = default;
 
-        void register_server(Server& server);
-        void unregister_server(Server& server);
-
-        void register_client(Client& client);
-        void unregister_client(Client& client);
+        void register_peer(NetPeer& peer);
+        void unregister_peer(NetPeer& peer);
 
         // IModule interface
         [[nodiscard]] bool init(Engine& engine) override;
@@ -33,13 +28,11 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override { return "h2o_networking_module"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
-        Event<ServerCreatedEvent> on_server_created{};
-        Event<ClientCreatedEvent> on_client_created{};
+        Event<PeerCreatedEvent> on_peer_created{};
 
     private:
 
-        std::set<Server*> m_active_servers{};
-        std::set<Client*> m_connected_clients{};
+        std::set<NetPeer*> m_active_peers{};
 
     };
 }

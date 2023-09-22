@@ -5,11 +5,9 @@
 
 namespace h2o
 {
-    Client* Client::s_callback_instance = nullptr;
-
     Client::~Client()
     {
-        disconnect();
+        stop(true);
     }
 
     bool Client::connect(const std::string& hostname, u16 port)
@@ -40,16 +38,12 @@ namespace h2o
             return false;
         }
 
-        auto networking_module = g_engine->get_module<NetworkingModule>();
-        assert(networking_module);
-        networking_module->register_client(*this);
-
         set_tick_phases(TickPhase::Update);
 
         return true;
     }
 
-    void Client::disconnect(bool unregister_from_module)
+    void Client::stop(bool unregister_from_module)
     {
         if (m_connection_state == ConnectionState::Disconnected)
             return;
@@ -61,101 +55,38 @@ namespace h2o
 
         set_tick_phases({});
 
-        if (unregister_from_module)
-        {
-            auto networking_module = g_engine->get_module<NetworkingModule>();
-            assert(networking_module);
-
-            networking_module->unregister_client(*this);
-        }
+        NetPeer::stop(unregister_from_module);
     }
 
-    Event<ReceivedMessageEvent>& Client::handle_msg(MsgID id)
+    void Client::send_message_raw(ClientID client_id, void* data, u32 size) const
     {
-        const auto it = m_message_received_events.find(id);
-        assert(it == m_message_received_events.end());
-
-        return m_message_received_events[id];
+        m_interface->SendMessageToConnection(
+            m_connection,
+            data,
+            size,
+            k_nSteamNetworkingSend_Reliable,
+            nullptr);
     }
 
-    Event<ReceivedMessageEvent>* Client::get_msg_event(MsgID id)
+    i32 Client::poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages)
     {
-        const auto it = m_message_received_events.find(id);
-        return it == m_message_received_events.end() ? nullptr : &it->second;
+        return m_interface->ReceiveMessagesOnConnection(
+            m_connection,
+            out_messages,
+            max_messages);
     }
 
-    void Client::update(f32 delta_time)
+    bool Client::can_send_messages() const
     {
-        if (m_connection_state != ConnectionState::Disconnected)
-        {
-            poll_incoming_messages();
-            poll_connection_state_changes();
-        }
+        return is_connected();
     }
 
-    void Client::poll_incoming_messages()
+    void Client::on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info)
     {
-        ISteamNetworkingMessage* incoming_messages { nullptr };
-        const i32 num_msgs = m_interface->ReceiveMessagesOnConnection(m_connection, &incoming_messages, INT_MAX);
-
-        if (num_msgs < 0)
-        {
-            log::error("Error checking for messages.");
-            return;
-        }
-
-        for (i32 i = 0; i < num_msgs; i++)
-        {
-            ISteamNetworkingMessage* msg = incoming_messages + i;
-
-            const u32   msg_size  = msg->GetSize();
-            const void* msg_data  = msg->GetData();
-            if (msg_size < sizeof(MsgID))
-            {
-                log::warn("Received invalid package.");
-                msg->Release();
-                continue;
-            }
-
-            const MsgID msg_id  = *static_cast<const MsgID*>(msg_data);
-
-            const auto event = get_msg_event(msg_id);
-            if (!event)
-            {
-                log::warn("Received message with id '{}' not being listened for.", msg_id);
-                msg->Release();
-                continue;
-            }
-
-            const u8* msg_start = static_cast<const u8*>(msg_data) + sizeof(MsgID);
-            const u8* msg_end   = msg_start + msg_size - sizeof(MsgID);
-            const std::vector<u8> buffer { msg_start, msg_end };
-
-            const ReceivedMessageEvent event_data { .msg { buffer } };
-            event->broadcast(event_data);
-
-            msg->Release();
-        }
-    }
-
-    void Client::poll_connection_state_changes()
-    {
-        s_callback_instance = this;
-        m_interface->RunCallbacks();
-    }
-
-    void Client::connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info)
-    {
-        assert(s_callback_instance);
-        s_callback_instance->on_connection_status_changed(info);
-    }
-
-    void Client::on_connection_status_changed(SteamNetConnectionStatusChangedCallback_t* info)
-    {
-        if (info->m_hConn != m_connection && m_connection == k_HSteamNetConnection_Invalid)
+        if (info.m_hConn != m_connection && m_connection == k_HSteamNetConnection_Invalid)
             return;
 
-        switch (info->m_info.m_eState)
+        switch (info.m_info.m_eState)
         {
         case k_ESteamNetworkingConnectionState_None:
             // NOTE: We will get callbacks here when we destroy connections. You can ignore these.
@@ -166,20 +97,20 @@ namespace h2o
         {
             m_connection_state = ConnectionState::Disconnected;
 
-            if (info->m_eOldState == k_ESteamNetworkingConnectionState_Connecting)
+            if (info.m_eOldState == k_ESteamNetworkingConnectionState_Connecting)
             {
-                log::info("Could not connect to server: {}", info->m_info.m_szEndDebug);
+                log::info("Could not connect to server: {}", info.m_info.m_szEndDebug);
             }
-            else if (info->m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
+            else if (info.m_info.m_eState == k_ESteamNetworkingConnectionState_ProblemDetectedLocally)
             {
-                log::info("Lost contact with server: {}", info->m_info.m_szEndDebug);
+                log::info("Lost contact with server: {}", info.m_info.m_szEndDebug);
             }
             else
             {
-                log::info("Disconnected from server: {}", info->m_info.m_szEndDebug);
+                log::info("Disconnected from server: {}", info.m_info.m_szEndDebug);
             }
 
-            m_interface->CloseConnection(info->m_hConn, 0, nullptr, false);
+            m_interface->CloseConnection(info.m_hConn, 0, nullptr, false);
             m_connection = k_HSteamNetConnection_Invalid;
             break;
         }

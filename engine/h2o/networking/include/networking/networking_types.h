@@ -9,6 +9,9 @@ namespace h2o
     using MsgID = u32;
     using ClientID = u32;
 
+    template<class T>
+    using MsgReceivedEventCallback = std::function<void(ClientID, const T&)>;
+
     enum class ConnectionState
     {
         Disconnected,

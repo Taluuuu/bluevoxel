@@ -24,8 +24,8 @@ namespace h2o
 
         if (m_client->is_connected())
         {
-            NetMsg_ChunkFetchRequest chunk_fetch_request{ { { 69, -69 } } };
-            m_client->send_message(chunk_fetch_request);
+            NetMsg_ChunkFetchRequest chunk_fetch_request { { { 69, -69 } } };
+            m_client->send_message(0, chunk_fetch_request);
             temp = false;
         }
     }

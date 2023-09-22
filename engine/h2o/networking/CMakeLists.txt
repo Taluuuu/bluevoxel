@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_networking
     src/client.cpp
+    src/net_peer.cpp
     src/networking_module.cpp
     src/server.cpp
 )

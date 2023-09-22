@@ -6,16 +6,14 @@
 
 namespace h2o
 {
-    Server* Server::s_callback_instance = nullptr;
-
     Server::~Server()
     {
-        stop();
+        stop(true);
     }
 
     bool Server::start(u16 port)
     {
-        m_interface = SteamNetworkingSockets();
+        create_interface();
 
         // Create listen socket
         SteamNetworkingIPAddr server_local_addr{};
@@ -42,10 +40,6 @@ namespace h2o
         log::info("Server listening on port {}", port);
         m_is_active = true;
 
-        auto networking_module = g_engine->get_module<NetworkingModule>();
-        assert(networking_module);
-        networking_module->register_server(*this);
-
         set_tick_phases(TickPhase::Update);
 
         return true;
@@ -66,140 +60,37 @@ namespace h2o
 
         m_is_active = false;
 
-        if (unregister_from_module)
-        {
-            auto networking_module = g_engine->get_module<NetworkingModule>();
-            assert(networking_module);
-
-            networking_module->unregister_server(*this);
-        }
-
-        set_tick_phases({});
+        NetPeer::stop(unregister_from_module);
     }
 
-    Event<ReceivedMessageEvent>* Server::get_msg_event(MsgID id)
+    void Server::send_message_raw(ClientID client_id, void* data, u32 size) const
     {
-        const auto it = m_message_received_events.find(id);
-        return it == m_message_received_events.end() ? nullptr : &it->second;
+        assert(m_client_ids.contains(client_id));
+
+        m_interface->SendMessageToConnection(
+            client_id,
+            data,
+            size,
+            k_nSteamNetworkingSend_Reliable,
+            nullptr);
     }
 
-    void Server::update(f32 delta_time)
+    i32 Server::poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages)
     {
-        if (m_is_active)
-        {
-            poll_incoming_messages();
-            poll_connection_state_changes();
-        }
+        return m_interface->ReceiveMessagesOnPollGroup(
+            m_poll_group,
+            out_messages,
+            max_messages);
     }
 
-    void Server::poll_incoming_messages()
+    bool Server::can_send_messages() const
     {
-        // This is dumb
-        while (true)
-        {
-            ISteamNetworkingMessage* msg = nullptr;
-            const i32 num_msgs = m_interface->ReceiveMessagesOnPollGroup(m_poll_group, &msg, 1);
-
-            if (num_msgs == 0)
-                break;
-
-            if (num_msgs < 0)
-            {
-                log::error("Error checking for messages.");
-                break;
-            }
-
-            const u32   msg_size  = msg->GetSize();
-            const void* msg_data  = msg->GetData();
-            if (msg_size < sizeof(MsgID))
-            {
-                log::warn("Received invalid package.");
-                msg->Release();
-                continue;
-            }
-
-            const MsgID msg_id = *static_cast<const MsgID*>(msg_data);
-
-            const auto event = get_msg_event(msg_id);
-            if (!event)
-            {
-                log::warn("Received message with id '{}' not being listened for.", msg_id);
-                msg->Release();
-                continue;
-            }
-
-            const u8* msg_start = static_cast<const u8*>(msg_data) + sizeof(MsgID);
-            const u8* msg_end   = msg_start + msg_size - sizeof(MsgID);
-            const std::vector<u8> buffer { msg_start, msg_end };
-
-            const ReceivedMessageEvent event_data { msg->m_conn, buffer };
-            event->broadcast(event_data);
-
-            msg->Release();
-        }
-
-        // This is not dumb but doesn't work
-//        ISteamNetworkingMessage* incoming_messages { nullptr };
-//        const i32 num_msgs = m_interface->ReceiveMessagesOnPollGroup(m_poll_group, &incoming_messages, 32);
-//
-//        if (num_msgs < 0)
-//        {
-//            log::error("Error checking for messages.");
-//            return;
-//        }
-//
-//        for (i32 i = 0; i < num_msgs; i++)
-//        {
-//            ISteamNetworkingMessage* msg = incoming_messages + i;
-//
-//            const u32   msg_size  = msg->GetSize();
-//            const void* msg_data  = msg->GetData();
-//            if (msg_size < sizeof(MsgID))
-//            {
-//                log::warn("Received invalid package.");
-//
-//                if (msg_size > 0)
-//                    msg->Release();
-//
-//                continue;
-//            }
-//
-//            const MsgID msg_id = *static_cast<const MsgID*>(msg_data);
-//
-//            const auto event = get_msg_event(msg_id);
-//            if (!event)
-//            {
-//                log::warn("Received message with id '{}' not being listened for.", msg_id);
-//                msg->Release();
-//                continue;
-//            }
-//
-//            const u8* msg_start = static_cast<const u8*>(msg_data) + sizeof(MsgID);
-//            const u8* msg_end   = msg_start + msg_size - sizeof(MsgID);
-//            const std::vector<u8> buffer { msg_start, msg_end };
-//
-//            const ReceivedMessageEvent event_data { msg->m_conn, buffer };
-//            event->broadcast(event_data);
-//
-//            msg->Release();
-//        }
+        return m_is_active;
     }
 
-    void Server::connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info)
+    void Server::on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info)
     {
-        assert(s_callback_instance);
-        s_callback_instance->on_connection_status_changed(info);
-    }
-
-    void Server::poll_connection_state_changes()
-    {
-        s_callback_instance = this;
-        m_interface->RunCallbacks();
-    }
-
-    void Server::on_connection_status_changed(SteamNetConnectionStatusChangedCallback_t* info)
-    {
-        switch (info->m_info.m_eState)
+        switch (info.m_info.m_eState)
         {
         case k_ESteamNetworkingConnectionState_None:
             // This is called when we destroy connections, we can ignore.
@@ -210,41 +101,41 @@ namespace h2o
         {
             // Ignore if they were not previously connected. (If they disconnected
             // before we accepted the connection.)
-            if (info->m_eOldState == k_ESteamNetworkingConnectionState_Connected)
+            if (info.m_eOldState == k_ESteamNetworkingConnectionState_Connected)
             {
-                m_client_ids.erase(info->m_hConn);
+                m_client_ids.erase(info.m_hConn);
 
                 // Handle disconnect...
                 log::info("Client disconnected.");
             }
             else
             {
-                assert(info->m_eOldState == k_ESteamNetworkingConnectionState_Connecting);
+                assert(info.m_eOldState == k_ESteamNetworkingConnectionState_Connecting);
             }
 
-            m_interface->CloseConnection(info->m_hConn, 0, nullptr, false);
+            m_interface->CloseConnection(info.m_hConn, 0, nullptr, false);
             break;
         }
 
         case k_ESteamNetworkingConnectionState_Connecting:
         {
-            log::info("Connection request from {}.", info->m_info.m_szConnectionDescription);
+            log::info("Connection request from {}.", info.m_info.m_szConnectionDescription);
 
-            if (m_interface->AcceptConnection(info->m_hConn) != k_EResultOK)
+            if (m_interface->AcceptConnection(info.m_hConn) != k_EResultOK)
             {
-                m_interface->CloseConnection(info->m_hConn, 0, nullptr, false);
+                m_interface->CloseConnection(info.m_hConn, 0, nullptr, false);
                 log::info("Can't accept connection. (It was already closed?)");
                 break;
             }
 
-            if (!m_interface->SetConnectionPollGroup(info->m_hConn, m_poll_group))
+            if (!m_interface->SetConnectionPollGroup(info.m_hConn, m_poll_group))
             {
-                m_interface->CloseConnection(info->m_hConn, 0, nullptr, false);
+                m_interface->CloseConnection(info.m_hConn, 0, nullptr, false);
                 log::info("Failed to set poll group?");
                 break;
             }
 
-            m_client_ids.insert(info->m_hConn);
+            m_client_ids.insert(info.m_hConn);
         }
 
         case k_ESteamNetworkingConnectionState_Connected:

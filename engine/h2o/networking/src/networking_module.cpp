@@ -8,24 +8,14 @@
 
 namespace h2o
 {
-    void NetworkingModule::register_server(Server& server)
+    void NetworkingModule::register_peer(h2o::NetPeer& peer)
     {
-        m_active_servers.insert(&server);
+        m_active_peers.insert(&peer);
     }
 
-    void NetworkingModule::unregister_server(Server& server)
+    void NetworkingModule::unregister_peer(h2o::NetPeer& peer)
     {
-        m_active_servers.erase(&server);
-    }
-
-    void NetworkingModule::register_client(Client& client)
-    {
-        m_connected_clients.insert(&client);
-    }
-
-    void NetworkingModule::unregister_client(Client& client)
-    {
-        m_connected_clients.erase(&client);
+        m_active_peers.erase(&peer);
     }
 
     static void debug_output(ESteamNetworkingSocketsDebugOutputType type, const char* msg)
@@ -62,15 +52,10 @@ namespace h2o
 
     void NetworkingModule::cleanup()
     {
-        for (Server* server : m_active_servers)
-            server->stop(false);
+        for (NetPeer* peer : m_active_peers)
+            peer->stop(false);
 
-        m_active_servers.clear();
-
-        for (Client* client : m_connected_clients)
-            client->disconnect(false);
-
-        m_connected_clients.clear();
+        m_active_peers.clear();
 
         GameNetworkingSockets_Kill();
     }

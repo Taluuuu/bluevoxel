@@ -25,8 +25,8 @@ namespace bluevoxel
 
         if (const auto networking_module = engine.get_module<h2o::NetworkingModule>())
         {
-            networking_module->on_client_created.add_listener(m_on_client_created,
-                [](const h2o::ClientCreatedEvent& event)
+            networking_module->on_peer_created.add_listener(m_on_client_created,
+                [](const h2o::PeerCreatedEvent& event)
                 {
 //                    event.client.bind_on_received_message<h2o::TestMessage>(m_on);
                 });
@@ -59,7 +59,7 @@ namespace bluevoxel
 
     void BlueVoxelClientModule::cleanup()
     {
-        m_client.disconnect();
+        m_client.stop(true);
     }
 
     std::vector<std::type_index> BlueVoxelClientModule::dependencies() const
@@ -108,11 +108,11 @@ namespace bluevoxel
             if (ImGui::Button("Send packet"))
             {
                 h2o::TestMessage msg { "texte :))", 43843 };
-                m_client.send_message(msg);
+                m_client.send_message(0, msg);
             }
 
             if (ImGui::Button("Disconnect from Server"))
-                m_client.disconnect();
+                m_client.stop(true);
 
             ImGui::End();
             break;
