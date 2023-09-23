@@ -24,7 +24,7 @@ namespace h2o
         bool start(u16 port);
 
         // NetPeer interface
-        void stop(bool unregister_from_module) override;
+        void stop(bool unregister_from_module) final;
     protected:
         void send_message_raw(ClientID client_id, void* data, u32 size) const override;
         i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;

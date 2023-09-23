@@ -31,7 +31,7 @@ namespace h2o
         [[nodiscard]] bool is_connected() const { return m_connection_state == ConnectionState::Connected; }
 
         // NetPeer interface
-        void stop(bool unregister_from_module) override;
+        void stop(bool unregister_from_module) final;
     protected:
         void send_message_raw(ClientID client_id, void* data, u32 size) const override;
         i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;

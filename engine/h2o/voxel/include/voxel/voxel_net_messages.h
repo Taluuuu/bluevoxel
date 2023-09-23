@@ -3,8 +3,13 @@
 #include "networking/message_ids.h"
 #include "voxel/chunk_column.h"
 
+#include <bitsery/bitsery.h>
 #include <bitsery/brief_syntax.h>
+#include <bitsery/brief_syntax/array.h>
+#include <bitsery/brief_syntax/memory.h>
 #include <bitsery/brief_syntax/vector.h>
+#include <bitsery/ext/pointer.h>
+#include <memory>
 
 namespace h2o
 {
@@ -41,10 +46,12 @@ namespace h2o
 
     struct NetMsg_ChunkFetchResult
     {
-        ChunkColumn fetched_chunk;
+        ChunkColumn* fetched_chunk;
 
         template<typename S>
         void serialize(S& s)
-        { s(fetched_chunk); }
+        { s.ext(fetched_chunk, bitsery::ext::PointerObserver{}); }
+
+        static constexpr MsgID message_id = msg_ids::chunk_fetch_result;
     };
 }

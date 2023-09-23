@@ -108,7 +108,7 @@ namespace h2o
         template<typename S>
         void serialize(S& s)
         {
-            s(m_chunks, m_generation_stage, m_chunk_col_pos, m_is_initialized);
+            s(m_generation_stage);
         }
 
     private:

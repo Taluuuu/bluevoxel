@@ -25,14 +25,15 @@ namespace h2o
     {
         std::vector<ClientID> requesting_clients{};
         v2i chunk_col_pos{};
+        bool is_generating = false;
     };
 
     struct ChunkGenRequest
     {
-        ChunkRegion gen_region;
-        i32 gen_stage { 0 };
-        f32 distance { 0.0f };
         std::shared_ptr<ChunkFetchRequest> fetch_request{};
+        ChunkRegion gen_region;
+        i32 gen_stage = 0;
+        f32 distance = 0.0f;
 
         [[nodiscard]] bool operator<(const ChunkGenRequest& other) const
         { return distance < other.distance; }
@@ -50,9 +51,6 @@ namespace h2o
         void stop();
 
         [[nodiscard]] bool is_running() const;
-
-        void register_client(ClientID client_id);
-        void unregister_client(ClientID client_id);
 
         void set_chunk_generator(std::unique_ptr<ChunkGenerator_Base>&& chunk_generator);
 

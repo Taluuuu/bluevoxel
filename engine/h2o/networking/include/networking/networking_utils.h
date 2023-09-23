@@ -3,26 +3,32 @@
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/bitsery.h>
 #include <bitsery/brief_syntax.h>
+#include <bitsery/common.h>
+#include <bitsery/ext/pointer.h>
+#include <bitsery/ext/utils/pointer_utils.h>
 #include <bitsery/traits/vector.h>
-
 #include <vector>
 
 namespace h2o::net_utils
 {
     using Buffer = std::vector<u8>;
-    using InputAdapter = bitsery::InputBufferAdapter<Buffer>;
-    using OutputAdapter = bitsery::OutputBufferAdapter<Buffer>;
+    using Reader = bitsery::InputBufferAdapter<Buffer>;
+    using Writer = bitsery::OutputBufferAdapter<Buffer>;
 
     template<class MsgType>
     bool serialize(const MsgType& msg, Buffer& buffer)
     {
-        return bitsery::quickSerialization<OutputAdapter>(buffer, msg) > 0;
+        bitsery::ext::PointerLinkingContext ctx{};
+        size_t written_size = bitsery::quickSerialization(ctx, Writer { buffer }, msg);
+
+        assert(ctx.isValid());
+        return written_size > 0;
     }
 
     template<class MsgType>
     bool deserialize(const Buffer& buffer, MsgType& out_result)
     {
-        const auto [error, has_error] = bitsery::quickDeserialization<InputAdapter>(
+        const auto [error, has_error] = bitsery::quickDeserialization<Reader>(
             { buffer.begin(), buffer.size() }, out_result);
 
         return !has_error;
