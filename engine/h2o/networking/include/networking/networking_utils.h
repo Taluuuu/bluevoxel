@@ -28,9 +28,11 @@ namespace h2o::net_utils
     template<class MsgType>
     bool deserialize(const Buffer& buffer, MsgType& out_result)
     {
-        const auto [error, has_error] = bitsery::quickDeserialization<Reader>(
-            { buffer.begin(), buffer.size() }, out_result);
+        bitsery::ext::PointerLinkingContext ctx{};
+        const auto [error, has_error] = bitsery::quickDeserialization(
+            ctx, Reader { buffer.begin(), buffer.size() }, out_result);
 
+        assert(ctx.isValid());
         return !has_error;
     }
 }

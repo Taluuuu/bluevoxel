@@ -1,10 +1,10 @@
 #include "bluevoxel_server_module.h"
 
 #include "core/engine.h"
-#include "networking/message_ids.h"
 #include "networking/networking_module.h"
 #include "networking/networking_utils.h"
 #include "networking/test_message.h"
+#include "voxel/chunk_generators/chunk_generator_flat.h"
 #include "voxel_server/chunk_server.h"
 #include "voxel_server/voxel_server_module.h"
 
@@ -18,6 +18,7 @@ namespace bluevoxel
             return false;
 
         m_chunk_server = std::make_unique<h2o::ChunkServer>(m_server);
+        m_chunk_server->set_chunk_generator(std::make_unique<h2o::ChunkGenerator_Flat>());
         m_chunk_server->start();
 
         m_server.handle_message<h2o::TestMessage>(m_received_msg_handle,

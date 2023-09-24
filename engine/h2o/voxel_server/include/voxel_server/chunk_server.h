@@ -58,7 +58,7 @@ namespace h2o
 
         void run();
 
-        void request_chunk_loads();
+        void request_chunk_generations();
         void load_requested_chunks();
 
         void on_received_chunk_fetch_requests(

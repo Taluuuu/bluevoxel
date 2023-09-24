@@ -8,6 +8,7 @@ namespace h2o
     {
     public:
 
+        ChunkColumn() : ChunkColumn({ 0, 0 }) {}
         explicit ChunkColumn(v2i chunk_col_pos);
 
         void init(const VoxelModule& voxel_module);
@@ -108,7 +109,7 @@ namespace h2o
         template<typename S>
         void serialize(S& s)
         {
-            s(m_generation_stage);
+            s(m_chunks, m_generation_stage, m_chunk_col_pos);
         }
 
     private:

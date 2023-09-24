@@ -34,8 +34,10 @@ namespace h2o
         std::unordered_map<v2i, std::shared_ptr<ChunkColumn>> m_chunks{};
 
         Client* m_client = nullptr;
-        EventHandle m_on_connected_handle{};
         bool m_refresh_chunk_requests = false;
+
+        EventHandle m_on_connected_handle{};
+        EventHandle m_on_fetched_chunk_handle{};
 
         i32 m_view_distance = 5;
         i32 m_stay_loaded_distance = 3;

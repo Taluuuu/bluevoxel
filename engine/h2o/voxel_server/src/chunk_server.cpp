@@ -68,35 +68,12 @@ namespace h2o
 
         while (!m_should_stop)
         {
-            request_chunk_loads();
+            request_chunk_generations();
             load_requested_chunks();
         }
     }
 
-    static void process_load_request(
-        ClientID client_id,
-        v2i chunk_pos,
-        v2i client_pos,
-        i32 target_generation_level,
-        std::priority_queue<ChunkGenRequest>& gen_request_queue,
-        std::queue< std::shared_ptr<ChunkColumn> >& loaded_chunks,
-        ChunkManager& chunk_mgr)
-    {
-//        auto chunk_col = chunk_mgr.fetch_chunk_at(chunk_pos);
-//        if (chunk_col && chunk_col->is_generated())
-//        {
-//            loaded_chunks.push(chunk_col);
-//            return;
-//        }
-//
-//        const f32 distance = glm::length(v2(chunk_pos - client_pos));
-//        const ChunkRegion chunk_region { chunk_pos, chunk_mgr };
-//
-//        gen_request_queue.emplace(
-//            chunk_region, target_generation_level, distance, client_id);
-    }
-
-    void ChunkServer::request_chunk_loads()
+    void ChunkServer::request_chunk_generations()
     {
         assert(m_chunk_generator);
 
@@ -118,13 +95,14 @@ namespace h2o
 
                     if (auto chunk_col = m_chunk_mgr.fetch_chunk_at(chunk_col_pos))
                     {
-                        // Send chunk column to the clients
-                        // ...
+                        // Send chunk column to requesting clients
+                        if (chunk_col->is_generated())
+                        {
+                            for (ClientID client: clients)
+                                m_server->send_message(client, NetMsg_ChunkFetchResult { chunk_col });
 
-                        for (ClientID client : clients)
-                            m_server->send_message(client, NetMsg_ChunkFetchResult{ chunk_col.get() });
-
-                        return true;
+                            return true;
+                        }
                     }
 
                     gen_request_queue.emplace(
@@ -139,109 +117,71 @@ namespace h2o
                     return false;
                 }
             );
-
-//            for (const auto& fetch_request : m_chunk_fetch_requests)
-//            {
-//
-//            }
-
-//            std::lock_guard clients_lock { m_clients_mutex };
-//
-//            for (auto& [client_id, client]: m_clients)
-//            {
-//                assert(client);
-//
-//                std::lock_guard client_lock{client->mutex};
-//
-//                auto& input = client->input;
-//                auto& output = client->output;
-//                auto& load_requests = input.load_requests;
-//
-//                while (!load_requests.empty())
-//                {
-//                    process_load_request(
-//                        client_id,
-//                        load_requests.front(),
-//                        input.position,
-//                        gen_level,
-//                        gen_request_queue,
-//                        output.loaded_chunks,
-//                        m_chunk_mgr);
-//
-//                    load_requests.pop();
-//                }
-//            }
         }
 
         std::lock_guard gen_dequeue_lock { m_chunk_gen_dequeue_mutex };
         while (!gen_request_queue.empty())
+        {
             m_chunk_gen_deque.push_back(gen_request_queue.top());
+            gen_request_queue.pop();
+        }
     }
 
     void ChunkServer::load_requested_chunks()
     {
-//        auto voxel_module = g_engine->get_module<VoxelModule>();
-//        assert(voxel_module);
-//
-//        while (!chunk_gen_deque.empty())
-//        {
-//            auto& gen_request = chunk_gen_deque.front();
-//
-//            // Chunk columns that need to be generated up to gen_request.generation_stage - 1
-//            std::vector< std::shared_ptr<ChunkColumn> > chunk_cols_to_generate;
-//            chunk_cols_to_generate.reserve(9);
-//
-//            gen_request.gen_region.for_each_chunk_column(
-//                [&](const std::shared_ptr<ChunkColumn>& chunk_col) -> void
-//                {
-//                    assert(chunk_col);
-//                    if (chunk_col->generation_stage() < gen_request.gen_stage - 1)
-//                        chunk_cols_to_generate.push_back(chunk_col);
-//                }
-//            );
-//
-//            if (chunk_cols_to_generate.empty())
-//            {
-//                auto& chunk_col = gen_request.gen_region.center_chunk();
-//
-//                // Init the chunk just before starting generation
-//                if (!chunk_col->is_initialized())
-//                    chunk_col->init(*voxel_module);
-//
-//                // Gen request can be completed
-//                m_chunk_generator->run_generation_step(gen_request.gen_region);
-//
-//                if (chunk_col->is_generated())
-//                {
-////                    std::lock_guard clients_lock { m_clients_mutex };
-////
-////                    auto client_it = m_clients.find(gen_request.requester_id);
-////                    if (client_it != m_clients.end())
-////                    {
-////                        auto& client = client_it->second;
-////
-////                        std::lock_guard client_lock { client->mutex };
-////
-////                        client->output.loaded_chunks.push(chunk_col);
-////                    }
-//                }
-//
-////                chunk_gen_deque.pop_front();
-//            }
-//            else
-//            {
-////                for (const auto& chunk_col : chunk_cols_to_generate)
-////                {
-////                    const ChunkRegion gen_region { chunk_col->chunk_column_pos(), m_chunk_mgr };
-////
-////                    chunk_gen_deque.emplace_front(
-////                        gen_region,
-////                        gen_request.gen_stage - 1,
-////                        gen_request.distance,
-////                        gen_request.requester_id);
-////                }
-//            }
-//        }
+        auto voxel_module = g_engine->get_module<VoxelModule>();
+        assert(voxel_module);
+
+        std::lock_guard chunk_gen_deque_lock { m_chunk_gen_dequeue_mutex };
+
+        while (!m_chunk_gen_deque.empty())
+        {
+            auto& [fetch_request, gen_region, gen_stage, distance] = m_chunk_gen_deque.front();
+
+            // Chunk columns that need to be generated up to gen_request.generation_stage - 1
+            std::vector< std::shared_ptr<ChunkColumn> > chunk_cols_to_generate;
+            chunk_cols_to_generate.reserve(9);
+
+            gen_region.for_each_chunk_column(
+                [&](const std::shared_ptr<ChunkColumn>& chunk_col) -> void
+                {
+                    assert(chunk_col);
+                    if (chunk_col->generation_stage() < gen_stage - 1)
+                        chunk_cols_to_generate.push_back(chunk_col);
+                }
+            );
+
+            if (chunk_cols_to_generate.empty())
+            {
+                auto& chunk_col = gen_region.center_chunk();
+
+                // Init the chunk just before starting generation
+                if (!chunk_col->is_initialized())
+                    chunk_col->init(*voxel_module);
+
+                // Gen request can be completed
+                m_chunk_generator->run_generation_step(gen_region);
+
+                if (chunk_col->is_generated() && fetch_request)
+                {
+                    for (ClientID client : fetch_request->requesting_clients)
+                        m_server->send_message(client, NetMsg_ChunkFetchResult { chunk_col });
+                }
+
+                m_chunk_gen_deque.pop_front();
+            }
+            else
+            {
+                for (const auto& chunk_col : chunk_cols_to_generate)
+                {
+                    m_chunk_gen_deque.emplace_front(
+                        nullptr,
+                        ChunkRegion { chunk_col->chunk_column_pos(), m_chunk_mgr },
+                        gen_stage - 1,
+                        0.0f);
+                }
+            }
+        }
     }
 
     void ChunkServer::on_received_chunk_fetch_requests(

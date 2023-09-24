@@ -38,7 +38,7 @@ namespace h2o
             return false;
         }
 
-        set_tick_phases(TickPhase::Update);
+        start_polling_messages();
 
         return true;
     }
@@ -95,6 +95,7 @@ namespace h2o
         case k_ESteamNetworkingConnectionState_ClosedByPeer:
         case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
         {
+            stop(true);
             m_connection_state = ConnectionState::Disconnected;
 
             if (info.m_eOldState == k_ESteamNetworkingConnectionState_Connecting)

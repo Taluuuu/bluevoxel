@@ -20,15 +20,22 @@ namespace h2o
 
     struct Block
     {
-        u64 id   : 16 { 0 };
-        u64 data : 48 { 0 };
+        u16 id = 0;
+        u16 data_1 = 0;
+        u32 data_2 = 0;
 
-        Block(u64 id) : id{id}, data{0} {}
-        Block(u64 id, u64 data) : id{id}, data{data} {}
+        Block() : Block(0) {}
+        Block(u16 id) : id { id } {}
 
         static const Block Air;
 
         bool operator==(Block other) const
-        { return id == other.id && data == other.data; }
+        { return id == other.id && data_1 == other.data_1 && data_2 == other.data_2; }
+
+        template<typename S>
+        void serialize(S& s)
+        {
+            s(id, data_1, data_2);
+        }
     };
 }

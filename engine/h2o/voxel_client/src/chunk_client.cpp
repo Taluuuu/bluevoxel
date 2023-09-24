@@ -20,6 +20,13 @@ namespace h2o
                 m_refresh_chunk_requests = true;
             }
         );
+
+        m_client->handle_message<NetMsg_ChunkFetchResult>(m_on_fetched_chunk_handle,
+            [&](ClientID client_id, const NetMsg_ChunkFetchResult& chunk_fetch_result)
+            {
+                log::info("RECEIVED CHUNK COLUMN :))))");
+            }
+        );
     }
 
     void ChunkClient::update(f32 delta_time)

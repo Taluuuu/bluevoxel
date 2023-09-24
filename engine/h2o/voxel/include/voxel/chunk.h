@@ -40,7 +40,7 @@ namespace h2o
         template<typename S>
         void serialize(S& s)
         {
-            s(m_blocks, m_blocks_to_tick, m_chunk_pos, m_is_empty);
+            s(m_blocks, m_is_empty);
         }
 
     private:

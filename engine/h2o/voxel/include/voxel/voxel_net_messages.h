@@ -9,33 +9,14 @@
 #include <bitsery/brief_syntax/memory.h>
 #include <bitsery/brief_syntax/vector.h>
 #include <bitsery/ext/pointer.h>
+#include <bitsery/ext/compact_value.h>
 #include <memory>
 
 namespace h2o
 {
-    struct ChunkColPos
-    {
-        i32 x{}, z{};
-
-        ChunkColPos() = default;
-
-        ChunkColPos(i32 x, i32 z)
-            : x { x }, z { z } {}
-
-        ChunkColPos(v2i chunk_col_pos)
-            : x { chunk_col_pos.x }, z { chunk_col_pos.y } {}
-
-        operator v2i() const
-        { return { x, z }; }
-
-        template<typename S>
-        void serialize(S& s)
-        { s(x, z); }
-    };
-
     struct NetMsg_ChunkFetchRequest
     {
-        std::vector<ChunkColPos> requested_chunks{};
+        std::vector<v2i> requested_chunks{};
 
         template<typename S>
         void serialize(S& s)
@@ -46,12 +27,23 @@ namespace h2o
 
     struct NetMsg_ChunkFetchResult
     {
-        ChunkColumn* fetched_chunk;
+        std::shared_ptr<ChunkColumn> fetched_chunk;
 
         template<typename S>
         void serialize(S& s)
-        { s.ext(fetched_chunk, bitsery::ext::PointerObserver{}); }
+        { s.ext(fetched_chunk, bitsery::ext::StdSmartPtr{}); }
 
         static constexpr MsgID message_id = msg_ids::chunk_fetch_result;
     };
+}
+
+namespace glm
+{
+    template<typename S>
+    void serialize(S& s, v2i& o)
+    { s(o.x, o.y); }
+
+    template<typename S>
+    void serialize(S& s, v3i& o)
+    { s(o.x, o.y, o.z); }
 }

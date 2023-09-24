@@ -2,5 +2,5 @@
 
 namespace h2o
 {
-    const Block Block::Air { 0, 0 };
+    const Block Block::Air { 0 };
 }
