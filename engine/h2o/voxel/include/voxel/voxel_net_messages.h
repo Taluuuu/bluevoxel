@@ -8,8 +8,9 @@
 #include <bitsery/brief_syntax/array.h>
 #include <bitsery/brief_syntax/memory.h>
 #include <bitsery/brief_syntax/vector.h>
-#include <bitsery/ext/pointer.h>
 #include <bitsery/ext/compact_value.h>
+#include <bitsery/ext/entropy.h>
+#include <bitsery/ext/pointer.h>
 #include <memory>
 
 namespace h2o
@@ -37,7 +38,7 @@ namespace h2o
     };
 }
 
-namespace glm
+namespace bitsery
 {
     template<typename S>
     void serialize(S& s, v2i& o)

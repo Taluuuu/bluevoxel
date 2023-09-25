@@ -4,6 +4,7 @@
 #include <bitsery/bitsery.h>
 #include <bitsery/brief_syntax.h>
 #include <bitsery/common.h>
+#include <bitsery/ext/entropy.h>
 #include <bitsery/ext/pointer.h>
 #include <bitsery/ext/utils/pointer_utils.h>
 #include <bitsery/traits/vector.h>

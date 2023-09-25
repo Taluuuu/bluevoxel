@@ -5,6 +5,7 @@
 #include "core/types.h"
 #include "voxel/voxel_constants.h"
 
+#include <bitsery/ext/entropy.h>
 #include <iterator>
 #include <set>
 #include <vector>
@@ -40,7 +41,17 @@ namespace h2o
         template<typename S>
         void serialize(S& s)
         {
-            s(m_blocks, m_is_empty);
+            s.enableBitPacking([&](typename S::BPEnabledType& sbp) {
+                sbp.container(m_blocks, m_blocks.size(), [&](typename S::BPEnabledType& sbp, Block& block) {
+                    bitsery::ext::Entropy entropy { m_blocks };
+                    sbp.ext(block, entropy);
+//                    sbp.ext(vec3.x, range);
+//                    sbp.ext(vec3.y, range);
+//                    sbp.ext(vec3.z, range);
+                });
+            });
+
+            s(m_is_empty);
         }
 
     private:
