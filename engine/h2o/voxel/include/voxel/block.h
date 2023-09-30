@@ -20,8 +20,7 @@ namespace h2o
 
     struct Block
     {
-        u16 id = 0;
-        u16 data[3];
+        u64 id{};
 
         Block() : Block(0) {}
         Block(u16 id) : id { id } {}
@@ -30,12 +29,13 @@ namespace h2o
 
         bool operator==(Block other) const
         {
-            return id == other.id && data == other.data }
+            return id == other.id;
+        }
 
         template<typename S>
         void serialize(S& s)
         {
-            s(id, data_1, data_2, data_3);
+            s(id);
         }
     };
 }

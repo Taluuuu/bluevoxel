@@ -89,4 +89,61 @@ namespace h2o
                 block, *this, to_local_block_pos(i32(block_idx)));
         }
     }
+
+    CompressedChunk Chunk::compress() const
+    {
+        assert(!m_blocks.empty());
+
+        CompressedChunk result{};
+        CompressedChunk::BlockCountPair current_pair { m_blocks[0], 1 };
+
+        for (size_t i = 1; i < voxel_constants::chunk_volume; i++)
+        {
+            if (current_pair.block == m_blocks[i])
+            {
+                current_pair.count++;
+            }
+            else
+            {
+                result.blocks.push_back(current_pair);
+                current_pair = { m_blocks[i], 1 };
+            }
+        }
+
+        result.blocks.push_back(current_pair);
+
+        return result;
+    }
+
+    void Chunk::decompress(const CompressedChunk& compressed_chunk)
+    {
+        assert(!m_blocks.empty());
+        size_t compressed_idx = 0;
+
+        auto get_next_block_count_pair =
+            [&compressed_idx, &compressed_chunk]() -> const CompressedChunk::BlockCountPair*
+            {
+                if (compressed_idx < compressed_chunk.blocks.size())
+                    return &compressed_chunk.blocks[compressed_idx++];
+
+                return nullptr;
+            };
+
+        CompressedChunk::BlockCountPair current_pair { Block::Air, 0 };
+
+        for (size_t i = 0; i < voxel_constants::chunk_volume; i++)
+        {
+            while (current_pair.count == 0)
+            {
+                auto block_count_pair = get_next_block_count_pair();
+
+                if (!block_count_pair)
+                    return; // Failure
+
+                current_pair = *block_count_pair;
+            }
+
+            m_blocks[i] = current_pair.block;
+        }
+    }
 }

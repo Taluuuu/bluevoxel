@@ -95,12 +95,9 @@ namespace h2o
 
                     if (auto chunk_col = m_chunk_mgr.fetch_chunk_at(chunk_col_pos))
                     {
-                        // Send chunk column to requesting clients
                         if (chunk_col->is_generated())
                         {
-                            for (ClientID client: clients)
-                                m_server->send_message(client, NetMsg_ChunkFetchResult { chunk_col });
-
+                            send_chunk_column(*chunk_col, clients);
                             return true;
                         }
                     }
@@ -163,10 +160,7 @@ namespace h2o
                 m_chunk_generator->run_generation_step(gen_region);
 
                 if (chunk_col->is_generated() && fetch_request)
-                {
-                    for (ClientID client : fetch_request->requesting_clients)
-                        m_server->send_message(client, NetMsg_ChunkFetchResult { chunk_col });
-                }
+                    send_chunk_column(*chunk_col, { fetch_request->requesting_clients });
 
                 m_chunk_gen_deque.pop_front();
             }
@@ -217,5 +211,18 @@ namespace h2o
             const ChunkFetchRequest new_fetch_request{ { client_id }, requested_chunk };
             m_chunk_fetch_requests.push_back(std::make_shared<ChunkFetchRequest>(new_fetch_request));
         }
+    }
+
+    void ChunkServer::send_chunk_column(ChunkColumn& chunk_col, const std::vector<ClientID>& client_ids) const
+    {
+        // Send chunk column to requesting clients
+        std::vector<CompressedChunk> compressed_chunks{};
+        compressed_chunks.reserve(voxel_constants::vertical_chunk_count);
+
+        for (const auto& chunk : chunk_col)
+            compressed_chunks.push_back(chunk.compress());
+
+        for (ClientID client: client_ids)
+            m_server->send_message(client, NetMsg_ChunkFetchResult { compressed_chunks });
     }
 }

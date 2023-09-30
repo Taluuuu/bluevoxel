@@ -65,6 +65,9 @@ namespace h2o
             ClientID client_id,
             const NetMsg_ChunkFetchRequest& chunk_fetch_request);
 
+        // TODO: chunk_col sould be const
+        void send_chunk_column(ChunkColumn& chunk_col, const std::vector<ClientID>& client_ids) const;
+
     private:
 
         // Networking

@@ -106,12 +106,6 @@ namespace h2o
             return {*this, voxel_constants::vertical_chunk_count};
         }
 
-        template<typename S>
-        void serialize(S& s)
-        {
-            s(m_chunks, m_generation_stage, m_chunk_col_pos);
-        }
-
     private:
 
         std::array<Chunk, voxel_constants::vertical_chunk_count> m_chunks{};

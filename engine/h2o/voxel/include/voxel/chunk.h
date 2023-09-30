@@ -4,8 +4,8 @@
 #include "core/handle_types.h"
 #include "core/types.h"
 #include "voxel/voxel_constants.h"
+#include "voxel/voxel_module.h"
 
-#include <bitsery/ext/entropy.h>
 #include <iterator>
 #include <set>
 #include <vector>
@@ -14,6 +14,32 @@ namespace h2o
 {
     class ChunkSystem;
     class VoxelModule;
+
+    struct CompressedChunk
+    {
+        struct BlockCountPair
+        {
+            Block block = Block::Air;
+            u32 count = 0;
+        };
+
+        std::vector<BlockCountPair> blocks;
+        v3i chunk_pos;
+
+        template<typename S>
+        void serialize(S& s)
+        {
+            s.container(blocks, voxel_constants::chunk_volume,
+                [](S& s, BlockCountPair& block_count_pair)
+                {
+                    s(block_count_pair.block);
+                    s(block_count_pair.count);
+                }
+            );
+
+            s(chunk_pos);
+        }
+    };
 
     class Chunk
     {
@@ -38,21 +64,8 @@ namespace h2o
                 local_pos.z >= 0 && local_pos.z < voxel_constants::chunk_size;
         }
 
-        template<typename S>
-        void serialize(S& s)
-        {
-            s.enableBitPacking([&](typename S::BPEnabledType& sbp) {
-                sbp.container(m_blocks, m_blocks.size(), [&](typename S::BPEnabledType& sbp, Block& block) {
-                    bitsery::ext::Entropy entropy { m_blocks };
-                    sbp.ext(block, entropy);
-//                    sbp.ext(vec3.x, range);
-//                    sbp.ext(vec3.y, range);
-//                    sbp.ext(vec3.z, range);
-                });
-            });
-
-            s(m_is_empty);
-        }
+        [[nodiscard]] CompressedChunk compress() const;
+        void decompress(const CompressedChunk& compressed_chunk);
 
     private:
 

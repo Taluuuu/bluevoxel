@@ -28,11 +28,11 @@ namespace h2o
 
     struct NetMsg_ChunkFetchResult
     {
-        std::shared_ptr<ChunkColumn> fetched_chunk;
+        std::vector<CompressedChunk> compressed_chunks;
 
         template<typename S>
         void serialize(S& s)
-        { s.ext(fetched_chunk, bitsery::ext::StdSmartPtr{}); }
+        { s(compressed_chunks); }
 
         static constexpr MsgID message_id = msg_ids::chunk_fetch_result;
     };
