@@ -1,5 +1,6 @@
 #include "voxel_client/chunk_client.h"
 
+#include "core/engine.h"
 #include "scene/scene.h"
 #include "voxel/voxel_net_messages.h"
 #include "voxel/voxel_utils.h"
@@ -12,7 +13,10 @@ namespace h2o
         : SceneSystem(system_initializer)
         , m_client(&client)
     {
-        set_tick_phases(Update);
+        set_tick_phases(TickPhase_Update | TickPhase_Render);
+
+        auto voxel_module = g_engine->get_module<VoxelModule>();
+        assert(voxel_module);
 
         m_client->on_connected_to_server.add_listener(m_on_connected_handle,
             [&](const Client::OnConnectedEvent& on_connected_event)
@@ -22,9 +26,22 @@ namespace h2o
         );
 
         m_client->handle_message<NetMsg_ChunkFetchResult>(m_on_fetched_chunk_handle,
-            [&](ClientID client_id, const NetMsg_ChunkFetchResult& chunk_fetch_result)
+            [&, voxel_module](ClientID client_id, const NetMsg_ChunkFetchResult& chunk_fetch_result)
             {
-                log::info("RECEIVED CHUNK COLUMN :))))");
+                auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
+
+                if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
+                    return;
+
+                auto chunk_column = std::make_shared<ChunkColumn>(chunk_pos);
+                for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
+                {
+                    auto& chunk = (*chunk_column)[i];
+                    chunk.init(*voxel_module);
+                    chunk.decompress(compressed_chunks[i]);
+                }
+
+                m_chunks.find()
             }
         );
     }
@@ -69,7 +86,7 @@ namespace h2o
             if (it != m_chunks.end())
                 continue;
 
-            m_chunks[chunk_pos] = nullptr;
+            m_chunks[chunk_pos] = ChunkData { nullptr, 0 };
             chunk_fetch_request.requested_chunks.push_back(chunk_pos);
         }
 

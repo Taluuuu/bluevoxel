@@ -34,7 +34,7 @@ namespace h2o
             }
         );
 
-        set_tick_phases(TickPhase::Update);
+        set_tick_phases(TickPhase::TickPhase_Update);
     }
 
     void ChunkRenderingRegion::update(f32 delta_time)

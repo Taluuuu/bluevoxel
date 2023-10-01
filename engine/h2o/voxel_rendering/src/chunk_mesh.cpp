@@ -94,7 +94,7 @@ namespace h2o
 
                 if (Chunk* adj_chunk = adjacent_chunks[direction])
                 {
-                    const v3i pos_in_chunk = block_pos_to_within_chunk(adj_pos);
+                    const v3i pos_in_chunk = voxel_utils::block_pos_to_within_chunk(adj_pos);
                     return adj_chunk->get_block_at(pos_in_chunk);
                 }
 

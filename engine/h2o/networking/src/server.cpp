@@ -20,10 +20,11 @@ namespace h2o
         server_local_addr.Clear();
         server_local_addr.m_port = port;
 
-        SteamNetworkingConfigValue_t opt{};
-        opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)connection_status_changed_callback);
+        std::array<SteamNetworkingConfigValue_t, 2> opts;
+        opts[0].SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)connection_status_changed_callback);
+        opts[1].SetInt32(k_ESteamNetworkingConfig_SendBufferSize, 10*1024*1024);
 
-        m_listen_socket = m_interface->CreateListenSocketIP(server_local_addr, 1, &opt);
+        m_listen_socket = m_interface->CreateListenSocketIP(server_local_addr, opts.size(), opts.data());
         if (m_listen_socket == k_HSteamListenSocket_Invalid)
         {
             log::error("Failed to listen on port {}", port);
@@ -40,7 +41,7 @@ namespace h2o
         log::info("Server listening on port {}", port);
         m_is_active = true;
 
-        set_tick_phases(TickPhase::Update);
+        set_tick_phases(TickPhase::TickPhase_Update);
 
         return true;
     }

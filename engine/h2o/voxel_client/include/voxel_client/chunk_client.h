@@ -2,6 +2,7 @@
 
 #include "networking/client.h"
 #include "scene/scene_system.h"
+#include "voxel_rendering/chunk_mesh.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -30,8 +31,21 @@ namespace h2o
 
     private:
 
+        struct ChunkData
+        {
+            std::shared_ptr<ChunkColumn> chunk_column = nullptr;
+            size_t chunk_mesh_index = 0;
+        };
+
+        struct ChunkMeshData
+        {
+            ChunkMesh chunk_mesh{};
+            bool can_be_remeshed = true;
+        };
+
         // If there is an entry in the map, the chunk has been requested.
-        std::unordered_map<v2i, std::shared_ptr<ChunkColumn>> m_chunks{};
+        std::unordered_map<v2i, ChunkData> m_chunks{};
+        std::vector<ChunkMeshData> m_chunk_mesh_pool{};
 
         Client* m_client = nullptr;
         bool m_refresh_chunk_requests = false;

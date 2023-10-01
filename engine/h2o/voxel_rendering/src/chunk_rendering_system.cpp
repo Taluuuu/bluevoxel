@@ -46,7 +46,7 @@ namespace h2o
                 m_last_player_chunk = { event.new_chunk_pos.x, event.new_chunk_pos.z };
             });
 
-        set_tick_phases(Update | Render);
+        set_tick_phases(TickPhase_Update | TickPhase_Render);
     }
 
     void ChunkRenderingSystem::update(f32 delta_time)

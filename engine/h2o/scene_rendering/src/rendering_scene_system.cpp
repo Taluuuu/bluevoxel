@@ -45,7 +45,7 @@ namespace h2o
             .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/opengl/triangle.frag")
             .compile();
 
-        set_tick_phases(Render);
+        set_tick_phases(TickPhase_Render);
     }
 
     RenderingSystem::~RenderingSystem()

@@ -23,7 +23,7 @@ namespace h2o
         flat_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
         m_chunk_generator = std::move(flat_generator);
 
-        set_tick_phases(Update);
+        set_tick_phases(TickPhase_Update);
     }
 
     bool ChunkSystem::init()

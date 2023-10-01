@@ -223,6 +223,14 @@ namespace h2o
             compressed_chunks.push_back(chunk.compress());
 
         for (ClientID client: client_ids)
-            m_server->send_message(client, NetMsg_ChunkFetchResult { compressed_chunks });
+        {
+            m_server->send_message(client,
+                NetMsg_ChunkFetchResult
+                {
+                    compressed_chunks,
+                    chunk_col.chunk_column_pos()
+                }
+            );
+        }
     }
 }

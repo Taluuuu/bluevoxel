@@ -21,7 +21,7 @@ namespace bluevoxel
 {
     bool BlueVoxelClientModule::init(h2o::Engine& engine)
     {
-        set_tick_phases(h2o::Update);
+        set_tick_phases(h2o::TickPhase_Update);
 
         if (const auto networking_module = engine.get_module<h2o::NetworkingModule>())
         {

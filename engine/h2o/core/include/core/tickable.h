@@ -8,12 +8,12 @@ namespace h2o
 {
     enum TickPhase : u32
     {
-        FrameStart = 1 << 0,
-        Update     = 1 << 1,
-        PreRender  = 1 << 2,
-        Render     = 1 << 3,
-        PostRender = 1 << 4,
-        FrameEnd   = 1 << 5,
+        TickPhase_FrameStart = 1 << 0,
+        TickPhase_Update     = 1 << 1,
+        TickPhase_PreRender  = 1 << 2,
+        TickPhase_Render     = 1 << 3,
+        TickPhase_PostRender = 1 << 4,
+        TickPhase_FrameEnd   = 1 << 5,
     };
 
     inline constexpr TickPhase operator<<(TickPhase phase, int shift)

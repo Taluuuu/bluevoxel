@@ -15,7 +15,7 @@ namespace h2o
 
         m_input = add_component<InputComponent>();
 
-        set_tick_phases(Update);
+        set_tick_phases(TickPhase_Update);
     }
 
     void FpsCharacterActor::update(f32 delta_time)

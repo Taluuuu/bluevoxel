@@ -28,7 +28,9 @@ namespace h2o
 
     struct NetMsg_ChunkFetchResult
     {
-        std::vector<CompressedChunk> compressed_chunks;
+        std::vector<CompressedChunk> compressed_chunks{};
+
+        v2i chunk_pos{};
 
         template<typename S>
         void serialize(S& s)
