@@ -1,6 +1,7 @@
 #include "voxel_client/chunk_client.h"
 
 #include "core/engine.h"
+#include "rendering/rendering_module.h"
 #include "scene/scene.h"
 #include "voxel/voxel_net_messages.h"
 #include "voxel/voxel_utils.h"
@@ -18,6 +19,9 @@ namespace h2o
         auto voxel_module = g_engine->get_module<VoxelModule>();
         assert(voxel_module);
 
+        auto rendering_module = g_engine->get_module<RenderingModule>();
+        assert(rendering_module);
+
         m_client->on_connected_to_server.add_listener(m_on_connected_handle,
             [&](const Client::OnConnectedEvent& on_connected_event)
             {
@@ -30,6 +34,9 @@ namespace h2o
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
+                if (!is_in_range(chunk_pos))
+                    return;
+
                 if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
                     return;
 
@@ -41,7 +48,12 @@ namespace h2o
                     chunk.decompress(compressed_chunks[i]);
                 }
 
-                m_chunks.find()
+                // Reserve a chunk mesh, as this chunk is in range.
+                auto [chunk_mesh, mesh_index] = find_available_chunk_mesh();
+                m_chunks[chunk_pos] = { chunk_column, mesh_index };
+                chunk_mesh.is_available = false;
+
+                chunk_mesh.chunk_mesh.init(*voxel_rendering_module, renderer, );
             }
         );
     }
@@ -71,6 +83,33 @@ namespace h2o
         m_refresh_chunk_requests = false;
     }
 
+    void ChunkClient::render(f32 delta_time)
+    {
+
+        for (const auto& [chunk_mesh_column, _] : m_chunk_mesh_pool)
+        {
+            for (const auto& chunk_mesh : chunk_mesh_column)
+            {
+                if (chunk_mesh.is_ready())
+                {
+
+    //                chunk_mesh
+                }
+            }
+        }
+    }
+
+    bool ChunkClient::is_in_range(v2i chunk_pos) const
+    {
+        const i32 valid_dist = m_view_distance + m_stay_loaded_distance;
+        const v2i min = m_previous_player_chunk_col_pos - v2i { valid_dist, valid_dist };
+        const v2i max = m_previous_player_chunk_col_pos + v2i { valid_dist, valid_dist };
+
+        return
+            chunk_pos.x < min.x || chunk_pos.x > max.x ||
+            chunk_pos.y < min.y || chunk_pos.y > max.y;
+    }
+
     void ChunkClient::request_chunk_loads()
     {
         NetMsg_ChunkFetchRequest chunk_fetch_request{};
@@ -95,18 +134,25 @@ namespace h2o
 
     void ChunkClient::trim_far_chunks()
     {
-        const i32 valid_dist = m_view_distance + m_stay_loaded_distance;
-        const v2i min = m_previous_player_chunk_col_pos - v2i{ valid_dist, valid_dist };
-        const v2i max = m_previous_player_chunk_col_pos + v2i{ valid_dist, valid_dist };
-
         erase_if(m_chunks,
-            [min, max](const auto& item) -> bool
+            [&](const auto& item) -> bool
             {
-                const v2i chunk_col_pos = item.first;
-                return
-                    chunk_col_pos.x < min.x || chunk_col_pos.x > max.x ||
-                    chunk_col_pos.y < min.y || chunk_col_pos.y > max.y;
+                return !is_in_range(item.first);
             }
         );
+    }
+
+    std::pair<ChunkClient::ChunkMeshData&, size_t> ChunkClient::find_available_chunk_mesh()
+    {
+        size_t index = 0;
+        for (; index < m_chunk_mesh_pool.size(); index++)
+        {
+            auto& val = m_chunk_mesh_pool[index];
+            if (val.is_available)
+                return { val, index };
+        }
+
+        auto& val = m_chunk_mesh_pool.emplace_back();
+        return { val, index };
     }
 }

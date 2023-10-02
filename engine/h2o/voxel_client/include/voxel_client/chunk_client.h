@@ -2,6 +2,7 @@
 
 #include "networking/client.h"
 #include "scene/scene_system.h"
+#include "voxel/voxel_constants.h"
 #include "voxel_rendering/chunk_mesh.h"
 
 #include <glm/gtx/hash.hpp>
@@ -23,25 +24,29 @@ namespace h2o
 
         // Tickable interface
         void update(f32 delta_time) override;
+        void render(f32 delta_time) override;
 
     private:
 
         void request_chunk_loads();
         void trim_far_chunks();
 
-    private:
-
         struct ChunkData
         {
             std::shared_ptr<ChunkColumn> chunk_column = nullptr;
-            size_t chunk_mesh_index = 0;
+            std::vector<size_t> chunk_mesh_indices{};
         };
 
         struct ChunkMeshData
         {
             ChunkMesh chunk_mesh{};
-            bool can_be_remeshed = true;
+            bool is_available = true;
         };
+
+        [[nodiscard]] bool is_in_range(v2i chunk_pos) const;
+        [[nodiscard]] std::pair<ChunkMeshData&, size_t> find_available_chunk_mesh();
+
+    private:
 
         // If there is an entry in the map, the chunk has been requested.
         std::unordered_map<v2i, ChunkData> m_chunks{};
