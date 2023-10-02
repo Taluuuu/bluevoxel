@@ -178,8 +178,7 @@ namespace h2o
         {
             chunk_mesh.init(
                 *m_voxel_rendering_module,
-                *m_renderer,
-                { chunk_col_pos.x, i++, chunk_col_pos.y });
+                *m_renderer);
         }
 
         return new_column;

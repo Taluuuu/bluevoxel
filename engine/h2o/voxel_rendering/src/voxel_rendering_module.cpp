@@ -197,8 +197,8 @@ namespace h2o
         // Create rendering pipeline
         m_pipeline = renderer
             .create_pipeline()
-            .add_shader(gfx::ShaderStage::Vertex,   "Resources/engine/shaders/opengl/chunk.vert")
-            .add_shader(gfx::ShaderStage::Fragment, "Resources/engine/shaders/opengl/chunk.frag")
+            .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/opengl/chunk.vert")
+            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/opengl/chunk.frag")
             .compile();
 
         if (!m_pipeline)

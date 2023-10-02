@@ -42,7 +42,17 @@ namespace h2o
          * @return A pointer to the module or nullptr if it was not found
          */
         template<typename T>
-        T* get_module() const;
+        [[nodiscard]] T* get_module() const;
+
+        /**
+         * @brief Get the module of type T if it was correctly initialized.
+         *        Asserts that the module is valid.
+         *
+         * @tparam T The module's type
+         * @return A reference to the module
+         */
+        template<typename T>
+        [[nodiscard]] T& get_module_checked() const;
 
         [[nodiscard]] const GameInfo& game_info() const { return m_game_info; }
         [[nodiscard]] ResourceManager& resource_mgr() { return m_resource_mgr; }
@@ -112,6 +122,15 @@ namespace h2o
             return nullptr;
 
         return dynamic_cast<T*>(it->second);
+    }
+
+    template<typename T>
+    T& Engine::get_module_checked() const
+    {
+        T* module = get_module<T>();
+        assert(module != nullptr);
+
+        return *module;
     }
 }
 

@@ -3,7 +3,6 @@
 #include "core/engine.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "input/input_module.h"
-#include "networking/networking_module.h"
 #include "networking/test_message.h"
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
@@ -22,15 +21,6 @@ namespace bluevoxel
     bool BlueVoxelClientModule::init(h2o::Engine& engine)
     {
         set_tick_phases(h2o::TickPhase_Update);
-
-        if (const auto networking_module = engine.get_module<h2o::NetworkingModule>())
-        {
-            networking_module->on_peer_created.add_listener(m_on_client_created,
-                [](const h2o::PeerCreatedEvent& event)
-                {
-//                    event.client.bind_on_received_message<h2o::TestMessage>(m_on);
-                });
-        }
 
         // Input setup
         auto input_module = engine.get_module<h2o::InputModule>();

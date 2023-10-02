@@ -27,8 +27,7 @@ namespace h2o
 
         void init(
             const VoxelRenderingModule& voxel_rendering_module,
-            gfx::IRenderer& renderer,
-            const v3i& chunk_pos);
+            gfx::IRenderer& renderer);
 
         void update(
             const Chunk& chunk,

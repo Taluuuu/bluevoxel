@@ -36,12 +36,9 @@ namespace h2o
 
     void ChunkMesh::init(
         const VoxelRenderingModule& voxel_rendering_module,
-        gfx::IRenderer& renderer,
-        const v3i& chunk_pos)
+        gfx::IRenderer& renderer)
     {
         assert(!m_vertex_array && !m_buffer);
-
-        m_chunk_pos = chunk_pos;
 
         m_vertex_array = renderer.create_vertex_array();
         m_buffer = renderer.create_buffer();
@@ -56,6 +53,8 @@ namespace h2o
         assert(m_vertex_array);
         assert(m_buffer);
         assert(m_voxel_rendering_module);
+
+        m_chunk_pos = chunk.chunk_pos();
 
         // TODO: Investigate the possibility of storing an array of u8 describing adjacent faces
         //       that need to be added to the mesh. This array could be updated when we edit blocks

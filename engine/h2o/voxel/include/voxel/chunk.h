@@ -69,6 +69,8 @@ namespace h2o
 
     private:
 
+        void set_block_at(size_t index, Block block);
+
         [[nodiscard]] bool is_initialized() const { return !m_blocks.empty(); }
 
     private:

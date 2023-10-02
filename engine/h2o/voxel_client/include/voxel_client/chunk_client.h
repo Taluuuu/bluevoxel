@@ -12,6 +12,9 @@
 namespace h2o
 {
     class ChunkColumn;
+    class RenderingModule;
+    class VoxelRenderingModule;
+    class VoxelModule;
 
     class ChunkClient : public SceneSystem
     {
@@ -49,7 +52,7 @@ namespace h2o
     private:
 
         // If there is an entry in the map, the chunk has been requested.
-        std::unordered_map<v2i, ChunkData> m_chunks{};
+        std::unordered_map<v2i, ChunkData> m_chunk_columns{};
         std::vector<ChunkMeshData> m_chunk_mesh_pool{};
 
         Client* m_client = nullptr;
@@ -62,6 +65,10 @@ namespace h2o
         i32 m_stay_loaded_distance = 3;
 
         v2i m_previous_player_chunk_col_pos{};
+
+        RenderingModule*      m_rendering_module       = nullptr;
+        VoxelModule*          m_voxel_module           = nullptr;
+        VoxelRenderingModule* m_voxel_rendering_module = nullptr;
 
     };
 }

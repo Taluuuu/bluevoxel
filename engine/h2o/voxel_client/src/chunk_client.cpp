@@ -1,10 +1,16 @@
 #include "voxel_client/chunk_client.h"
 
 #include "core/engine.h"
+#include "rendering/camera.h"
+#include "rendering/pipeline.h"
+#include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
+#include "rendering/texture_array.h"
 #include "scene/scene.h"
+#include "scene_rendering/rendering_scene_system.h"
 #include "voxel/voxel_net_messages.h"
 #include "voxel/voxel_utils.h"
+#include "voxel_rendering/voxel_rendering_module.h"
 
 namespace h2o
 {
@@ -16,11 +22,9 @@ namespace h2o
     {
         set_tick_phases(TickPhase_Update | TickPhase_Render);
 
-        auto voxel_module = g_engine->get_module<VoxelModule>();
-        assert(voxel_module);
-
-        auto rendering_module = g_engine->get_module<RenderingModule>();
-        assert(rendering_module);
+        m_rendering_module       = &g_engine->get_module_checked<RenderingModule>();
+        m_voxel_module           = &g_engine->get_module_checked<VoxelModule>();
+        m_voxel_rendering_module = &g_engine->get_module_checked<VoxelRenderingModule>();
 
         m_client->on_connected_to_server.add_listener(m_on_connected_handle,
             [&](const Client::OnConnectedEvent& on_connected_event)
@@ -30,7 +34,7 @@ namespace h2o
         );
 
         m_client->handle_message<NetMsg_ChunkFetchResult>(m_on_fetched_chunk_handle,
-            [&, voxel_module](ClientID client_id, const NetMsg_ChunkFetchResult& chunk_fetch_result)
+            [&](ClientID client_id, const NetMsg_ChunkFetchResult& chunk_fetch_result)
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
@@ -41,19 +45,29 @@ namespace h2o
                     return;
 
                 auto chunk_column = std::make_shared<ChunkColumn>(chunk_pos);
+                std::vector<size_t> mesh_indices{}; // The indices of chunk meshes into the mesh pool
                 for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
                 {
                     auto& chunk = (*chunk_column)[i];
-                    chunk.init(*voxel_module);
+                    chunk.init(*m_voxel_module);
                     chunk.decompress(compressed_chunks[i]);
+
+                    if (!chunk.is_empty())
+                    {
+                        // Reserve a chunk mesh, as this chunk is in range.
+                        auto [chunk_mesh, mesh_index] = find_available_chunk_mesh();
+                        chunk_mesh.is_available = false;
+
+                        mesh_indices.push_back(mesh_index);
+                        chunk_mesh.chunk_mesh.init(
+                            *m_voxel_rendering_module,
+                            m_rendering_module->renderer());
+
+                        chunk_mesh.chunk_mesh.update(chunk, {});
+                    }
                 }
 
-                // Reserve a chunk mesh, as this chunk is in range.
-                auto [chunk_mesh, mesh_index] = find_available_chunk_mesh();
-                m_chunks[chunk_pos] = { chunk_column, mesh_index };
-                chunk_mesh.is_available = false;
-
-                chunk_mesh.chunk_mesh.init(*voxel_rendering_module, renderer, );
+                m_chunk_columns[chunk_pos] = { chunk_column, mesh_indices };
             }
         );
     }
@@ -85,16 +99,33 @@ namespace h2o
 
     void ChunkClient::render(f32 delta_time)
     {
+        auto render_system = m_scene->get_system<RenderingSystem>();
+        if (!render_system)
+            return;
 
-        for (const auto& [chunk_mesh_column, _] : m_chunk_mesh_pool)
+        const auto& camera = render_system->main_camera();
+        if (!camera)
+            return;
+
+        const auto& pipeline = m_voxel_rendering_module->pipeline();
+        const auto& block_textures = m_voxel_rendering_module->block_textures();
+
+        auto& renderer = m_rendering_module->renderer();
+        renderer.bind_pipeline(pipeline);
+
+        // TODO: Baddd
+        const m4 proj_view = camera->calc_proj_view();
+        pipeline->set_uniform_mat4(0, proj_view);
+
+        block_textures->bind(0);
+        pipeline->set_uniform_int(2, 0);
+
+        for (const auto& [chunk_mesh, _] : m_chunk_mesh_pool)
         {
-            for (const auto& chunk_mesh : chunk_mesh_column)
+            if (chunk_mesh.is_ready())
             {
-                if (chunk_mesh.is_ready())
-                {
-
-    //                chunk_mesh
-                }
+                pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos());
+                renderer.draw(chunk_mesh.vertex_array(), chunk_mesh.vertex_count());
             }
         }
     }
@@ -106,8 +137,8 @@ namespace h2o
         const v2i max = m_previous_player_chunk_col_pos + v2i { valid_dist, valid_dist };
 
         return
-            chunk_pos.x < min.x || chunk_pos.x > max.x ||
-            chunk_pos.y < min.y || chunk_pos.y > max.y;
+            chunk_pos.x >= min.x && chunk_pos.x <= max.x &&
+            chunk_pos.y >= min.y && chunk_pos.y <= max.y;
     }
 
     void ChunkClient::request_chunk_loads()
@@ -121,11 +152,11 @@ namespace h2o
                 m_previous_player_chunk_col_pos.x + i,
                 m_previous_player_chunk_col_pos.y + j };
 
-            const auto it = m_chunks.find(chunk_pos);
-            if (it != m_chunks.end())
+            const auto it = m_chunk_columns.find(chunk_pos);
+            if (it != m_chunk_columns.end())
                 continue;
 
-            m_chunks[chunk_pos] = ChunkData { nullptr, 0 };
+            m_chunk_columns[chunk_pos] = ChunkData { nullptr, {} };
             chunk_fetch_request.requested_chunks.push_back(chunk_pos);
         }
 
@@ -134,7 +165,7 @@ namespace h2o
 
     void ChunkClient::trim_far_chunks()
     {
-        erase_if(m_chunks,
+        erase_if(m_chunk_columns,
             [&](const auto& item) -> bool
             {
                 return !is_in_range(item.first);

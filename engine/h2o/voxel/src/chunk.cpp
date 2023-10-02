@@ -42,39 +42,7 @@ namespace h2o
         assert(is_valid_pos(local_pos));
         assert(is_initialized());
 
-        // TODO: Check if the block is valid
-
-        const size_t block_idx = to_index(local_pos);
-        m_blocks[block_idx] = block;
-
-        if (block == Block::Air)
-        {
-            // Check if chunk is now empty
-            // Whoops, this is really fucking slow right now because of world gen code...
-            // This check should really be done after that and each time a block is placed.
-//            m_is_empty = true;
-//            for (const Block& b : m_blocks)
-//            {
-//                if (b != Block::Air)
-//                {
-//                    m_is_empty = false;
-//                    break;
-//                }
-//            }
-        }
-        else
-        {
-            m_is_empty = false;
-        }
-
-        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
-        {
-            m_blocks_to_tick.insert(block_idx);
-        }
-        else
-        {
-            m_blocks_to_tick.erase(block_idx);
-        }
+        set_block_at(to_index(local_pos), block);
     }
 
     void Chunk::tick()
@@ -143,7 +111,28 @@ namespace h2o
                 current_pair = *block_count_pair;
             }
 
-            m_blocks[i] = current_pair.block;
+            set_block_at(i, current_pair.block);
+        }
+    }
+
+    void Chunk::set_block_at(size_t index, Block block)
+    {
+        assert(index < m_blocks.size());
+
+        m_blocks[index] = block;
+
+        // TODO: Check if the block is valid
+
+        if (block != Block::Air)
+            m_is_empty = false;
+
+        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
+        {
+            m_blocks_to_tick.insert(index);
+        }
+        else
+        {
+            m_blocks_to_tick.erase(index);
         }
     }
 }
