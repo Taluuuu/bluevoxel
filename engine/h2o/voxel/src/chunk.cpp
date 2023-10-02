@@ -63,6 +63,8 @@ namespace h2o
         assert(!m_blocks.empty());
 
         CompressedChunk result{};
+        result.chunk_pos = chunk_pos();
+
         CompressedChunk::BlockCountPair current_pair { m_blocks[0], 1 };
 
         for (size_t i = 1; i < voxel_constants::chunk_volume; i++)
@@ -88,6 +90,8 @@ namespace h2o
         assert(!m_blocks.empty());
         size_t compressed_idx = 0;
 
+        m_chunk_pos = compressed_chunk.chunk_pos;
+
         auto get_next_block_count_pair =
             [&compressed_idx, &compressed_chunk]() -> const CompressedChunk::BlockCountPair*
             {
@@ -112,6 +116,7 @@ namespace h2o
             }
 
             set_block_at(i, current_pair.block);
+            current_pair.count--;
         }
     }
 

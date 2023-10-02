@@ -34,7 +34,7 @@ namespace h2o
 
         template<typename S>
         void serialize(S& s)
-        { s(compressed_chunks); }
+        { s(compressed_chunks, chunk_pos); }
 
         static constexpr MsgID message_id = msg_ids::chunk_fetch_result;
     };
