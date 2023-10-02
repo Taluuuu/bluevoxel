@@ -20,7 +20,9 @@ namespace h2o
         struct BlockCountPair
         {
             Block block = Block::Air;
-            u32 count = 0;
+
+            static_assert(voxel_constants::chunk_volume <= 32768);
+            u16 count = 0;
         };
 
         std::vector<BlockCountPair> blocks;

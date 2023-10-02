@@ -23,7 +23,7 @@ namespace h2o
 
     struct ChunkFetchRequest
     {
-        std::vector<ClientID> requesting_clients{};
+        std::set<ClientID> requesting_clients{};
         v2i chunk_col_pos{};
         bool is_generating = false;
     };
@@ -66,7 +66,7 @@ namespace h2o
             const NetMsg_ChunkFetchRequest& chunk_fetch_request);
 
         // TODO: chunk_col sould be const
-        void send_chunk_column(ChunkColumn& chunk_col, const std::vector<ClientID>& client_ids) const;
+        void send_chunk_column(ChunkColumn& chunk_col, const std::set<ClientID>& client_ids) const;
 
     private:
 

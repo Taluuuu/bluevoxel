@@ -65,7 +65,7 @@ namespace h2o
         CompressedChunk result{};
         result.chunk_pos = chunk_pos();
 
-        CompressedChunk::BlockCountPair current_pair { m_blocks[0], 1 };
+        CompressedChunk::BlockCountPair current_pair { m_blocks[0], 0 };
 
         for (size_t i = 1; i < voxel_constants::chunk_volume; i++)
         {
@@ -76,7 +76,7 @@ namespace h2o
             else
             {
                 result.blocks.push_back(current_pair);
-                current_pair = { m_blocks[i], 1 };
+                current_pair = { m_blocks[i], 0 };
             }
         }
 
@@ -101,22 +101,24 @@ namespace h2o
                 return nullptr;
             };
 
-        CompressedChunk::BlockCountPair current_pair { Block::Air, 0 };
+        std::pair<Block, u32> current_pair { Block::Air, 0 };
 
         for (size_t i = 0; i < voxel_constants::chunk_volume; i++)
         {
-            while (current_pair.count == 0)
+            while (current_pair.second == 0)
             {
                 auto block_count_pair = get_next_block_count_pair();
 
                 if (!block_count_pair)
                     return; // Failure
 
-                current_pair = *block_count_pair;
+                current_pair = {
+                    block_count_pair->block,
+                    block_count_pair->count + 1 };
             }
 
-            set_block_at(i, current_pair.block);
-            current_pair.count--;
+            set_block_at(i, current_pair.first);
+            current_pair.second--;
         }
     }
 
