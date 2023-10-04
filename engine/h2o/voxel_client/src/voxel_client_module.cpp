@@ -2,6 +2,7 @@
 
 #include "networking/networking_module.h"
 #include "voxel/voxel_module.h"
+#include "voxel_rendering/voxel_rendering_module.h"
 
 namespace h2o
 {
@@ -14,6 +15,7 @@ namespace h2o
     {
         return {
             typeid(VoxelModule),
+            typeid(VoxelRenderingModule),
             typeid(NetworkingModule)
         };
     }

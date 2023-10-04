@@ -11,7 +11,7 @@ namespace h2o
 {
     void WindowingModule::cleanup()
     {
-        delete m_window;
+        m_window.reset();
         glfwTerminate();
     }
 
@@ -23,7 +23,7 @@ namespace h2o
             return false;
         }
 
-        m_window = Window_GLFW::create(engine.game_info().game_name, default_size);
+        m_window.reset(Window_GLFW::create(engine.game_info().game_name, default_size));
         if (!m_window)
         {
             glfwTerminate();

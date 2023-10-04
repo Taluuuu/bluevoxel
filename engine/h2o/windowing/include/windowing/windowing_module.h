@@ -1,9 +1,10 @@
 #pragma once
 
+#include "core/core_interfaces.h"
 #include "core/events.h"
 #include "core/module.h"
 #include "core/types.h"
-#include "core/core_interfaces.h"
+#include "window.h"
 
 #include <memory>
 
@@ -35,9 +36,9 @@ namespace h2o
 
     private:
 
-        IWindow* m_window = nullptr;
+        std::unique_ptr<IWindow> m_window = nullptr;
 
-        static constexpr v2i default_size = { 800, 600 };
+        static constexpr v2i default_size { 800, 600 };
 
     };
 }

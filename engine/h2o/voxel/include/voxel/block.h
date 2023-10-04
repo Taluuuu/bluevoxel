@@ -20,7 +20,7 @@ namespace h2o
 
     struct Block
     {
-        u64 id{};
+        u32 id{};
 
         Block() : Block(0) {}
         Block(u16 id) : id { id } {}
