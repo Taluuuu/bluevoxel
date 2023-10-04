@@ -67,7 +67,7 @@ namespace h2o
         EventHandle m_on_connected_handle{};
         EventHandle m_on_fetched_chunk_handle{};
 
-        i32 m_view_distance = 16;
+        i32 m_view_distance = 8;
         i32 m_stay_loaded_distance = 3;
 
         v2i m_previous_player_chunk_col_pos{};

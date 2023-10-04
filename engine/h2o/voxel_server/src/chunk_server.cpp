@@ -77,7 +77,7 @@ namespace h2o
     {
         assert(m_chunk_generator);
 
-        const i32 gen_level = m_chunk_generator->max_generation_stage();
+        const i32 target_gen_stage = m_chunk_generator->max_generation_stage();
 
         std::priority_queue<ChunkGenRequest> gen_request_queue{};
 
@@ -105,7 +105,7 @@ namespace h2o
                     gen_request_queue.emplace(
                         chunk_fetch_request,
                         ChunkRegion(chunk_col_pos, m_chunk_mgr),
-                        gen_level,
+                        target_gen_stage,
                         0.0f
                     );
 
@@ -160,7 +160,17 @@ namespace h2o
                 m_chunk_generator->run_generation_step(gen_region);
 
                 if (chunk_col->is_generated() && fetch_request)
+                {
                     send_chunk_column(*chunk_col, { fetch_request->requesting_clients });
+                    auto chunk_fetch_request_it = std::find(
+                        m_chunk_fetch_requests.begin(),
+                        m_chunk_fetch_requests.end(), fetch_request);
+
+                    if (chunk_fetch_request_it != m_chunk_fetch_requests.end())
+                        m_chunk_fetch_requests.erase(chunk_fetch_request_it);
+
+                    assert(fetch_request.unique());
+                }
 
                 m_chunk_gen_deque.pop_front();
             }
@@ -197,14 +207,8 @@ namespace h2o
 
             if (it != m_chunk_fetch_requests.end())
             {
-                auto& requesting_clients = (*it)->requesting_clients;
-
-                if (std::find(
-                    requesting_clients.begin(),
-                    requesting_clients.end(), client_id) != requesting_clients.end())
-                {
-                    (*it)->requesting_clients.push_back(client_id);
-                }
+                assert(*it);
+                (*it)->requesting_clients.insert(client_id);
                 continue;
             }
 
@@ -213,7 +217,7 @@ namespace h2o
         }
     }
 
-    void ChunkServer::send_chunk_column(ChunkColumn& chunk_col, const std::vector<ClientID>& client_ids) const
+    void ChunkServer::send_chunk_column(ChunkColumn& chunk_col, const std::set<ClientID>& client_ids) const
     {
         // Send chunk column to requesting clients
         std::vector<CompressedChunk> compressed_chunks{};
