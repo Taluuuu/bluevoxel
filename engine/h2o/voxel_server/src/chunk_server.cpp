@@ -8,6 +8,9 @@
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_net_messages.h"
 
+#include <chrono>
+using namespace std::chrono_literals;
+
 namespace h2o
 {
     ChunkServer::ChunkServer(Server& server)
@@ -129,53 +132,69 @@ namespace h2o
         auto voxel_module = g_engine->get_module<VoxelModule>();
         assert(voxel_module);
 
-        std::lock_guard chunk_gen_deque_lock { m_chunk_gen_dequeue_mutex };
+        const auto start_time = std::chrono::system_clock::now();
 
-        while (!m_chunk_gen_deque.empty())
         {
-            auto& [fetch_request, gen_region, gen_stage, distance] = m_chunk_gen_deque.front();
+            std::lock_guard chunk_gen_deque_lock{m_chunk_gen_dequeue_mutex};
 
-            // Chunk columns that need to be generated up to gen_request.generation_stage - 1
-            std::vector< std::shared_ptr<ChunkColumn> > chunk_cols_to_generate;
-            chunk_cols_to_generate.reserve(9);
+            while (!m_chunk_gen_deque.empty())
+            {
+                auto& [fetch_request, gen_region, gen_stage, distance] = m_chunk_gen_deque.front();
 
-            gen_region.for_each_chunk_column(
-                [&](const std::shared_ptr<ChunkColumn>& chunk_col) -> void
+                // Chunk columns that need to be generated up to gen_request.generation_stage - 1
+                std::vector<std::shared_ptr<ChunkColumn> > chunk_cols_to_generate;
+                chunk_cols_to_generate.reserve(9);
+
+                gen_region.for_each_chunk_column(
+                    [&](const std::shared_ptr<ChunkColumn>& chunk_col) -> void
+                    {
+                        assert(chunk_col);
+                        if (chunk_col->generation_stage() < gen_stage - 1)
+                            chunk_cols_to_generate.push_back(chunk_col);
+                    }
+                );
+
+                if (chunk_cols_to_generate.empty())
                 {
-                    assert(chunk_col);
-                    if (chunk_col->generation_stage() < gen_stage - 1)
-                        chunk_cols_to_generate.push_back(chunk_col);
+                    auto& chunk_col = gen_region.center_chunk();
+
+                    if (!chunk_col->is_generated())
+                    {
+                        // Init the chunk just before starting generation
+                        if (!chunk_col->is_initialized())
+                            chunk_col->init(*voxel_module);
+
+                        // Gen request can be completed
+                        m_chunk_generator->run_generation_step(gen_region);
+                    }
+
+                    bool should_break = false; // TEMP
+                    if (chunk_col->is_generated() && fetch_request)
+                    {
+                        send_chunk_column(*chunk_col, {fetch_request->requesting_clients});
+                        should_break = true;
+                    }
+
+                    m_chunk_gen_deque.pop_front();
+
+                    if (should_break)
+                        break;
                 }
-            );
-
-            if (chunk_cols_to_generate.empty())
-            {
-                auto& chunk_col = gen_region.center_chunk();
-
-                // Init the chunk just before starting generation
-                if (!chunk_col->is_initialized())
-                    chunk_col->init(*voxel_module);
-
-                // Gen request can be completed
-                m_chunk_generator->run_generation_step(gen_region);
-
-                if (chunk_col->is_generated() && fetch_request)
-                    send_chunk_column(*chunk_col, { fetch_request->requesting_clients });
-
-                m_chunk_gen_deque.pop_front();
-            }
-            else
-            {
-                for (const auto& chunk_col : chunk_cols_to_generate)
+                else
                 {
-                    m_chunk_gen_deque.emplace_front(
-                        nullptr,
-                        ChunkRegion { chunk_col->chunk_column_pos(), m_chunk_mgr },
-                        gen_stage - 1,
-                        0.0f);
+                    for (const auto& chunk_col: chunk_cols_to_generate)
+                    {
+                        m_chunk_gen_deque.emplace_front(
+                            nullptr,
+                            ChunkRegion{chunk_col->chunk_column_pos(), m_chunk_mgr},
+                            gen_stage - 1,
+                            0.0f);
+                    }
                 }
             }
         }
+
+        std::this_thread::sleep_until(start_time + 20ms);
     }
 
     void ChunkServer::on_received_chunk_fetch_requests(

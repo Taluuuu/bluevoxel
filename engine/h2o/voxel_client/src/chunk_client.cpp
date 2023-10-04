@@ -12,6 +12,8 @@
 #include "voxel/voxel_utils.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 
+#include <glm/gtx/norm.hpp>
+
 namespace h2o
 {
     ChunkClient::ChunkClient(
@@ -44,8 +46,9 @@ namespace h2o
                 if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
                     return;
 
-                auto chunk_column = std::make_shared<ChunkColumn>(chunk_pos);
-                std::vector<size_t> mesh_indices{}; // The indices of chunk meshes into the mesh pool
+                auto& [chunk_column, chunk_mesh_indices] = m_chunk_columns[chunk_pos];
+                chunk_column = std::make_shared<ChunkColumn>(chunk_pos);
+
                 for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
                 {
                     auto& chunk = (*chunk_column)[i];
@@ -55,19 +58,17 @@ namespace h2o
                     if (!chunk.is_empty())
                     {
                         // Reserve a chunk mesh, as this chunk is in range.
-                        auto [chunk_mesh, mesh_index] = find_available_chunk_mesh();
-                        chunk_mesh.is_available = false;
+                        auto [chunk_mesh_data, mesh_index] = find_available_chunk_mesh();
+                        chunk_mesh_data.is_available = false;
+                        chunk_mesh_indices[i] = i32(mesh_index);
 
-                        mesh_indices.push_back(mesh_index);
-                        chunk_mesh.chunk_mesh.init(
+                        chunk_mesh_data.chunk_mesh.init(
                             *m_voxel_rendering_module,
                             m_rendering_module->renderer());
 
-                        chunk_mesh.chunk_mesh.update(chunk, {});
+                        m_chunks_to_remesh.push_back(chunk.chunk_pos());
                     }
                 }
-
-                m_chunk_columns[chunk_pos] = { chunk_column, mesh_indices };
             }
         );
     }
@@ -95,6 +96,54 @@ namespace h2o
         }
 
         m_refresh_chunk_requests = false;
+
+        auto pop_nearest_chunk_to_remesh =
+            [&]() -> std::optional<v3i>
+            {
+                f32 nearest_distance_sqr = FLT_MAX;
+                i32 nearest_idx = -1;
+                std::optional<v3i> nearest_chunk_pos = std::nullopt;
+
+                for (i32 i = 0; i < m_chunks_to_remesh.size(); i++)
+                {
+                    const v3i& chunk_to_remesh = m_chunks_to_remesh[i];
+                    const f32 distance_with_chunk_sqr = glm::distance2(v3(chunk_to_remesh), player_pos);
+
+                    if (distance_with_chunk_sqr < nearest_distance_sqr)
+                    {
+                        nearest_distance_sqr = distance_with_chunk_sqr;
+                        nearest_chunk_pos = chunk_to_remesh;
+                        nearest_idx = i;
+                    }
+                }
+
+                if (nearest_chunk_pos)
+                    m_chunks_to_remesh.erase(m_chunks_to_remesh.cbegin() + nearest_idx);
+
+                return nearest_chunk_pos;
+            };
+
+        for (i32 i = 0; i < 3; i++)
+        {
+            const auto chunk_to_remesh = pop_nearest_chunk_to_remesh();
+            if (!chunk_to_remesh)
+                break;
+
+            const v2i chunk_col_pos { chunk_to_remesh->x, chunk_to_remesh->z };
+            const auto it = m_chunk_columns.find(chunk_col_pos);
+            if (it == m_chunk_columns.end())
+                continue;
+
+            auto& chunk_col_data = it->second;
+            const i32 chunk_mesh_index = chunk_col_data.chunk_mesh_indices[chunk_to_remesh->y];
+            const auto& chunk_col = chunk_col_data.chunk_column;
+
+            assert(chunk_col);
+            assert(chunk_mesh_index < m_chunk_mesh_pool.size());
+
+            m_chunk_mesh_pool[chunk_mesh_index].chunk_mesh.update(
+                (*chunk_col)[chunk_to_remesh->y], {});
+        }
     }
 
     void ChunkClient::render(f32 delta_time)
@@ -156,7 +205,7 @@ namespace h2o
             if (it != m_chunk_columns.end())
                 continue;
 
-            m_chunk_columns[chunk_pos] = ChunkData { nullptr, {} };
+            m_chunk_columns[chunk_pos] = ChunkData{};
             chunk_fetch_request.requested_chunks.push_back(chunk_pos);
         }
 

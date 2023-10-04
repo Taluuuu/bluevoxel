@@ -100,8 +100,8 @@ namespace h2o
                 return Block::Air;
             };
 
-        for (i32 x = 0; x < voxel_constants::chunk_size; x++)
         for (i32 y = 0; y < voxel_constants::chunk_size; y++)
+        for (i32 x = 0; x < voxel_constants::chunk_size; x++)
         for (i32 z = 0; z < voxel_constants::chunk_size; z++)
         {
             const v3i pos { x, y, z };

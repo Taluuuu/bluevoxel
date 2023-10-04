@@ -9,9 +9,9 @@ namespace h2o
     static size_t to_index(const v3i& local_pos)
     {
         return
-            local_pos.x * voxel_constants::chunk_area +
-            local_pos.z * voxel_constants::chunk_size +
-            local_pos.y;
+            local_pos.y * voxel_constants::chunk_area +
+            local_pos.x * voxel_constants::chunk_size +
+            local_pos.z;
     }
 
     static v3i to_local_block_pos(i32 block_idx)

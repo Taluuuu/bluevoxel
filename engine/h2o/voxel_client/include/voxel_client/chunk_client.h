@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/distance_queue.h"
 #include "networking/client.h"
 #include "scene/scene_system.h"
 #include "voxel/voxel_constants.h"
@@ -36,8 +37,11 @@ namespace h2o
 
         struct ChunkData
         {
+            ChunkData()
+            { chunk_mesh_indices.fill(-1); }
+
             std::shared_ptr<ChunkColumn> chunk_column = nullptr;
-            std::vector<size_t> chunk_mesh_indices{};
+            std::array<i32, voxel_constants::vertical_chunk_count> chunk_mesh_indices{};
         };
 
         struct ChunkMeshData
@@ -55,13 +59,15 @@ namespace h2o
         std::unordered_map<v2i, ChunkData> m_chunk_columns{};
         std::vector<ChunkMeshData> m_chunk_mesh_pool{};
 
+        std::vector<v3i> m_chunks_to_remesh{};
+
         Client* m_client = nullptr;
         bool m_refresh_chunk_requests = false;
 
         EventHandle m_on_connected_handle{};
         EventHandle m_on_fetched_chunk_handle{};
 
-        i32 m_view_distance = 5;
+        i32 m_view_distance = 16;
         i32 m_stay_loaded_distance = 3;
 
         v2i m_previous_player_chunk_col_pos{};
