@@ -36,10 +36,14 @@ namespace h2o
 
     void Engine::run()
     {
+        m_thread_pool.start();
+
         init_new_modules();
 
         while (!should_close)
             update();
+
+        m_thread_pool.stop();
     }
 
     void Engine::register_tickable(Tickable& tickable, TickPhase phases)

@@ -20,7 +20,7 @@ namespace h2o
         server_local_addr.Clear();
         server_local_addr.m_port = port;
 
-        std::array<SteamNetworkingConfigValue_t, 2> opts;
+        std::array<SteamNetworkingConfigValue_t, 2> opts{};
         opts[0].SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)connection_status_changed_callback);
         opts[1].SetInt32(k_ESteamNetworkingConfig_SendBufferSize, 10*1024*1024);
 

@@ -2,6 +2,7 @@
 
 #include "game_info.h"
 #include "resources.h"
+#include "thread_pool.h"
 #include "tickable.h"
 
 #include <memory>
@@ -56,6 +57,7 @@ namespace h2o
 
         [[nodiscard]] const GameInfo& game_info() const { return m_game_info; }
         [[nodiscard]] ResourceManager& resource_mgr() { return m_resource_mgr; }
+        [[nodiscard]] ThreadPool& thread_pool() { return m_thread_pool; }
 
         /**
          * @brief Run the engine. Contains the main loop.
@@ -78,7 +80,7 @@ namespace h2o
 
     private:
 
-        GameInfo m_game_info;
+        GameInfo m_game_info{};
 
         // Modules to initialize
         std::unordered_map<std::type_index, std::unique_ptr<IModule>> m_modules_to_init;
@@ -94,7 +96,9 @@ namespace h2o
         using Tickables = std::vector<Tickable*>;
         std::array<Tickables, tick_phase_count> m_tickables{};
 
-        ResourceManager m_resource_mgr;
+        ResourceManager m_resource_mgr{};
+
+        ThreadPool m_thread_pool{};
 
     };
 

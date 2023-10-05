@@ -133,13 +133,13 @@ namespace h2o
         if (block != Block::Air)
             m_is_empty = false;
 
-        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
-        {
-            m_blocks_to_tick.insert(index);
-        }
-        else
-        {
-            m_blocks_to_tick.erase(index);
-        }
+//        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
+//        {
+//            m_blocks_to_tick.insert(index);
+//        }
+//        else
+//        {
+//            m_blocks_to_tick.erase(index);
+//        }
     }
 }

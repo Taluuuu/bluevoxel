@@ -122,7 +122,7 @@ namespace h2o
         m_chunk_rendering_region->for_each_chunk_mesh(
             [&](const ChunkMesh& chunk_mesh)
             {
-                if (chunk_mesh.is_ready())
+                if (!chunk_mesh.is_empty())
                 {
                     pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos());
                     m_renderer->draw(chunk_mesh.vertex_array(), chunk_mesh.vertex_count());

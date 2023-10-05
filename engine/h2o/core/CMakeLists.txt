@@ -8,6 +8,7 @@ add_library(h2o_core
     src/utils.cpp
     src/tickable.cpp
     src/resources.cpp
+    src/thread_pool.cpp
 )
 
 target_link_libraries(h2o_core

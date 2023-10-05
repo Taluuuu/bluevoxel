@@ -8,6 +8,7 @@
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 
 namespace h2o
@@ -35,6 +36,9 @@ namespace h2o
         void request_chunk_loads();
         void trim_far_chunks();
 
+        void build_chunk_meshes(i32 max_chunk_meshes, const v3& player_pos);
+        void build_chunk_mesh_at(const v3i& chunk_pos);
+
         struct ChunkData
         {
             ChunkData()
@@ -51,15 +55,17 @@ namespace h2o
         };
 
         [[nodiscard]] bool is_in_range(v2i chunk_pos) const;
-        [[nodiscard]] std::pair<ChunkMeshData&, size_t> find_available_chunk_mesh();
+        [[nodiscard]] std::pair<ChunkMeshData&, i32> reserve_chunk_mesh();
 
     private:
 
         // If there is an entry in the map, the chunk has been requested.
+        std::mutex m_chunk_columns_mutex{};
         std::unordered_map<v2i, ChunkData> m_chunk_columns{};
         std::vector<ChunkMeshData> m_chunk_mesh_pool{};
 
-        std::vector<v3i> m_chunks_to_remesh{};
+        std::vector<v3i> m_chunks_to_mesh{};
+        std::mutex m_chunks_to_mesh_mutex{};
 
         Client* m_client = nullptr;
         bool m_refresh_chunk_requests = false;

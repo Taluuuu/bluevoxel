@@ -168,8 +168,6 @@ namespace h2o
 
                     if (chunk_fetch_request_it != m_chunk_fetch_requests.end())
                         m_chunk_fetch_requests.erase(chunk_fetch_request_it);
-
-                    assert(fetch_request.unique());
                 }
 
                 m_chunk_gen_deque.pop_front();

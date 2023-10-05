@@ -16,24 +16,6 @@
 
 namespace h2o
 {
-//    ChunkMesh::ChunkMesh(ChunkMesh&& other) noexcept
-//        : m_chunk_pos(other.m_chunk_pos)
-//        , m_vertex_array(std::move(other.m_vertex_array))
-//        , m_buffer(std::move(other.m_buffer))
-//    {}
-//
-//    ChunkMesh& ChunkMesh::operator=(ChunkMesh&& other) noexcept
-//    {
-//        if (this != &other)
-//        {
-//            m_chunk_pos = other.m_chunk_pos;
-//            m_vertex_array = std::move(other.m_vertex_array);
-//            m_buffer = std::move(other.m_buffer);
-//        }
-//
-//        return *this;
-//    }
-
     void ChunkMesh::init(
         const VoxelRenderingModule& voxel_rendering_module,
         gfx::IRenderer& renderer)
