@@ -3,6 +3,7 @@
 #include "block.h"
 #include "core/handle_types.h"
 #include "core/types.h"
+#include "voxel/direction.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_module.h"
 
@@ -55,6 +56,8 @@ namespace h2o
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
         void set_block_at(const v3i& local_pos, Block block);
 
+        [[nodiscard]] voxel::Direction get_adjacent_blocks(const v3i& local_pos) const;
+
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
         [[nodiscard]] bool is_empty() const { return m_is_empty; }
 
@@ -72,6 +75,7 @@ namespace h2o
     private:
 
         void set_block_at(size_t index, Block block);
+        void set_block_at(size_t index, const v3i& local_pos, Block block);
 
         [[nodiscard]] bool is_initialized() const { return !m_blocks.empty(); }
 
@@ -80,13 +84,14 @@ namespace h2o
         friend class ChunkColumn;
 
         std::vector<Block> m_blocks{};
+        std::vector<voxel::Direction> m_adjacent_blocks{};
         std::set<u32> m_blocks_to_tick{};
 
         v3i m_chunk_pos{};
 
-        const VoxelModule* m_voxel_module { nullptr };
+        const VoxelModule* m_voxel_module = nullptr;
 
-        bool m_is_empty { true };
+        bool m_is_empty = true;
 
     };
 }

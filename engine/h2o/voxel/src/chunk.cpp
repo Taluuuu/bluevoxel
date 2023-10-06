@@ -14,18 +14,19 @@ namespace h2o
             local_pos.z;
     }
 
-    static v3i to_local_block_pos(i32 block_idx)
+    static v3i to_local_block_pos(size_t block_idx)
     {
         return {
+            (block_idx / voxel_constants::chunk_size) % voxel_constants::chunk_size,
             block_idx / voxel_constants::chunk_area,
             block_idx % voxel_constants::chunk_size,
-            (block_idx / voxel_constants::chunk_size) % voxel_constants::chunk_size
         };
     }
 
     void Chunk::init(const VoxelModule& voxel_module)
     {
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
+        m_adjacent_blocks.resize(voxel_constants::chunk_volume, static_cast<voxel::Direction>(0));
         m_voxel_module = &voxel_module;
     }
 
@@ -42,7 +43,7 @@ namespace h2o
         assert(is_valid_pos(local_pos));
         assert(is_initialized());
 
-        set_block_at(to_index(local_pos), block);
+        set_block_at(to_index(local_pos), local_pos, block);
     }
 
     void Chunk::tick()
@@ -56,6 +57,12 @@ namespace h2o
             block_preset->tick(
                 block, *this, to_local_block_pos(i32(block_idx)));
         }
+    }
+
+    voxel::Direction Chunk::get_adjacent_blocks(const v3i& local_pos) const
+    {
+        assert(is_valid_pos(local_pos));
+        return m_adjacent_blocks[to_index(local_pos)];
     }
 
     CompressedChunk Chunk::compress() const
@@ -125,7 +132,13 @@ namespace h2o
     void Chunk::set_block_at(size_t index, Block block)
     {
         assert(index < m_blocks.size());
+        set_block_at(index, to_local_block_pos(index), block);
+    }
 
+    void Chunk::set_block_at(size_t index, const v3i& local_pos, Block block)
+    {
+        assert(index < m_blocks.size());
+        assert(index == to_index(local_pos));
         m_blocks[index] = block;
 
         // TODO: Check if the block is valid
@@ -133,13 +146,36 @@ namespace h2o
         if (block != Block::Air)
             m_is_empty = false;
 
-//        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
-//        {
-//            m_blocks_to_tick.insert(index);
-//        }
-//        else
-//        {
-//            m_blocks_to_tick.erase(index);
-//        }
+        if (m_voxel_module->get_block_preset_data(block.id).should_tick)
+        {
+            m_blocks_to_tick.insert(index);
+        }
+        else
+        {
+            m_blocks_to_tick.erase(index);
+        }
+
+        auto set_adjacent_block =
+            [&](voxel::Direction dir)
+            {
+                const v3i adj_pos = local_pos + voxel::to_vec3(dir);
+                if (is_valid_pos(adj_pos))
+                {
+                    const auto dir_from_adj_block = voxel::invert(dir);
+                    auto& adj_block = m_adjacent_blocks[to_index(adj_pos)];
+
+                    adj_block = (block == Block::Air) ?
+                        static_cast<voxel::Direction>(adj_block & ~dir_from_adj_block) :
+                        static_cast<voxel::Direction>(adj_block |  dir_from_adj_block);
+                }
+            };
+
+        // Update adjacent block array
+        magic_enum::enum_for_each<voxel::Direction>(
+            [&](voxel::Direction dir)
+            {
+                set_adjacent_block(dir);
+            }
+        );
     }
 }

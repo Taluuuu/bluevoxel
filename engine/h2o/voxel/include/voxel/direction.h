@@ -6,16 +6,17 @@
 
 namespace h2o::voxel
 {
-    enum Direction : u32
+    enum Direction : u8
     {
-        XNeg = 0, XPos,
-        ZNeg, ZPos,
-        YNeg, YPos,
+        XNeg = 1 << 0,
+        XPos = 1 << 1,
+        ZNeg = 1 << 2,
+        ZPos = 1 << 3,
+        YNeg = 1 << 4,
+        YPos = 1 << 5,
     };
 
-    constexpr size_t dir_count = magic_enum::enum_count<Direction>();
-
-    constexpr v3i to_vec3(u32 direction)
+    constexpr v3i to_vec3(Direction direction)
     {
         switch (direction)
         {
@@ -29,15 +30,29 @@ namespace h2o::voxel
         }
     }
 
-    constexpr v2i to_vec2(u32 direction)
+    constexpr v2i to_vec2(Direction direction)
     {
         switch (direction)
         {
-        case XNeg: return { -1,  0 };
-        case XPos: return {  1,  0 };
-        case ZNeg: return {  0, -1 };
-        case ZPos: return {  0,  1 };
-        default:   return {  0,  0 };
+        case XNeg: return { -1,  0  };
+        case XPos: return {  1,  0  };
+        case ZNeg: return {  0, -1  };
+        case ZPos: return {  0,  1  };
+        default:   return {  0,  0  };
+        }
+    }
+
+    constexpr Direction invert(Direction direction)
+    {
+        switch (direction)
+        {
+        case XNeg: return XPos;
+        case XPos: return XNeg;
+        case ZNeg: return ZPos;
+        case ZPos: return ZNeg;
+        case YNeg: return YPos;
+        default:
+        case YPos: return YNeg;
         }
     }
 }

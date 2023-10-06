@@ -5,8 +5,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_voxel_rendering
     src/chunk_mesh.cpp
-    src/chunk_rendering_region.cpp
-    src/chunk_rendering_system.cpp
     src/voxel_rendering_module.cpp
     src/block_placing_component.cpp
 )

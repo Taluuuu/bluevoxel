@@ -66,14 +66,15 @@ namespace h2o
 
     void Server::send_message_raw(ClientID client_id, void* data, u32 size) const
     {
-        assert(m_client_ids.contains(client_id));
-
-        m_interface->SendMessageToConnection(
-            client_id,
-            data,
-            size,
-            k_nSteamNetworkingSend_Reliable,
-            nullptr);
+        if (m_client_ids.contains(client_id))
+        {
+            m_interface->SendMessageToConnection(
+                client_id,
+                data,
+                size,
+                k_nSteamNetworkingSend_Reliable,
+                nullptr);
+        }
     }
 
     i32 Server::poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages)

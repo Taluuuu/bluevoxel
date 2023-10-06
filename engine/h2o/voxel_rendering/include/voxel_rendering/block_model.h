@@ -36,7 +36,7 @@ namespace h2o
     struct BlockModel
     {
         using Face = std::vector<BlockVertex>;
-        std::array<std::vector<Face>, voxel::dir_count> occluded_vertices;
+        std::array<std::vector<Face>, 6> occluded_vertices;
         std::vector<Face> unoccluded_vertices;
     };
 }

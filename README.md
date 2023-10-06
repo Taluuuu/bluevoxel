@@ -10,10 +10,9 @@ reconnecting to the server.
 
 #### TODO list
 
- - Fix slow networking performance
+ - Implement threaded chunk meshing
  - Working block placing/breaking
  - Players should be able to see each-other
- - Implement threaded chunk meshing
  - Create structure system
  - Create basic world generator
 

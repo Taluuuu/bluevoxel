@@ -64,24 +64,6 @@ namespace h2o
                 }
             };
 
-        const auto get_adj_block_at =
-            [&chunk, &adjacent_chunks](const v3i& block_pos, u32 direction) -> Block
-            {
-                const v3i offset = voxel::to_vec3(direction);
-                const v3i adj_pos = block_pos + offset;
-
-                if (Chunk::is_valid_pos(adj_pos))
-                    return chunk.get_block_at(adj_pos);
-
-                if (Chunk* adj_chunk = adjacent_chunks[direction])
-                {
-                    const v3i pos_in_chunk = voxel_utils::block_pos_to_within_chunk(adj_pos);
-                    return adj_chunk->get_block_at(pos_in_chunk);
-                }
-
-                return Block::Air;
-            };
-
         for (i32 y = 0; y < voxel_constants::chunk_size; y++)
         for (i32 x = 0; x < voxel_constants::chunk_size; x++)
         for (i32 z = 0; z < voxel_constants::chunk_size; z++)
@@ -98,14 +80,20 @@ namespace h2o
 
             const auto& textures = m_voxel_rendering_module->get_textures_fast(block.id);
 
-            for (u32 dir = 0; dir < voxel::dir_count; dir++)
-            {
-                if (get_adj_block_at(pos, dir) == Block::Air)
+            const auto adj_blocks = chunk.get_adjacent_blocks(pos);
+            u8 dir_index = 0;
+            magic_enum::enum_for_each<voxel::Direction>(
+                [&](voxel::Direction dir)
                 {
-                    for (const auto& face : model->occluded_vertices[dir])
-                        append_face(pos, *model, textures, face);
+                    if (!(adj_blocks & dir))
+                    {
+                        for (const auto& face : model->occluded_vertices[dir_index])
+                            append_face(pos, *model, textures, face);
+                    }
+
+                    dir_index++;
                 }
-            }
+            );
 
             for (const auto& face : model->unoccluded_vertices)
                 append_face(pos, *model, textures, face);
