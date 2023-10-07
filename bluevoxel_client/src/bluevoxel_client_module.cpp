@@ -36,6 +36,7 @@ namespace bluevoxel
         m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("player");
+        player->add_component<BlockPlacingComponent>();
         player->transform.position = { 5.0f, 50.0f, 0.0f };
         player->transform.rotation = { 0.0f, 180.0f, 90.0f };
         player->move_speed = 10.0f;

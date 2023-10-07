@@ -1,4 +1,4 @@
-#include "voxel_rendering/block_placing_component.h"
+#include "../include/voxel_client/block_placing_component.h"
 
 #include "input/input_component.h"
 #include "rendering/camera.h"

@@ -38,6 +38,19 @@ namespace h2o
 
         static constexpr MsgID message_id = msg_ids::chunk_fetch_result;
     };
+
+    struct NetMsg_BlockPlaced
+    {
+        Block placed_block{};
+
+        v3i block_pos{};
+
+        template<typename S>
+        void serialize(S& s)
+        { s(block_pos, placed_block); }
+
+        static constexpr MsgID message_id = msg_ids::block_placed;
+    };
 }
 
 namespace bitsery

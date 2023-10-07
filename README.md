@@ -10,7 +10,6 @@ reconnecting to the server.
 
 #### TODO list
 
- - Implement threaded chunk meshing
  - Working block placing/breaking
  - Players should be able to see each-other
  - Create structure system
@@ -20,6 +19,8 @@ reconnecting to the server.
 
 This version should add ticking blocks, better world generation, an UI system
 and a main menu.
+
+ - Implement threaded chunk meshing
 
 ### 0.0.3
 

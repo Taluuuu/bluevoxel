@@ -12,7 +12,7 @@
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/chunk_system.h"
 #include "voxel/voxel_module.h"
-#include "voxel_rendering/block_placing_component.h"
+#include "voxel_client/block_placing_component.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 #include "voxel_rendering/chunk_rendering_region.h"
 #include "voxel_rendering/chunk_rendering_system.h"
