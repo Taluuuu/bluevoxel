@@ -36,7 +36,7 @@ namespace h2o
         {
             intersection_count++;
 
-            ChunkWeakHandle chunk;
+            Chunk* chunk = nullptr;
             const auto block = block_container.get_block_at(current_voxel, chunk);
 
             if (!chunk || !block) // Out of bounds ?

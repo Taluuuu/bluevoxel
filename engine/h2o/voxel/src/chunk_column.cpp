@@ -35,4 +35,20 @@ namespace h2o
         for (auto& chunk : m_chunks)
             chunk.tick();
     }
+
+    Chunk* ChunkColumn::get_chunk_safe(i32 y)
+    {
+        if (y >= 0 && y < m_chunks.size())
+            return &m_chunks[y];
+
+        return nullptr;
+    }
+
+    const Chunk* ChunkColumn::get_chunk_safe(i32 y) const
+    {
+        if (y >= 0 && y < m_chunks.size())
+            return &m_chunks[y];
+
+        return nullptr;
+    }
 }

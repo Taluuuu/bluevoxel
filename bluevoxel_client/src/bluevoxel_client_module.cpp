@@ -11,6 +11,7 @@
 #include "scene_rendering/rendering_scene_system.h"
 #include "scene_rendering/scene_rendering_module.h"
 #include "voxel_client/chunk_client.h"
+#include "voxel_client/block_placing_component.h"
 #include "voxel_client/voxel_client_module.h"
 
 #include <imgui.h>
@@ -36,7 +37,7 @@ namespace bluevoxel
         m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("player");
-        player->add_component<BlockPlacingComponent>();
+        player->add_component<h2o::BlockPlacingComponent>();
         player->transform.position = { 5.0f, 50.0f, 0.0f };
         player->transform.rotation = { 0.0f, 180.0f, 90.0f };
         player->move_speed = 10.0f;

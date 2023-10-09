@@ -26,7 +26,7 @@ namespace h2o
 
         // IBlockContainer interface
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const override;
-        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, ChunkWeakHandle& out_chunk) const override;
+        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, Chunk*& out_chunk) const override;
         bool set_block_at(const v3i& block_pos, Block block) const override;
 
         void set_size(u32 new_size);

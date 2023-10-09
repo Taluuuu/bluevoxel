@@ -44,6 +44,10 @@ namespace h2o
             return m_chunks[index];
         }
 
+        [[nodiscard]] Chunk* get_chunk_safe(i32 y);
+
+        [[nodiscard]] const Chunk* get_chunk_safe(i32 y) const;
+
     public:
 
         class iterator

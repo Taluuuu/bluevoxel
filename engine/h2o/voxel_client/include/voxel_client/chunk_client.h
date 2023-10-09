@@ -3,6 +3,7 @@
 #include "core/distance_queue.h"
 #include "networking/client.h"
 #include "scene/scene_system.h"
+#include "voxel/block_container_interface.h"
 #include "voxel/voxel_constants.h"
 #include "voxel_rendering/chunk_mesh.h"
 
@@ -18,7 +19,9 @@ namespace h2o
     class VoxelRenderingModule;
     class VoxelModule;
 
-    class ChunkClient : public SceneSystem
+    class ChunkClient
+        : public SceneSystem
+        , public IBlockContainer
     {
     public:
 
@@ -27,7 +30,11 @@ namespace h2o
             Client& client);
         ~ChunkClient() override = default;
 
-        // Tickable interface
+        // IBlockContainer interface
+        std::optional<Block> get_block_at(const v3i& block_pos) const override;
+        std::optional<Block> get_block_at(const v3i& block_pos, Chunk*& out_chunk) const override;
+        bool set_block_at(const v3i& block_pos, Block block) const override;
+
         void update(f32 delta_time) override;
         void render(f32 delta_time) override;
 

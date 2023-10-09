@@ -9,9 +9,9 @@ namespace h2o
 
     struct VoxelFetchResult
     {
-        ChunkWeakHandle chunk { nullptr };
+        Chunk* chunk = nullptr;
         v3i pos { 0, 0, 0 };
-        Block block { Block::Air };
+        Block block = Block::Air;
     };
 
     struct VoxelRayHit

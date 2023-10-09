@@ -20,7 +20,7 @@ namespace h2o
 
     public:
 
-        std::vector<Block> block_layers;
+        std::vector<Block> block_layers{};
 
     };
 }

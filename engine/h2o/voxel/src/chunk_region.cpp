@@ -32,7 +32,7 @@ namespace h2o
         return std::nullopt;
     }
 
-    std::optional<Block> ChunkRegionOLD::get_block_at(const v3i& block_pos, ChunkWeakHandle& out_chunk) const
+    std::optional<Block> ChunkRegionOLD::get_block_at(const v3i& block_pos, Chunk*& out_chunk) const
     {
         const v3i chunk_pos = voxel_utils::block_to_chunk_pos(block_pos);
         if (ChunkWeakHandle chunk = get_chunk_at(chunk_pos))
