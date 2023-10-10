@@ -34,6 +34,14 @@ namespace h2o
             }
         );
 
+        m_server->handle_message<NetMsg_BlockPlaceRequest>(m_received_block_place_request_handle,
+            [&](ClientID client_id, const NetMsg_BlockPlaceRequest& block_place_request)
+            {
+                log::info("Received block place request.");
+                on_received_block_place_request(client_id, block_place_request);
+            }
+        );
+
         m_should_stop = false;
         m_thread = std::thread(&ChunkServer::run, this);
     }
@@ -213,6 +221,13 @@ namespace h2o
             const ChunkFetchRequest new_fetch_request{ { client_id }, requested_chunk };
             m_chunk_fetch_requests.push_back(std::make_shared<ChunkFetchRequest>(new_fetch_request));
         }
+    }
+
+    void ChunkServer::on_received_block_place_request(
+        ClientID client_id,
+        const NetMsg_BlockPlaceRequest& block_place_request)
+    {
+        
     }
 
     void ChunkServer::send_chunk_column(ChunkColumn& chunk_col, const std::set<ClientID>& client_ids) const

@@ -39,7 +39,7 @@ namespace h2o
         static constexpr MsgID message_id = msg_ids::chunk_fetch_result;
     };
 
-    struct NetMsg_BlockPlaced
+    struct NetMsg_BlockPlaceRequest
     {
         Block placed_block{};
 

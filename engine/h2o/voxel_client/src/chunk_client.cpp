@@ -110,7 +110,8 @@ namespace h2o
             return std::nullopt;
 
         const auto& chunk_col = it->second.chunk_column;
-        assert(chunk_col);
+        if (!chunk_col)
+            return std::nullopt;
 
         if (Chunk* chunk = chunk_col->get_chunk_safe(chunk_pos.y))
         {

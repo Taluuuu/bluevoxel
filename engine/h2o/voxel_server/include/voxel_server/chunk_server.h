@@ -7,6 +7,7 @@
 #include "voxel/chunk_column.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/chunk_manager.h"
+#include "voxel/voxel_net_messages.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -19,7 +20,6 @@ namespace h2o
 {
     class ChunkGenerator_Base;
     class Server;
-    struct NetMsg_ChunkFetchRequest;
 
     struct ChunkFetchRequest
     {
@@ -61,9 +61,14 @@ namespace h2o
         void request_chunk_generations();
         void load_requested_chunks();
 
+        // Networking
         void on_received_chunk_fetch_requests(
             ClientID client_id,
             const NetMsg_ChunkFetchRequest& chunk_fetch_request);
+
+        void on_received_block_place_request(
+            ClientID client_id,
+            const NetMsg_BlockPlaceRequest& block_place_request);
 
         // TODO: chunk_col sould be const
         void send_chunk_column(ChunkColumn& chunk_col, const std::set<ClientID>& client_ids) const;
@@ -71,8 +76,9 @@ namespace h2o
     private:
 
         // Networking
-        Server* const m_server { nullptr };
+        Server* const m_server = nullptr;
         EventHandle m_received_chunk_request_handle{};
+        EventHandle m_received_block_place_request_handle{};
 
         // Storage
         ChunkManager m_chunk_mgr{};
