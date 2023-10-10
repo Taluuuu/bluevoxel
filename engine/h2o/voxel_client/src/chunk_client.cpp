@@ -84,47 +84,28 @@ namespace h2o
         );
     }
 
-    std::optional<Block> ChunkClient::get_block_at(const v3i& block_pos) const
+    Chunk* ChunkClient::get_chunk_at(const v3i& chunk_pos)
     {
-        const v3i chunk_pos = voxel_utils::block_to_chunk_pos(block_pos);
-
         auto it = m_chunk_columns.find({ chunk_pos.x, chunk_pos.z });
         if (it == m_chunk_columns.end())
-            return std::nullopt;
+            return nullptr;
 
-        const auto& chunk_col = it->second.chunk_column;
-        assert(chunk_col);
+        if (const auto& chunk_col = it->second.chunk_column)
+            return chunk_col->get_chunk_safe(chunk_pos.y);
 
-        if (const Chunk* chunk = chunk_col->get_chunk_safe(chunk_pos.y))
-            return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
-
-        return std::nullopt;
+        return nullptr;
     }
 
-    std::optional<Block> ChunkClient::get_block_at(const v3i& block_pos, Chunk*& out_chunk) const
+    const Chunk* ChunkClient::get_chunk_at(const v3i& chunk_pos) const
     {
-        const v3i chunk_pos = voxel_utils::block_to_chunk_pos(block_pos);
-
         auto it = m_chunk_columns.find({ chunk_pos.x, chunk_pos.z });
         if (it == m_chunk_columns.end())
-            return std::nullopt;
+            return nullptr;
 
-        const auto& chunk_col = it->second.chunk_column;
-        if (!chunk_col)
-            return std::nullopt;
+        if (const auto& chunk_col = it->second.chunk_column)
+            return chunk_col->get_chunk_safe(chunk_pos.y);
 
-        if (Chunk* chunk = chunk_col->get_chunk_safe(chunk_pos.y))
-        {
-            out_chunk = chunk;
-            return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
-        }
-
-        return std::nullopt;
-    }
-
-    bool ChunkClient::set_block_at(const v3i& block_pos, Block block) const
-    {
-        return false;
+        return nullptr;
     }
 
     void ChunkClient::update(f32 delta_time)

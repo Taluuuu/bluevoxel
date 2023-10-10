@@ -4,6 +4,7 @@
 #include "core/events.h"
 #include "core/types.h"
 #include "networking/networking_types.h"
+#include "voxel/block_container_interface.h"
 #include "voxel/chunk_column.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/chunk_manager.h"
@@ -40,12 +41,12 @@ namespace h2o
     };
 
     // This class will be adapted to be hosted on a server.
-    class ChunkServer
+    class ChunkServer : public IBlockContainer
     {
     public:
 
         explicit ChunkServer(Server& server);
-        ~ChunkServer();
+        ~ChunkServer() override;
 
         void start();
         void stop();
@@ -53,6 +54,10 @@ namespace h2o
         [[nodiscard]] bool is_running() const;
 
         void set_chunk_generator(std::unique_ptr<ChunkGenerator_Base>&& chunk_generator);
+
+        // IBlockContainer interface
+        [[nodiscard]] Chunk* get_chunk_at(const v3i& chunk_pos) override;
+        [[nodiscard]] const Chunk* get_chunk_at(const v3i& chunk_pos) const override;
 
     protected:
 
@@ -67,7 +72,7 @@ namespace h2o
             const NetMsg_ChunkFetchRequest& chunk_fetch_request);
 
         void on_received_block_place_request(
-            ClientID client_id,
+            ClientID request_sender,
             const NetMsg_BlockPlaceRequest& block_place_request);
 
         // TODO: chunk_col sould be const

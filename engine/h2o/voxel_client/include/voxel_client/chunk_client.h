@@ -31,9 +31,8 @@ namespace h2o
         ~ChunkClient() override = default;
 
         // IBlockContainer interface
-        std::optional<Block> get_block_at(const v3i& block_pos) const override;
-        std::optional<Block> get_block_at(const v3i& block_pos, Chunk*& out_chunk) const override;
-        bool set_block_at(const v3i& block_pos, Block block) const override;
+        [[nodiscard]] Chunk* get_chunk_at(const v3i& chunk_pos) override;
+        [[nodiscard]] const Chunk* get_chunk_at(const v3i& chunk_pos) const override;
 
         void update(f32 delta_time) override;
         void render(f32 delta_time) override;

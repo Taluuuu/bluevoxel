@@ -23,6 +23,8 @@ namespace h2o
 
         bool start(u16 port);
 
+        [[nodiscard]] const std::set<ClientID>& client_ids() const { return m_client_ids; }
+
         // NetPeer interface
         void stop(bool unregister_from_module) final;
     protected:

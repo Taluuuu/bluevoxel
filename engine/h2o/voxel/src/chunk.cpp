@@ -1,6 +1,5 @@
 #include "voxel/chunk.h"
 
-#include "voxel/chunk_system.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_module.h"
 

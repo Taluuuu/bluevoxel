@@ -7,6 +7,7 @@
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_net_messages.h"
+#include "voxel/voxel_utils.h"
 
 namespace h2o
 {
@@ -68,6 +69,22 @@ namespace h2o
     void ChunkServer::set_chunk_generator(std::unique_ptr<ChunkGenerator_Base>&& chunk_generator)
     {
         m_chunk_generator = std::move(chunk_generator);
+    }
+
+    Chunk* ChunkServer::get_chunk_at(const v3i& chunk_pos)
+    {
+        if (const auto chunk_column = m_chunk_mgr.fetch_chunk_at({ chunk_pos.x, chunk_pos.z }))
+            return chunk_column->get_chunk_safe(chunk_pos.y);
+
+        return nullptr;
+    }
+
+    const Chunk* ChunkServer::get_chunk_at(const v3i& chunk_pos) const
+    {
+        if (const auto chunk_column = m_chunk_mgr.fetch_chunk_at({ chunk_pos.x, chunk_pos.z }))
+            return chunk_column->get_chunk_safe(chunk_pos.y);
+
+        return nullptr;
     }
 
     void ChunkServer::run()
@@ -224,10 +241,19 @@ namespace h2o
     }
 
     void ChunkServer::on_received_block_place_request(
-        ClientID client_id,
+        ClientID request_sender,
         const NetMsg_BlockPlaceRequest& block_place_request)
     {
-        
+        if (!set_block_at(block_place_request.block_pos, block_place_request.placed_block))
+            return;
+
+        for (ClientID client_id : m_server->client_ids())
+        {
+            if (client_id == request_sender)
+                continue;
+
+            m_server->send_message(client_id, block_place_request);
+        }
     }
 
     void ChunkServer::send_chunk_column(ChunkColumn& chunk_col, const std::set<ClientID>& client_ids) const

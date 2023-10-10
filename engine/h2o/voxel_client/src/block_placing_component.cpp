@@ -1,4 +1,4 @@
-#include "../include/voxel_client/block_placing_component.h"
+#include "voxel_client/block_placing_component.h"
 
 #include "input/input_component.h"
 #include "rendering/camera.h"
@@ -6,7 +6,6 @@
 #include "scene/scene.h"
 #include "scene_rendering/camera_component.h"
 #include "voxel/chunk.h"
-#include "voxel/chunk_system.h"
 #include "voxel/voxel_ray.h"
 #include "voxel/voxel_utils.h"
 #include "voxel_client/chunk_client.h"
