@@ -82,6 +82,31 @@ namespace h2o
                 );
             }
         );
+
+        m_client->handle_message<NetMsg_BlockPlaceRequest>(m_on_received_block_place_request,
+            [&](ClientID client_id, const NetMsg_BlockPlaceRequest& block_place_request)
+            {
+                if (set_block_at(block_place_request.block_pos, block_place_request.placed_block))
+                    m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+            }
+        );
+    }
+
+    void ChunkClient::set_block_at_replicated(const v3i& block_pos, Block block)
+    {
+        assert(m_client);
+        if (set_block_at(block_pos, block))
+        {
+            m_client->send_message(0, NetMsg_BlockPlaceRequest { block, block_pos });
+            m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_pos));
+        }
+    }
+
+    void ChunkClient::set_block_at_replicated(Chunk& chunk, const v3i& block_pos, Block block)
+    {
+        chunk.set_block_at(voxel_utils::block_pos_to_within_chunk(block_pos), block);
+        m_client->send_message(0, NetMsg_BlockPlaceRequest { block, block_pos });
+        m_chunks_to_mesh.push_back(chunk.chunk_pos());
     }
 
     Chunk* ChunkClient::get_chunk_at(const v3i& chunk_pos)

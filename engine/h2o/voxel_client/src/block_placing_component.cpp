@@ -36,22 +36,23 @@ namespace h2o
 
         if (const VoxelRay ray { origin, end, *chunk_client })
         {
+            const auto& [hit_voxel, before_hit_voxel] = ray.hit();
             if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
             {
-                const auto& hit_voxel = ray.hit().hit_voxel;
-                hit_voxel.chunk->set_block_at(voxel_utils::block_pos_to_within_chunk(hit_voxel.pos), Block::Air);
+                assert(hit_voxel.chunk);
 
-//                chunk_system->on_chunk_updated.broadcast({ hit_voxel.chunk });
+                chunk_client->set_block_at_replicated(
+                    *hit_voxel.chunk,
+                    hit_voxel.pos,
+                    Block::Air);
             }
 
-            if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
+            if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame && before_hit_voxel.chunk)
             {
-                const auto& hit_voxel = ray.hit().before_hit_voxel;
-                if (hit_voxel.chunk)
-                {
-                    hit_voxel.chunk->set_block_at(voxel_utils::block_pos_to_within_chunk(hit_voxel.pos), Block { 2 });
-//                    chunk_system->on_chunk_updated.broadcast({hit_voxel.chunk});
-                }
+                chunk_client->set_block_at_replicated(
+                    *before_hit_voxel.chunk,
+                    before_hit_voxel.pos,
+                    Block { 2 });
             }
         }
     }

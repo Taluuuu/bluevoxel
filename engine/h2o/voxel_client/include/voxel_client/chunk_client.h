@@ -30,6 +30,9 @@ namespace h2o
             Client& client);
         ~ChunkClient() override = default;
 
+        void set_block_at_replicated(const v3i& block_pos, Block block);
+        void set_block_at_replicated(Chunk& chunk, const v3i& block_pos, Block block);
+
         // IBlockContainer interface
         [[nodiscard]] Chunk* get_chunk_at(const v3i& chunk_pos) override;
         [[nodiscard]] const Chunk* get_chunk_at(const v3i& chunk_pos) const override;
@@ -78,6 +81,7 @@ namespace h2o
 
         EventHandle m_on_connected_handle{};
         EventHandle m_on_fetched_chunk_handle{};
+        EventHandle m_on_received_block_place_request{};
 
         i32 m_view_distance = 8;
         i32 m_stay_loaded_distance = 3;
