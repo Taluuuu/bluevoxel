@@ -38,7 +38,8 @@ namespace bluevoxel
         m_scene->add_system<h2o::RenderingSystem>();
         m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
-        auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("player");
+        auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
+        player->tag_actor(h2o::ActorTag::LocalPlayer);
         player->add_component<h2o::BlockPlacingComponent>();
         player->transform.position = { 5.0f, 0.0f, 0.0f };
         player->transform.rotation = { 0.0f, 180.0f, 90.0f };
@@ -48,7 +49,7 @@ namespace bluevoxel
         //       than a mesh. Since the g_engine pointer exists, it would be better if the two
         //       used explicitly resource_mgr().fetch...
         auto& renderer = engine.get_module_checked<h2o::RenderingModule>().renderer();
-        auto triangle = m_scene->spawn_actor("triangle");
+        auto triangle = m_scene->spawn_actor();
         auto mesh_renderer = triangle->add_component<h2o::MeshRendererComponent>();
         mesh_renderer->set_mesh(engine.resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel_client/models/robot.fbx"));
         mesh_renderer->set_texture(renderer.fetch_or_load_texture("../Resources/bluevoxel_client/textures/robot.png"));

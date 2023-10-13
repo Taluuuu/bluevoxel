@@ -69,11 +69,11 @@ namespace h2o
         // Networking
         void on_received_chunk_fetch_requests(
             ClientID client_id,
-            const NetMsg_ChunkFetchRequest& chunk_fetch_request);
+            const net_msg::ChunkFetchRequest& chunk_fetch_request);
 
         void on_received_block_place_request(
             ClientID request_sender,
-            const NetMsg_BlockPlaceRequest& block_place_request);
+            const net_msg::BlockPlaceRequest& block_place_request);
 
         // TODO: chunk_col sould be const
         void send_chunk_column(ChunkColumn& chunk_col, const std::set<ClientID>& client_ids) const;

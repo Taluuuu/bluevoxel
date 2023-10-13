@@ -34,14 +34,27 @@ namespace h2o
         }
 
         if (!success)
-            log::warn("Failed to initialize all systems for scene: {}", m_name);
+            log::warn("Failed to initialize all systems for scene: {}", m_scene_name);
 
         return success;
     }
 
+    void Scene::tag_actor(const WeakHandle<Actor>& actor, ActorTag tag)
+    {
+        const ActorTag previous_tag = actor->get_tag();
+        if (tag == previous_tag)
+            return;
+
+        m_actor_tags[previous_tag] = nullptr;
+        if (tag != ActorTag::None)
+            m_actor_tags[tag] = actor;
+
+        actor->m_actor_tag = tag;
+    }
+
     Scene::Scene(Engine& engine, std::string_view name)
         : m_engine(&engine)
-        , m_name(name)
+        , m_scene_name(name)
     {
         if (auto scene_module = m_engine->get_module<SceneModule>())
             scene_module->register_scene(*this);

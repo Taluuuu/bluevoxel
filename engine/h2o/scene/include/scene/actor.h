@@ -1,5 +1,6 @@
 #pragma once
 
+#include "actor_initializer.h"
 #include "core/log.h"
 #include "core/types.h"
 #include "core/handle_types.h"
@@ -16,12 +17,6 @@ namespace h2o
     class Scene;
     class Actor;
     class Component;
-
-    struct ActorInitializer
-    {
-        std::string_view actor_name;
-        Scene& scene;
-    };
 
     class Actor
         : public Tickable
@@ -56,6 +51,9 @@ namespace h2o
         requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
         WeakHandle<T> add_component(Args... args);
 
+        [[nodiscard]] ActorTag get_tag() const { return m_actor_tag; }
+        void tag_actor(ActorTag tag);
+
         Scene& scene() const { assert(m_scene); return *m_scene; }
 
     public:
@@ -64,8 +62,11 @@ namespace h2o
 
     protected:
 
-        const std::string_view m_name;
+        ActorTag m_actor_tag = ActorTag::None;
 
+        const ActorID m_actor_id = 0;
+
+        friend class Scene;
         Scene* const m_scene;
 
     private:
@@ -90,7 +91,7 @@ namespace h2o
     {
         if (auto comp = get_component<T>())
         {
-            log::warn("Only one instance of a component can be added to an actor ({}).", m_name);
+            log::warn("Only one instance of a component can be added to an actor.");
             return comp;
         }
 

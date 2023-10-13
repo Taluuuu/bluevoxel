@@ -9,15 +9,20 @@ add_library(h2o_scene
     src/actor.cpp
     src/scene_system.cpp
     src/component.cpp
-    src/transform.cpp)
+    src/transform.cpp
+)
 
 target_link_libraries(h2o_scene
     PRIVATE
-        h2o_core)
+        h2o_core
+        h2o_networking
+)
 
 target_include_directories(h2o_scene
     PUBLIC
         include/
 
     PRIVATE
-        h2o_core)
+        h2o_core
+        h2o_networking
+)

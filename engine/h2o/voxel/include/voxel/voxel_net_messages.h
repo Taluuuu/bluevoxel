@@ -13,9 +13,9 @@
 #include <bitsery/ext/pointer.h>
 #include <memory>
 
-namespace h2o
+namespace h2o::net_msg
 {
-    struct NetMsg_ChunkFetchRequest
+    struct ChunkFetchRequest
     {
         std::vector<v2i> requested_chunks{};
 
@@ -26,7 +26,7 @@ namespace h2o
         static constexpr MsgID message_id = msg_ids::chunk_fetch_request;
     };
 
-    struct NetMsg_ChunkFetchResult
+    struct ChunkFetchResult
     {
         std::vector<CompressedChunk> compressed_chunks{};
 
@@ -39,7 +39,7 @@ namespace h2o
         static constexpr MsgID message_id = msg_ids::chunk_fetch_result;
     };
 
-    struct NetMsg_BlockPlaceRequest
+    struct BlockPlaceRequest
     {
         Block placed_block{};
 

@@ -45,7 +45,7 @@ namespace h2o
          * @return The created actor or nullptr on failure
          */
         template<class T = Actor, typename... Args>
-        WeakHandle<T> spawn_actor(std::string_view name, Args... args);
+        WeakHandle<T> spawn_actor(Args... args);
 
         /**
          * Get the actor of type T with a name
@@ -55,7 +55,10 @@ namespace h2o
          * @return The found actor or nullptr on failure
          */
         template<class T = Actor>
-        WeakHandle<T> get_actor(std::string_view name);
+        WeakHandle<T> get_actor(ActorID actor_id);
+
+        template<class T = Actor>
+        WeakHandle<T> get_actor_by_tag(ActorTag actor_tag);
 
         template<class T, class... Args>
         WeakHandle<T> add_system(Args... args);
@@ -63,59 +66,64 @@ namespace h2o
         template<class T>
         WeakHandle<T> get_system();
 
+        void tag_actor(const WeakHandle<Actor>& actor, ActorTag tag);
+
     private:
 
         explicit Scene(Engine& engine, std::string_view name);
 
     private:
 
-        std::unordered_map< std::string_view, OwningHandle<Actor> > m_actor_map;
+        std::unordered_map< ActorID, OwningHandle<Actor> > m_actor_map{};
+        std::unordered_map< ActorTag, WeakHandle<Actor> > m_actor_tags{};
+        ActorID m_actor_id_generator = 1;
 
-        std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map;
+        std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map{};
 
-        std::string_view m_name;
-
+        std::string m_scene_name{};
         Engine* const m_engine = nullptr;
 
     };
 
     template<class T, typename... Args>
-    WeakHandle<T> Scene::spawn_actor(std::string_view name, Args... args)
+    WeakHandle<T> Scene::spawn_actor(Args... args)
     {
         static_assert(
             std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
 
-        if (get_actor(name) != nullptr)
-        {
-            log::error("Tried to create multiple actors with the same name '{}'", name);
-            return nullptr;
-        }
-
-        ActorInitializer actor_initializer
-        {
-            .actor_name = name,
-            .scene = *this
-        };
-
-        //auto test = m_actor_map.try_emplace(name, std::forward(oup::make_observable_unique<T>(actor_initializer, args...)));
-        // Returns something useful
+        const ActorID actor_id = m_actor_id_generator++;
+        const ActorInitializer actor_initializer { actor_id, *this };
 
         OwningHandle<T> actor = oup::make_observable_unique<T>(actor_initializer, args...);
         WeakHandle<T> weak_actor_handle = actor;
 
-        m_actor_map.insert({ name, std::move(actor) });
+        m_actor_map.insert({ actor_id, std::move(actor) });
 
         return weak_actor_handle;
     }
 
     template<class T>
-    WeakHandle<T> Scene::get_actor(std::string_view name)
+    WeakHandle<T> Scene::get_actor(ActorID actor_id)
     {
         static_assert(
             std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
 
-        auto actor_it = m_actor_map.find(name);
+        auto actor_it = m_actor_map.find(actor_id);
         if (actor_it == m_actor_map.end())
+            return nullptr;
+
+        WeakHandle<Actor> actor = actor_it->second;
+        return oup::dynamic_pointer_cast<T>(actor);
+    }
+
+    template<class T>
+    WeakHandle<T> Scene::get_actor_by_tag(ActorTag actor_tag)
+    {
+        static_assert(
+            std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
+
+        auto actor_it = m_actor_tags.find(actor_tag);
+        if (actor_it == m_actor_tags.end())
             return nullptr;
 
         WeakHandle<Actor> actor = actor_it->second;

@@ -35,8 +35,8 @@ namespace h2o
             }
         );
 
-        m_client->handle_message<NetMsg_ChunkFetchResult>(m_on_fetched_chunk_handle,
-            [&](ClientID client_id, const NetMsg_ChunkFetchResult& chunk_fetch_result)
+        m_client->handle_message<net_msg::ChunkFetchResult>(m_on_fetched_chunk_handle,
+            [&](ClientID client_id, const net_msg::ChunkFetchResult& chunk_fetch_result)
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
@@ -83,8 +83,8 @@ namespace h2o
             }
         );
 
-        m_client->handle_message<NetMsg_BlockPlaceRequest>(m_on_received_block_place_request,
-            [&](ClientID client_id, const NetMsg_BlockPlaceRequest& block_place_request)
+        m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request,
+            [&](ClientID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
                 if (set_block_at(block_place_request.block_pos, block_place_request.placed_block))
                     m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
@@ -97,7 +97,7 @@ namespace h2o
         assert(m_client);
         if (set_block_at(block_pos, block))
         {
-            m_client->send_message(0, NetMsg_BlockPlaceRequest { block, block_pos });
+            m_client->send_message(0, net_msg::BlockPlaceRequest { block, block_pos });
             m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_pos));
         }
     }
@@ -105,7 +105,7 @@ namespace h2o
     void ChunkClient::set_block_at_replicated(Chunk& chunk, const v3i& block_pos, Block block)
     {
         chunk.set_block_at(voxel_utils::block_pos_to_within_chunk(block_pos), block);
-        m_client->send_message(0, NetMsg_BlockPlaceRequest { block, block_pos });
+        m_client->send_message(0, net_msg::BlockPlaceRequest { block, block_pos });
         m_chunks_to_mesh.push_back(chunk.chunk_pos());
     }
 
@@ -138,8 +138,7 @@ namespace h2o
         if (!m_client->is_connected())
             return;
 
-        // Bad
-        auto player = m_scene->get_actor("player");
+        auto player = m_scene->get_actor_by_tag(ActorTag::LocalPlayer);
         if (!player)
             return;
 
@@ -206,7 +205,7 @@ namespace h2o
 
     void ChunkClient::request_chunk_loads()
     {
-        NetMsg_ChunkFetchRequest chunk_fetch_request{};
+        net_msg::ChunkFetchRequest chunk_fetch_request{};
 
         {
             std::lock_guard lock(m_chunk_columns_mutex);

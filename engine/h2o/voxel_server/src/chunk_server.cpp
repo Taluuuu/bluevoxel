@@ -27,16 +27,16 @@ namespace h2o
         assert(m_server);
 
         // Bind messages
-        m_server->handle_message<NetMsg_ChunkFetchRequest>(m_received_chunk_request_handle,
-            [&](ClientID client_id, const NetMsg_ChunkFetchRequest& chunk_fetch_request)
+        m_server->handle_message<net_msg::ChunkFetchRequest>(m_received_chunk_request_handle,
+            [&](ClientID client_id, const net_msg::ChunkFetchRequest& chunk_fetch_request)
             {
                 log::info("Received {} chunk fetch requests.", chunk_fetch_request.requested_chunks.size());
                 on_received_chunk_fetch_requests(client_id, chunk_fetch_request);
             }
         );
 
-        m_server->handle_message<NetMsg_BlockPlaceRequest>(m_received_block_place_request_handle,
-            [&](ClientID client_id, const NetMsg_BlockPlaceRequest& block_place_request)
+        m_server->handle_message<net_msg::BlockPlaceRequest>(m_received_block_place_request_handle,
+            [&](ClientID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
                 log::info("Received block place request.");
                 on_received_block_place_request(client_id, block_place_request);
@@ -213,7 +213,7 @@ namespace h2o
 
     void ChunkServer::on_received_chunk_fetch_requests(
         ClientID client_id,
-        const NetMsg_ChunkFetchRequest& chunk_fetch_request)
+        const net_msg::ChunkFetchRequest& chunk_fetch_request)
     {
         std::lock_guard lock { m_chunk_fetch_requests_mutex };
 
@@ -242,7 +242,7 @@ namespace h2o
 
     void ChunkServer::on_received_block_place_request(
         ClientID request_sender,
-        const NetMsg_BlockPlaceRequest& block_place_request)
+        const net_msg::BlockPlaceRequest& block_place_request)
     {
         if (!set_block_at(block_place_request.block_pos, block_place_request.placed_block))
             return;
@@ -268,7 +268,7 @@ namespace h2o
         for (ClientID client: client_ids)
         {
             m_server->send_message(client,
-                NetMsg_ChunkFetchResult
+                net_msg::ChunkFetchResult
                 {
                     compressed_chunks,
                     chunk_col.chunk_column_pos()
