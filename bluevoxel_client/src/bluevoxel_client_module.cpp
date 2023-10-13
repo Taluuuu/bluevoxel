@@ -4,6 +4,8 @@
 #include "game_framework/actors/fps_character_actor.h"
 #include "input/input_module.h"
 #include "networking/test_message.h"
+#include "rendering/mesh.h"
+#include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
 #include "scene/scene_module.h"
@@ -38,13 +40,20 @@ namespace bluevoxel
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>("player");
         player->add_component<h2o::BlockPlacingComponent>();
-        player->transform.position = { 5.0f, 50.0f, 0.0f };
+        player->transform.position = { 5.0f, 0.0f, 0.0f };
         player->transform.rotation = { 0.0f, 180.0f, 90.0f };
         player->move_speed = 10.0f;
 
+        // Note: the API would be cleaner if you didn't need to fetch a texture a different way
+        //       than a mesh. Since the g_engine pointer exists, it would be better if the two
+        //       used explicitly resource_mgr().fetch...
+        auto& renderer = engine.get_module_checked<h2o::RenderingModule>().renderer();
         auto triangle = m_scene->spawn_actor("triangle");
-        triangle->add_component<h2o::MeshRendererComponent>();
+        auto mesh_renderer = triangle->add_component<h2o::MeshRendererComponent>();
+        mesh_renderer->set_mesh(engine.resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel_client/models/robot.fbx"));
+        mesh_renderer->set_texture(renderer.fetch_or_load_texture("../Resources/bluevoxel_client/textures/robot.png"));
         triangle->transform.position = { 0.0f, 0.0f, 0.0f };
+        triangle->transform.scale = { 0.01f, 0.01f, 0.01f };
 
         return true;
     }

@@ -80,12 +80,12 @@ namespace h2o
             m_pipeline->set_uniform_mat4(1, actor->transform.model_matrix());
             m_pipeline->set_uniform_int(2, 0);
 
-            const auto& texture = render_comp->texture;
-            const auto& vao = render_comp->vao;
-            if (vao && texture)
+            if (const auto& mesh = render_comp->mesh())
             {
-                texture->bind(0);
-                m_renderer->draw(*vao, 6);
+                if (const auto& texture = render_comp->texture())
+                    texture->bind(0);
+
+                m_renderer->draw(*mesh);
             }
         }
     }

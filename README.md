@@ -10,15 +10,15 @@ reconnecting to the server.
 
 #### TODO list
 
- - Working block placing/breaking
  - Players should be able to see each-other
  - Create structure system
  - Create basic world generator
+ - Rework resource system and paths
 
 ### 0.0.2
 
-This version should add ticking blocks, better world generation, an UI system
-and a main menu.
+This version should add ticking blocks, better world generation, an UI system, a
+main menu and skeletal animations.
 
  - Implement threaded chunk meshing
 

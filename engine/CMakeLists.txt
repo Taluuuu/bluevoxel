@@ -62,6 +62,10 @@ add_subdirectory(lib/imgui)
 # bitsery
 add_subdirectory(lib/bitsery)
 
+# assimp
+set(BUILD_SHARED_LIBS OFF)
+add_subdirectory(lib/assimp)
+
 # Engine libraries
 add_subdirectory(h2o/core)
 add_subdirectory(h2o/input)

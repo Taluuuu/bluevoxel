@@ -25,6 +25,7 @@ namespace h2o::gfx
         std::shared_ptr<ITexture> fetch_or_load_texture(const std::string& path) override;
         std::shared_ptr<ITextureArray> create_texture_array(size_t array_size) override;
         void draw(const IVertexArray& vertex_array, i32 count) override;
+        void draw(const Mesh& mesh) override;
 
     private:
 

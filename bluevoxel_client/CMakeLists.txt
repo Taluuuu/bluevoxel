@@ -41,3 +41,6 @@ target_include_directories(bluevoxel_client
 
         imgui
 )
+
+# Add this resource path
+set(RESOURCE_PATHS ${RESOURCE_PATHS};${CMAKE_CURRENT_SOURCE_DIR}/res PARENT_SCOPE)

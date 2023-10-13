@@ -36,6 +36,9 @@ namespace h2o
 
     void Engine::run()
     {
+        // Fixes output in debug in CLion
+        setvbuf(stdout, NULL, _IONBF, 0);
+
         m_thread_pool.start();
 
         init_new_modules();

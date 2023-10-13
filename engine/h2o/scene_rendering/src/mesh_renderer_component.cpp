@@ -13,44 +13,50 @@ namespace h2o
     MeshRendererComponent::MeshRendererComponent(const ComponentInitializer& component_initializer)
         : Component(component_initializer)
     {
-        // Register to rendering system
-        auto render_system = m_scene->get_system<RenderingSystem>();
-        if (render_system)
+        if (auto render_system = m_scene->get_system<RenderingSystem>())
             render_system->register_component(*this);
 
-        // Temporary hard-coded triangle
-        auto rendering_module = g_engine->get_module<h2o::RenderingModule>();
-        assert(rendering_module);
-        auto renderer = &rendering_module->renderer();
-
-        auto buffer = renderer->create_buffer();
-        vao = renderer->create_vertex_array();
-
-        if (!buffer || !vao)
-            return;
-
-        const f32 vertices[] {
-            0.0f, -0.5f, -0.5f,    0.0f, 1.0f,
-            0.0f,  0.5f, -0.5f,    0.0f, 0.0f,
-            0.0f, -0.5f,  0.5f,    1.0f, 1.0f,
-            0.0f, -0.5f,  0.5f,    1.0f, 1.0f,
-            0.0f,  0.5f, -0.5f,    0.0f, 0.0f,
-            0.0f,  0.5f,  0.5f,    1.0f, 0.0f,
-        };
-
-        buffer->update_data(vertices, sizeof(vertices));
-        vao->attach_vertex_buffer(buffer, 0, 0, 5 * sizeof(f32));
-        vao->setup_attribute(0, 0, gfx::AttributeType::F32, 3, 0);
-        vao->setup_attribute(1, 0, gfx::AttributeType::F32, 2, 3 * sizeof(f32));
-
-        texture = renderer->fetch_or_load_texture("../Resources/engine/textures/test.png");
+//        // Temporary hard-coded triangle
+//        auto rendering_module = g_engine->get_module<h2o::RenderingModule>();
+//        assert(rendering_module);
+//        auto renderer = &rendering_module->renderer();
+//
+//        auto buffer = renderer->create_buffer();
+//        vao = renderer->create_vertex_array();
+//
+//        if (!buffer || !vao)
+//            return;
+//
+//        const f32 vertices[] {
+//            0.0f, -0.5f, -0.5f,    0.0f, 1.0f,
+//            0.0f,  0.5f, -0.5f,    0.0f, 0.0f,
+//            0.0f, -0.5f,  0.5f,    1.0f, 1.0f,
+//            0.0f, -0.5f,  0.5f,    1.0f, 1.0f,
+//            0.0f,  0.5f, -0.5f,    0.0f, 0.0f,
+//            0.0f,  0.5f,  0.5f,    1.0f, 0.0f,
+//        };
+//
+//        buffer->update_data(vertices, sizeof(vertices));
+//        vao->attach_vertex_buffer(buffer, 0, 0, 5 * sizeof(f32));
+//        vao->setup_attribute(0, 0, gfx::AttributeType::F32, 3, 0);
+//        vao->setup_attribute(1, 0, gfx::AttributeType::F32, 2, 3 * sizeof(f32));
+//
+//        texture = renderer->fetch_or_load_texture("../Resources/engine/textures/test.png");
     }
 
     MeshRendererComponent::~MeshRendererComponent()
     {
-        // Register to rendering system
-        auto render_system = m_scene->get_system<RenderingSystem>();
-        if (render_system)
+        if (auto render_system = m_scene->get_system<RenderingSystem>())
             render_system->unregister_component(*this);
+    }
+
+    void MeshRendererComponent::set_mesh(const std::shared_ptr<gfx::Mesh>& mesh)
+    {
+        m_mesh = mesh;
+    }
+
+    void MeshRendererComponent::set_texture(const std::shared_ptr<gfx::ITexture>& texture)
+    {
+        m_texture = texture;
     }
 }

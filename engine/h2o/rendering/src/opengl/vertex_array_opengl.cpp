@@ -38,6 +38,17 @@ namespace h2o::gfx
         m_buffers.push_back(buffer);
     }
 
+    void VertexArray_OpenGL::attach_index_buffer(const std::shared_ptr<IBuffer>& buffer)
+    {
+        auto buffer_gl = std::dynamic_pointer_cast<Buffer_OpenGL>(buffer);
+        assert(buffer_gl != nullptr);
+
+        glVertexArrayElementBuffer(m_vertex_array, buffer_gl->handle());
+
+        // Make sure the buffer stays allocated
+        m_buffers.push_back(buffer);
+    }
+
     void VertexArray_OpenGL::setup_attribute(
         u32 attribute_index,
         u32 binding_index,

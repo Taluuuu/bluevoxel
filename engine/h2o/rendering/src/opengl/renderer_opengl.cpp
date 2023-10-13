@@ -7,9 +7,10 @@
 #include "windowing/window.h"
 #include "pipeline_opengl.h"
 #include "buffer_opengl.h"
-#include "vertex_array_opengl.h"
+#include "rendering/mesh.h"
 #include "texture_opengl.h"
 #include "texture_array_opengl.h"
+#include "vertex_array_opengl.h"
 
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
@@ -61,7 +62,7 @@ namespace h2o::gfx
 
     void Renderer_OpenGL::draw(const IVertexArray& vertex_array, i32 count)
     {
-        if (!m_bound_pipeline || !count)
+        if (!m_bound_pipeline || count == 0)
             return;
 
         auto vertex_array_gl = dynamic_cast<const VertexArray_OpenGL*>(&vertex_array);
@@ -69,6 +70,18 @@ namespace h2o::gfx
 
         vertex_array_gl->bind();
         glDrawArrays(GL_TRIANGLES, 0, count);
+    }
+
+    void Renderer_OpenGL::draw(const Mesh& mesh)
+    {
+        if (!m_bound_pipeline)
+            return;
+
+        auto vertex_array_gl = dynamic_cast<const VertexArray_OpenGL*>(mesh.vertex_array().get());
+        assert(vertex_array_gl);
+
+        vertex_array_gl->bind();
+        glDrawElements(GL_TRIANGLES, mesh.vertex_count(), GL_UNSIGNED_INT, nullptr);
     }
 
     bool Renderer_OpenGL::init(IWindow& window, const GameInfo& game_info)

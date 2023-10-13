@@ -6,8 +6,8 @@ namespace h2o
 {
     namespace gfx
     {
-        class IVertexArray;
         class ITexture;
+        class Mesh;
     }
 
     class MeshRendererComponent : public Component
@@ -17,12 +17,16 @@ namespace h2o
         explicit MeshRendererComponent(const ComponentInitializer& component_initializer);
         ~MeshRendererComponent() override;
 
-    public:
+        void set_mesh(const std::shared_ptr<gfx::Mesh>& mesh);
+        void set_texture(const std::shared_ptr<gfx::ITexture>& texture);
 
-        // This will need a better abstraction down the line, like a Mesh class
-        std::shared_ptr<gfx::IVertexArray> vao = nullptr;
+        [[nodiscard]] const std::shared_ptr<gfx::ITexture>& texture() const { return m_texture; }
+        [[nodiscard]] const std::shared_ptr<gfx::Mesh>& mesh() const { return m_mesh; }
 
-        std::shared_ptr<gfx::ITexture> texture = nullptr;
+    private:
+
+        std::shared_ptr<gfx::ITexture> m_texture = nullptr;
+        std::shared_ptr<gfx::Mesh> m_mesh = nullptr;
 
     };
 }

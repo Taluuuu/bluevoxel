@@ -28,3 +28,6 @@
 [submodule "engine/lib/imgui"]
 	path = engine/lib/imgui
 	url = https://github.com/ocornut/imgui
+[submodule "engine/lib/assimp"]
+	path = engine/lib/assimp
+	url = https://github.com/assimp/assimp

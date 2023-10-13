@@ -17,6 +17,7 @@ namespace h2o::gfx
     class IVertexArray;
     class ITexture;
     class ITextureArray;
+    class Mesh;
 
     class IRenderer
     {
@@ -38,5 +39,6 @@ namespace h2o::gfx
         virtual std::shared_ptr<ITexture>      fetch_or_load_texture(const std::string& path) = 0;
         virtual std::shared_ptr<ITextureArray> create_texture_array(size_t array_size) = 0;
         virtual void                           draw(const IVertexArray& vertex_array, i32 count) = 0;
+        virtual void                           draw(const Mesh& mesh) = 0;
     };
 }
