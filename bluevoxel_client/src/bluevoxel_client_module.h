@@ -3,6 +3,7 @@
 #include "core/events.h"
 #include "core/module.h"
 #include "networking/client.h"
+#include "scene/actor_initializer.h"
 
 #include <memory>
 
@@ -10,6 +11,7 @@ namespace h2o
 {
     class ChunkClient;
     class Scene;
+    class Transform;
 }
 
 namespace bluevoxel
@@ -33,6 +35,11 @@ namespace bluevoxel
 
     private:
 
+        void spawn_local_player();
+        void spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform);
+
+    private:
+
         std::string m_server_ip { "127.0.0.1" };
         i32 m_server_port { 1338 };
 
@@ -41,6 +48,8 @@ namespace bluevoxel
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
 
         h2o::EventHandle m_on_client_created{};
+        h2o::EventHandle m_on_client_connected_to_server_handle{};
+        h2o::EventHandle m_on_received_transform_update_handle{};
 
     };
 }

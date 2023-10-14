@@ -33,6 +33,11 @@ namespace h2o
         bool can_send_messages() const override;
         void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) override;
 
+    public:
+
+        struct OnPlayerJoinedEvent { ClientID client_id = 0; };
+        Event<OnPlayerJoinedEvent> on_player_joined{};
+
     private:
 
         HSteamListenSocket m_listen_socket{};

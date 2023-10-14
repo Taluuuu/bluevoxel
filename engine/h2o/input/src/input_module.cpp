@@ -97,7 +97,7 @@ namespace h2o
             return;
         }
 
-        m_input_axes.insert({name, KeyAxis { positive, negative } });
+        m_input_axes.insert({ name, KeyAxis { positive, negative } });
     }
 
     void InputModule::register_axis(const std::string_view& name, MouseDelta mouse_delta, f32 sensitivity, bool invert)

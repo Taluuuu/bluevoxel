@@ -3,7 +3,7 @@
 #include "core/module.h"
 #include "core/tickable.h"
 
-#include <vector>
+#include <set>
 
 namespace h2o
 {
@@ -22,7 +22,7 @@ namespace h2o
 
     private:
 
-        std::vector<Scene*> m_scenes;
+        std::set<Scene*> m_scenes;
 
     };
 }

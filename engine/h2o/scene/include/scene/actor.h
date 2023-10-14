@@ -54,6 +54,8 @@ namespace h2o
         [[nodiscard]] ActorTag get_tag() const { return m_actor_tag; }
         void tag_actor(ActorTag tag);
 
+        void set_replicate_transform(bool replicate);
+
         Scene& scene() const { assert(m_scene); return *m_scene; }
 
     public:

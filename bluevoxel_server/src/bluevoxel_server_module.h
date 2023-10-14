@@ -6,7 +6,11 @@
 
 #include <memory>
 
-namespace h2o { class ChunkServer; }
+namespace h2o
+{
+    class ChunkServer;
+    class Scene;
+}
 
 namespace bluevoxel
 {
@@ -27,7 +31,10 @@ namespace bluevoxel
         h2o::Server m_server{};
         std::unique_ptr<h2o::ChunkServer> m_chunk_server { nullptr };
 
-        h2o::EventHandle m_received_msg_handle{};
+        std::shared_ptr<h2o::Scene> m_scene = nullptr;
+
+        h2o::EventHandle m_player_joined_event_handle{};
+        h2o::EventHandle m_on_received_transform_update_handle{};
 
     };
 }

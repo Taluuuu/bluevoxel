@@ -138,9 +138,11 @@ namespace h2o
             }
 
             m_client_ids.insert(info.m_hConn);
+            break;
         }
 
         case k_ESteamNetworkingConnectionState_Connected:
+            on_player_joined.broadcast({ info.m_hConn });
             break;
 
         default:

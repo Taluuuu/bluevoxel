@@ -9,6 +9,8 @@
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
 #include "scene/scene_module.h"
+#include "scene/scene_networking_system.h"
+#include "scene/scene_net_messages.h"
 #include "scene_rendering/mesh_renderer_component.h"
 #include "scene_rendering/rendering_scene_system.h"
 #include "scene_rendering/scene_rendering_module.h"
@@ -34,27 +36,28 @@ namespace bluevoxel
         input_module->register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, true);
         input_module->register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
 
-        m_scene = h2o::Scene::create(engine, "client_scene");
+        m_scene = std::make_shared<h2o::Scene>("client_scene");
         m_scene->add_system<h2o::RenderingSystem>();
         m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
+        m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
 
-        auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
-        player->tag_actor(h2o::ActorTag::LocalPlayer);
-        player->add_component<h2o::BlockPlacingComponent>();
-        player->transform.position = { 5.0f, 0.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 180.0f, 90.0f };
-        player->move_speed = 10.0f;
+        spawn_local_player();
 
-        // Note: the API would be cleaner if you didn't need to fetch a texture a different way
-        //       than a mesh. Since the g_engine pointer exists, it would be better if the two
-        //       used explicitly resource_mgr().fetch...
-        auto& renderer = engine.get_module_checked<h2o::RenderingModule>().renderer();
-        auto triangle = m_scene->spawn_actor();
-        auto mesh_renderer = triangle->add_component<h2o::MeshRendererComponent>();
-        mesh_renderer->set_mesh(engine.resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel_client/models/robot.fbx"));
-        mesh_renderer->set_texture(renderer.fetch_or_load_texture("../Resources/bluevoxel_client/textures/robot.png"));
-        triangle->transform.position = { 0.0f, 0.0f, 0.0f };
-        triangle->transform.scale = { 0.01f, 0.01f, 0.01f };
+        m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
+            [&](h2o::ClientID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
+            {
+                const auto& [actor_id, transform] = player_join_event;
+                spawn_remote_player(actor_id, transform);
+            }
+        );
+
+        m_client.handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
+            [&](h2o::ClientID client_id, const h2o::net_msg::TransformUpdate& transform_update)
+            {
+                if (auto actor = m_scene->get_actor(transform_update.actor_id))
+                    actor->transform = transform_update.transform;
+            }
+        );
 
         return true;
     }
@@ -120,5 +123,32 @@ namespace bluevoxel
             break;
         }
         }
+    }
+
+    void BlueVoxelClientModule::spawn_local_player()
+    {
+        assert(m_scene);
+
+        auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
+        player->tag_actor(h2o::ActorTag::LocalPlayer);
+        player->add_component<h2o::BlockPlacingComponent>();
+        player->set_replicate_transform(true);
+        player->transform.position = { 5.0f, 0.0f, 0.0f };
+        player->transform.rotation = { 0.0f, 180.0f, 90.0f };
+        player->transform.scale = { 0.5f, 0.5f, 0.5f };
+        player->move_speed = 10.0f;
+    }
+
+    void BlueVoxelClientModule::spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform)
+    {
+        assert(g_engine);
+
+        auto rendering_module = g_engine->get_module<h2o::RenderingModule>();
+        assert(rendering_module);
+
+        auto remote_player = m_scene->spawn_actor(spawn_transform, actor_id);
+        auto mesh_renderer = remote_player->add_component<h2o::MeshRendererComponent>();
+        mesh_renderer->set_mesh(g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel_client/models/robot.fbx"));
+        mesh_renderer->set_texture(rendering_module->renderer().fetch_or_load_texture("../Resources/bluevoxel_client/textures/robot.png"));
     }
 }

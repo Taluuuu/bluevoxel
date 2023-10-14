@@ -17,7 +17,7 @@ namespace h2o
     {
     public:
 
-        Scene() = delete;
+        explicit Scene(const std::string& scene_name);
         Scene(const Scene&) = delete;
 
         // A scene currently registers itself to the SceneModule by its memory address,
@@ -25,27 +25,18 @@ namespace h2o
         Scene(Scene&&) = delete;
         virtual ~Scene();
 
-        /**
-         * Create a new scene
-         *
-         * @param name The scene's name
-         * @return The created scene or nullptr on failure
-         */
-        static std::shared_ptr<Scene> create(Engine& engine, std::string_view name);
-
         bool init();
 
         /**
          * Create and store a new actor of type T
          *
          * @tparam T The actor's type, must inherit from or be Actor
-         * @tparam Args The actor's constructor argument types
-         * @param name The name of the actor, must be unique
-         * @param args The actor's constructor arguments
+         * @param spawn_transform The transform to apply to the actor on spawn
+         * @param actor_id_override An optional override for the actor's id
          * @return The created actor or nullptr on failure
          */
-        template<class T = Actor, typename... Args>
-        WeakHandle<T> spawn_actor(Args... args);
+        template<class T = Actor>
+        WeakHandle<T> spawn_actor(const Transform& spawn_transform = Transform{}, ActorID actor_id_override = 0);
 
         /**
          * Get the actor of type T with a name
@@ -70,10 +61,6 @@ namespace h2o
 
     private:
 
-        explicit Scene(Engine& engine, std::string_view name);
-
-    private:
-
         std::unordered_map< ActorID, OwningHandle<Actor> > m_actor_map{};
         std::unordered_map< ActorTag, WeakHandle<Actor> > m_actor_tags{};
         ActorID m_actor_id_generator = 1;
@@ -81,25 +68,40 @@ namespace h2o
         std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map{};
 
         std::string m_scene_name{};
-        Engine* const m_engine = nullptr;
 
     };
 
-    template<class T, typename... Args>
-    WeakHandle<T> Scene::spawn_actor(Args... args)
+    template<class T>
+    WeakHandle<T> Scene::spawn_actor(const Transform& spawn_transform, ActorID actor_id_override)
     {
         static_assert(
             std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
 
-        const ActorID actor_id = m_actor_id_generator++;
+        ActorID actor_id = actor_id_override;
+        if (actor_id == 0)
+        {
+            actor_id = m_actor_id_generator++;
+        }
+        else
+        {
+            // fuck fuck fuck fuck
+            if (get_actor(actor_id_override) != nullptr)
+            {
+                assert(false);
+                return nullptr;
+            }
+        }
+
         const ActorInitializer actor_initializer { actor_id, *this };
 
-        OwningHandle<T> actor = oup::make_observable_unique<T>(actor_initializer, args...);
-        WeakHandle<T> weak_actor_handle = actor;
+        OwningHandle<T> actor = oup::make_observable_unique<T>(actor_initializer);
+        WeakHandle<T> weak_actor = actor;
+        actor->transform = spawn_transform;
 
-        m_actor_map.insert({ actor_id, std::move(actor) });
+        auto [it, success] = m_actor_map.insert({ actor_id, std::move(actor) });
+        assert(success);
 
-        return weak_actor_handle;
+        return weak_actor;
     }
 
     template<class T>

@@ -52,14 +52,3 @@ namespace h2o::net_msg
         static constexpr MsgID message_id = msg_ids::block_placed;
     };
 }
-
-namespace bitsery
-{
-    template<typename S>
-    void serialize(S& s, v2i& o)
-    { s(o.x, o.y); }
-
-    template<typename S>
-    void serialize(S& s, v3i& o)
-    { s(o.x, o.y, o.z); }
-}

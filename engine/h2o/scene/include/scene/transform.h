@@ -8,7 +8,11 @@ namespace h2o
     {
     public:
 
-        Transform() = default;
+        explicit Transform(
+            const v3& position = v3 { 0.0f, 0.0f, 0.0f },
+            const v3& rotation = v3 { 0.0f, 0.0f, 0.0f },
+            const v3& scale = v3 { 1.0f, 1.0f, 1.0f });
+
         ~Transform() = default;
 
         /**
@@ -18,6 +22,10 @@ namespace h2o
          * @return The constructed model matrix
          */
         [[nodiscard]] m4 model_matrix() const;
+
+        template<typename S>
+        void serialize(S& s)
+        { s(position, rotation, scale); }
 
     public:
 
