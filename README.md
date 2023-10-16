@@ -10,7 +10,9 @@ reconnecting to the server.
 
 #### TODO list
 
- - Players should be able to see each-other
+ - Cleanup transform sync
+ - Fix chunk edges
+ - Create separate network tick
  - Create structure system
  - Create basic world generator
  - Rework resource system and paths

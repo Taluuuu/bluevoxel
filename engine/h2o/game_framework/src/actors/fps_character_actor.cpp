@@ -26,7 +26,7 @@ namespace h2o
             m_input->get_axis("cam_x"),
             m_input->get_axis("cam_y"), 0.0f };
 
-        transform.rotation += cam_input;
+        transform.rotation += cam_input * mouse_sensitivity;
         transform.rotation.x = glm::clamp(transform.rotation.x, -89.0f, 89.0f);
         
         v2 move_input {

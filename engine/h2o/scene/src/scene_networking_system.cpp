@@ -2,6 +2,7 @@
 
 #include "networking/client.h"
 #include "scene/actor.h"
+#include "scene/scene.h"
 #include "scene/scene_net_messages.h"
 
 namespace h2o
@@ -11,6 +12,14 @@ namespace h2o
         , m_client(&client)
     {
         set_tick_phases(TickPhase_Update);
+
+        m_client->handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
+            [&](h2o::ClientID client_id, const h2o::net_msg::TransformUpdate& transform_update)
+            {
+                if (auto actor = m_scene->get_actor(transform_update.actor_id))
+                    actor->transform = transform_update.transform;
+            }
+        );
     }
 
     void SceneNetworkingSystem::update(f32 delta_time)
@@ -20,10 +29,6 @@ namespace h2o
 
         for (const auto& actor : m_replicated_actors)
         {
-            // Hacky hack fuck my life j'ai pas envie de faire de l'école fac il faut que j'aille
-            // de quoi qui marche pour demain pour pas avoir envie de gosser dessus je sais pas
-            // pourquoi je raconte ma vie
-
             if (actor)
             {
                 Transform transform = actor->transform;

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/handle_types.h"
 #include "scene_system.h"
 
@@ -31,6 +32,8 @@ namespace h2o
         std::vector< WeakHandle<Actor> > m_replicated_actors{};
 
         Client* m_client = nullptr;
+
+        EventHandle m_on_received_transform_update_handle{};
 
     };
 }

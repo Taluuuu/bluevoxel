@@ -49,7 +49,6 @@ namespace bluevoxel
 
         h2o::EventHandle m_on_client_created{};
         h2o::EventHandle m_on_client_connected_to_server_handle{};
-        h2o::EventHandle m_on_received_transform_update_handle{};
 
     };
 }

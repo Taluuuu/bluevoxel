@@ -51,14 +51,6 @@ namespace bluevoxel
             }
         );
 
-        m_client.handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
-            [&](h2o::ClientID client_id, const h2o::net_msg::TransformUpdate& transform_update)
-            {
-                if (auto actor = m_scene->get_actor(transform_update.actor_id))
-                    actor->transform = transform_update.transform;
-            }
-        );
-
         return true;
     }
 
@@ -110,12 +102,6 @@ namespace bluevoxel
         {
             ImGui::Begin("Connection");
 
-            if (ImGui::Button("Send packet"))
-            {
-                h2o::TestMessage msg { "texte :))", 43843 };
-                m_client.send_message(0, msg);
-            }
-
             if (ImGui::Button("Disconnect from Server"))
                 m_client.stop(true);
 
@@ -134,7 +120,7 @@ namespace bluevoxel
         player->add_component<h2o::BlockPlacingComponent>();
         player->set_replicate_transform(true);
         player->transform.position = { 5.0f, 0.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 180.0f, 90.0f };
+        player->transform.rotation = { 0.0f, 0.0f, 90.0f };
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
         player->move_speed = 10.0f;
     }
