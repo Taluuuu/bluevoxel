@@ -1,6 +1,5 @@
 #include "networking/server.h"
 
-#include "core/engine.h"
 #include "core/log.h"
 #include "networking/networking_module.h"
 
@@ -41,7 +40,7 @@ namespace h2o
         log::info("Server listening on port {}", port);
         m_is_active = true;
 
-        set_tick_phases(TickPhase::TickPhase_Update);
+        set_tick_phases(TickPhase::Update);
 
         return true;
     }

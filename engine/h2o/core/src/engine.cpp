@@ -49,9 +49,9 @@ namespace h2o
         m_thread_pool.stop();
     }
 
-    void Engine::register_tickable(Tickable& tickable, TickPhase phases)
+    void Engine::register_tickable(Tickable& tickable, TickPhase::Type phases)
     {
-        auto phase = static_cast<TickPhase>(1);
+        auto phase = static_cast<TickPhase::Type>(1);
         for (auto& tickables : m_tickables)
         {
             if (phase & phases)
@@ -61,7 +61,7 @@ namespace h2o
         }
     }
 
-    void Engine::unregister_tickable(Tickable& tickable, TickPhase phases)
+    void Engine::unregister_tickable(Tickable& tickable, TickPhase::Type phases)
     {
         u32 index = 1;
         for (auto& tickables : m_tickables)
@@ -78,16 +78,17 @@ namespace h2o
         if (m_input_module)
             m_input_module->prepare();
 
-        f64 delta_time = 0.0f;
+        f32 delta_time = 0.0f;
         if (m_window_module)
         {
             m_window_module->poll_events();
-            delta_time = m_window_module->delta_time();
+            delta_time = static_cast<f32>(m_window_module->delta_time());
         }
 
         auto run_tick = [&](
-                const TickPhase tick_phase,
-                void(Tickable::*tick_function)(f32))
+                const TickPhase::Type tick_phase,
+                void(Tickable::*tick_function)(f32),
+                f32 delta_time)
             {
                 if (auto phase_idx = magic_enum::enum_index(tick_phase); phase_idx.has_value())
                 {
@@ -97,14 +98,19 @@ namespace h2o
                 }
             };
 
-        run_tick(TickPhase_FrameStart, &Tickable::frame_start);
+        run_tick(TickPhase::FrameStart, &Tickable::frame_start, delta_time);
 
-        run_tick(TickPhase_Update,     &Tickable::update);
-        run_tick(TickPhase_PreRender,  &Tickable::pre_render);
-        run_tick(TickPhase_Render,     &Tickable::render);
-        run_tick(TickPhase_PostRender, &Tickable::post_render);
+        if (true)
+        {
+            run_tick(TickPhase::NetworkUpdate, &Tickable::network_update, delta_time);
+        }
 
-        run_tick(TickPhase_FrameEnd,   &Tickable::frame_end);
+        run_tick(TickPhase::Update,     &Tickable::update, delta_time);
+        run_tick(TickPhase::PreRender,  &Tickable::pre_render, delta_time);
+        run_tick(TickPhase::Render,     &Tickable::render, delta_time);
+        run_tick(TickPhase::PostRender, &Tickable::post_render, delta_time);
+
+        run_tick(TickPhase::FrameEnd,   &Tickable::frame_end, delta_time);
 
         if (m_window_module)
             m_window_module->swap_buffers(144.0);

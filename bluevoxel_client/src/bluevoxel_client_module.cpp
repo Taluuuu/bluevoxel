@@ -25,7 +25,7 @@ namespace bluevoxel
 {
     bool BlueVoxelClientModule::init(h2o::Engine& engine)
     {
-        set_tick_phases(h2o::TickPhase_Update);
+        set_tick_phases(h2o::TickPhase::Update);
 
         // Input setup
         auto input_module = engine.get_module<h2o::InputModule>();

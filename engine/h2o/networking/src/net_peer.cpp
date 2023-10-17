@@ -29,7 +29,7 @@ namespace h2o
 
     void NetPeer::start_polling_messages()
     {
-        set_tick_phases(TickPhase_Update);
+        set_tick_phases(TickPhase::Update);
     }
 
     Event<ReceivedMessageEvent>* NetPeer::get_msg_event(MsgID id)

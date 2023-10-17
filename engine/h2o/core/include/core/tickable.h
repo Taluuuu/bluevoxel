@@ -6,28 +6,33 @@
 
 namespace h2o
 {
-    enum TickPhase : u32
+    namespace TickPhase
     {
-        TickPhase_FrameStart = 1 << 0,
-        TickPhase_Update     = 1 << 1,
-        TickPhase_PreRender  = 1 << 2,
-        TickPhase_Render     = 1 << 3,
-        TickPhase_PostRender = 1 << 4,
-        TickPhase_FrameEnd   = 1 << 5,
-    };
-
-    inline constexpr TickPhase operator<<(TickPhase phase, int shift)
-    {
-        using type = std::underlying_type_t<TickPhase>;
-        return static_cast<TickPhase>(static_cast<type>(phase) << shift);
+        enum Type : u32
+        {
+            None = 0,
+            FrameStart = 1 << 0,
+            Update = 1 << 1,
+            NetworkUpdate = 1 << 2,
+            PreRender = 1 << 3,
+            Render = 1 << 4,
+            PostRender = 1 << 5,
+            FrameEnd = 1 << 6,
+        };
     }
 
-    inline TickPhase operator|(TickPhase lhs, TickPhase rhs)
+    inline constexpr TickPhase::Type operator<<(TickPhase::Type phase, int shift)
     {
-        return static_cast<TickPhase>(static_cast<u32>(lhs) | static_cast<u32>(rhs));
+        using type = std::underlying_type_t<TickPhase::Type>;
+        return static_cast<TickPhase::Type>(static_cast<type>(phase) << shift);
     }
 
-    constexpr size_t tick_phase_count = magic_enum::enum_count<TickPhase>();
+    inline TickPhase::Type operator|(TickPhase::Type lhs, TickPhase::Type rhs)
+    {
+        return static_cast<TickPhase::Type>(static_cast<u32>(lhs) | static_cast<u32>(rhs));
+    }
+
+    constexpr size_t tick_phase_count = magic_enum::enum_count<TickPhase::Type>();
 
     class Tickable
     {
@@ -38,20 +43,21 @@ namespace h2o
         Tickable(Tickable&&) = delete;
         virtual ~Tickable();
 
-        virtual void frame_start(f32 delta_time) { assert(false); }
-        virtual void update(f32 delta_time)      { assert(false); }
-        virtual void pre_render(f32 delta_time)  { assert(false); }
-        virtual void render(f32 delta_time)      { assert(false); }
-        virtual void post_render(f32 delta_time) { assert(false); }
-        virtual void frame_end(f32 delta_time)   { assert(false); }
+        virtual void frame_start(f32 delta_time)    { assert(false); }
+        virtual void update(f32 delta_time)         { assert(false); }
+        virtual void network_update(f32 delta_time) { assert(false); }
+        virtual void pre_render(f32 delta_time)     { assert(false); }
+        virtual void render(f32 delta_time)         { assert(false); }
+        virtual void post_render(f32 delta_time)    { assert(false); }
+        virtual void frame_end(f32 delta_time)      { assert(false); }
 
     protected:
 
-        void set_tick_phases(TickPhase tick_phases);
+        void set_tick_phases(TickPhase::Type tick_phases);
 
     private:
 
-        TickPhase m_tick_phases = static_cast<TickPhase>(0);
+        TickPhase::Type m_tick_phases = TickPhase::None;
 
     };
 }

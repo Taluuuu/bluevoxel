@@ -65,8 +65,8 @@ namespace h2o
          */
         void run();
 
-        void register_tickable(Tickable& tickable, TickPhase phases);
-        void unregister_tickable(Tickable& tickable, TickPhase phases);
+        void register_tickable(Tickable& tickable, TickPhase::Type phases);
+        void unregister_tickable(Tickable& tickable, TickPhase::Type phases);
 
     public:
 

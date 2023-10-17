@@ -16,7 +16,7 @@ namespace h2o
 {
     bool RenderingModule::init(Engine& engine)
     {
-        set_tick_phases(TickPhase_FrameStart | TickPhase_FrameEnd);
+        set_tick_phases(TickPhase::FrameStart | TickPhase::FrameEnd);
 
         const auto windowing_module = engine.get_module<WindowingModule>();
         assert(windowing_module != nullptr);

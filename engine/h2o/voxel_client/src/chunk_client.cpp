@@ -22,7 +22,7 @@ namespace h2o
         : SceneSystem(system_initializer)
         , m_client(&client)
     {
-        set_tick_phases(TickPhase_Update | TickPhase_Render);
+        set_tick_phases(TickPhase::Update | TickPhase::Render);
 
         m_rendering_module       = &g_engine->get_module_checked<RenderingModule>();
         m_voxel_module           = &g_engine->get_module_checked<VoxelModule>();

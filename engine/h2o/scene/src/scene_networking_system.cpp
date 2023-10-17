@@ -11,7 +11,7 @@ namespace h2o
         : SceneSystem(system_initializer)
         , m_client(&client)
     {
-        set_tick_phases(TickPhase_Update);
+        set_tick_phases(TickPhase::Update);
 
         m_client->handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
             [&](h2o::ClientID client_id, const h2o::net_msg::TransformUpdate& transform_update)

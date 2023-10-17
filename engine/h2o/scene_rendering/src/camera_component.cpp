@@ -21,7 +21,7 @@ namespace h2o
 
         set_as_main_camera();
 
-        set_tick_phases(TickPhase_PreRender);
+        set_tick_phases(TickPhase::PreRender);
     }
 
     void CameraComponent::pre_render(f32 delta_time)

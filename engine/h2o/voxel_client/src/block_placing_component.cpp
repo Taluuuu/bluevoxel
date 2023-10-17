@@ -15,7 +15,7 @@ namespace h2o
     BlockPlacingComponent::BlockPlacingComponent(const ComponentInitializer& component_initializer)
         : Component(component_initializer)
     {
-        set_tick_phases(TickPhase_Update);
+        set_tick_phases(TickPhase::Update);
 
         m_camera = owner()->get_component<CameraComponent>();
         m_input = owner()->get_component<InputComponent>();
