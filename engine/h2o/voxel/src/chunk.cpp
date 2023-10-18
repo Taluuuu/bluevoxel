@@ -25,7 +25,7 @@ namespace h2o
     void Chunk::init(const VoxelModule& voxel_module)
     {
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
-        m_adjacent_blocks.resize(voxel_constants::chunk_volume, static_cast<voxel::Direction>(0));
+        m_adjacent_blocks.resize(voxel_constants::chunk_volume, voxel::Direction::None);
         m_voxel_module = &voxel_module;
     }
 
@@ -58,7 +58,7 @@ namespace h2o
         }
     }
 
-    voxel::Direction Chunk::get_adjacent_blocks(const v3i& local_pos) const
+    voxel::Direction::Type Chunk::get_adjacent_blocks(const v3i& local_pos) const
     {
         assert(is_valid_pos(local_pos));
         return m_adjacent_blocks[to_index(local_pos)];
@@ -155,7 +155,7 @@ namespace h2o
         }
 
         auto set_adjacent_block =
-            [&](voxel::Direction dir)
+            [&](voxel::Direction::Type dir)
             {
                 const v3i adj_pos = local_pos + voxel::to_vec3(dir);
                 if (is_valid_pos(adj_pos))
@@ -164,14 +164,14 @@ namespace h2o
                     auto& adj_block = m_adjacent_blocks[to_index(adj_pos)];
 
                     adj_block = (block == Block::Air) ?
-                        static_cast<voxel::Direction>(adj_block & ~dir_from_adj_block) :
-                        static_cast<voxel::Direction>(adj_block |  dir_from_adj_block);
+                        static_cast<voxel::Direction::Type>(adj_block & ~dir_from_adj_block) :
+                        static_cast<voxel::Direction::Type>(adj_block |  dir_from_adj_block);
                 }
             };
 
         // Update adjacent block array
-        magic_enum::enum_for_each<voxel::Direction>(
-            [&](voxel::Direction dir)
+        magic_enum::enum_for_each<voxel::Direction::Type>(
+            [&](voxel::Direction::Type dir)
             {
                 set_adjacent_block(dir);
             }

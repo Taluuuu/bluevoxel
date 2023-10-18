@@ -6,53 +6,58 @@
 
 namespace h2o::voxel
 {
-    enum Direction : u8
+    namespace Direction
     {
-        XNeg = 1 << 0,
-        XPos = 1 << 1,
-        ZNeg = 1 << 2,
-        ZPos = 1 << 3,
-        YNeg = 1 << 4,
-        YPos = 1 << 5,
-    };
+        enum Type : u8
+        {
+            XNeg = 1 << 0,
+            XPos = 1 << 1,
+            ZNeg = 1 << 2,
+            ZPos = 1 << 3,
+            YNeg = 1 << 4,
+            YPos = 1 << 5,
+        };
 
-    constexpr v3i to_vec3(Direction direction)
+        inline constexpr Type None = static_cast<Type>(0);
+    }
+
+    constexpr v3i to_vec3(Direction::Type direction)
     {
         switch (direction)
         {
-        case XNeg: return { -1,  0,  0  };
-        case XPos: return {  1,  0,  0  };
-        case ZNeg: return {  0,  0, -1  };
-        case ZPos: return {  0,  0,  1  };
-        case YNeg: return {  0, -1,  0  };
-        case YPos: return {  0,  1,  0  };
+        case Direction::XNeg: return { -1,  0,  0  };
+        case Direction::XPos: return {  1,  0,  0  };
+        case Direction::ZNeg: return {  0,  0, -1  };
+        case Direction::ZPos: return {  0,  0,  1  };
+        case Direction::YNeg: return {  0, -1,  0  };
+        case Direction::YPos: return {  0,  1,  0  };
         default:   return {  0,  0,  0  };
         }
     }
 
-    constexpr v2i to_vec2(Direction direction)
+    constexpr v2i to_vec2(Direction::Type direction)
     {
         switch (direction)
         {
-        case XNeg: return { -1,  0  };
-        case XPos: return {  1,  0  };
-        case ZNeg: return {  0, -1  };
-        case ZPos: return {  0,  1  };
+        case Direction::XNeg: return { -1,  0  };
+        case Direction::XPos: return {  1,  0  };
+        case Direction::ZNeg: return {  0, -1  };
+        case Direction::ZPos: return {  0,  1  };
         default:   return {  0,  0  };
         }
     }
 
-    constexpr Direction invert(Direction direction)
+    constexpr Direction::Type invert(Direction::Type direction)
     {
         switch (direction)
         {
-        case XNeg: return XPos;
-        case XPos: return XNeg;
-        case ZNeg: return ZPos;
-        case ZPos: return ZNeg;
-        case YNeg: return YPos;
+        case Direction::XNeg: return Direction::XPos;
+        case Direction::XPos: return Direction::XNeg;
+        case Direction::ZNeg: return Direction::ZPos;
+        case Direction::ZPos: return Direction::ZNeg;
+        case Direction::YNeg: return Direction::YPos;
         default:
-        case YPos: return YNeg;
+        case Direction::YPos: return Direction::YNeg;
         }
     }
 }

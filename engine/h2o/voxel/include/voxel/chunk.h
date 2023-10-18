@@ -56,7 +56,7 @@ namespace h2o
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
         void set_block_at(const v3i& local_pos, Block block);
 
-        [[nodiscard]] voxel::Direction get_adjacent_blocks(const v3i& local_pos) const;
+        [[nodiscard]] voxel::Direction::Type get_adjacent_blocks(const v3i& local_pos) const;
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
         [[nodiscard]] bool is_empty() const { return m_is_empty; }
@@ -84,7 +84,9 @@ namespace h2o
         friend class ChunkColumn;
 
         std::vector<Block> m_blocks{};
-        std::vector<voxel::Direction> m_adjacent_blocks{};
+        std::vector<voxel::Direction::Type> m_adjacent_blocks{};
+
+        // Stores the indices of blocks to tick
         std::set<u32> m_blocks_to_tick{};
 
         v3i m_chunk_pos{};

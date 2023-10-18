@@ -53,7 +53,7 @@ namespace h2o
         assert(m_mesh_renderer_components.empty());
     }
 
-    void RenderingSystem::render(f32 delta_time)
+    void RenderingSystem::render()
     {
         if (!m_main_camera)
         {

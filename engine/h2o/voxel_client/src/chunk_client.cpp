@@ -40,6 +40,8 @@ namespace h2o
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
+                assert(m_voxel_module);
+
                 if (!is_in_range(chunk_pos))
                     return;
 
@@ -51,13 +53,13 @@ namespace h2o
                     [&, compressed_chunks, chunk_pos]()
                     {
                         auto chunk_column = std::make_shared<ChunkColumn>(chunk_pos);
+                        chunk_column->init(*m_voxel_module);
 
                         // Decompress chunks
                         std::vector<v3i> chunks_to_mesh{};
                         for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
                         {
                             auto& chunk = (*chunk_column)[i];
-                            chunk.init(*m_voxel_module);
                             chunk.decompress(compressed_chunks[i]);
 
                             if (!chunk.is_empty())
@@ -159,7 +161,7 @@ namespace h2o
         build_chunk_meshes(1, player_pos);
     }
 
-    void ChunkClient::render(f32 delta_time)
+    void ChunkClient::render()
     {
         auto render_system = m_scene->get_system<RenderingSystem>();
         if (!render_system)

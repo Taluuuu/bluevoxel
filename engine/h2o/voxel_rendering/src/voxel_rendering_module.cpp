@@ -90,7 +90,7 @@ namespace h2o
                     {
                         // An occluder is specified
                         const auto occluder_name = occluded_by_yml.as<std::string>();
-                        const auto occluder = magic_enum::enum_cast<voxel::Direction>(occluder_name);
+                        const auto occluder = magic_enum::enum_cast<voxel::Direction::Type>(occluder_name);
 
                         if (!occluder)
                         {

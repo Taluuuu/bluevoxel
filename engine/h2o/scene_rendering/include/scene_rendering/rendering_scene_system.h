@@ -26,7 +26,7 @@ namespace h2o
         ~RenderingSystem() override;
 
         // Tickable interface
-        void render(f32 delta_time) override;
+        void render() override;
 
         // Registered mesh renderer components MUST unregister themselves on delete
         void register_component(const MeshRendererComponent& renderer_component);

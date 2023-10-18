@@ -4,8 +4,9 @@
 #include "networking/client.h"
 #include "scene/scene_system.h"
 #include "voxel/block_container_interface.h"
-#include "voxel/voxel_constants.h"
+#include "voxel/chunk_manager.h"
 #include "voxel_rendering/chunk_mesh.h"
+#include "voxel/voxel_constants.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -38,7 +39,7 @@ namespace h2o
         [[nodiscard]] const Chunk* get_chunk_at(const v3i& chunk_pos) const override;
 
         void update(f32 delta_time) override;
-        void render(f32 delta_time) override;
+        void render() override;
 
     private:
 

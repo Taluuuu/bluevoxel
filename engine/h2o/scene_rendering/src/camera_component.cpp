@@ -24,7 +24,7 @@ namespace h2o
         set_tick_phases(TickPhase::PreRender);
     }
 
-    void CameraComponent::pre_render(f32 delta_time)
+    void CameraComponent::pre_render()
     {
         // TODO: Transform ref in components
         assert(owner());

@@ -38,9 +38,6 @@ namespace h2o
 
         m_chunk_pos = chunk.chunk_pos();
 
-        // TODO: Investigate the possibility of storing an array of u8 describing adjacent faces
-        //       that need to be added to the mesh. This array could be updated when we edit blocks
-
         std::vector<u32> vertices;
 
         const auto append_face =
@@ -82,8 +79,8 @@ namespace h2o
 
             const auto adj_blocks = chunk.get_adjacent_blocks(pos);
             u8 dir_index = 0;
-            magic_enum::enum_for_each<voxel::Direction>(
-                [&](voxel::Direction dir)
+            magic_enum::enum_for_each<voxel::Direction::Type>(
+                [&](voxel::Direction::Type dir)
                 {
                     if (!(adj_blocks & dir))
                     {

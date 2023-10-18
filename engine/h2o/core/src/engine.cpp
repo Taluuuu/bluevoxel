@@ -85,19 +85,6 @@ namespace h2o
             delta_time = static_cast<f32>(m_window_module->delta_time());
         }
 
-        auto run_tick = [&](
-                const TickPhase::Type tick_phase,
-                void(Tickable::*tick_function)(f32),
-                f32 delta_time)
-            {
-                if (auto phase_idx = magic_enum::enum_index(tick_phase); phase_idx.has_value())
-                {
-                    const auto& tickables = m_tickables[*phase_idx];
-                    for (size_t i = 0; i < tickables.size(); i++)
-                        (tickables[i]->*tick_function)(static_cast<f32>(delta_time));
-                }
-            };
-
         run_tick(TickPhase::FrameStart, &Tickable::frame_start, delta_time);
 
         if (true)
@@ -106,9 +93,10 @@ namespace h2o
         }
 
         run_tick(TickPhase::Update,     &Tickable::update, delta_time);
-        run_tick(TickPhase::PreRender,  &Tickable::pre_render, delta_time);
-        run_tick(TickPhase::Render,     &Tickable::render, delta_time);
-        run_tick(TickPhase::PostRender, &Tickable::post_render, delta_time);
+
+        run_tick(TickPhase::PreRender,  &Tickable::pre_render);
+        run_tick(TickPhase::Render,     &Tickable::render);
+        run_tick(TickPhase::PostRender, &Tickable::post_render);
 
         run_tick(TickPhase::FrameEnd,   &Tickable::frame_end, delta_time);
 

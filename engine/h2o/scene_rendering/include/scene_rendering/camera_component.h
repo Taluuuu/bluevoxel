@@ -17,7 +17,7 @@ namespace h2o
         ~CameraComponent() override = default;
 
         // Component interface
-        void pre_render(f32 delta_time) override;
+        void pre_render() override;
 
         [[nodiscard]] const gfx::Camera& camera() const;
         void set_as_main_camera() const;

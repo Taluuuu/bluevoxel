@@ -73,7 +73,10 @@ namespace h2o
         bool should_close = false;
 
     private:
-    
+
+        template<class... Args>
+        void run_tick(TickPhase::Type tick_phase, void(Tickable::*tick_function)(Args...), Args... args) const;
+
         void update() const;
 
         void init_new_modules();
@@ -135,6 +138,19 @@ namespace h2o
         assert(module != nullptr);
 
         return *module;
+    }
+
+    template<class... Args>
+    void Engine::run_tick(TickPhase::Type tick_phase, void(Tickable::*tick_function)(Args...), Args... args) const
+    {
+        if (auto phase_idx = magic_enum::enum_index(tick_phase); phase_idx.has_value())
+        {
+            const auto& tickables = m_tickables[*phase_idx];
+
+            // Not a range based for loop due to a weird bug
+            for (size_t i = 0; i < tickables.size(); i++)
+                (tickables[i]->*tick_function)(args...);
+        }
     }
 }
 
