@@ -4,9 +4,10 @@
 #include "core/events.h"
 #include "core/types.h"
 #include "networking/networking_types.h"
-#include "server_chunk_manager.h"
+#include "chunk_manager_server.h"
 #include "voxel/block_container_interface.h"
 #include "voxel/chunk_column.h"
+#include "voxel/chunk_region.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/voxel_net_messages.h"
 
@@ -86,7 +87,7 @@ namespace h2o
         EventHandle m_received_block_place_request_handle{};
 
         // Storage
-        ServerChunkManager m_chunk_mgr{};
+        ChunkManager_Server m_chunk_mgr{};
 
         // Generation
         std::unique_ptr<ChunkGenerator_Base> m_chunk_generator{};

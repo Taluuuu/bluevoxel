@@ -2,6 +2,7 @@
 
 #include "block.h"
 
+#include <functional>
 #include <optional>
 
 namespace h2o
@@ -15,15 +16,6 @@ namespace h2o
         virtual ~IBlockContainer() = default;
 
         /**
-         * Get a chunk at the input position in chunk space
-         *
-         * @param chunk_pos The chunk's position in chunk space
-         * @return The chunk or nullptr on failure
-         */
-        [[nodiscard]] virtual Chunk* get_chunk_at(const v3i& chunk_pos) = 0;
-        [[nodiscard]] virtual const Chunk* get_chunk_at(const v3i& chunk_pos) const = 0;
-
-        /**
          * Get a block in the container
          *
          * @param block_pos The block position in world space
@@ -32,23 +24,24 @@ namespace h2o
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const;
 
         /**
-         * Get a block in the container
-         *
-         * @param block_pos The block position in world space
-         * @param out_chunk The chunk in which the block was found
-         * @return The block or std::nullopt if block_pos is out of bounds or if the chunk is not present
-         */
-        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, const Chunk*& out_chunk) const;
-        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, Chunk*& out_chunk);
-
-        /**
-         * Set a block in the container
+         * Set a block in the container. This function is replicated.
          *
          * @param block_pos The block position in world space
          * @param block The block to set
          * @return true on success, false otherwise
          */
-        bool set_block_at(const v3i& block_pos, Block block);
+        virtual bool set_block_at(const v3i& block_pos, Block block);
+
+        /**
+         * Fetch the chunk at the input position and executes the lambda. The lambda will be run
+         * with nullptr if the chunk is not loaded. The chunk is valid and thread safe while in
+         * the lambda.
+         *
+         * @param chunk_pos The chunk's position
+         * @param function The function to run with the chunk
+         */
+        virtual void fetch_chunk_at(const v3i& chunk_pos, const std::function<void(Chunk* chunk)>& function) = 0;
+        virtual void fetch_chunk_at(const v3i& chunk_pos, const std::function<void(const Chunk* chunk)>& function) const = 0;
 
     };
 }

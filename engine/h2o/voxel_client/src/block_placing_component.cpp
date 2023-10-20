@@ -30,29 +30,24 @@ namespace h2o
         if (!chunk_client)
             return;
 
+        auto& chunk_mgr = chunk_client->chunk_mgr();
+
         const v3 front = m_camera->camera().calc_front(); // TODO: Cache front vector...
         const v3 origin = owner()->transform.position;
         const v3 end = origin + front * 15.0f;
 
-        if (const VoxelRay ray { origin, end, *chunk_client })
+        if (const VoxelRay ray { origin, end, chunk_client->chunk_mgr() })
         {
             const auto& [hit_voxel, before_hit_voxel] = ray.hit();
             if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
             {
                 assert(hit_voxel.chunk);
-
-                chunk_client->set_block_at_replicated(
-                    *hit_voxel.chunk,
-                    hit_voxel.pos,
-                    Block::Air);
+                chunk_mgr.set_block_at(hit_voxel.pos, Block::Air);
             }
 
-            if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame && before_hit_voxel.chunk)
+            if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
             {
-                chunk_client->set_block_at_replicated(
-                    *before_hit_voxel.chunk,
-                    before_hit_voxel.pos,
-                    Block { 2 });
+                chunk_mgr.set_block_at(before_hit_voxel.pos, Block { 2 });
             }
         }
     }

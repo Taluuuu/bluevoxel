@@ -1,33 +1,40 @@
-#include "voxel/chunk_manager.h"
+#include "voxel/chunk_manager_interface.h"
+
+#include "voxel/chunk_column.h"
 
 namespace h2o
 {
-    ChunkRegion::ChunkRegion(v2i center, IChunkManager& chunk_manager)
+    void IChunkManager::fetch_chunk_at(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
-        size_t index = 0;
-        for (i32 i = -1; i <= 1; i++)
-        for (i32 j = -1; j <= 1; j++)
-        {
-            auto chunk_col = chunk_manager.fetch_or_create_chunk_at(
-                center + v2i{ i, j });
-
-            assert(chunk_col);
-
-            m_chunks[index++] = chunk_col;
-        }
+        fetch_chunk_column({ chunk_pos.x, chunk_pos.z },
+            [&](ChunkColumn* chunk_column)
+            {
+                if (chunk_column)
+                {
+                    function(chunk_column->get_chunk_safe(chunk_pos.y));
+                }
+                else
+                {
+                    function(nullptr);
+                }
+            }
+        );
     }
 
-    void ChunkRegion::for_each_chunk_column(const std::function<void(const std::shared_ptr<ChunkColumn>&)>& fun) const
+    void IChunkManager::fetch_chunk_at(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const
     {
-        for (const auto& chunk_col : m_chunks)
-        {
-            assert(chunk_col);
-            fun(chunk_col);
-        }
-    }
-
-    const std::shared_ptr<ChunkColumn>& ChunkRegion::center_chunk() const
-    {
-        return m_chunks[4]; // :)
+        fetch_chunk_column({ chunk_pos.x, chunk_pos.z },
+            [&](const ChunkColumn* chunk_column)
+            {
+                if (chunk_column)
+                {
+                    function(chunk_column->get_chunk_safe(chunk_pos.y));
+                }
+                else
+                {
+                    function(nullptr);
+                }
+            }
+        );
     }
 }

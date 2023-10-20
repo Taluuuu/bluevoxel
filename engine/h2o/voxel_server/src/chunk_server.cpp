@@ -73,7 +73,7 @@ namespace h2o
 
     Chunk* ChunkServer::get_chunk_at(const v3i& chunk_pos)
     {
-        if (const auto chunk_column = m_chunk_mgr.fetch_chunk_at({ chunk_pos.x, chunk_pos.z }))
+        if (const auto chunk_column = m_chunk_mgr.fetch_chunk_column_at({chunk_pos.x, chunk_pos.z}))
             return chunk_column->get_chunk_safe(chunk_pos.y);
 
         return nullptr;
@@ -81,7 +81,7 @@ namespace h2o
 
     const Chunk* ChunkServer::get_chunk_at(const v3i& chunk_pos) const
     {
-        if (const auto chunk_column = m_chunk_mgr.fetch_chunk_at({ chunk_pos.x, chunk_pos.z }))
+        if (const auto chunk_column = m_chunk_mgr.fetch_chunk_column_at({chunk_pos.x, chunk_pos.z}))
             return chunk_column->get_chunk_safe(chunk_pos.y);
 
         return nullptr;
@@ -118,7 +118,7 @@ namespace h2o
                     if (is_generating)
                         return false;
 
-                    if (auto chunk_col = m_chunk_mgr.fetch_chunk_at(chunk_col_pos))
+                    if (auto chunk_col = m_chunk_mgr.fetch_chunk_column_at(chunk_col_pos))
                     {
                         if (chunk_col->is_generated())
                         {

@@ -2,11 +2,14 @@
 
 #include "voxel/chunk_column.h"
 #include "voxel/voxel_constants.h"
+#include "voxel/chunk_region.h"
 
 namespace h2o
 {
-    void ChunkGenerator_Sphere::run_generation_step(ChunkColumn& chunk_col, StaticChunkRegion& chunk_region) const
+    void ChunkGenerator_Sphere::run_generation_step(ChunkRegion& chunk_region) const
     {
+        auto chunk_col = *chunk_region.center_chunk();
+
         if (chunk_col.generation_stage() == 0)
         {
             const i32 sphere_radius = voxel_constants::vertical_block_count / 4;
@@ -20,11 +23,6 @@ namespace h2o
                 {
                     const v3i world_pos = v3i{ x, y, z } + chunk.chunk_pos() * voxel_constants::chunk_size;
 
-                    // Long thing
-//                    const f32 y_lim = 10000.0f / (world_pos.x * world_pos.x + world_pos.z * world_pos.z);
-//                    if (world_pos.y < y_lim)
-//                        chunk.set_block_at({x, y, z}, 1);
-
                     // Sphere
                     const float distance = glm::distance(v3(world_pos), v3(sphere_center));
                     if (distance < sphere_radius)
@@ -37,10 +35,5 @@ namespace h2o
 
             chunk_col.finish_generation();
         }
-    }
-
-    void ChunkGenerator_Sphere::run_generation_step(ChunkRegion& chunk_region) const
-    {
-
     }
 }

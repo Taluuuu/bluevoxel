@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_voxel_server
     src/chunk_server.cpp
-    src/server_chunk_manager.cpp
+    src/chunk_manager_server.cpp
     src/voxel_server_module.cpp
 )
 

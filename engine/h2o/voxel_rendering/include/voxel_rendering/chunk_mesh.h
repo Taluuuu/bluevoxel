@@ -38,8 +38,8 @@ namespace h2o
 
     private:
 
-        std::shared_ptr<gfx::IVertexArray> m_vertex_array { nullptr };
-        std::shared_ptr<gfx::IBuffer> m_buffer { nullptr };
+        std::shared_ptr<gfx::IVertexArray> m_vertex_array = nullptr;
+        std::shared_ptr<gfx::IBuffer> m_buffer = nullptr;
 
         const VoxelRenderingModule* m_voxel_rendering_module = nullptr;
 

@@ -36,13 +36,12 @@ namespace h2o
         {
             intersection_count++;
 
-            Chunk* chunk = nullptr;
-            const auto block = block_container.get_block_at(current_voxel, chunk);
+            const auto block = block_container.get_block_at(current_voxel);
 
-            if (!chunk || !block) // Out of bounds ?
+            if (!block) // Out of bounds ?
                 break;
 
-            m_ray_hit.add_voxel({ chunk, current_voxel, *block });
+            m_ray_hit.add_voxel({ current_voxel, *block });
             if (block != Block::Air)
             {
                 m_has_hit = true;

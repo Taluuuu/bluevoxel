@@ -1,11 +1,12 @@
 #pragma once
 
+#include "chunk_mesh_pool.h"
+#include "chunk_manager_client.h"
 #include "core/distance_queue.h"
 #include "networking/client.h"
 #include "scene/scene_system.h"
 #include "voxel/block_container_interface.h"
-#include "voxel/chunk_manager.h"
-#include "voxel_rendering/chunk_mesh.h"
+#include "voxel/chunk_manager_interface.h"
 #include "voxel/voxel_constants.h"
 
 #include <glm/gtx/hash.hpp>
@@ -20,9 +21,7 @@ namespace h2o
     class VoxelRenderingModule;
     class VoxelModule;
 
-    class ChunkClient
-        : public SceneSystem
-        , public IBlockContainer
+    class ChunkClient : public SceneSystem
     {
     public:
 
@@ -31,13 +30,9 @@ namespace h2o
             Client& client);
         ~ChunkClient() override = default;
 
-        void set_block_at_replicated(const v3i& block_pos, Block block);
-        void set_block_at_replicated(Chunk& chunk, const v3i& block_pos, Block block);
+        [[nodiscard]] IChunkManager& chunk_mgr() { return m_chunk_mgr; }
 
-        // IBlockContainer interface
-        [[nodiscard]] Chunk* get_chunk_at(const v3i& chunk_pos) override;
-        [[nodiscard]] const Chunk* get_chunk_at(const v3i& chunk_pos) const override;
-
+        // Tickable interface
         void update(f32 delta_time) override;
         void render() override;
 
@@ -49,35 +44,17 @@ namespace h2o
         void build_chunk_meshes(i32 max_chunk_meshes, const v3& player_pos);
         void build_chunk_mesh_at(const v3i& chunk_pos);
 
-        struct ChunkData
-        {
-            ChunkData()
-            { chunk_mesh_indices.fill(-1); }
-
-            std::shared_ptr<ChunkColumn> chunk_column = nullptr;
-            std::array<i32, voxel_constants::vertical_chunk_count> chunk_mesh_indices{};
-        };
-
-        struct ChunkMeshData
-        {
-            ChunkMesh chunk_mesh{};
-            bool is_available = true;
-        };
-
         [[nodiscard]] bool is_in_range(v2i chunk_pos) const;
-        [[nodiscard]] std::pair<ChunkMeshData&, i32> reserve_chunk_mesh();
 
     private:
 
         // If there is an entry in the map, the chunk has been requested.
-        std::mutex m_chunk_columns_mutex{};
-        std::unordered_map<v2i, ChunkData> m_chunk_columns{};
-        std::vector<ChunkMeshData> m_chunk_mesh_pool{};
+        ChunkManager_Client m_chunk_mgr;
 
+        ChunkMeshPool m_chunk_mesh_pool{};
         std::vector<v3i> m_chunks_to_mesh{};
         std::mutex m_chunks_to_mesh_mutex{};
 
-        Client* m_client = nullptr;
         bool m_refresh_chunk_requests = false;
 
         EventHandle m_on_connected_handle{};
@@ -89,6 +66,7 @@ namespace h2o
 
         v2i m_previous_player_chunk_col_pos{};
 
+        Client*               m_client                 = nullptr;
         RenderingModule*      m_rendering_module       = nullptr;
         VoxelModule*          m_voxel_module           = nullptr;
         VoxelRenderingModule* m_voxel_rendering_module = nullptr;
