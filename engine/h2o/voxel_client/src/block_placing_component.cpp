@@ -41,7 +41,6 @@ namespace h2o
             const auto& [hit_voxel, before_hit_voxel] = ray.hit();
             if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
             {
-                assert(hit_voxel.chunk);
                 chunk_mgr.set_block_at(hit_voxel.pos, Block::Air);
             }
 

@@ -14,7 +14,7 @@ namespace h2o
 
         virtual ~ChunkGenerator_Base() = default;
 
-        virtual void run_generation_step(ChunkRegion& chunk_region) const = 0;
+        virtual void run_generation_step(const ChunkRegion& chunk_region) const = 0;
         [[nodiscard]] virtual i32 max_generation_stage() const = 0;
 
     };

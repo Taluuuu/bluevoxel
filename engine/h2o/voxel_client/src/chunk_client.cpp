@@ -237,7 +237,7 @@ namespace h2o
     {
         assert(m_voxel_rendering_module && m_rendering_module);
 
-        m_chunk_mgr.fetch_chunk_at(chunk_pos,
+        m_chunk_mgr.fetch_chunk(chunk_pos,
             [&](const Chunk* chunk)
             {
                 if (!chunk)

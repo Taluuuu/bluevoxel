@@ -8,10 +8,11 @@ namespace h2o
     std::optional<Block> IBlockContainer::get_block_at(const v3i& block_pos) const
     {
         std::optional<Block> block = std::nullopt;
-        fetch_chunk_at(voxel_utils::block_to_chunk_pos(block_pos),
+        fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),
             [&](const Chunk* chunk)
             {
-                block = chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
+                if (chunk)
+                    block = chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
             }
         );
 
@@ -21,7 +22,7 @@ namespace h2o
     bool IBlockContainer::set_block_at(const v3i& block_pos, Block block)
     {
         bool success = false;
-        fetch_chunk_at(voxel_utils::block_to_chunk_pos(block_pos),
+        fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),
             [&](Chunk* chunk)
             {
                 if (chunk)

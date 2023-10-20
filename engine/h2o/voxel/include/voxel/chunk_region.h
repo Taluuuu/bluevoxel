@@ -16,10 +16,10 @@ namespace h2o
 
         explicit ChunkRegion(v2i center);
 
-        [[nodiscard]] ChunkColumn* center_chunk() const;
+        [[nodiscard]] ChunkColumn& center_chunk() const;
         void for_each_chunk_column(const std::function<void(ChunkColumn*)>& function) const;
 
-        void set_chunk_column_at(v2i chunk_column_pos, ChunkColumn* chunk_column);
+        void add_chunk_column(ChunkColumn& chunk_column);
 
     private:
 

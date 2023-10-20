@@ -6,9 +6,9 @@
 
 namespace h2o
 {
-    void ChunkGenerator_Flat::run_generation_step(ChunkRegion& chunk_region) const
+    void ChunkGenerator_Flat::run_generation_step(const ChunkRegion& chunk_region) const
     {
-        auto& center_chunk = *chunk_region.center_chunk();
+        auto& center_chunk = chunk_region.center_chunk();
 
         assert(center_chunk.generation_stage() == 0);
 

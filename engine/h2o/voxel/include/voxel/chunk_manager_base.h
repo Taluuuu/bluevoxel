@@ -27,6 +27,8 @@ namespace h2o
 
         [[nodiscard]] std::shared_ptr<ChunkColumn> create_chunk_column(v2i chunk_column_pos) const;
         [[nodiscard]] ChunkColumn* find_chunk_column(v2i chunk_column_pos) const;
+        [[nodiscard]] ChunkColumn& find_or_create_chunk_column(v2i chunk_column_pos);
+        [[nodiscard]] ChunkColumn& find_or_create_chunk_column(v2i chunk_column_pos, bool& out_was_just_created);
 
     private:
 

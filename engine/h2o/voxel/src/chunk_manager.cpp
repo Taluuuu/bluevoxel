@@ -4,7 +4,7 @@
 
 namespace h2o
 {
-    void IChunkManager::fetch_chunk_at(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
+    void IChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
         fetch_chunk_column({ chunk_pos.x, chunk_pos.z },
             [&](ChunkColumn* chunk_column)
@@ -21,7 +21,7 @@ namespace h2o
         );
     }
 
-    void IChunkManager::fetch_chunk_at(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const
+    void IChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const
     {
         fetch_chunk_column({ chunk_pos.x, chunk_pos.z },
             [&](const ChunkColumn* chunk_column)

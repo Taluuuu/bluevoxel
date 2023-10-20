@@ -1,6 +1,6 @@
 #include "voxel/chunk_region.h"
 
-#include "voxel/chunk_manager_interface.h"
+#include "voxel/chunk_column.h"
 
 namespace h2o
 {
@@ -11,9 +11,11 @@ namespace h2o
             chunk_col = nullptr;
     }
 
-    ChunkColumn* ChunkRegion::center_chunk() const
+    ChunkColumn& ChunkRegion::center_chunk() const
     {
-        return m_chunks[to_index({0, 0})];
+        auto chunk_column = m_chunks[to_index({0, 0})];
+        assert(chunk_column);
+        return *chunk_column;
     }
 
     void ChunkRegion::for_each_chunk_column(const std::function<void(ChunkColumn*)>& function) const
@@ -25,12 +27,12 @@ namespace h2o
         }
     }
 
-    void ChunkRegion::set_chunk_column_at(v2i chunk_column_pos, ChunkColumn* chunk_column)
+    void ChunkRegion::add_chunk_column(ChunkColumn& chunk_column)
     {
-        const v2i local_pos = chunk_column_pos - m_center;
+        const v2i local_pos = chunk_column.chunk_column_pos() - m_center;
         assert(in_range(local_pos));
 
-        m_chunks[to_index(local_pos)] = chunk_column;
+        m_chunks[to_index(local_pos)] = &chunk_column;
     }
 
     bool ChunkRegion::in_range(v2i local_chunk_column_pos) const

@@ -33,7 +33,6 @@ namespace h2o
     struct ChunkGenRequest
     {
         std::shared_ptr<ChunkFetchRequest> fetch_request{};
-        ChunkRegion gen_region;
         i32 gen_stage = 0;
         f32 distance = 0.0f;
 
@@ -41,24 +40,20 @@ namespace h2o
         { return distance < other.distance; }
     };
 
-    // This class will be adapted to be hosted on a server.
-    class ChunkServer : public IBlockContainer
+    class ChunkServer
     {
     public:
 
         explicit ChunkServer(Server& server);
-        ~ChunkServer() override;
+        ~ChunkServer();
+
+        [[nodiscard]] IChunkManager& chunk_mgr() { return m_chunk_mgr; }
+        [[nodiscard]] bool is_running() const;
 
         void start();
         void stop();
 
-        [[nodiscard]] bool is_running() const;
-
         void set_chunk_generator(std::unique_ptr<ChunkGenerator_Base>&& chunk_generator);
-
-        // IBlockContainer interface
-        [[nodiscard]] Chunk* get_chunk_at(const v3i& chunk_pos) override;
-        [[nodiscard]] const Chunk* get_chunk_at(const v3i& chunk_pos) const override;
 
     protected:
 

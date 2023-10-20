@@ -40,8 +40,8 @@ namespace h2o
          * @param chunk_pos The chunk's position
          * @param function The function to run with the chunk
          */
-        virtual void fetch_chunk_at(const v3i& chunk_pos, const std::function<void(Chunk* chunk)>& function) = 0;
-        virtual void fetch_chunk_at(const v3i& chunk_pos, const std::function<void(const Chunk* chunk)>& function) const = 0;
+        virtual void fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk* chunk)>& function) = 0;
+        virtual void fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk* chunk)>& function) const = 0;
 
     };
 }

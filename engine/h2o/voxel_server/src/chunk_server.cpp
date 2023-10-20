@@ -71,22 +71,6 @@ namespace h2o
         m_chunk_generator = std::move(chunk_generator);
     }
 
-    Chunk* ChunkServer::get_chunk_at(const v3i& chunk_pos)
-    {
-        if (const auto chunk_column = m_chunk_mgr.fetch_chunk_column_at({chunk_pos.x, chunk_pos.z}))
-            return chunk_column->get_chunk_safe(chunk_pos.y);
-
-        return nullptr;
-    }
-
-    const Chunk* ChunkServer::get_chunk_at(const v3i& chunk_pos) const
-    {
-        if (const auto chunk_column = m_chunk_mgr.fetch_chunk_column_at({chunk_pos.x, chunk_pos.z}))
-            return chunk_column->get_chunk_safe(chunk_pos.y);
-
-        return nullptr;
-    }
-
     void ChunkServer::run()
     {
         std::deque<ChunkGenRequest> chunk_gen_deque{};
@@ -118,18 +102,24 @@ namespace h2o
                     if (is_generating)
                         return false;
 
-                    if (auto chunk_col = m_chunk_mgr.fetch_chunk_column_at(chunk_col_pos))
-                    {
-                        if (chunk_col->is_generated())
+                    bool chunk_was_sent = false;
+                    m_chunk_mgr.fetch_chunk_column(chunk_col_pos,
+                        [&](ChunkColumn* chunk_column)
                         {
-                            send_chunk_column(*chunk_col, clients);
-                            return true;
+                            if (chunk_column && chunk_column->is_generated())
+                            {
+                                send_chunk_column(*chunk_column, clients);
+                                chunk_was_sent = true;
+                            }
                         }
-                    }
+                    );
 
+                    if (chunk_was_sent)
+                        return true;
+
+                    // Chunk either does not exist or is not fully generated yet.
                     gen_request_queue.emplace(
                         chunk_fetch_request,
-                        ChunkRegion(chunk_col_pos, m_chunk_mgr),
                         target_gen_stage,
                         0.0f
                     );
@@ -141,6 +131,7 @@ namespace h2o
             );
         }
 
+        // Push gen requests in reverse of distance
         std::lock_guard gen_dequeue_lock { m_chunk_gen_dequeue_mutex };
         while (!gen_request_queue.empty())
         {
@@ -158,52 +149,67 @@ namespace h2o
 
         while (!m_chunk_gen_deque.empty())
         {
-            auto& [fetch_request, gen_region, gen_stage, distance] = m_chunk_gen_deque.front();
+            auto& [fetch_request, gen_stage, distance] = m_chunk_gen_deque.front();
 
             // Chunk columns that need to be generated up to gen_request.generation_stage - 1
-            std::vector< std::shared_ptr<ChunkColumn> > chunk_cols_to_generate;
+            std::vector<v2i> chunk_cols_to_generate;
             chunk_cols_to_generate.reserve(9);
 
-            gen_region.for_each_chunk_column(
-                [&](const std::shared_ptr<ChunkColumn>& chunk_col) -> void
+            m_chunk_mgr.fetch_chunk_region(fetch_request->chunk_col_pos,
+                [&](const ChunkRegion& chunk_region)
                 {
-                    assert(chunk_col);
-                    if (chunk_col->generation_stage() < gen_stage - 1)
-                        chunk_cols_to_generate.push_back(chunk_col);
+                    chunk_region.for_each_chunk_column(
+                        [&](ChunkColumn* chunk_column)
+                        {
+                            assert(chunk_column);
+                            if (chunk_column->generation_stage() < gen_stage - 1)
+                                chunk_cols_to_generate.push_back(chunk_column->chunk_column_pos());
+                        }
+                    );
+
+                    if (chunk_cols_to_generate.empty())
+                    {
+                        auto& chunk_col = chunk_region.center_chunk();
+
+                        // Init the chunk just before starting generation
+                        if (!chunk_col.is_initialized())
+                            chunk_col.init(*voxel_module);
+
+                        // Gen request can be completed
+                        m_chunk_generator->run_generation_step(chunk_region);
+
+                        if (chunk_col.is_generated() && fetch_request)
+                        {
+                            send_chunk_column(chunk_col, { fetch_request->requesting_clients });
+
+                            // TODO: Abstract this somewhat
+                            auto chunk_fetch_request_it = std::find(
+                                m_chunk_fetch_requests.begin(),
+                                m_chunk_fetch_requests.end(), fetch_request);
+
+                            if (chunk_fetch_request_it != m_chunk_fetch_requests.end())
+                                m_chunk_fetch_requests.erase(chunk_fetch_request_it);
+                        }
+
+                        m_chunk_gen_deque.pop_front();
+                    }
+                    else
+                    {
+
+                    }
                 }
             );
 
             if (chunk_cols_to_generate.empty())
             {
-                auto& chunk_col = gen_region.center_chunk();
 
-                // Init the chunk just before starting generation
-                if (!chunk_col->is_initialized())
-                    chunk_col->init(*voxel_module);
-
-                // Gen request can be completed
-                m_chunk_generator->run_generation_step(gen_region);
-
-                if (chunk_col->is_generated() && fetch_request)
-                {
-                    send_chunk_column(*chunk_col, { fetch_request->requesting_clients });
-                    auto chunk_fetch_request_it = std::find(
-                        m_chunk_fetch_requests.begin(),
-                        m_chunk_fetch_requests.end(), fetch_request);
-
-                    if (chunk_fetch_request_it != m_chunk_fetch_requests.end())
-                        m_chunk_fetch_requests.erase(chunk_fetch_request_it);
-                }
-
-                m_chunk_gen_deque.pop_front();
             }
             else
             {
-                for (const auto& chunk_col : chunk_cols_to_generate)
+                for (v2i chunk_col : chunk_cols_to_generate)
                 {
                     m_chunk_gen_deque.emplace_front(
                         nullptr,
-                        ChunkRegion { chunk_col->chunk_column_pos(), m_chunk_mgr },
                         gen_stage - 1,
                         0.0f);
                 }
@@ -244,7 +250,7 @@ namespace h2o
         ClientID request_sender,
         const net_msg::BlockPlaceRequest& block_place_request)
     {
-        if (!set_block_at(block_place_request.block_pos, block_place_request.placed_block))
+        if (!m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block))
             return;
 
         for (ClientID client_id : m_server->client_ids())

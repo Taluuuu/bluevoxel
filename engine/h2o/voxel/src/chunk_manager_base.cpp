@@ -22,21 +22,9 @@ namespace h2o
         std::lock_guard lock { m_loaded_chunks_mutex };
 
         bool was_just_created = false;
-        ChunkColumn* chunk_column = find_chunk_column(chunk_column_pos);
+        auto& chunk_column = find_or_create_chunk_column(chunk_column_pos, was_just_created);
 
-        if (!chunk_column)
-        {
-            auto [new_chunk_col_it, success] =
-                m_loaded_chunks.insert({ chunk_column_pos, create_chunk_column(chunk_column_pos) });
-
-            assert(success);
-
-            was_just_created = true;
-            chunk_column = new_chunk_col_it->second.get();
-        }
-
-        assert(chunk_column);
-        function(*chunk_column, was_just_created);
+        function(chunk_column, was_just_created);
     }
 
     void ChunkManager_Base::fetch_chunk_region(v2i chunk_region_center, const std::function<void(const ChunkRegion&)>& function)
@@ -46,11 +34,11 @@ namespace h2o
         ChunkRegion chunk_region(chunk_region_center);
 
         for (i32 i = -1; i <= 1; i++)
-            for (i32 j = -1; j <= 1; j++)
-            {
-                const v2i chunk_column_pos = chunk_region_center + v2i{ i, j };
-                chunk_region.set_chunk_column_at(chunk_column_pos, find_chunk_column(chunk_column_pos));
-            }
+        for (i32 j = -1; j <= 1; j++)
+        {
+            const v2i chunk_column_pos = chunk_region_center + v2i{ i, j };
+            chunk_region.add_chunk_column(find_or_create_chunk_column(chunk_column_pos));
+        }
 
         function(chunk_region);
     }
@@ -90,5 +78,29 @@ namespace h2o
             return it->second.get();
 
         return nullptr;
+    }
+
+    ChunkColumn& ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos)
+    {
+        bool _;
+        return find_or_create_chunk_column(chunk_column_pos, _);
+    }
+
+    ChunkColumn& ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos, bool& out_was_just_created)
+    {
+        if (auto chunk_column = find_chunk_column(chunk_column_pos))
+        {
+            out_was_just_created = false;
+            return *chunk_column;
+        }
+
+        auto [new_chunk_col_it, success] =
+            m_loaded_chunks.insert({ chunk_column_pos, create_chunk_column(chunk_column_pos) });
+
+        assert(success);
+        assert(new_chunk_col_it->second);
+
+        out_was_just_created = true;
+        return *new_chunk_col_it->second;
     }
 }
