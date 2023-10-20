@@ -200,6 +200,7 @@ namespace h2o
                 i32 nearest_idx = -1;
                 std::optional<v3i> nearest_chunk_pos = std::nullopt;
 
+                std::lock_guard lock(m_chunks_to_mesh_mutex);
                 for (i32 i = 0; i < m_chunks_to_mesh.size(); i++)
                 {
                     const v3i& chunk_to_remesh = m_chunks_to_mesh[i];
@@ -219,7 +220,6 @@ namespace h2o
                 return nearest_chunk_pos;
             };
 
-        std::lock_guard lock(m_chunks_to_mesh_mutex);
         for (i32 i = 0; i < max_chunk_meshes; i++)
         {
             if (const auto chunk_to_mesh = pop_nearest_chunk_to_mesh())

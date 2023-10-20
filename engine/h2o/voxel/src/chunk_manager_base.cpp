@@ -55,8 +55,8 @@ namespace h2o
                     const v2i min = position - v2i { range, range };
                     const v2i max = position + v2i { range, range };
 
-                    if (position.x >= min.x && position.x <= max.x &&
-                        position.y >= min.y && position.y <= max.y)
+                    if (position.x < min.x || position.x > max.x ||
+                        position.y < min.y || position.y > max.y)
                     {
                         return true;
                     }
