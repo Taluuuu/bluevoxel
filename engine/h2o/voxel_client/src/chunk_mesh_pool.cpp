@@ -1,7 +1,16 @@
 #include "voxel_client/chunk_mesh_pool.h"
 
+#include "core/engine.h"
+#include "rendering/rendering_module.h"
+#include "voxel_rendering/voxel_rendering_module.h"
+
 namespace h2o
 {
+    ChunkMeshPool::ChunkMeshPool()
+        : m_voxel_rendering_module(&g_engine->get_module_checked<VoxelRenderingModule>())
+        , m_rendering_module (&g_engine->get_module_checked<RenderingModule>())
+    {}
+
     void ChunkMeshPool::fetch_or_create_chunk_mesh(const v3i& chunk_pos, const std::function<void(ChunkMesh&)>& function)
     {
         std::lock_guard lock { m_mutex };
@@ -29,6 +38,11 @@ namespace h2o
 
         auto [mesh_data, mesh_id] = reserve_chunk_mesh();
         assign_chunk_mesh(chunk_pos, mesh_id);
+
+        assert(m_voxel_rendering_module && m_rendering_module);
+        mesh_data.chunk_mesh.init(
+            *m_voxel_rendering_module,
+            m_rendering_module->renderer());
 
         return mesh_data;
     }

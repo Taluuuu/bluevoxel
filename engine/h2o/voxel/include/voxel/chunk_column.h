@@ -2,6 +2,8 @@
 
 #include "chunk.h"
 
+#include <mutex>
+
 namespace h2o
 {
     class ChunkColumn
@@ -47,6 +49,8 @@ namespace h2o
         [[nodiscard]] Chunk* get_chunk_safe(i32 y);
 
         [[nodiscard]] const Chunk* get_chunk_safe(i32 y) const;
+
+        [[nodiscard]] std::mutex& mutex() const { return m_mutex; }
 
     public:
 
@@ -113,12 +117,14 @@ namespace h2o
     private:
 
         std::array<Chunk, voxel_constants::vertical_chunk_count> m_chunks{};
+        mutable std::mutex m_mutex;
 
         i32 m_generation_stage { 0 };
 
         v2i m_chunk_col_pos { 0, 0 };
 
         bool m_is_initialized { false };
+
 
     };
 }

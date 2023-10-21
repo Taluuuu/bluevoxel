@@ -18,21 +18,23 @@ namespace h2o
         return *chunk_column;
     }
 
-    void ChunkRegion::for_each_chunk_column(const std::function<void(ChunkColumn*)>& function) const
+    void ChunkRegion::for_each_chunk_column(const std::function<void(ChunkColumn&)>& function) const
     {
-        for (auto chunk_col : m_chunks)
+        for (const auto& chunk_col : m_chunks)
         {
             assert(chunk_col);
-            function(chunk_col);
+            function(*chunk_col);
         }
     }
 
-    void ChunkRegion::add_chunk_column(ChunkColumn& chunk_column)
+    void ChunkRegion::add_chunk_column(const std::shared_ptr<ChunkColumn>& chunk_column)
     {
-        const v2i local_pos = chunk_column.chunk_column_pos() - m_center;
+        assert(chunk_column);
+
+        const v2i local_pos = chunk_column->chunk_column_pos() - m_center;
         assert(in_range(local_pos));
 
-        m_chunks[to_index(local_pos)] = &chunk_column;
+        m_chunks[to_index(local_pos)] = chunk_column;
     }
 
     bool ChunkRegion::in_range(v2i local_chunk_column_pos) const

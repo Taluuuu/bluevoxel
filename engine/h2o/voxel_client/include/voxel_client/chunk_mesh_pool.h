@@ -12,6 +12,9 @@
 
 namespace h2o
 {
+    class VoxelRenderingModule;
+    class RenderingModule;
+
     struct ChunkMeshData
     {
         ChunkMesh chunk_mesh{};
@@ -26,6 +29,8 @@ namespace h2o
     class ChunkMeshPool
     {
     public:
+
+        ChunkMeshPool();
 
         void fetch_or_create_chunk_mesh(const v3i& chunk_pos, const std::function<void(ChunkMesh&)>& function);
         void for_each_chunk_mesh(const std::function<void(const ChunkMesh&)>& function) const;
@@ -44,6 +49,9 @@ namespace h2o
         std::vector<ChunkMeshData> m_chunk_mesh_pool{};
         std::unordered_map<v3i, ChunkMeshID> m_chunk_mesh_indices{};
         mutable std::mutex m_mutex;
+
+        VoxelRenderingModule* const m_voxel_rendering_module = nullptr;
+        RenderingModule*      const m_rendering_module = nullptr;
 
     };
 }

@@ -11,11 +11,15 @@ namespace h2o
         : m_client(&client)
     {}
 
-    bool ChunkManager_Client::set_block_at(const v3i& block_pos, Block block)
+    bool ChunkManager_Client::set_block_at(const v3i& block_pos, Block block, bool replicate)
     {
         if (IBlockContainer::set_block_at(block_pos, block))
         {
-            m_client->send_message(0, net_msg::BlockPlaceRequest { block, block_pos });
+            if (replicate)
+                m_client->send_message(0, net_msg::BlockPlaceRequest { block, block_pos });
+
+            on_placed_block.broadcast({ block, block_pos });
+
             return true;
         }
 

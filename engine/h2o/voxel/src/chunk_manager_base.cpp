@@ -5,42 +5,71 @@
 
 namespace h2o
 {
+    // Everything that adds, erases or finds from the chunk unordered_map is protected by the mutex.
+    // Once a chunk is fetched, it is kept in a shared_ptr to prevent it from being deallocated while
+    // the user runs a lambda. This shared_ptr is not meant to be exposed to the user as to make sure
+    // interaction with chunks is only done in a safe environment.
+
     void ChunkManager_Base::fetch_chunk_column(v2i chunk_column_pos, const std::function<void(ChunkColumn*)>& function)
     {
-        std::lock_guard lock { m_loaded_chunks_mutex };
-        function(find_chunk_column(chunk_column_pos));
+        if (auto chunk_column = find_chunk_column(chunk_column_pos))
+        {
+            std::lock_guard chunk_column_lock { chunk_column->mutex() };
+            function(chunk_column.get());
+
+            return;
+        }
+
+        function(nullptr);
     }
 
     void ChunkManager_Base::fetch_chunk_column(v2i chunk_column_pos, const std::function<void(const ChunkColumn*)>& function) const
     {
-        std::lock_guard lock { m_loaded_chunks_mutex };
-        function(find_chunk_column(chunk_column_pos));
+        if (auto chunk_column = find_chunk_column(chunk_column_pos))
+        {
+            std::lock_guard chunk_column_lock { chunk_column->mutex() };
+            function(chunk_column.get());
+
+            return;
+        }
+
+        function(nullptr);
     }
 
     void ChunkManager_Base::fetch_or_create_chunk_column(v2i chunk_column_pos, const std::function<void(ChunkColumn&, bool)>& function)
     {
-        std::lock_guard lock { m_loaded_chunks_mutex };
-
         bool was_just_created = false;
-        auto& chunk_column = find_or_create_chunk_column(chunk_column_pos, was_just_created);
+        auto chunk_column = find_or_create_chunk_column(chunk_column_pos, was_just_created);
+        assert(chunk_column);
 
-        function(chunk_column, was_just_created);
+        std::lock_guard chunk_column_lock { chunk_column->mutex() };
+        function(*chunk_column, was_just_created);
     }
 
     void ChunkManager_Base::fetch_chunk_region(v2i chunk_region_center, const std::function<void(const ChunkRegion&)>& function)
     {
-        std::lock_guard lock { m_loaded_chunks_mutex };
-
         ChunkRegion chunk_region(chunk_region_center);
 
         for (i32 i = -1; i <= 1; i++)
         for (i32 j = -1; j <= 1; j++)
         {
             const v2i chunk_column_pos = chunk_region_center + v2i{ i, j };
-            chunk_region.add_chunk_column(find_or_create_chunk_column(chunk_column_pos));
+            auto chunk_column = find_or_create_chunk_column(chunk_column_pos);
+            assert(chunk_column);
+
+            chunk_column->mutex().lock(); // Ugly but simple
+            chunk_region.add_chunk_column(chunk_column);
         }
 
         function(chunk_region);
+
+        // Unlock mutexes
+        chunk_region.for_each_chunk_column(
+            [](ChunkColumn& chunk_column)
+            {
+                chunk_column.mutex().unlock();
+            }
+        );
     }
 
     void ChunkManager_Base::erase_far_chunks(const std::vector<v2i>& positions, i32 range)
@@ -72,28 +101,30 @@ namespace h2o
         return std::make_shared<ChunkColumn>(chunk_column_pos);
     }
 
-    ChunkColumn* ChunkManager_Base::find_chunk_column(v2i chunk_column_pos) const
+    std::shared_ptr<ChunkColumn> ChunkManager_Base::find_chunk_column(v2i chunk_column_pos) const
     {
+        std::lock_guard lock { m_loaded_chunks_mutex };
         if (auto it = m_loaded_chunks.find(chunk_column_pos); it != m_loaded_chunks.end())
-            return it->second.get();
+            return it->second;
 
         return nullptr;
     }
 
-    ChunkColumn& ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos)
+    std::shared_ptr<ChunkColumn> ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos)
     {
         bool _;
         return find_or_create_chunk_column(chunk_column_pos, _);
     }
 
-    ChunkColumn& ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos, bool& out_was_just_created)
+    std::shared_ptr<ChunkColumn> ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos, bool& out_was_just_created)
     {
         if (auto chunk_column = find_chunk_column(chunk_column_pos))
         {
             out_was_just_created = false;
-            return *chunk_column;
+            return chunk_column;
         }
 
+        std::lock_guard lock { m_loaded_chunks_mutex };
         auto [new_chunk_col_it, success] =
             m_loaded_chunks.insert({ chunk_column_pos, create_chunk_column(chunk_column_pos) });
 
@@ -101,6 +132,6 @@ namespace h2o
         assert(new_chunk_col_it->second);
 
         out_was_just_created = true;
-        return *new_chunk_col_it->second;
+        return new_chunk_col_it->second;
     }
 }

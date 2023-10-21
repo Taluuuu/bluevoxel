@@ -159,11 +159,10 @@ namespace h2o
                 [&](const ChunkRegion& chunk_region)
                 {
                     chunk_region.for_each_chunk_column(
-                        [&](ChunkColumn* chunk_column)
+                        [&](ChunkColumn& chunk_column)
                         {
-                            assert(chunk_column);
-                            if (chunk_column->generation_stage() < gen_stage - 1)
-                                chunk_cols_to_generate.push_back(chunk_column->chunk_column_pos());
+                            if (chunk_column.generation_stage() < gen_stage - 1)
+                                chunk_cols_to_generate.push_back(chunk_column.chunk_column_pos());
                         }
                     );
 

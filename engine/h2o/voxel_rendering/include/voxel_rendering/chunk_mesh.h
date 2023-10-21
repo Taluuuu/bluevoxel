@@ -27,9 +27,7 @@ namespace h2o
             const VoxelRenderingModule& voxel_rendering_module,
             gfx::IRenderer& renderer);
 
-        void update(
-            const Chunk& chunk,
-            const std::array<Chunk*, 6>& adjacent_chunks);
+        void update(const Chunk& chunk);
 
         [[nodiscard]] const v3i& chunk_pos()    const { return m_chunk_pos;         }
         [[nodiscard]]       i32  vertex_count() const { return m_vertex_count;      }

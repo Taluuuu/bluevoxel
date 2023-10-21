@@ -9,7 +9,7 @@
 
 namespace h2o
 {
-    // IChunkManager implementation using std::unordered_map.
+    // Thread-safe IChunkManager implementation using std::unordered_map.
     class ChunkManager_Base : public IChunkManager
     {
     public:
@@ -26,9 +26,9 @@ namespace h2o
     private:
 
         [[nodiscard]] std::shared_ptr<ChunkColumn> create_chunk_column(v2i chunk_column_pos) const;
-        [[nodiscard]] ChunkColumn* find_chunk_column(v2i chunk_column_pos) const;
-        [[nodiscard]] ChunkColumn& find_or_create_chunk_column(v2i chunk_column_pos);
-        [[nodiscard]] ChunkColumn& find_or_create_chunk_column(v2i chunk_column_pos, bool& out_was_just_created);
+        [[nodiscard]] std::shared_ptr<ChunkColumn> find_chunk_column(v2i chunk_column_pos) const;
+        [[nodiscard]] std::shared_ptr<ChunkColumn> find_or_create_chunk_column(v2i chunk_column_pos);
+        [[nodiscard]] std::shared_ptr<ChunkColumn> find_or_create_chunk_column(v2i chunk_column_pos, bool& out_was_just_created);
 
     private:
 

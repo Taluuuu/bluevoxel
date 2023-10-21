@@ -83,8 +83,15 @@ namespace h2o
         m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request,
             [&](ClientID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
-                if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block))
+                if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block, false))
                     m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+            }
+        );
+
+        m_chunk_mgr.on_placed_block.add_listener(m_on_block_placed,
+            [&](const net_msg::BlockPlaceRequest& block_place_request)
+            {
+                m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
             }
         );
     }
@@ -249,11 +256,7 @@ namespace h2o
                 m_chunk_mesh_pool.fetch_or_create_chunk_mesh(chunk_pos,
                     [&](ChunkMesh& chunk_mesh)
                     {
-                        chunk_mesh.init(
-                            *m_voxel_rendering_module,
-                            m_rendering_module->renderer());
-
-                        chunk_mesh.update(*chunk, {});
+                        chunk_mesh.update(*chunk);
                     }
                 );
             }

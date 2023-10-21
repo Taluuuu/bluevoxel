@@ -10,6 +10,8 @@ namespace h2o
     class IChunkManager;
     class ChunkColumn;
 
+    // Useless on its own, meant to be created by a chunk manager.
+    // Contains a 3x3 region of chunks
     class ChunkRegion
     {
     public:
@@ -17,9 +19,9 @@ namespace h2o
         explicit ChunkRegion(v2i center);
 
         [[nodiscard]] ChunkColumn& center_chunk() const;
-        void for_each_chunk_column(const std::function<void(ChunkColumn*)>& function) const;
+        void for_each_chunk_column(const std::function<void(ChunkColumn&)>& function) const;
 
-        void add_chunk_column(ChunkColumn& chunk_column);
+        void add_chunk_column(const std::shared_ptr<ChunkColumn>& chunk_column);
 
     private:
 
@@ -28,7 +30,7 @@ namespace h2o
 
     private:
 
-        std::array<ChunkColumn*, 9> m_chunks{};
+        std::array< std::shared_ptr<ChunkColumn>, 9 > m_chunks{};
         v2i m_center{};
 
     };

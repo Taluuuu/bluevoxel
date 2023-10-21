@@ -28,9 +28,7 @@ namespace h2o
         m_voxel_rendering_module = &voxel_rendering_module;
     }
 
-    void ChunkMesh::update(
-        const Chunk& chunk,
-        const std::array<Chunk*, 6>& adjacent_chunks)
+    void ChunkMesh::update(const Chunk& chunk)
     {
         assert(m_vertex_array);
         assert(m_buffer);
@@ -105,7 +103,7 @@ namespace h2o
 
         m_vertex_count = static_cast<i32>(vertices.size() / 2);
 
-        m_buffer->update_data(vertices.data(), vertices.size() * sizeof(u32));
+        m_buffer->update_data(vertices.data(), i32(vertices.size()) * sizeof(u32));
     }
 
     const gfx::IVertexArray& ChunkMesh::vertex_array() const

@@ -30,7 +30,7 @@ namespace h2o
             Client& client);
         ~ChunkClient() override = default;
 
-        [[nodiscard]] IChunkManager& chunk_mgr() { return m_chunk_mgr; }
+        [[nodiscard]] ChunkManager_Client& chunk_mgr() { return m_chunk_mgr; }
 
         // Tickable interface
         void update(f32 delta_time) override;
@@ -57,9 +57,13 @@ namespace h2o
 
         bool m_refresh_chunk_requests = false;
 
+        // Net events
         EventHandle m_on_connected_handle{};
         EventHandle m_on_fetched_chunk_handle{};
         EventHandle m_on_received_block_place_request{};
+
+        // Local events
+        EventHandle m_on_block_placed{};
 
         i32 m_view_distance = 8;
         i32 m_stay_loaded_distance = 3;
