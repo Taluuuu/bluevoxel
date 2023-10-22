@@ -26,7 +26,6 @@ namespace h2o
         set_tick_phases(TickPhase::Update | TickPhase::Render);
 
         m_rendering_module       = &g_engine->get_module_checked<RenderingModule>();
-        m_voxel_module           = &g_engine->get_module_checked<VoxelModule>();
         m_voxel_rendering_module = &g_engine->get_module_checked<VoxelRenderingModule>();
 
         m_client->on_connected_to_server.add_listener(m_on_connected_handle,
@@ -41,8 +40,6 @@ namespace h2o
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
-                assert(m_voxel_module);
-
                 if (!is_in_range(chunk_pos))
                     return;
 
@@ -56,8 +53,6 @@ namespace h2o
                         m_chunk_mgr.fetch_or_create_chunk_column(chunk_pos,
                             [&](ChunkColumn& chunk_column, bool was_just_created)
                             {
-                                chunk_column.init(*m_voxel_module);
-
                                 // Decompress chunks
                                 std::vector<v3i> chunks_to_mesh{};
                                 for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)

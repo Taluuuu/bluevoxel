@@ -170,10 +170,6 @@ namespace h2o
                     {
                         auto& chunk_col = chunk_region.center_chunk();
 
-                        // Init the chunk just before starting generation
-                        if (!chunk_col.is_initialized())
-                            chunk_col.init(*voxel_module);
-
                         // Gen request can be completed
                         m_chunk_generator->run_generation_step(chunk_region);
 

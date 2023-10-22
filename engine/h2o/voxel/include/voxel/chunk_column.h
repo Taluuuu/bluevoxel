@@ -13,11 +13,6 @@ namespace h2o
         ChunkColumn() : ChunkColumn({ 0, 0 }) {}
         explicit ChunkColumn(v2i chunk_col_pos);
 
-        void init(const VoxelModule& voxel_module);
-
-        [[nodiscard]] bool is_initialized() const
-        { return m_is_initialized; }
-
         void tick();
 
         [[nodiscard]] v2i chunk_column_pos() const
@@ -122,9 +117,6 @@ namespace h2o
         i32 m_generation_stage { 0 };
 
         v2i m_chunk_col_pos { 0, 0 };
-
-        bool m_is_initialized { false };
-
 
     };
 }

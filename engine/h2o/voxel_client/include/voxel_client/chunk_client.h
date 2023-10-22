@@ -72,7 +72,6 @@ namespace h2o
 
         Client*               m_client                 = nullptr;
         RenderingModule*      m_rendering_module       = nullptr;
-        VoxelModule*          m_voxel_module           = nullptr;
         VoxelRenderingModule* m_voxel_rendering_module = nullptr;
 
     };
