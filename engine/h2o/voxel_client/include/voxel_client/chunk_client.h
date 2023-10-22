@@ -5,7 +5,7 @@
 #include "core/distance_queue.h"
 #include "networking/client.h"
 #include "scene/scene_system.h"
-#include "voxel/block_container_interface.h"
+#include "voxel/chunk_container_interface.h"
 #include "voxel/chunk_manager_interface.h"
 #include "voxel/voxel_constants.h"
 

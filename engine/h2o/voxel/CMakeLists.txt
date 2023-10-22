@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_voxel
     src/block.cpp
-    src/block_container_interface.cpp
+    src/chunk_container_interface.cpp
     src/block_presets/block_preset_base.cpp
     src/block_presets/block_preset_crop.cpp
     src/chunk.cpp

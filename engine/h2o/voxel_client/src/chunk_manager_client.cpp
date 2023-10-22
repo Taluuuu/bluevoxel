@@ -13,7 +13,7 @@ namespace h2o
 
     bool ChunkManager_Client::set_block_at(const v3i& block_pos, Block block, bool replicate)
     {
-        if (IBlockContainer::set_block_at(block_pos, block))
+        if (IChunkContainer::set_block_at(block_pos, block))
         {
             if (replicate)
                 m_client->send_message(0, net_msg::BlockPlaceRequest { block, block_pos });

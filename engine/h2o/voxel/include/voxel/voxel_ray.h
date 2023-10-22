@@ -1,6 +1,6 @@
 #pragma once
 
-#include "block_container_interface.h"
+#include "chunk_container_interface.h"
 #include "core/handle_types.h"
 
 namespace h2o
@@ -32,7 +32,7 @@ namespace h2o
         VoxelRay(
             const v3& origin,
             const v3& end,
-            IBlockContainer& block_container);
+            IChunkContainer& block_container);
 
         [[nodiscard]] operator bool() const { return has_hit(); }
         [[nodiscard]] bool has_hit()  const { return m_has_hit; }

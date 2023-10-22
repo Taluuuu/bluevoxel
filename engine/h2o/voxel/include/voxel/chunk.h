@@ -48,9 +48,8 @@ namespace h2o
     {
     public:
 
-        Chunk() = default;
+        Chunk(const v3i& chunk_pos, const VoxelModule& voxel_module);
 
-        void init(const VoxelModule& voxel_module);
         void tick();
 
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
@@ -89,9 +88,9 @@ namespace h2o
         // Stores the indices of blocks to tick
         std::set<u32> m_blocks_to_tick{};
 
-        v3i m_chunk_pos{};
+        const v3i m_chunk_pos{};
 
-        const VoxelModule* m_voxel_module = nullptr;
+        const VoxelModule* const m_voxel_module = nullptr;
 
         bool m_is_empty = true;
 

@@ -10,7 +10,6 @@ namespace h2o
     {
     public:
 
-        ChunkColumn() : ChunkColumn({ 0, 0 }) {}
         explicit ChunkColumn(v2i chunk_col_pos);
 
         void tick();
@@ -32,13 +31,15 @@ namespace h2o
         [[nodiscard]] Chunk& operator[](size_t index)
         {
             assert(index < m_chunks.size());
-            return m_chunks[index];
+            assert(m_chunks[index]);
+            return *m_chunks[index];
         }
 
         [[nodiscard]] const Chunk& operator[](size_t index) const
         {
             assert(index < m_chunks.size());
-            return m_chunks[index];
+            assert(m_chunks[index]);
+            return *m_chunks[index];
         }
 
         [[nodiscard]] Chunk* get_chunk_safe(i32 y);
@@ -111,12 +112,12 @@ namespace h2o
 
     private:
 
-        std::array<Chunk, voxel_constants::vertical_chunk_count> m_chunks{};
+        std::array< std::shared_ptr<Chunk>, voxel_constants::vertical_chunk_count > m_chunks{};
         mutable std::mutex m_mutex;
 
         i32 m_generation_stage { 0 };
 
-        v2i m_chunk_col_pos { 0, 0 };
+        const v2i m_chunk_col_pos { 0, 0 };
 
     };
 }

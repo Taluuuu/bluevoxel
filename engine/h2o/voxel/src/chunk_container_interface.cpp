@@ -1,11 +1,11 @@
-#include "voxel/block_container_interface.h"
+#include "voxel/chunk_container_interface.h"
 
 #include "voxel/chunk.h"
 #include "voxel/voxel_utils.h"
 
 namespace h2o
 {
-    std::optional<Block> IBlockContainer::get_block_at(const v3i& block_pos) const
+    std::optional<Block> IChunkContainer::get_block_at(const v3i& block_pos) const
     {
         std::optional<Block> block = std::nullopt;
         fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),
@@ -19,7 +19,7 @@ namespace h2o
         return block;
     }
 
-    bool IBlockContainer::set_block_at(const v3i& block_pos, Block block)
+    bool IChunkContainer::set_block_at(const v3i& block_pos, Block block)
     {
         bool success = false;
         fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),

@@ -11,10 +11,7 @@ namespace h2o
 
         i32 y = 0;
         for (auto& chunk : m_chunks)
-        {
-            chunk.m_chunk_pos = { chunk_col_pos.x, y++, chunk_col_pos.y };
-            chunk.init(voxel_module);
-        }
+            chunk = std::make_shared<Chunk>(v3i{ chunk_col_pos.x, y++, chunk_col_pos.y }, voxel_module);
     }
 
     void ChunkColumn::increment_generation_stage()
@@ -31,13 +28,13 @@ namespace h2o
     {
         assert(is_generated());
         for (auto& chunk : m_chunks)
-            chunk.tick();
+            chunk->tick();
     }
 
     Chunk* ChunkColumn::get_chunk_safe(i32 y)
     {
         if (y >= 0 && y < m_chunks.size())
-            return &m_chunks[y];
+            return m_chunks[y].get();
 
         return nullptr;
     }
@@ -45,7 +42,7 @@ namespace h2o
     const Chunk* ChunkColumn::get_chunk_safe(i32 y) const
     {
         if (y >= 0 && y < m_chunks.size())
-            return &m_chunks[y];
+            return m_chunks[y].get();
 
         return nullptr;
     }

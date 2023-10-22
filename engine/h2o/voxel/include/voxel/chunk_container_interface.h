@@ -9,14 +9,14 @@ namespace h2o
 {
     class Chunk;
 
-    class IBlockContainer
+    class IChunkContainer
     {
     public:
 
-        virtual ~IBlockContainer() = default;
+        virtual ~IChunkContainer() = default;
 
         /**
-         * Get a block in the container
+         * Get a block in the container.
          *
          * @param block_pos The block position in world space
          * @return The block or std::nullopt if block_pos is out of bounds or if the chunk is not present
@@ -24,7 +24,7 @@ namespace h2o
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const;
 
         /**
-         * Set a block in the container. This function is replicated.
+         * Set a block in the container.
          *
          * @param block_pos The block position in world space
          * @param block The block to set
@@ -34,8 +34,7 @@ namespace h2o
 
         /**
          * Fetch the chunk at the input position and executes the lambda. The lambda will be run
-         * with nullptr if the chunk is not loaded. The chunk is valid and thread safe while in
-         * the lambda.
+         * with nullptr if the chunk is not loaded.
          *
          * @param chunk_pos The chunk's position
          * @param function The function to run with the chunk

@@ -1,14 +1,14 @@
 #pragma once
 
 #include "core/types.h"
-#include "voxel/block_container_interface.h"
+#include "voxel/chunk_container_interface.h"
 
 namespace h2o
 {
     class ChunkColumn;
     class ChunkRegion;
 
-    class IChunkManager : public IBlockContainer
+    class IChunkManager : public IChunkContainer
     {
     public:
 

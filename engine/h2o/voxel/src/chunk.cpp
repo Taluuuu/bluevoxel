@@ -22,11 +22,12 @@ namespace h2o
         };
     }
 
-    void Chunk::init(const VoxelModule& voxel_module)
+    Chunk::Chunk(const v3i& chunk_pos, const VoxelModule& voxel_module)
+        : m_chunk_pos(chunk_pos)
+        , m_voxel_module(&voxel_module)
     {
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
         m_adjacent_blocks.resize(voxel_constants::chunk_volume, voxel::Direction::None);
-        m_voxel_module = &voxel_module;
     }
 
     Block Chunk::get_block_at(const v3i& local_pos) const
@@ -95,8 +96,6 @@ namespace h2o
     {
         assert(!m_blocks.empty());
         size_t compressed_idx = 0;
-
-        m_chunk_pos = compressed_chunk.chunk_pos;
 
         auto get_next_block_count_pair =
             [&compressed_idx, &compressed_chunk]() -> const CompressedChunk::BlockCountPair*

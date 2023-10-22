@@ -4,7 +4,7 @@
 
 namespace h2o
 {
-    VoxelRay::VoxelRay(const v3& origin, const v3& end, IBlockContainer& block_container)
+    VoxelRay::VoxelRay(const v3& origin, const v3& end, IChunkContainer& block_container)
     {
         const v3 to_end = end - origin;
         const v3 direction = glm::normalize(to_end);

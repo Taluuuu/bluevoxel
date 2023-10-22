@@ -188,18 +188,10 @@ namespace h2o
 
                         m_chunk_gen_deque.pop_front();
                     }
-                    else
-                    {
-
-                    }
                 }
             );
 
-            if (chunk_cols_to_generate.empty())
-            {
-
-            }
-            else
+            if (!chunk_cols_to_generate.empty())
             {
                 for (v2i chunk_col : chunk_cols_to_generate)
                 {

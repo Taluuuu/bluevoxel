@@ -5,7 +5,7 @@
 #include "core/types.h"
 #include "networking/networking_types.h"
 #include "chunk_manager_server.h"
-#include "voxel/block_container_interface.h"
+#include "voxel/chunk_container_interface.h"
 #include "voxel/chunk_column.h"
 #include "voxel/chunk_region.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
