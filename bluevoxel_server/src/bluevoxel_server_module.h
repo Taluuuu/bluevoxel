@@ -34,6 +34,7 @@ namespace bluevoxel
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
 
         h2o::EventHandle m_player_joined_event_handle{};
+        h2o::EventHandle m_player_left_event_handle{};
         h2o::EventHandle m_on_received_transform_update_handle{};
 
     };

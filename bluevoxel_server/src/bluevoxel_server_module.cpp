@@ -19,7 +19,7 @@ namespace bluevoxel
             return false;
 
         // Setup scene
-        m_scene = std::make_shared<h2o::Scene>("server_scene");
+        m_scene = std::make_shared<h2o::Scene>("server_scene", &m_server);
 
         // Setup chunk server
         m_chunk_server = std::make_unique<h2o::ChunkServer>(m_server);
@@ -29,13 +29,13 @@ namespace bluevoxel
         m_chunk_server->start();
 
         m_server.on_player_joined.add_listener(m_player_joined_event_handle,
-            [&](const h2o::Server::OnPlayerJoinedEvent& event)
+            [&](const h2o::Server::PlayerConnectionChangedEvent& event)
             {
                 // Use client id as actor id
                 m_scene->spawn_actor(h2o::Transform{}, event.client_id);
 
                 // Send the new client to other connected clients
-                for (h2o::ClientID client_id : m_server.client_ids())
+                for (h2o::PeerID client_id : m_server.peers())
                 {
                     if (client_id != event.client_id)
                     {
@@ -45,7 +45,7 @@ namespace bluevoxel
                 }
 
                 // Send existing clients to the client who just joined
-                for (h2o::ClientID client_id : m_server.client_ids())
+                for (h2o::PeerID client_id : m_server.peers())
                 {
                     if (client_id == event.client_id)
                         continue;
@@ -59,8 +59,16 @@ namespace bluevoxel
             }
         );
 
+        m_server.on_player_left.add_listener(m_player_left_event_handle,
+            [&](const h2o::Server::PlayerConnectionChangedEvent& event)
+            {
+                assert(m_scene);
+                m_scene->destroy_actor(event.client_id, true);
+            }
+        );
+
         m_server.handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
-            [&](h2o::ClientID sender_id, const h2o::net_msg::TransformUpdate& transform_update)
+            [&](h2o::PeerID sender_id, const h2o::net_msg::TransformUpdate& transform_update)
             {
                 assert(m_scene);
 
@@ -70,7 +78,7 @@ namespace bluevoxel
 
                 actor->transform = transform_update.transform;
 
-                for (h2o::ClientID id : m_server.client_ids())
+                for (h2o::PeerID id : m_server.peers())
                 {
                     if (sender_id != id)
                     {

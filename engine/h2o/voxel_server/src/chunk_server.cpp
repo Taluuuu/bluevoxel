@@ -28,7 +28,7 @@ namespace h2o
 
         // Bind messages
         m_server->handle_message<net_msg::ChunkFetchRequest>(m_received_chunk_request_handle,
-            [&](ClientID client_id, const net_msg::ChunkFetchRequest& chunk_fetch_request)
+            [&](PeerID client_id, const net_msg::ChunkFetchRequest& chunk_fetch_request)
             {
                 log::info("Received {} chunk fetch requests.", chunk_fetch_request.requested_chunks.size());
                 on_received_chunk_fetch_requests(client_id, chunk_fetch_request);
@@ -36,7 +36,7 @@ namespace h2o
         );
 
         m_server->handle_message<net_msg::BlockPlaceRequest>(m_received_block_place_request_handle,
-            [&](ClientID client_id, const net_msg::BlockPlaceRequest& block_place_request)
+            [&](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
                 log::info("Received block place request.");
                 on_received_block_place_request(client_id, block_place_request);
@@ -205,7 +205,7 @@ namespace h2o
     }
 
     void ChunkServer::on_received_chunk_fetch_requests(
-        ClientID client_id,
+        PeerID client_id,
         const net_msg::ChunkFetchRequest& chunk_fetch_request)
     {
         std::lock_guard lock { m_chunk_fetch_requests_mutex };
@@ -234,13 +234,13 @@ namespace h2o
     }
 
     void ChunkServer::on_received_block_place_request(
-        ClientID request_sender,
+        PeerID request_sender,
         const net_msg::BlockPlaceRequest& block_place_request)
     {
         if (!m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block))
             return;
 
-        for (ClientID client_id : m_server->client_ids())
+        for (PeerID client_id : m_server->peers())
         {
             if (client_id == request_sender)
                 continue;
@@ -249,7 +249,7 @@ namespace h2o
         }
     }
 
-    void ChunkServer::send_chunk_column(ChunkColumn& chunk_col, const std::set<ClientID>& client_ids) const
+    void ChunkServer::send_chunk_column(ChunkColumn& chunk_col, const std::set<PeerID>& client_ids) const
     {
         // Send chunk column to requesting clients
         std::vector<CompressedChunk> compressed_chunks{};
@@ -258,7 +258,7 @@ namespace h2o
         for (const auto& chunk : chunk_col)
             compressed_chunks.push_back(chunk.compress());
 
-        for (ClientID client: client_ids)
+        for (PeerID client: client_ids)
         {
             m_server->send_message(client,
                 net_msg::ChunkFetchResult

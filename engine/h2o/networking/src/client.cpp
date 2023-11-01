@@ -43,6 +43,12 @@ namespace h2o
         return true;
     }
 
+    const std::set<PeerID>& Client::peers() const
+    {
+        static std::set<PeerID> client_peer { 0 };
+        return client_peer;
+    }
+
     void Client::stop(bool unregister_from_module)
     {
         if (m_connection_state == ConnectionState::Disconnected)
@@ -58,7 +64,7 @@ namespace h2o
         NetPeer::stop(unregister_from_module);
     }
 
-    void Client::send_message_raw(ClientID client_id, void* data, u32 size) const
+    void Client::send_message_raw(PeerID client_id, void* data, u32 size) const
     {
         m_interface->SendMessageToConnection(
             m_connection,

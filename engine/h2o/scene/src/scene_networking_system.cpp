@@ -11,10 +11,10 @@ namespace h2o
         : SceneSystem(system_initializer)
         , m_client(&client)
     {
-        set_tick_phases(TickPhase::Update);
+        set_tick_phases(TickPhase::NetworkUpdate);
 
         m_client->handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
-            [&](h2o::ClientID client_id, const h2o::net_msg::TransformUpdate& transform_update)
+            [&](h2o::PeerID client_id, const h2o::net_msg::TransformUpdate& transform_update)
             {
                 if (auto actor = m_scene->get_actor(transform_update.actor_id))
                     actor->transform = transform_update.transform;
@@ -22,7 +22,7 @@ namespace h2o
         );
     }
 
-    void SceneNetworkingSystem::update(f32 delta_time)
+    void SceneNetworkingSystem::network_update(f32 delta_time)
     {
         if (!m_client || !m_client->is_connected())
             return;

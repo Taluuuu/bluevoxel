@@ -25,7 +25,7 @@ namespace h2o
 
     struct ChunkFetchRequest
     {
-        std::set<ClientID> requesting_clients{};
+        std::set<PeerID> requesting_clients{};
         v2i chunk_col_pos{};
         bool is_generating = false;
     };
@@ -64,15 +64,15 @@ namespace h2o
 
         // Networking
         void on_received_chunk_fetch_requests(
-            ClientID client_id,
+            PeerID client_id,
             const net_msg::ChunkFetchRequest& chunk_fetch_request);
 
         void on_received_block_place_request(
-            ClientID request_sender,
+            PeerID request_sender,
             const net_msg::BlockPlaceRequest& block_place_request);
 
         // TODO: chunk_col sould be const
-        void send_chunk_column(ChunkColumn& chunk_col, const std::set<ClientID>& client_ids) const;
+        void send_chunk_column(ChunkColumn& chunk_col, const std::set<PeerID>& client_ids) const;
 
     private:
 

@@ -77,7 +77,7 @@ namespace h2o
         template<class... Args>
         void run_tick(TickPhase::Type tick_phase, void(Tickable::*tick_function)(Args...), Args... args) const;
 
-        void update() const;
+        void update();
 
         void init_new_modules();
 
@@ -98,6 +98,8 @@ namespace h2o
 
         using Tickables = std::vector<Tickable*>;
         std::array<Tickables, tick_phase_count> m_tickables{};
+        f32 m_time_since_network_update = 0.0f;
+        f32 m_time_between_network_updates = 1.0f / 20.0f;
 
         ResourceManager m_resource_mgr{};
 

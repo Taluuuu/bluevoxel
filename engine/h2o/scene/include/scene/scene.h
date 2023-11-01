@@ -1,8 +1,9 @@
 #pragma
 
-#include "core/tickable.h"
-#include "core/log.h"
 #include "actor.h"
+#include "core/events.h"
+#include "core/log.h"
+#include "core/tickable.h"
 #include "scene_system.h"
 
 #include <unordered_map>
@@ -11,13 +12,14 @@
 namespace h2o
 {
     class Engine;
+    class NetPeer;
     class SceneSystem;
 
     class Scene final : public std::enable_shared_from_this<Scene>
     {
     public:
 
-        explicit Scene(const std::string& scene_name);
+        Scene(const std::string& scene_name, NetPeer* net_peer);
         Scene(const Scene&) = delete;
 
         // A scene currently registers itself to the SceneModule by its memory address,
@@ -37,6 +39,8 @@ namespace h2o
          */
         template<class T = Actor>
         WeakHandle<T> spawn_actor(const Transform& spawn_transform = Transform{}, ActorID actor_id_override = 0);
+
+        bool destroy_actor(ActorID actor_id, bool replicate = true);
 
         /**
          * Get the actor of type T with a name
@@ -68,6 +72,9 @@ namespace h2o
         std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map{};
 
         std::string m_scene_name{};
+
+        NetPeer* m_net_peer = nullptr;
+        EventHandle m_on_object_destroyed_handle{};
 
     };
 

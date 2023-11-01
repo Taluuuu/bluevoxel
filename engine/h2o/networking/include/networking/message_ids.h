@@ -9,6 +9,7 @@ namespace h2o::msg_ids
     // Scene replication
     const MsgID player_join = 200;
     const MsgID transform_update = 201;
+    const MsgID actor_destroyed = 202;
 
     // Voxels
     const MsgID chunk_fetch_request = 300;

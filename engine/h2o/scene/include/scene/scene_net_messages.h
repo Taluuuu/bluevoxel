@@ -9,13 +9,24 @@ namespace h2o::net_msg
     struct PlayerJoin
     {
         ActorID actor_id = 0;
-        Transform transform{};
+        Transform transform{}; // TODO: Unused currently
 
         template<typename S>
         void serialize(S& s)
         { s(actor_id); }
 
         static constexpr MsgID message_id = msg_ids::player_join;
+    };
+
+    struct ActorDestroyed
+    {
+        ActorID actor_id = 0;
+
+        template<typename S>
+        void serialize(S& s)
+        { s(actor_id); }
+
+        static constexpr MsgID message_id = msg_ids::actor_destroyed;
     };
 
     struct TransformUpdate

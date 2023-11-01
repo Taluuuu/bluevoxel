@@ -1,13 +1,26 @@
 #include "scene/scene.h"
 
 #include "core/engine.h"
+#include "networking/net_peer.h"
 #include "scene/scene_module.h"
+#include "scene/scene_net_messages.h"
 
 namespace h2o
 {
-    Scene::Scene(const std::string& scene_name)
+    Scene::Scene(const std::string& scene_name, NetPeer* net_peer)
         : m_scene_name(scene_name)
-    {}
+        , m_net_peer(net_peer)
+    {
+        if (net_peer)
+        {
+            net_peer->handle_message<net_msg::ActorDestroyed>(m_on_object_destroyed_handle,
+                [&](PeerID peer_id, const net_msg::ActorDestroyed& actor_destroyed_msg)
+                {
+                    destroy_actor(actor_destroyed_msg.actor_id, false);
+                }
+            );
+        }
+    }
 
     Scene::~Scene()
     {
@@ -34,6 +47,20 @@ namespace h2o
             log::warn("Failed to initialize all systems for scene: {}", m_scene_name);
 
         return success;
+    }
+
+    bool Scene::destroy_actor(ActorID actor_id, bool replicate)
+    {
+        if (m_actor_map.erase(actor_id) == 0)
+            return false;
+
+        if (replicate && m_net_peer)
+        {
+            for (h2o::PeerID peer_id : m_net_peer->peers())
+                m_net_peer->send_message(peer_id, net_msg::ActorDestroyed{ actor_id });
+        }
+
+        return true;
     }
 
     void Scene::tag_actor(const WeakHandle<Actor>& actor, ActorTag tag)

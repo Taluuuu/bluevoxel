@@ -23,27 +23,27 @@ namespace h2o
 
         bool start(u16 port);
 
-        [[nodiscard]] const std::set<ClientID>& client_ids() const { return m_client_ids; }
-
         // NetPeer interface
+        [[nodiscard]] const std::set<PeerID>& peers() const override { return m_client_ids; }
         void stop(bool unregister_from_module) final;
     protected:
-        void send_message_raw(ClientID client_id, void* data, u32 size) const override;
-        i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
-        bool can_send_messages() const override;
+        void send_message_raw(PeerID client_id, void* data, u32 size) const override;
+        [[nodiscard]] i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
+        [[nodiscard]] bool can_send_messages() const override;
         void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) override;
 
     public:
 
-        struct OnPlayerJoinedEvent { ClientID client_id = 0; };
-        Event<OnPlayerJoinedEvent> on_player_joined{};
+        struct PlayerConnectionChangedEvent { PeerID client_id = 0; };
+        Event<PlayerConnectionChangedEvent> on_player_joined{};
+        Event<PlayerConnectionChangedEvent> on_player_left{};
 
     private:
 
         HSteamListenSocket m_listen_socket{};
         HSteamNetPollGroup m_poll_group{};
 
-        std::set<ClientID> m_client_ids{};
+        std::set<PeerID> m_client_ids{};
 
         std::unordered_map<MsgID, Event<ReceivedMessageEvent>> m_message_received_events{};
 

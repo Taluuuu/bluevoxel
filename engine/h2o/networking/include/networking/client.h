@@ -31,11 +31,12 @@ namespace h2o
         [[nodiscard]] bool is_connected() const { return m_connection_state == ConnectionState::Connected; }
 
         // NetPeer interface
+        [[nodiscard]] const std::set<PeerID>& peers() const override;
         void stop(bool unregister_from_module) final;
     protected:
-        void send_message_raw(ClientID client_id, void* data, u32 size) const override;
-        i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
-        bool can_send_messages() const override;
+        void send_message_raw(PeerID client_id, void* data, u32 size) const override;
+        [[nodiscard]] i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
+        [[nodiscard]] bool can_send_messages() const override;
         void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) override;
 
     public:

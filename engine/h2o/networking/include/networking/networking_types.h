@@ -7,10 +7,10 @@
 namespace h2o
 {
     using MsgID = u32;
-    using ClientID = u32;
+    using PeerID = u32;
 
     template<class T>
-    using MsgReceivedEventCallback = std::function<void(ClientID, const T&)>;
+    using MsgReceivedEventCallback = std::function<void(PeerID, const T&)>;
 
     enum class ConnectionState
     {
@@ -21,7 +21,7 @@ namespace h2o
 
     struct ReceivedMessageEvent
     {
-        ClientID client_id{};
+        PeerID client_id{};
         const std::vector<u8>& msg;
     };
 }

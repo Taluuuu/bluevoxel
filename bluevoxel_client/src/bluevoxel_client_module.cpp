@@ -36,7 +36,7 @@ namespace bluevoxel
         input_module->register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, true);
         input_module->register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
 
-        m_scene = std::make_shared<h2o::Scene>("client_scene");
+        m_scene = std::make_shared<h2o::Scene>("client_scene", &m_client);
         m_scene->add_system<h2o::RenderingSystem>();
         m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
@@ -44,7 +44,7 @@ namespace bluevoxel
         spawn_local_player();
 
         m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
-            [&](h2o::ClientID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
+            [&](h2o::PeerID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
             {
                 const auto& [actor_id, transform] = player_join_event;
                 spawn_remote_player(actor_id, transform);
@@ -132,9 +132,13 @@ namespace bluevoxel
         auto rendering_module = g_engine->get_module<h2o::RenderingModule>();
         assert(rendering_module);
 
-        auto remote_player = m_scene->spawn_actor(spawn_transform, actor_id);
-        auto mesh_renderer = remote_player->add_component<h2o::MeshRendererComponent>();
-        mesh_renderer->set_mesh(g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel_client/models/robot.fbx"));
-        mesh_renderer->set_texture(rendering_module->renderer().fetch_or_load_texture("../Resources/bluevoxel_client/textures/robot.png"));
+        if (auto remote_player = m_scene->spawn_actor(spawn_transform, actor_id))
+        {
+            auto mesh_renderer = remote_player->add_component<h2o::MeshRendererComponent>();
+            mesh_renderer->set_mesh(
+                g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel_client/models/robot.fbx"));
+            mesh_renderer->set_texture(
+                rendering_module->renderer().fetch_or_load_texture("../Resources/bluevoxel_client/textures/robot.png"));
+        }
     }
 }

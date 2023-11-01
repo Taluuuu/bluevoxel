@@ -6,6 +6,7 @@
 #include "networking/networking_types.h"
 #include "networking/networking_utils.h"
 
+#include <set>
 #include <steam/isteamnetworkingsockets.h>
 
 namespace h2o
@@ -25,7 +26,7 @@ namespace h2o
          * @param msg The message to send
          */
         template<class MsgType>
-        void send_message(ClientID client_id, const MsgType& msg);
+        void send_message(PeerID peer_id, const MsgType& msg);
 
         /**
          * Bind the lambda to execute when a message of MsgType is received.
@@ -38,6 +39,8 @@ namespace h2o
         void handle_message(
             EventHandle& event_handle,
             const MsgReceivedEventCallback<MsgType>& callback);
+
+        [[nodiscard]] virtual const std::set<PeerID>& peers() const = 0;
 
         /**
          * Disconnect a client or close a server
@@ -55,9 +58,9 @@ namespace h2o
         void start_polling_messages();
 
         // Override these :)
-        virtual void send_message_raw(ClientID client_id, void* data, u32 size) const = 0;
-        virtual i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) = 0;
-        virtual bool can_send_messages() const = 0;
+        virtual void send_message_raw(PeerID client_id, void* data, u32 size) const = 0;
+        [[nodiscard]] virtual i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) = 0;
+        [[nodiscard]] virtual bool can_send_messages() const = 0;
         virtual void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) = 0;
 
         [[nodiscard]] Event<ReceivedMessageEvent>* get_msg_event(MsgID id);
@@ -85,7 +88,7 @@ namespace h2o
     };
 
     template<class MsgType>
-    void NetPeer::send_message(ClientID client_id, const MsgType& msg)
+    void NetPeer::send_message(PeerID peer_id, const MsgType& msg)
     {
         assert(can_send_messages());
 
@@ -99,7 +102,7 @@ namespace h2o
         buffer.insert(buffer.cbegin(), sizeof(id), 0);
         memcpy(buffer.data(), &id, sizeof(id));
 
-        send_message_raw(client_id, buffer.data(), buffer.size());
+        send_message_raw(peer_id, buffer.data(), buffer.size());
     }
 
     template<class MsgType>

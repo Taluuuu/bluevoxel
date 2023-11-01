@@ -63,7 +63,7 @@ namespace h2o
         NetPeer::stop(unregister_from_module);
     }
 
-    void Server::send_message_raw(ClientID client_id, void* data, u32 size) const
+    void Server::send_message_raw(PeerID client_id, void* data, u32 size) const
     {
         if (m_client_ids.contains(client_id))
         {
@@ -104,10 +104,12 @@ namespace h2o
             // before we accepted the connection.)
             if (info.m_eOldState == k_ESteamNetworkingConnectionState_Connected)
             {
-                m_client_ids.erase(info.m_hConn);
+                log::info("Client disconnected.");
 
                 // Handle disconnect...
-                log::info("Client disconnected.");
+                m_client_ids.erase(info.m_hConn);
+
+                on_player_left.broadcast({info.m_hConn});
             }
             else
             {

@@ -73,7 +73,7 @@ namespace h2o
         }
     }
 
-    void Engine::update() const
+    void Engine::update()
     {
         if (m_input_module)
             m_input_module->prepare();
@@ -87,9 +87,11 @@ namespace h2o
 
         run_tick(TickPhase::FrameStart, &Tickable::frame_start, delta_time);
 
-        if (true)
+        m_time_since_network_update += delta_time;
+        if (m_time_since_network_update > m_time_between_network_updates)
         {
             run_tick(TickPhase::NetworkUpdate, &Tickable::network_update, delta_time);
+            m_time_since_network_update = 0.0f;
         }
 
         run_tick(TickPhase::Update,     &Tickable::update, delta_time);

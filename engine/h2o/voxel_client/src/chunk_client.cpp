@@ -36,7 +36,7 @@ namespace h2o
         );
 
         m_client->handle_message<net_msg::ChunkFetchResult>(m_on_fetched_chunk_handle,
-            [&](ClientID client_id, const net_msg::ChunkFetchResult& chunk_fetch_result)
+            [&](PeerID client_id, const net_msg::ChunkFetchResult& chunk_fetch_result)
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
@@ -76,7 +76,7 @@ namespace h2o
         );
 
         m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request,
-            [&](ClientID client_id, const net_msg::BlockPlaceRequest& block_place_request)
+            [&](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
                 if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block, false))
                     m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
