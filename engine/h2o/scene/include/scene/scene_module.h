@@ -20,9 +20,13 @@ namespace h2o
         void register_scene(Scene& scene);
         void unregister_scene(Scene& scene);
 
+        void set_current_scene(Scene* scene);
+
     private:
 
-        std::set<Scene*> m_scenes;
+        std::set<Scene*> m_scenes{};
+
+        Scene* m_current_scene = nullptr;
 
     };
 }

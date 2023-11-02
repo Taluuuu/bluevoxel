@@ -3,6 +3,7 @@
 #include "types.h"
 
 #include <magic_enum.hpp>
+#include <set>
 
 namespace h2o
 {
@@ -39,10 +40,28 @@ namespace h2o
     {
     public:
 
-        Tickable() = default;
+        Tickable(Tickable* owner);
         Tickable(const Tickable&) = delete;
         Tickable(Tickable&&) = delete;
         virtual ~Tickable();
+
+        void add_child(Tickable& tickable);
+        void remove_child(Tickable& tickable);
+
+        void enable()  { m_enabled = true;  }
+        void disable() { m_enabled = false; }
+
+    protected:
+
+        void set_tick_phases(TickPhase::Type tick_phases) { m_tick_phases = tick_phases; }
+
+        void run_frame_start(f32 delta_time);
+        void run_update(f32 delta_time);
+        void run_network_update(f32 delta_time);
+        void run_pre_render();
+        void run_render();
+        void run_post_render();
+        void run_frame_end(f32 delta_time);
 
         virtual void frame_start(f32 delta_time)    { assert(false); }
         virtual void update(f32 delta_time)         { assert(false); }
@@ -52,13 +71,13 @@ namespace h2o
         virtual void post_render()                  { assert(false); }
         virtual void frame_end(f32 delta_time)      { assert(false); }
 
-    protected:
-
-        void set_tick_phases(TickPhase::Type tick_phases);
-
     private:
 
+        std::set<Tickable*> m_children{};
+        Tickable* const m_owner = nullptr;
+
         TickPhase::Type m_tick_phases = TickPhase::None;
+        bool m_enabled = true;
 
     };
 }

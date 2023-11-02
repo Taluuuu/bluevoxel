@@ -6,7 +6,8 @@
 namespace h2o
 {
     Component::Component(const ComponentInitializer& component_initializer)
-        : m_owner(component_initializer.owner.observer_from_this())
+        : Tickable(&component_initializer.owner)
+        , m_owner(component_initializer.owner.observer_from_this())
         , m_scene(&component_initializer.owner.scene())
     {
         assert(m_scene);

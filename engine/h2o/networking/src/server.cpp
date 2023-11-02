@@ -5,6 +5,10 @@
 
 namespace h2o
 {
+    Server::Server(Tickable* owner)
+        : NetPeer(owner)
+    {}
+
     Server::~Server()
     {
         stop(true);

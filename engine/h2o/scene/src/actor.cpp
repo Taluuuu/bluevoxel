@@ -7,7 +7,8 @@
 namespace h2o
 {
     Actor::Actor(const ActorInitializer& actor_initializer)
-        : m_actor_id(actor_initializer.actor_id)
+        : Tickable(&actor_initializer.scene)
+        , m_actor_id(actor_initializer.actor_id)
         , m_scene(&actor_initializer.scene)
     {
 

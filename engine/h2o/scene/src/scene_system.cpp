@@ -7,6 +7,7 @@
 namespace h2o
 {
     SceneSystem::SceneSystem(const SceneSystemInitializer& system_initializer)
-        : m_scene(&system_initializer.owning_scene)
+        : Tickable(&system_initializer.owning_scene)
+        , m_scene(&system_initializer.owning_scene)
     {}
 }

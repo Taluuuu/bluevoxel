@@ -15,7 +15,7 @@ namespace h2o
     {
     public:
 
-        NetPeer() = default;
+        explicit NetPeer(Tickable* owner);
         NetPeer(const NetPeer&) = delete;
         ~NetPeer() override = default;
 

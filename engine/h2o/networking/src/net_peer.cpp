@@ -7,6 +7,10 @@ namespace h2o
 {
     NetPeer* NetPeer::s_callback_instance = nullptr;
 
+    NetPeer::NetPeer(Tickable* owner)
+        : Tickable(owner)
+    {}
+
     void NetPeer::stop(bool unregister_from_module)
     {
         set_tick_phases({});

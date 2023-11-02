@@ -21,7 +21,7 @@ namespace h2o
     {
     public:
 
-        Client() = default;
+        explicit Client(Tickable* owner);
         Client(const Client&) = delete;
         ~Client() override;
 

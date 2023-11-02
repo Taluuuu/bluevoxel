@@ -16,4 +16,9 @@ namespace h2o
     {
         m_scenes.erase(&scene);
     }
+
+    void SceneModule::set_current_scene(Scene* scene)
+    {
+
+    }
 }

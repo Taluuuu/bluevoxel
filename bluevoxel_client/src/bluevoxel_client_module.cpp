@@ -23,6 +23,11 @@
 
 namespace bluevoxel
 {
+    BlueVoxelClientModule::BlueVoxelClientModule()
+        : Tickable(g_engine)
+        , m_client(g_engine)
+    {}
+
     bool BlueVoxelClientModule::init(h2o::Engine& engine)
     {
         set_tick_phases(h2o::TickPhase::Update);

@@ -22,6 +22,7 @@ namespace bluevoxel
     {
     public:
 
+        BlueVoxelClientModule();
         ~BlueVoxelClientModule() override = default;
 
         // h2o::IModule interface
@@ -43,7 +44,7 @@ namespace bluevoxel
         std::string m_server_ip { "127.0.0.1" };
         i32 m_server_port { 1338 };
 
-        h2o::Client m_client{};
+        h2o::Client m_client;
 
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
 

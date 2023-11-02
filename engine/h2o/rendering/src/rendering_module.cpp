@@ -14,6 +14,10 @@
 
 namespace h2o
 {
+    RenderingModule::RenderingModule()
+        : Tickable(g_engine)
+    {}
+
     bool RenderingModule::init(Engine& engine)
     {
         set_tick_phases(TickPhase::FrameStart | TickPhase::FrameEnd);

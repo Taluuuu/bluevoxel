@@ -10,7 +10,8 @@
 namespace h2o
 {
     Engine::Engine(const GameInfo& game_info)
-        : m_game_info(game_info)
+        : Tickable(nullptr)
+        , m_game_info(game_info)
     {
         assert(!g_engine);
         g_engine = this;
@@ -49,30 +50,6 @@ namespace h2o
         m_thread_pool.stop();
     }
 
-    void Engine::register_tickable(Tickable& tickable, TickPhase::Type phases)
-    {
-        auto phase = static_cast<TickPhase::Type>(1);
-        for (auto& tickables : m_tickables)
-        {
-            if (phase & phases)
-                tickables.push_back(&tickable);
-
-            phase = phase << 1;
-        }
-    }
-
-    void Engine::unregister_tickable(Tickable& tickable, TickPhase::Type phases)
-    {
-        u32 index = 1;
-        for (auto& tickables : m_tickables)
-        {
-            if (index & phases)
-                std::erase(tickables, &tickable);
-
-            index = index << 1;
-        }
-    }
-
     void Engine::update()
     {
         if (m_input_module)
@@ -85,22 +62,22 @@ namespace h2o
             delta_time = static_cast<f32>(m_window_module->delta_time());
         }
 
-        run_tick(TickPhase::FrameStart, &Tickable::frame_start, delta_time);
+        run_frame_start(delta_time);
 
         m_time_since_network_update += delta_time;
         if (m_time_since_network_update > m_time_between_network_updates)
         {
-            run_tick(TickPhase::NetworkUpdate, &Tickable::network_update, delta_time);
+            run_network_update(delta_time);
             m_time_since_network_update = 0.0f;
         }
 
-        run_tick(TickPhase::Update,     &Tickable::update, delta_time);
+        run_update(delta_time);
 
-        run_tick(TickPhase::PreRender,  &Tickable::pre_render);
-        run_tick(TickPhase::Render,     &Tickable::render);
-        run_tick(TickPhase::PostRender, &Tickable::post_render);
+        run_pre_render();
+        run_render();
+        run_post_render();
 
-        run_tick(TickPhase::FrameEnd,   &Tickable::frame_end, delta_time);
+        run_frame_end(delta_time);
 
         if (m_window_module)
             m_window_module->swap_buffers(144.0);

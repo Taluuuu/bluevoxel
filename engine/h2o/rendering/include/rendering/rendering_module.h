@@ -15,7 +15,7 @@ namespace h2o
     {
     public:
 
-        RenderingModule() = default;
+        RenderingModule();
         ~RenderingModule() override = default;
 
         // IModule interface

@@ -17,7 +17,7 @@ namespace h2o
     {
     public:
 
-        Server() = default;
+        explicit Server(Tickable* owner);
         Server(const Server&) = delete;
         ~Server() override;
 

@@ -18,6 +18,7 @@ namespace bluevoxel
     {
     public:
 
+        BlueVoxelServerModule();
         ~BlueVoxelServerModule() override = default;
 
         // h2o::IModule interface
@@ -28,7 +29,7 @@ namespace bluevoxel
 
     private:
 
-        h2o::Server m_server{};
+        h2o::Server m_server;
         std::unique_ptr<h2o::ChunkServer> m_chunk_server { nullptr };
 
         std::shared_ptr<h2o::Scene> m_scene = nullptr;

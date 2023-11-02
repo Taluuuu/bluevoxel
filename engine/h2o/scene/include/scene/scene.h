@@ -15,7 +15,7 @@ namespace h2o
     class NetPeer;
     class SceneSystem;
 
-    class Scene final : public std::enable_shared_from_this<Scene>
+    class Scene : public Tickable
     {
     public:
 
@@ -25,7 +25,7 @@ namespace h2o
         // A scene currently registers itself to the SceneModule by its memory address,
         // so we want to make sure it doesn't move
         Scene(Scene&&) = delete;
-        virtual ~Scene();
+        ~Scene() override;
 
         bool init();
 

@@ -5,6 +5,10 @@
 
 namespace h2o
 {
+    Client::Client(Tickable* owner)
+        : NetPeer(owner)
+    {}
+
     Client::~Client()
     {
         stop(true);

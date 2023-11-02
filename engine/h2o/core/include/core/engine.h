@@ -15,7 +15,7 @@ namespace h2o
 {
     class IModule;
 
-    class Engine
+    class Engine : public Tickable
     {
     public:
 
@@ -65,17 +65,11 @@ namespace h2o
          */
         void run();
 
-        void register_tickable(Tickable& tickable, TickPhase::Type phases);
-        void unregister_tickable(Tickable& tickable, TickPhase::Type phases);
-
     public:
 
         bool should_close = false;
 
     private:
-
-        template<class... Args>
-        void run_tick(TickPhase::Type tick_phase, void(Tickable::*tick_function)(Args...), Args... args) const;
 
         void update();
 
@@ -96,8 +90,6 @@ namespace h2o
         class IWindowModule* m_window_module = nullptr;
         class IInputModule*  m_input_module  = nullptr;
 
-        using Tickables = std::vector<Tickable*>;
-        std::array<Tickables, tick_phase_count> m_tickables{};
         f32 m_time_since_network_update = 0.0f;
         f32 m_time_between_network_updates = 1.0f / 20.0f;
 
@@ -140,19 +132,6 @@ namespace h2o
         assert(module != nullptr);
 
         return *module;
-    }
-
-    template<class... Args>
-    void Engine::run_tick(TickPhase::Type tick_phase, void(Tickable::*tick_function)(Args...), Args... args) const
-    {
-        if (auto phase_idx = magic_enum::enum_index(tick_phase); phase_idx.has_value())
-        {
-            const auto& tickables = m_tickables[*phase_idx];
-
-            // Not a range based for loop due to a weird bug
-            for (size_t i = 0; i < tickables.size(); i++)
-                (tickables[i]->*tick_function)(args...);
-        }
     }
 }
 

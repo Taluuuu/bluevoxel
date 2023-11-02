@@ -13,6 +13,10 @@
 
 namespace bluevoxel
 {
+    BlueVoxelServerModule::BlueVoxelServerModule()
+        : m_server(g_engine)
+    {}
+
     bool BlueVoxelServerModule::init(h2o::Engine& engine)
     {
         if (!m_server.start(1338))
