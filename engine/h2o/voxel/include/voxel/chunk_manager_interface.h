@@ -44,7 +44,7 @@ namespace h2o
          */
         virtual void erase_far_chunks(const std::vector<v2i>& positions, i32 range) = 0;
 
-        // IBlockContainer interface
+        // IChunkContainer interface
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function) override;
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const override;
 

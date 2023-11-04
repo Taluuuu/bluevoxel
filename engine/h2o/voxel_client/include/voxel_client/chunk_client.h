@@ -57,7 +57,7 @@ namespace h2o
 
         bool m_refresh_chunk_requests = false;
 
-        // Net events
+        // Net event handles
         EventHandle m_on_connected_handle{};
         EventHandle m_on_fetched_chunk_handle{};
         EventHandle m_on_received_block_place_request{};

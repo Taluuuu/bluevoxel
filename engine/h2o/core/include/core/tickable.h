@@ -40,7 +40,7 @@ namespace h2o
     {
     public:
 
-        Tickable(Tickable* owner);
+        explicit Tickable(Tickable* owner);
         Tickable(const Tickable&) = delete;
         Tickable(Tickable&&) = delete;
         virtual ~Tickable();
@@ -48,8 +48,10 @@ namespace h2o
         void add_child(Tickable& tickable);
         void remove_child(Tickable& tickable);
 
-        void enable()  { m_enabled = true;  }
-        void disable() { m_enabled = false; }
+        [[nodiscard]] bool is_enabled() const { return m_enabled; }
+        void set_enabled(bool enabled) { m_enabled = enabled; }
+        void enable()  { set_enabled(true);  }
+        void disable() { set_enabled(false); }
 
     protected:
 
