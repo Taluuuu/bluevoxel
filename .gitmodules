@@ -31,3 +31,6 @@
 [submodule "engine/lib/assimp"]
 	path = engine/lib/assimp
 	url = https://github.com/assimp/assimp
+[submodule "engine/lib/FastNoise2"]
+	path = engine/lib/FastNoise2
+	url = https://github.com/Auburn/FastNoise2/

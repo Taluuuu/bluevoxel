@@ -10,18 +10,16 @@ reconnecting to the server.
 
 #### TODO list
 
- - Cleanup transform sync
- - Fix chunk edges
- - Create structure system
  - Create basic world generator
+ - Create structure system
  - Rework resource system and paths
+ - Create input contexts
+ - Create pause menu and temporary main menu
 
 ### 0.0.2
 
 This version should add ticking blocks, better world generation, an UI system, a
-main menu and skeletal animations.
-
- - Implement threaded chunk meshing
+main menu with said UI system and skeletal animations.
 
 ### 0.0.3
 
