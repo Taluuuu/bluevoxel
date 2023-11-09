@@ -3,15 +3,17 @@
 #include "chunk_generator_base.h"
 #include "voxel/block.h"
 
-#include <vector>
+// Needed for SmartNode caching
+#include <FastNoise/FastNoise.h>
 
 namespace h2o
 {
-    class ChunkGenerator_Flat : public ChunkGenerator_Base
+    class ChunkGenerator_Terrain : public ChunkGenerator_Base
     {
     public:
 
-        ~ChunkGenerator_Flat() override = default;
+        ChunkGenerator_Terrain();
+        ~ChunkGenerator_Terrain() override = default;
 
         // ChunkGenerator_Base interface
         void run_generation_step(const ChunkRegion& chunk_region) const override;
@@ -20,6 +22,10 @@ namespace h2o
     public:
 
         std::vector<Block> block_layers{};
+
+    private:
+
+        FastNoise::SmartNode<> m_noise_generator = nullptr;
 
     };
 }

@@ -5,7 +5,8 @@
 #include "networking/networking_utils.h"
 #include "scene/scene.h"
 #include "scene/scene_net_messages.h"
-#include "voxel/chunk_generators/chunk_generator_flat.h"
+//#include "voxel/chunk_generators/chunk_generator_flat.h"
+#include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel_server/chunk_server.h"
 #include "voxel_server/voxel_server_module.h"
 
@@ -27,7 +28,8 @@ namespace bluevoxel
 
         // Setup chunk server
         m_chunk_server = std::make_unique<h2o::ChunkServer>(m_server);
-        auto chunk_generator = std::make_unique<h2o::ChunkGenerator_Flat>();
+//        auto chunk_generator = std::make_unique<h2o::ChunkGenerator_Flat>();
+        auto chunk_generator = std::make_unique<h2o::ChunkGenerator_Terrain>();
         chunk_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
         m_chunk_server->set_chunk_generator(std::move(chunk_generator));
         m_chunk_server->start();

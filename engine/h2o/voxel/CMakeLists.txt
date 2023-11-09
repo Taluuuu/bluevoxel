@@ -14,6 +14,7 @@ add_library(h2o_voxel
     src/chunk_generators/chunk_generator_base.cpp
     src/chunk_generators/chunk_generator_flat.cpp
     src/chunk_generators/chunk_generator_sphere.cpp
+    src/chunk_generators/chunk_generator_terrain.cpp
     src/chunk_manager.cpp
     src/chunk_manager_base.cpp
     src/chunk_region.cpp
@@ -24,6 +25,7 @@ add_library(h2o_voxel
 
 target_link_libraries(h2o_voxel
     PUBLIC
+        FastNoise
         bitsery
 
     PRIVATE
@@ -37,6 +39,7 @@ target_link_libraries(h2o_voxel
 target_include_directories(h2o_voxel
     PUBLIC
         include/
+        FastNoise
         bitsery
 
     PRIVATE

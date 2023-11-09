@@ -66,6 +66,9 @@ add_subdirectory(lib/bitsery)
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(lib/assimp)
 
+# FastNoise2
+add_subdirectory(lib/FastNoise2)
+
 # Engine libraries
 add_subdirectory(h2o/core)
 add_subdirectory(h2o/input)
