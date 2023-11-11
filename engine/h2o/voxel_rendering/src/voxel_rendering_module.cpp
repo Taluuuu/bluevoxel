@@ -71,17 +71,60 @@ namespace h2o
 
                     std::vector<BlockVertex> face_vertices;
                     face_vertices.reserve(vertices.size());
-                    for (const auto& vertex : vertices)
+
+                    const i32 triangle_count = i32(vertices.size()) / 3;
+                    for (i32 triangle_index = 0; triangle_index < triangle_count; triangle_index++)
                     {
-                        face_vertices.push_back(BlockVertex
-                            {
-                                .x = vertex[0],
-                                .y = vertex[1],
-                                .z = vertex[2],
-                                .u = vertex[3],
-                                .v = vertex[4],
-                                .tex_idx = tex_idx
-                            });
+                        const auto& v0 = vertices[triangle_index * 3 + 0];
+                        const auto& v1 = vertices[triangle_index * 3 + 1];
+                        const auto& v2 = vertices[triangle_index * 3 + 2];
+
+                        const v3i p0 { v0[0], v0[1], v0[2] };
+                        const v3i p1 { v1[0], v1[1], v1[2] };
+                        const v3i p2 { v2[0], v2[1], v2[2] };
+
+                        // Pack normal vector
+                        const v3 p0_to_p1 = p1 - p0;
+                        const v3 p0_to_p2 = p2 - p0;
+                        const v3 normal = glm::normalize(glm::cross(p0_to_p1, p0_to_p2));
+                        const f32 n_pitch = std::asin(normal.y);
+                        const f32 n_yaw = std::atan2(normal.x, normal.z);
+
+                        // Remap from 0 to 1 to integer values depending on their number of bits
+                        const f32 normalized_pitch = (n_pitch + glm::half_pi<f32>()) / glm::pi<f32>();
+                        const f32 normalized_yaw = (n_yaw + glm::pi<f32>()) / glm::two_pi<f32>();
+
+                        const u32 packed_n_pitch = std::lround(normalized_pitch * voxel_rendering_constants::packed_pitch_max_value);
+                        const u32 packed_n_yaw = std::lround(normalized_yaw * voxel_rendering_constants::packed_yaw_max_value);
+
+                        const float cos_pitch = glm::cos(n_pitch);
+                        const float sin_pitch = glm::sin(n_pitch);
+                        const float cos_yaw = glm::cos(n_yaw);
+                        const float sin_yaw = glm::sin(n_yaw);
+
+                        const v3 normal2 {
+                            cos_pitch * sin_yaw,
+                            sin_pitch,
+                            cos_pitch * cos_yaw
+                        };
+
+                        for (i32 vertex_index = 0; vertex_index < 3; vertex_index++)
+                        {
+                            const auto& vertex = vertices[triangle_index * 3 + vertex_index];
+                            face_vertices.push_back(
+                                BlockVertex
+                                {
+                                    .x = vertex[0],
+                                    .y = vertex[1],
+                                    .z = vertex[2],
+                                    .u = vertex[3],
+                                    .v = vertex[4],
+                                    .tex_idx = tex_idx,
+                                    .n_pitch = packed_n_pitch,
+                                    .n_yaw = packed_n_yaw,
+                                }
+                            );
+                        }
                     }
 
                     tex_idx++;

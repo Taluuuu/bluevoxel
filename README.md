@@ -10,7 +10,7 @@ reconnecting to the server.
 
 #### TODO list
 
- - Create basic world generator
+ - Basic shading
  - Create structure system
  - Rework resource system and paths
  - Create input contexts

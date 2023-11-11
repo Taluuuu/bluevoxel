@@ -54,8 +54,8 @@ namespace h2o
                     vertex.tex_idx = textures[vertex.tex_idx];
 
                     auto temp = vertex.to_array();
-                    vertices.push_back(temp[0]);
-                    vertices.push_back(temp[1]);
+                    for (u32 data : temp)
+                        vertices.push_back(data);
                 }
             };
 
@@ -96,12 +96,13 @@ namespace h2o
 
         if (m_vertex_count == 0)
         {
-            m_vertex_array->attach_vertex_buffer(m_buffer, 0, 0, 2 * sizeof(u32));
+            m_vertex_array->attach_vertex_buffer(m_buffer, 0, 0, 3 * sizeof(u32));
             m_vertex_array->setup_attribute(0, 0, gfx::AttributeType::U32, 1, 0);
             m_vertex_array->setup_attribute(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
+            m_vertex_array->setup_attribute(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
         }
 
-        m_vertex_count = static_cast<i32>(vertices.size() / 2);
+        m_vertex_count = static_cast<i32>(vertices.size() / 3);
 
         m_buffer->update_data(vertices.data(), i32(vertices.size()) * sizeof(u32));
     }

@@ -2,6 +2,7 @@
 
 #include "core/types.h"
 #include "voxel/direction.h"
+#include "voxel_rendering_constants.h"
 
 #include <array>
 #include "magic_enum.hpp"
@@ -23,12 +24,18 @@ namespace h2o
         u32 tex_idx : 11;
         u32 : 0; // 27-bit
 
-        [[nodiscard]] constexpr std::array<u32, 2> to_array() const
+        // Byte 3
+        u32 n_pitch : voxel_rendering_constants::num_normal_pitch_bits;
+        u32 n_yaw : voxel_rendering_constants::num_normal_yaw_bits;
+        u32 : 0; // 7-bit
+
+        [[nodiscard]] constexpr std::array<u32, 3> to_array() const
         {
             return
             {
                 static_cast<u32>((x << 0) | (y << 10) | (z << 20)),
-                static_cast<u32>((u << 0) | (v << 5) | (tex_idx << 10))
+                static_cast<u32>((u << 0) | (v << 5) | (tex_idx << 10)),
+                static_cast<u32>((n_pitch << 0) | (n_yaw << 4))
             };
         }
     };
