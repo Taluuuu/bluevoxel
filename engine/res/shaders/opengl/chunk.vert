@@ -43,8 +43,8 @@ void main()
     const uint packed_pitch = bitfieldExtract(vertex_data_1, 0, 3);
     const uint packed_yaw = bitfieldExtract(vertex_data_1, 3, 7);
 
-    const float pitch = (packed_pitch / MAX_PITCH_VALUE) * PI - HALF_PI;
-    const float yaw = (packed_yaw / MAX_YAW_VALUE) * TWO_PI - PI;
+    const float pitch = (packed_pitch / float(MAX_PITCH_VALUE)) * PI - HALF_PI;
+    const float yaw = (packed_yaw / float(MAX_YAW_VALUE)) * TWO_PI - PI;
 
     const float cos_pitch = cos(pitch);
     const float sin_pitch = sin(pitch);

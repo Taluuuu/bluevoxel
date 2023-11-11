@@ -10,6 +10,6 @@ out vec4 frag_albedo;
 
 void main()
 {
-//    frag_albedo = vec4(0.5f * (pass_normal + vec3(1.0f, 1.0f, 1.0f)), 1.0f);
-    frag_albedo = texture(block_textures, vec3(pass_uv, pass_tex_index));
+    frag_albedo = vec4(0.5f * (pass_normal + vec3(1.0f, 1.0f, 1.0f)), 1.0f);
+//    frag_albedo = texture(block_textures, vec3(pass_uv, pass_tex_index));
 }
