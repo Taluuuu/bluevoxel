@@ -19,9 +19,6 @@
 [submodule "engine/lib/yaml-cpp"]
 	path = engine/lib/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
-[submodule "engine/lib/GameNetworkingSockets"]
-	path = engine/lib/GameNetworkingSockets
-	url = https://github.com/ValveSoftware/GameNetworkingSockets
 [submodule "engine/lib/bitsery"]
 	path = engine/lib/bitsery
 	url = https://github.com/fraillt/bitsery

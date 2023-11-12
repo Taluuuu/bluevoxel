@@ -52,7 +52,8 @@ add_subdirectory(lib/stb)
 add_subdirectory(lib/yaml-cpp)
 
 # GameNetworkingSockets
-add_subdirectory(lib/GameNetworkingSockets)
+#add_subdirectory(lib/GameNetworkingSockets)
+find_package(GameNetworkingSockets REQUIRED)
 
 # imgui
 set(IMGUI_USE_OPENGL ${H2O_USE_OPENGL})
