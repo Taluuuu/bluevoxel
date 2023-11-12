@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/events.h"
+#include "core/handle_types.h"
 #include "core/module.h"
 #include "networking/client.h"
 #include "scene/actor_initializer.h"
@@ -47,6 +48,7 @@ namespace bluevoxel
         h2o::Client m_client;
 
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
+        h2o::WeakHandle<h2o::ChunkClient> m_chunk_client = nullptr;
 
         h2o::EventHandle m_on_client_created{};
         h2o::EventHandle m_on_client_connected_to_server_handle{};

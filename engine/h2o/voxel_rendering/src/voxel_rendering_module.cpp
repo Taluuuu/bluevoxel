@@ -97,17 +97,6 @@ namespace h2o
                         const u32 packed_n_pitch = std::lround(normalized_pitch * voxel_rendering_constants::packed_pitch_max_value);
                         const u32 packed_n_yaw = std::lround(normalized_yaw * voxel_rendering_constants::packed_yaw_max_value);
 
-                        const float cos_pitch = glm::cos(n_pitch);
-                        const float sin_pitch = glm::sin(n_pitch);
-                        const float cos_yaw = glm::cos(n_yaw);
-                        const float sin_yaw = glm::sin(n_yaw);
-
-                        const v3 normal2 {
-                            cos_pitch * sin_yaw,
-                            sin_pitch,
-                            cos_pitch * cos_yaw
-                        };
-
                         for (i32 vertex_index = 0; vertex_index < 3; vertex_index++)
                         {
                             const auto& vertex = vertices[triangle_index * 3 + vertex_index];

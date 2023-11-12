@@ -2,8 +2,8 @@
 
 const uint MAX_BLOCK_COORD_VALUE = 8; // Max possible value for each block coordinate
 const uint MAX_TEXTURE_COORD_VALUE = 16; // Max possible value for each texture coord
-const uint MAX_PITCH_VALUE = 7;
-const uint MAX_YAW_VALUE = 15;
+const uint MAX_PITCH_VALUE = 8;
+const uint MAX_YAW_VALUE = 16;
 const uint CHUNK_SIZE = 32;       // Number of blocks in a chunk on each axis
 
 const float PI = 3.14159265359f;
@@ -40,8 +40,8 @@ void main()
     pass_tex_index = bitfieldExtract(vertex_data_0, 10, 11);
 
     // Calculate face normal
-    const uint packed_pitch = bitfieldExtract(vertex_data_1, 0, 3);
-    const uint packed_yaw = bitfieldExtract(vertex_data_1, 3, 7);
+    const uint packed_pitch = bitfieldExtract(vertex_data_1, 0, 4);
+    const uint packed_yaw = bitfieldExtract(vertex_data_1, 4, 9);
 
     const float pitch = (packed_pitch / float(MAX_PITCH_VALUE)) * PI - HALF_PI;
     const float yaw = (packed_yaw / float(MAX_YAW_VALUE)) * TWO_PI - PI;

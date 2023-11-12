@@ -139,6 +139,9 @@ namespace h2o
 
         block_textures->bind(0);
         pipeline->set_uniform_int(2, 0);
+        pipeline->set_uniform_vec3(3, glm::normalize(light_dir));
+        pipeline->set_uniform_vec3(4, light_color);
+        pipeline->set_uniform_float(5, ambient_strength);
 
         m_chunk_mesh_pool.for_each_chunk_mesh(
             [&](const ChunkMesh& chunk_mesh)

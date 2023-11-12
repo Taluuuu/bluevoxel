@@ -43,7 +43,7 @@ namespace bluevoxel
 
         m_scene = std::make_shared<h2o::Scene>("client_scene", &m_client);
         m_scene->add_system<h2o::RenderingSystem>();
-        m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
+        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
 
         spawn_local_player();
@@ -111,8 +111,20 @@ namespace bluevoxel
                 m_client.stop(true);
 
             ImGui::End();
+
             break;
         }
+        }
+
+        if (m_chunk_client)
+        {
+            ImGui::Begin("Voxel");
+
+            ImGui::SliderFloat3("Light Direction", &m_chunk_client->light_dir.x, -1.0f, 1.0f);
+            ImGui::ColorEdit3("Light Color", &m_chunk_client->light_color.x);
+            ImGui::SliderFloat("Ambient Strength", &m_chunk_client->ambient_strength, 0.0f, 1.0f);
+
+            ImGui::End();
         }
     }
 
