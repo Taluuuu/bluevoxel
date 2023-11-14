@@ -5,7 +5,6 @@
 #include "networking/message_ids.h"
 #include "networking/server.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
-#include "voxel/voxel_module.h"
 #include "voxel/voxel_net_messages.h"
 #include "voxel/voxel_utils.h"
 
@@ -142,9 +141,6 @@ namespace h2o
 
     void ChunkServer::load_requested_chunks()
     {
-        auto voxel_module = g_engine->get_module<VoxelModule>();
-        assert(voxel_module);
-
         std::lock_guard chunk_gen_deque_lock { m_chunk_gen_dequeue_mutex };
 
         while (!m_chunk_gen_deque.empty())

@@ -52,7 +52,6 @@ add_subdirectory(lib/stb)
 add_subdirectory(lib/yaml-cpp)
 
 # GameNetworkingSockets
-#add_subdirectory(lib/GameNetworkingSockets)
 find_package(GameNetworkingSockets REQUIRED)
 
 # imgui
@@ -64,8 +63,7 @@ add_subdirectory(lib/imgui)
 add_subdirectory(lib/bitsery)
 
 # assimp
-set(BUILD_SHARED_LIBS OFF)
-add_subdirectory(lib/assimp)
+find_package(assimp REQUIRED)
 
 # FastNoise2
 add_subdirectory(lib/FastNoise2)
