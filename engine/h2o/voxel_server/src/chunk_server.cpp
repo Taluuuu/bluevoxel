@@ -161,11 +161,13 @@ namespace h2o
                         if (i == 0 && j == 0)
                             continue;
 
+                        // TODO: This should be just a fetch chunk column I think; if null, then we need to generate it.
+                        //       I don't have the brains to figure out why that doesn't work for now though.
                         const v2i neighbour_chunk_col_pos = chunk_column.chunk_column_pos() + v2i{ i, j };
-                        m_chunk_mgr.fetch_chunk_column(neighbour_chunk_col_pos, false,
-                            [&](const ChunkColumn* neighbour_chunk_col)
+                        m_chunk_mgr.fetch_or_create_chunk_column(neighbour_chunk_col_pos, false,
+                            [&](ChunkColumn& neighbour_chunk_col, bool was_created)
                             {
-                                if (!neighbour_chunk_col || neighbour_chunk_col->generation_stage() < gen_stage - 1)
+                                if (neighbour_chunk_col.generation_stage() < gen_stage - 1)
                                     chunk_cols_to_generate.push_back(neighbour_chunk_col_pos);
                             }
                         );
