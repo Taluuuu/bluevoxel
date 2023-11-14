@@ -15,15 +15,13 @@ namespace h2o
     }
 
     // TODO: Could the ChunkRegion be an interface instead ?
-    void ChunkGenerator_Terrain::run_generation_step(const ChunkRegion& chunk_region) const
+    void ChunkGenerator_Terrain::run_generation_step(ChunkColumn& chunk_column) const
     {
         assert(m_noise_generator);
         assert(!block_layers.empty());
+        assert(chunk_column.generation_stage() == 0);
 
-        auto& center_chunk = chunk_region.center_chunk();
-        assert(center_chunk.generation_stage() == 0);
-
-        const v2i chunk_column_pos = center_chunk.chunk_column_pos();
+        const v2i chunk_column_pos = chunk_column.chunk_column_pos();
         std::vector<f32> noise_outputs(voxel_constants::chunk_area, 0.0f);
         m_noise_generator->GenUniformGrid2D(
             noise_outputs.data(),
@@ -47,10 +45,10 @@ namespace h2o
                     block = block_layers[y - layers_start];
 
                 const i32 chunk_y = y / voxel_constants::chunk_size;
-                center_chunk[chunk_y].set_block_at({ x, y % voxel_constants::chunk_size, z }, block);
+                chunk_column[chunk_y].set_block_at({ x, y % voxel_constants::chunk_size, z }, block);
             }
         }
 
-        center_chunk.finish_generation();
+        chunk_column.finish_generation();
     }
 }

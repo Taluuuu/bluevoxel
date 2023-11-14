@@ -4,14 +4,28 @@
 
 namespace h2o
 {
+    void IChunkManager::fetch_chunk_region(v2i min, v2i max, const std::function<void(ChunkRegion&)>& function)
+    {
+        fetch_chunk_region(
+            v3i{ min.x, 0, min.y },
+            v3i{ max.x, voxel_constants::vertical_chunk_count - 1, max.y }, function);
+    }
+
     void IChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
-        fetch_chunk_column({ chunk_pos.x, chunk_pos.z },
+        fetch_chunk_column({ chunk_pos.x, chunk_pos.z }, false,
             [&](ChunkColumn* chunk_column)
             {
-                if (chunk_column)
+                if (!chunk_column)
                 {
-                    function(chunk_column->get_chunk_safe(chunk_pos.y));
+                    function(nullptr);
+                    return;
+                }
+
+                if (Chunk* chunk = chunk_column->get_chunk_safe(chunk_pos.y))
+                {
+                    std::unique_lock lock { chunk->mutex() };
+                    function(chunk);
                 }
                 else
                 {
@@ -23,12 +37,19 @@ namespace h2o
 
     void IChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const
     {
-        fetch_chunk_column({ chunk_pos.x, chunk_pos.z },
+        fetch_chunk_column({ chunk_pos.x, chunk_pos.z }, false,
             [&](const ChunkColumn* chunk_column)
             {
-                if (chunk_column)
+                if (!chunk_column)
                 {
-                    function(chunk_column->get_chunk_safe(chunk_pos.y));
+                    function(nullptr);
+                    return;
+                }
+
+                if (const Chunk* chunk = chunk_column->get_chunk_safe(chunk_pos.y))
+                {
+                    std::shared_lock lock { chunk->mutex() };
+                    function(chunk);
                 }
                 else
                 {

@@ -1,54 +1,105 @@
 #include "voxel/chunk_region.h"
 
 #include "voxel/chunk_column.h"
+#include "voxel/voxel_utils.h"
 
 namespace h2o
 {
-    ChunkRegion::ChunkRegion(v2i center)
-        : m_center(center)
+    ChunkRegion::ChunkRegion(const v3i& min, const v3i& size)
+        : m_chunks(size.x * size.y * size.z, nullptr)
+        , m_min(min)
+        , m_size(size)
+    { }
+
+    std::optional<Block> ChunkRegion::get_block_at(const v3i& block_pos, const v3i& relative_to_chunk_pos) const
     {
-        for (auto& chunk_col : m_chunks)
-            chunk_col = nullptr;
+        if (Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to_chunk_pos))
+            return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
+
+        return std::nullopt;
     }
 
-    ChunkColumn& ChunkRegion::center_chunk() const
+    bool ChunkRegion::set_block_at(const v3i& block_pos, Block block, const v3i& relative_to_chunk_pos)
     {
-        auto chunk_column = m_chunks[to_index({0, 0})];
-        assert(chunk_column);
-        return *chunk_column;
-    }
-
-    void ChunkRegion::for_each_chunk_column(const std::function<void(ChunkColumn&)>& function) const
-    {
-        for (const auto& chunk_col : m_chunks)
+        if (Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to_chunk_pos))
         {
-            assert(chunk_col);
-            function(*chunk_col);
+            chunk->set_block_at(voxel_utils::block_pos_to_within_chunk(block_pos), block);
+            return true;
+        }
+
+        return false;
+    }
+
+    void ChunkRegion::add_chunk(Chunk& chunk)
+    {
+        const v3i local_chunk_pos = chunk.chunk_pos() - m_min;
+        assert(in_range(local_chunk_pos));
+
+        m_chunks[to_index(local_chunk_pos)] = &chunk;
+    }
+
+    Chunk* ChunkRegion::get_chunk_at(const v3i& relative_chunk_pos, const v3i& relative_to) const
+    {
+        const v3i offset = relative_to - m_min;
+        const v3i local_chunk_pos = relative_chunk_pos + offset;
+
+        if (!in_range(local_chunk_pos))
+            return nullptr;
+
+        return m_chunks[to_index(local_chunk_pos)];
+    }
+
+    void ChunkRegion::lock_chunks(bool exclusive)
+    {
+        for (Chunk* chunk : m_chunks)
+        {
+            if (!chunk)
+                continue;
+
+            if (exclusive)
+            {
+                chunk->mutex().lock();
+            }
+            else
+            {
+                chunk->mutex().lock_shared();
+            }
         }
     }
 
-    void ChunkRegion::add_chunk_column(const std::shared_ptr<ChunkColumn>& chunk_column)
+    void ChunkRegion::unlock_chunks(bool exclusive)
     {
-        assert(chunk_column);
+        for (Chunk* chunk : m_chunks)
+        {
+            if (!chunk)
+                continue;
 
-        const v2i local_pos = chunk_column->chunk_column_pos() - m_center;
-        assert(in_range(local_pos));
-
-        m_chunks[to_index(local_pos)] = chunk_column;
+            if (exclusive)
+            {
+                chunk->mutex().unlock();
+            }
+            else
+            {
+                chunk->mutex().unlock_shared();
+            }
+        }
     }
 
-    bool ChunkRegion::in_range(v2i local_chunk_column_pos) const
+    bool ChunkRegion::in_range(const v3i& local_chunk_pos) const
     {
         return
-            local_chunk_column_pos.x >= -1 && local_chunk_column_pos.x <= 1 &&
-            local_chunk_column_pos.y >= -1 && local_chunk_column_pos.y <= 1;
+            local_chunk_pos.x >= 0 && local_chunk_pos.x < m_size.x &&
+            local_chunk_pos.y >= 0 && local_chunk_pos.y < m_size.y &&
+            local_chunk_pos.z >= 0 && local_chunk_pos.z < m_size.z;
     }
 
-    size_t ChunkRegion::to_index(v2i local_chunk_column_pos) const
+    size_t ChunkRegion::to_index(const v3i& local_chunk_pos) const
     {
-        const v2i relative_to_corner = local_chunk_column_pos + v2i{ 1, 1 };
-        assert(relative_to_corner.x >= 0 && relative_to_corner.y >= 0);
+        assert(in_range(local_chunk_pos));
 
-        return relative_to_corner.x * 3 + relative_to_corner.y;
+        return
+            local_chunk_pos.z * m_size.x * m_size.y +
+            local_chunk_pos.y * m_size.x +
+            local_chunk_pos.x;
     }
 }

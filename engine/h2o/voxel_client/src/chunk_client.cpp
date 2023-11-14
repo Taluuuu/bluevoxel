@@ -50,7 +50,7 @@ namespace h2o
                 g_engine->thread_pool().queue_job(
                     [&, compressed_chunks, chunk_pos]()
                     {
-                        m_chunk_mgr.fetch_or_create_chunk_column(chunk_pos,
+                        m_chunk_mgr.fetch_or_create_chunk_column(chunk_pos, true,
                             [&](ChunkColumn& chunk_column, bool was_just_created)
                             {
                                 // Decompress chunks
@@ -179,7 +179,7 @@ namespace h2o
 
             // TODO: Add a for each chunk column in range function to the chunk mgr
             //       to avoid locking the mutex every time
-            m_chunk_mgr.fetch_chunk_column(chunk_column_pos,
+            m_chunk_mgr.fetch_chunk_column(chunk_column_pos, false,
                 [&](const ChunkColumn* chunk_column)
                 {
                     if (!chunk_column)

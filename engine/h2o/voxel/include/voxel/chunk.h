@@ -9,11 +9,11 @@
 
 #include <iterator>
 #include <set>
+#include <shared_mutex>
 #include <vector>
 
 namespace h2o
 {
-    class ChunkSystem;
     class VoxelModule;
 
     struct CompressedChunk
@@ -71,6 +71,8 @@ namespace h2o
         [[nodiscard]] CompressedChunk compress() const;
         void decompress(const CompressedChunk& compressed_chunk);
 
+        [[nodiscard]] std::shared_mutex& mutex() const { return m_mutex; }
+
     private:
 
         void set_block_at(size_t index, Block block);
@@ -89,6 +91,8 @@ namespace h2o
         std::set<u32> m_blocks_to_tick{};
 
         const v3i m_chunk_pos{};
+
+        mutable std::shared_mutex m_mutex;
 
         const VoxelModule* const m_voxel_module = nullptr;
 

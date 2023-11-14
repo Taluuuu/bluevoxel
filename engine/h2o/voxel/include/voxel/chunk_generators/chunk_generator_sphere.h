@@ -1,10 +1,6 @@
 #pragma once
 
 #include "chunk_generator_base.h"
-#include "voxel/block.h"
-#include "core/types.h"
-
-#include <vector>
 
 namespace h2o
 {
@@ -15,7 +11,7 @@ namespace h2o
         ~ChunkGenerator_Sphere() override = default;
 
         // ChunkGenerator_Base interface
-        void run_generation_step(const ChunkRegion& chunk_region) const override;
+        void run_generation_step(ChunkColumn& chunk_column) const override;
         [[nodiscard]] i32 max_generation_stage() const override { return 1; }
 
     };

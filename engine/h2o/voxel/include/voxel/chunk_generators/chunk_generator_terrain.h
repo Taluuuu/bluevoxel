@@ -16,7 +16,7 @@ namespace h2o
         ~ChunkGenerator_Terrain() override = default;
 
         // ChunkGenerator_Base interface
-        void run_generation_step(const ChunkRegion& chunk_region) const override;
+        void run_generation_step(ChunkColumn& chunk_column) const override;
         [[nodiscard]] i32 max_generation_stage() const override { return 1; }
 
     public:

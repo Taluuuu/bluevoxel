@@ -5,8 +5,6 @@
 namespace h2o
 {
     class ChunkColumn;
-    class ChunkRegion;
-    class ChunkSystem;
 
     class ChunkGenerator_Base
     {
@@ -14,8 +12,11 @@ namespace h2o
 
         virtual ~ChunkGenerator_Base() = default;
 
-        virtual void run_generation_step(const ChunkRegion& chunk_region) const = 0;
+        virtual void run_generation_step(ChunkColumn& chunk_column) const = 0;
         [[nodiscard]] virtual i32 max_generation_stage() const = 0;
+
+        // Later:
+        // virtual void generate_structures()...
 
     };
 }

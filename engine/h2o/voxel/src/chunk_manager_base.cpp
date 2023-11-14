@@ -5,17 +5,25 @@
 
 namespace h2o
 {
-    // Everything that adds, erases or finds from the chunk unordered_map is protected by the mutex.
-    // Once a chunk is fetched, it is kept in a shared_ptr to prevent it from being deallocated while
-    // the user runs a lambda. This shared_ptr is not meant to be exposed to the user as to make sure
-    // interaction with chunks is only done in a safe environment.
-
-    void ChunkManager_Base::fetch_chunk_column(v2i chunk_column_pos, const std::function<void(ChunkColumn*)>& function)
+    void ChunkManager_Base::fetch_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn*)>& function)
     {
         if (auto chunk_column = find_chunk_column(chunk_column_pos))
         {
             std::lock_guard chunk_column_lock { chunk_column->mutex() };
+
+            if (lock_chunks)
+            {
+                for (Chunk& chunk : (*chunk_column))
+                    chunk.mutex().lock();
+            }
+
             function(chunk_column.get());
+
+            if (lock_chunks)
+            {
+                for (Chunk& chunk : (*chunk_column))
+                    chunk.mutex().unlock();
+            }
 
             return;
         }
@@ -23,12 +31,25 @@ namespace h2o
         function(nullptr);
     }
 
-    void ChunkManager_Base::fetch_chunk_column(v2i chunk_column_pos, const std::function<void(const ChunkColumn*)>& function) const
+    void ChunkManager_Base::fetch_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(const ChunkColumn*)>& function) const
     {
         if (auto chunk_column = find_chunk_column(chunk_column_pos))
         {
             std::lock_guard chunk_column_lock { chunk_column->mutex() };
+
+            if (lock_chunks)
+            {
+                for (Chunk& chunk: (*chunk_column))
+                    chunk.mutex().lock_shared();
+            }
+
             function(chunk_column.get());
+
+            if (lock_chunks)
+            {
+                for (Chunk& chunk: (*chunk_column))
+                    chunk.mutex().unlock_shared();
+            }
 
             return;
         }
@@ -36,45 +57,109 @@ namespace h2o
         function(nullptr);
     }
 
-    void ChunkManager_Base::fetch_or_create_chunk_column(v2i chunk_column_pos, const std::function<void(ChunkColumn&, bool)>& function)
+    void ChunkManager_Base::fetch_or_create_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn&, bool)>& function)
     {
         bool was_just_created = false;
         auto chunk_column = find_or_create_chunk_column(chunk_column_pos, was_just_created);
         assert(chunk_column);
 
         std::lock_guard chunk_column_lock { chunk_column->mutex() };
+
+        if (lock_chunks)
+        {
+            for (Chunk& chunk: (*chunk_column))
+                chunk.mutex().lock();
+        }
+
         function(*chunk_column, was_just_created);
+
+        if (lock_chunks)
+        {
+            for (Chunk& chunk: (*chunk_column))
+                chunk.mutex().unlock();
+        }
     }
 
-    void ChunkManager_Base::fetch_chunk_region(v2i chunk_region_center, const std::function<void(const ChunkRegion&)>& function)
+    void ChunkManager_Base::fetch_chunk_region(
+        const std::vector<v3i>& chunk_positions,
+        const std::function<void(const ChunkRegion&)>& function)
     {
-        ChunkRegion chunk_region(chunk_region_center);
+        assert(!chunk_positions.empty());
+        v3i min { INT32_MAX, INT32_MAX, INT32_MAX };
+        v3i max { INT32_MIN, INT32_MIN, INT32_MIN };
 
-        for (i32 i = -1; i <= 1; i++)
-        for (i32 j = -1; j <= 1; j++)
+        // Find min and max chunk positions.
+        // NOTE: This might be slow for large amounts of chunks.
+        for (const v3i& chunk_pos : chunk_positions)
         {
-            const v2i chunk_column_pos = chunk_region_center + v2i{ i, j };
+            min.x = chunk_pos.x < min.x ? chunk_pos.x : min.x;
+            min.y = chunk_pos.y < min.y ? chunk_pos.y : min.y;
+            min.z = chunk_pos.z < min.z ? chunk_pos.z : min.z;
+
+            max.x = chunk_pos.x > max.x ? chunk_pos.x : max.x;
+            max.y = chunk_pos.y > max.y ? chunk_pos.y : max.y;
+            max.z = chunk_pos.z > max.z ? chunk_pos.z : max.z;
+        }
+
+        ChunkRegion chunk_region(min, max - min + v3i{ 1, 1, 1 });
+
+        // Make sure chunk columns don't get deallocated.
+        std::set< std::shared_ptr<ChunkColumn> > chunk_columns;
+
+        for (const v3i& chunk_pos : chunk_positions)
+        {
+            auto chunk_column = find_or_create_chunk_column({ chunk_pos.x, chunk_pos.z });
+            assert(chunk_column);
+
+            chunk_columns.insert(chunk_column);
+
+            if (Chunk* chunk = chunk_column->get_chunk_safe(chunk_pos.y))
+                chunk_region.add_chunk(*chunk);
+        }
+
+        // Non-exclusive lock, as the chunk region is const.
+        chunk_region.lock_chunks(false);
+        function(chunk_region);
+        chunk_region.unlock_chunks(false);
+    }
+
+    void ChunkManager_Base::fetch_chunk_region(
+        v3i min, v3i max,
+        const std::function<void(ChunkRegion&)>& function)
+    {
+        assert(min.x <= max.x && min.y <= max.y && min.z <= max.z);
+
+        ChunkRegion chunk_region(min, max - min + v3i{ 1, 1, 1 });
+
+        // Make sure chunk columns don't get deallocated.
+        std::vector< std::shared_ptr<ChunkColumn> > chunk_columns {
+            size_t((max.x - min.x + 1) * (max.z - min.z + 1)), nullptr };
+
+        for (i32 i = min.x; i <= max.x; i++)
+        for (i32 j = min.y; j <= max.y; j++)
+        {
+            const v2i chunk_column_pos { i, j };
             auto chunk_column = find_or_create_chunk_column(chunk_column_pos);
             assert(chunk_column);
 
-            chunk_column->mutex().lock(); // Ugly but simple
-            chunk_region.add_chunk_column(chunk_column);
+            chunk_columns.push_back(chunk_column);
+
+            for (i32 y = min.y; y <= max.y; y++)
+            {
+                if (Chunk* chunk = chunk_column->get_chunk_safe(y))
+                    chunk_region.add_chunk(*chunk);
+            }
         }
 
+        // Exclusive lock, as the chunk region is non-const.
+        chunk_region.lock_chunks(true);
         function(chunk_region);
-
-        // Unlock mutexes
-        chunk_region.for_each_chunk_column(
-            [](ChunkColumn& chunk_column)
-            {
-                chunk_column.mutex().unlock();
-            }
-        );
+        chunk_region.unlock_chunks(true);
     }
 
     void ChunkManager_Base::erase_far_chunks(const std::vector<v2i>& positions, i32 range)
     {
-        std::lock_guard lock { m_loaded_chunks_mutex };
+        std::unique_lock lock { m_loaded_chunks_mutex };
 
         erase_if(m_loaded_chunks,
             [&](const auto& item) -> bool
@@ -103,7 +188,7 @@ namespace h2o
 
     std::shared_ptr<ChunkColumn> ChunkManager_Base::find_chunk_column(v2i chunk_column_pos) const
     {
-        std::lock_guard lock { m_loaded_chunks_mutex };
+        std::shared_lock lock { m_loaded_chunks_mutex };
         if (auto it = m_loaded_chunks.find(chunk_column_pos); it != m_loaded_chunks.end())
             return it->second;
 
@@ -124,7 +209,7 @@ namespace h2o
             return chunk_column;
         }
 
-        std::lock_guard lock { m_loaded_chunks_mutex };
+        std::unique_lock lock { m_loaded_chunks_mutex };
         auto [new_chunk_col_it, success] =
             m_loaded_chunks.insert({ chunk_column_pos, create_chunk_column(chunk_column_pos) });
 

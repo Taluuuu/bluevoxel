@@ -1,37 +1,44 @@
 #pragma once
 
 #include "core/types.h"
+#include "voxel/block.h"
 
-#include <functional>
-#include <memory>
+#include <optional>
+#include <vector>
 
 namespace h2o
 {
-    class IChunkManager;
-    class ChunkColumn;
+    class Chunk;
 
     // Useless on its own, meant to be created by a chunk manager.
-    // Contains a 3x3 region of chunks
     class ChunkRegion
     {
     public:
 
-        explicit ChunkRegion(v2i center);
+        ChunkRegion(const v3i& min, const v3i& size);
 
-        [[nodiscard]] ChunkColumn& center_chunk() const;
-        void for_each_chunk_column(const std::function<void(ChunkColumn&)>& function) const;
+        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, const v3i& relative_to_chunk_pos = { 0, 0, 0 }) const;
+        bool set_block_at(const v3i& block_pos, Block block, const v3i& relative_to_chunk_pos = { 0, 0, 0 });
 
-        void add_chunk_column(const std::shared_ptr<ChunkColumn>& chunk_column);
-
-    private:
-
-        [[nodiscard]] bool in_range(v2i local_chunk_column_pos) const;
-        [[nodiscard]] size_t to_index(v2i local_chunk_column_pos) const;
+        // Not meant to be accessed by users...
+        void add_chunk(Chunk& chunk);
+        void lock_chunks(bool exclusive);
+        void unlock_chunks(bool exclusive);
 
     private:
 
-        std::array< std::shared_ptr<ChunkColumn>, 9 > m_chunks{};
-        v2i m_center{};
+        [[nodiscard]] Chunk* get_chunk_at(const v3i& relative_chunk_pos, const v3i& relative_to) const;
+
+        [[nodiscard]] bool in_range(const v3i& local_chunk_pos) const;
+        [[nodiscard]] size_t to_index(const v3i& local_chunk_pos) const;
+
+    private:
+
+        // 3D vector of chunk pointers
+        std::vector<Chunk*> m_chunks{};
+
+        v3i m_min{};
+        v3i m_size{};
 
     };
 }

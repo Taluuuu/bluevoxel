@@ -113,11 +113,12 @@ namespace h2o
     private:
 
         std::array< std::shared_ptr<Chunk>, voxel_constants::vertical_chunk_count > m_chunks{};
-        mutable std::mutex m_mutex;
 
         i32 m_generation_stage { 0 };
 
         const v2i m_chunk_col_pos { 0, 0 };
+
+        mutable std::mutex m_mutex;
 
     };
 }
