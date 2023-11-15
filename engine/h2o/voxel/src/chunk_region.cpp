@@ -13,7 +13,7 @@ namespace h2o
 
     std::optional<Block> ChunkRegion::get_block_at(const v3i& block_pos, const v3i& relative_to_chunk_pos) const
     {
-        if (Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to_chunk_pos))
+        if (const Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to_chunk_pos))
             return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
 
         return std::nullopt;
@@ -30,15 +30,7 @@ namespace h2o
         return false;
     }
 
-    void ChunkRegion::add_chunk(Chunk& chunk)
-    {
-        const v3i local_chunk_pos = chunk.chunk_pos() - m_min;
-        assert(in_range(local_chunk_pos));
-
-        m_chunks[to_index(local_chunk_pos)] = &chunk;
-    }
-
-    Chunk* ChunkRegion::get_chunk_at(const v3i& relative_chunk_pos, const v3i& relative_to) const
+    Chunk* ChunkRegion::get_chunk_at(const v3i& relative_chunk_pos, const v3i& relative_to)
     {
         const v3i offset = relative_to - m_min;
         const v3i local_chunk_pos = relative_chunk_pos + offset;
@@ -47,6 +39,30 @@ namespace h2o
             return nullptr;
 
         return m_chunks[to_index(local_chunk_pos)];
+    }
+
+    const Chunk* ChunkRegion::get_chunk_at(const v3i& relative_chunk_pos, const v3i& relative_to) const
+    {
+        const v3i offset = relative_to - m_min;
+        const v3i local_chunk_pos = relative_chunk_pos + offset;
+
+        if (!in_range(local_chunk_pos))
+            return nullptr;
+
+        return m_chunks[to_index(local_chunk_pos)];
+    }
+
+    v3i ChunkRegion::center_chunk_pos() const
+    {
+        return m_min + m_size / 2;
+    }
+
+    void ChunkRegion::add_chunk(Chunk& chunk)
+    {
+        const v3i local_chunk_pos = chunk.chunk_pos() - m_min;
+        assert(in_range(local_chunk_pos));
+
+        m_chunks[to_index(local_chunk_pos)] = &chunk;
     }
 
     void ChunkRegion::lock_chunks(bool exclusive)

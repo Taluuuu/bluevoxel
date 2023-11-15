@@ -8,6 +8,7 @@
 #include "rendering/texture_array.h"
 #include "scene/scene.h"
 #include "scene_rendering/rendering_scene_system.h"
+#include "voxel/chunk_region.h"
 #include "voxel/voxel_net_messages.h"
 #include "voxel/voxel_utils.h"
 #include "voxel_rendering/voxel_rendering_module.h"
@@ -240,21 +241,29 @@ namespace h2o
 
     void ChunkClient::build_chunk_mesh_at(const v3i& chunk_pos)
     {
-        assert(m_voxel_rendering_module && m_rendering_module);
+        std::vector<v3i> region_chunk_positions;
+        region_chunk_positions.reserve(7);
 
-        m_chunk_mgr.fetch_chunk(chunk_pos,
-            [&](const Chunk* chunk)
+        region_chunk_positions.push_back(chunk_pos);
+        magic_enum::enum_for_each<voxel::Direction::Type>(
+            [&](voxel::Direction::Type dir)
             {
-                if (!chunk)
-                    return;
+                const v3i offset = voxel::to_vec3(dir);
+                region_chunk_positions.push_back(chunk_pos + offset);
+            }
+        );
 
-                if (chunk->is_empty())
-                    return; // No need for a chunk mesh.
+        m_chunk_mgr.fetch_chunk_region(region_chunk_positions,
+            [&](const ChunkRegion& chunk_region)
+            {
+                const Chunk* chunk = chunk_region.get_chunk_at(chunk_pos);
+                if (!chunk || chunk->is_empty()) // TODO: Could chunk->is_empty() here cause a problem when destroying the last block of a chunk ?
+                    return;
 
                 m_chunk_mesh_pool.fetch_or_create_chunk_mesh(chunk_pos,
                     [&](ChunkMesh& chunk_mesh)
                     {
-                        chunk_mesh.update(*chunk);
+                        chunk_mesh.update(chunk_region);
                     }
                 );
             }

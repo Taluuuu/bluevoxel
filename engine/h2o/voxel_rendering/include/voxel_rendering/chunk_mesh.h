@@ -7,7 +7,7 @@
 
 namespace h2o
 {
-    class Chunk;
+    class ChunkRegion;
     class VoxelRenderingModule;
 
     namespace gfx
@@ -27,7 +27,7 @@ namespace h2o
             const VoxelRenderingModule& voxel_rendering_module,
             gfx::IRenderer& renderer);
 
-        void update(const Chunk& chunk);
+        void update(const ChunkRegion& chunk_region);
 
         [[nodiscard]] const v3i& chunk_pos()    const { return m_chunk_pos;         }
         [[nodiscard]]       i32  vertex_count() const { return m_vertex_count;      }
