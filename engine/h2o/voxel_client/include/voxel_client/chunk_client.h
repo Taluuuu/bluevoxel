@@ -8,6 +8,7 @@
 #include "voxel/chunk_container_interface.h"
 #include "voxel/chunk_manager_interface.h"
 #include "voxel/voxel_constants.h"
+#include "voxel_rendering/chunk_meshing_queue.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -58,8 +59,7 @@ namespace h2o
         ChunkManager_Client m_chunk_mgr;
 
         ChunkMeshPool m_chunk_mesh_pool{};
-        std::vector<v3i> m_chunks_to_mesh{};
-        std::mutex m_chunks_to_mesh_mutex{};
+        ChunkMeshingQueue m_chunk_meshing_queue{};
 
         bool m_refresh_chunk_requests = false;
 

@@ -42,7 +42,7 @@ namespace h2o
         assert(is_valid_pos(local_pos));
         assert(is_initialized());
 
-        set_block_at(to_index(local_pos), local_pos, block);
+        set_block_at(to_index(local_pos), block);
     }
 
     void Chunk::tick()
@@ -121,12 +121,6 @@ namespace h2o
     }
 
     void Chunk::set_block_at(size_t index, Block block)
-    {
-        assert(index < m_blocks.size());
-        set_block_at(index, to_local_block_pos(index), block);
-    }
-
-    void Chunk::set_block_at(size_t index, const v3i& local_pos, Block block)
     {
         assert(index < m_blocks.size());
         assert(index == to_index(local_pos));

@@ -55,20 +55,14 @@ namespace h2o
                             [&](ChunkColumn& chunk_column, bool was_just_created)
                             {
                                 // Decompress chunks
-                                std::vector<v3i> chunks_to_mesh{};
                                 for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
                                 {
                                     auto& chunk = chunk_column[i];
                                     chunk.decompress(compressed_chunks[i]);
 
                                     if (!chunk.is_empty())
-                                        chunks_to_mesh.push_back(chunk.chunk_pos());
+                                        m_chunk_meshing_queue.enqueue(chunk.chunk_pos(), 0.0f);
                                 }
-
-                                std::lock_guard chunks_to_mesh_lock(m_chunks_to_mesh_mutex);
-                                m_chunks_to_mesh.insert(
-                                    m_chunks_to_mesh.end(),
-                                    chunks_to_mesh.begin(), chunks_to_mesh.end());
                             }
                         );
                     }
@@ -79,15 +73,16 @@ namespace h2o
         m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request,
             [&](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
+                // TODO: It seems like the block placed event is called twice
                 if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block, false))
-                    m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+                    m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos), 0.0f);
             }
         );
 
         m_chunk_mgr.on_placed_block.add_listener(m_on_block_placed,
             [&](const net_msg::BlockPlaceRequest& block_place_request)
             {
-                m_chunks_to_mesh.push_back(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+                m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos), 0.0f);
             }
         );
     }
@@ -199,36 +194,9 @@ namespace h2o
 
     void ChunkClient::build_chunk_meshes(i32 max_chunk_meshes, const v3& player_pos)
     {
-        auto pop_nearest_chunk_to_mesh =
-            [&]() -> std::optional<v3i>
-            {
-                f32 nearest_distance_sqr = FLT_MAX;
-                i32 nearest_idx = -1;
-                std::optional<v3i> nearest_chunk_pos = std::nullopt;
-
-                std::lock_guard lock(m_chunks_to_mesh_mutex);
-                for (i32 i = 0; i < m_chunks_to_mesh.size(); i++)
-                {
-                    const v3i& chunk_to_remesh = m_chunks_to_mesh[i];
-                    const f32 distance_with_chunk_sqr = glm::distance2(v3(chunk_to_remesh), player_pos);
-
-                    if (distance_with_chunk_sqr < nearest_distance_sqr)
-                    {
-                        nearest_distance_sqr = distance_with_chunk_sqr;
-                        nearest_chunk_pos = chunk_to_remesh;
-                        nearest_idx = i;
-                    }
-                }
-
-                if (nearest_chunk_pos)
-                    m_chunks_to_mesh.erase(m_chunks_to_mesh.cbegin() + nearest_idx);
-
-                return nearest_chunk_pos;
-            };
-
         for (i32 i = 0; i < max_chunk_meshes; i++)
         {
-            if (const auto chunk_to_mesh = pop_nearest_chunk_to_mesh())
+            if (const auto chunk_to_mesh = m_chunk_meshing_queue.dequeue())
             {
                 build_chunk_mesh_at(*chunk_to_mesh);
             }
