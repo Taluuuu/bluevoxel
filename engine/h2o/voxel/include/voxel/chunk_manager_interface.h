@@ -51,6 +51,8 @@ namespace h2o
          */
         virtual void erase_far_chunks(const std::vector<v2i>& positions, i32 range) = 0;
 
+        [[nodiscard]] virtual bool is_chunk_column_generated(v2i chunk_column_pos) const = 0;
+
         // IChunkContainer interface
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function) override;
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const override;

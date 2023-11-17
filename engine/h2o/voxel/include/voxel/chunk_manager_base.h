@@ -23,6 +23,7 @@ namespace h2o
         void fetch_chunk_region(const std::vector<v3i>& chunk_positions, const std::function<void(const ChunkRegion&)>& function) override;
         void fetch_chunk_region(v3i min, v3i max, const std::function<void(ChunkRegion&)>& function) override;
         void erase_far_chunks(const std::vector<v2i>& positions, i32 range) override;
+        [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos) const override;
 
     private:
 

@@ -181,6 +181,14 @@ namespace h2o
         );
     }
 
+    bool ChunkManager_Base::is_chunk_column_generated(v2i chunk_column_pos) const
+    {
+        if (const auto chunk_column = find_chunk_column(chunk_column_pos))
+            return chunk_column->is_generated();
+
+        return false;
+    }
+
     std::shared_ptr<ChunkColumn> ChunkManager_Base::create_chunk_column(v2i chunk_column_pos) const
     {
         return std::make_shared<ChunkColumn>(chunk_column_pos);
