@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/events.h"
+#include "core/handle_types.h"
 #include "core/module.h"
 #include "networking/server.h"
 
@@ -30,9 +31,9 @@ namespace bluevoxel
     private:
 
         h2o::Server m_server;
-        std::unique_ptr<h2o::ChunkServer> m_chunk_server { nullptr };
 
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
+        h2o::WeakHandle<h2o::ChunkServer> m_chunk_server = nullptr;
 
         h2o::EventHandle m_player_joined_event_handle{};
         h2o::EventHandle m_player_left_event_handle{};

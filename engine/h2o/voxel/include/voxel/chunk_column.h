@@ -57,8 +57,8 @@ namespace h2o
             using pointer = Chunk*;
             using reference = Chunk&;
 
-            iterator(ChunkColumn& column, size_t index) : m_column(column), m_index(index)
-            {}
+            iterator(ChunkColumn& column, size_t index)
+                : m_column(column), m_index(index) {}
 
             reference operator*() const
             {

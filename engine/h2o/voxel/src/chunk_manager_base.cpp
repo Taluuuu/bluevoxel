@@ -218,13 +218,12 @@ namespace h2o
         }
 
         std::unique_lock lock { m_loaded_chunks_mutex };
-        auto [new_chunk_col_it, success] =
-            m_loaded_chunks.insert({ chunk_column_pos, create_chunk_column(chunk_column_pos) });
 
-        assert(success);
-        assert(new_chunk_col_it->second);
+        auto [it, success] = m_loaded_chunks.try_emplace(chunk_column_pos, nullptr);
+        if (success)
+            it->second = create_chunk_column(chunk_column_pos);
 
-        out_was_just_created = true;
-        return new_chunk_col_it->second;
+        out_was_just_created = success;
+        return it->second;
     }
 }

@@ -91,8 +91,6 @@ namespace h2o
 
     void ChunkClient::update(f32 delta_time)
     {
-        log::info("{}", m_chunk_meshing_queue.num_chunks_in_queue());
-
         if (!m_client->is_connected())
             return;
 

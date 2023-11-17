@@ -108,7 +108,7 @@ namespace h2o
     template<class MsgType>
     void NetPeer::handle_message(
         EventHandle& event_handle,
-        const MsgReceivedEventCallback <MsgType>& callback)
+        const MsgReceivedEventCallback<MsgType>& callback)
     {
         const MsgID id = MsgType::message_id;
 

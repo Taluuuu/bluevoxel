@@ -1,17 +1,17 @@
 #pragma once
 
-#include "core/data_structures/thread_safe_priority_queue.h"
 #include "core/events.h"
 #include "core/types.h"
 #include "networking/networking_types.h"
 #include "chunk_manager_server.h"
+#include "scene/scene_system.h"
 #include "voxel/chunk_container_interface.h"
 #include "voxel/chunk_column.h"
 #include "voxel/chunk_region.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/voxel_net_messages.h"
+#include "world_generator.h"
 
-#include <glm/gtx/hash.hpp>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -23,44 +23,21 @@ namespace h2o
     class ChunkGenerator_Base;
     class Server;
 
-    struct ChunkFetchRequest
-    {
-        std::set<PeerID> requesting_clients{};
-        v2i chunk_col_pos{};
-        bool is_generating = false;
-    };
-
-    struct ChunkGenRequest
-    {
-        std::shared_ptr<ChunkFetchRequest> fetch_request{};
-        i32 gen_stage = 0;
-        f32 distance = 0.0f;
-
-        [[nodiscard]] bool operator<(const ChunkGenRequest& other) const
-        { return distance < other.distance; }
-    };
-
-    class ChunkServer
+    class ChunkServer : public SceneSystem
     {
     public:
 
-        explicit ChunkServer(Server& server);
-        ~ChunkServer();
+        explicit ChunkServer(
+            const SceneSystemInitializer& system_initializer,
+            Server& server);
+        ~ChunkServer() override = default;
 
         [[nodiscard]] IChunkManager& chunk_mgr() { return m_chunk_mgr; }
-        [[nodiscard]] bool is_running() const;
+        [[nodiscard]] WorldGenerator& world_generator() { return m_world_generator; }
 
-        void start();
-        void stop();
-
-        void set_chunk_generator(std::unique_ptr<ChunkGenerator_Base>&& chunk_generator);
+        void update(f32 delta_time) override;
 
     protected:
-
-        void run();
-
-        void request_chunk_generations();
-        void load_requested_chunks();
 
         // Networking
         void on_received_chunk_fetch_requests(
@@ -71,8 +48,7 @@ namespace h2o
             PeerID request_sender,
             const net_msg::BlockPlaceRequest& block_place_request);
 
-        // TODO: chunk_col sould be const
-        void send_chunk_column(ChunkColumn& chunk_col, const std::set<PeerID>& client_ids) const;
+        void send_chunk_column(const ChunkColumn& chunk_col, const std::set<PeerID>& client_ids) const;
 
     private:
 
@@ -81,21 +57,14 @@ namespace h2o
         EventHandle m_received_chunk_request_handle{};
         EventHandle m_received_block_place_request_handle{};
 
+        // Temp
+        mutable i32 m_num_sent_chunks = 0;
+
         // Storage
         ChunkManager_Server m_chunk_mgr{};
 
         // Generation
-        std::unique_ptr<ChunkGenerator_Base> m_chunk_generator{};
-
-        std::mutex m_chunk_fetch_requests_mutex{};
-        std::vector<std::shared_ptr<ChunkFetchRequest>> m_chunk_fetch_requests{};
-
-        std::mutex m_chunk_gen_dequeue_mutex{};
-        std::deque<ChunkGenRequest> m_chunk_gen_deque{};
-
-        // Threading
-        std::thread m_thread{};
-        std::atomic_bool m_should_stop { true };
+        WorldGenerator m_world_generator;
 
     };
 }

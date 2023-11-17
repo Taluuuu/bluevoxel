@@ -32,6 +32,7 @@ namespace h2o
         ~ChunkClient() override = default;
 
         [[nodiscard]] ChunkManager_Client& chunk_mgr() { return m_chunk_mgr; }
+        [[nodiscard]] const ChunkMeshingQueue& chunk_meshing_queue() const { return m_chunk_meshing_queue; }
 
         // Tickable interface
         void update(f32 delta_time) override;

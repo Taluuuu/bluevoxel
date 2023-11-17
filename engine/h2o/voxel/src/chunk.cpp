@@ -123,7 +123,7 @@ namespace h2o
     void Chunk::set_block_at(size_t index, Block block)
     {
         assert(index < m_blocks.size());
-        assert(index == to_index(local_pos));
+
         m_blocks[index] = block;
 
         // TODO: Check if the block is valid

@@ -124,6 +124,8 @@ namespace bluevoxel
             ImGui::ColorEdit3("Light Color", &m_chunk_client->light_color.x);
             ImGui::SliderFloat("Ambient Strength", &m_chunk_client->ambient_strength, 0.0f, 1.0f);
 
+            ImGui::Text("%zu", m_chunk_client->chunk_meshing_queue().num_chunks_in_queue());
+
             ImGui::End();
         }
     }
@@ -136,7 +138,7 @@ namespace bluevoxel
         player->tag_actor(h2o::ActorTag::LocalPlayer);
         player->add_component<h2o::BlockPlacingComponent>();
         player->set_replicate_transform(true);
-        player->transform.position = { 150.0f, 150.0f, 0.0f };
+        player->transform.position = { 0.0f, 150.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 90.0f };
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
         player->move_speed = 100.0f;
