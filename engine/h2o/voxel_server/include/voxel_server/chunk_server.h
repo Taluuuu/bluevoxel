@@ -57,9 +57,6 @@ namespace h2o
         EventHandle m_received_chunk_request_handle{};
         EventHandle m_received_block_place_request_handle{};
 
-        // Temp
-        mutable i32 m_num_sent_chunks = 0;
-
         // Storage
         ChunkManager_Server m_chunk_mgr{};
 

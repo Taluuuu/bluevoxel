@@ -41,6 +41,8 @@ namespace h2o
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
+                m_num_received_chunks++;
+
                 if (!is_in_range(chunk_pos))
                     return;
 
@@ -91,6 +93,8 @@ namespace h2o
 
     void ChunkClient::update(f32 delta_time)
     {
+//        log::info("{} / {}", m_num_received_chunks, m_num_requested_chunks);
+
         if (!m_client->is_connected())
             return;
 
@@ -114,7 +118,7 @@ namespace h2o
 
         m_refresh_chunk_requests = false;
 
-        build_chunk_meshes(1, player_pos);
+        build_chunk_meshes(5, player_pos);
     }
 
     void ChunkClient::render()
@@ -190,6 +194,8 @@ namespace h2o
 
         if (!chunk_fetch_request.requested_chunks.empty())
             m_client->send_message(0, chunk_fetch_request);
+
+        m_num_requested_chunks += i32(chunk_fetch_request.requested_chunks.size());
     }
 
     void ChunkClient::trim_far_chunks()
@@ -201,16 +207,20 @@ namespace h2o
     {
         for (i32 i = 0; i < max_chunk_meshes; i++)
         {
-            if (const auto chunk_to_mesh = m_chunk_meshing_queue.dequeue_if(
+            if (const auto chunk_to_mesh = m_chunk_meshing_queue.dequeue_first(
                 [&](const v3i& chunk_pos)
                 {
-                    const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
+                    const v2i chunk_column_pos{chunk_pos.x, chunk_pos.z};
 
                     return
-                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
-                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
-                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
-                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
+                        m_chunk_mgr.is_chunk_column_generated(
+                            voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
+                            m_chunk_mgr.is_chunk_column_generated(
+                                voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
+                            m_chunk_mgr.is_chunk_column_generated(
+                                voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
+                            m_chunk_mgr.is_chunk_column_generated(
+                                voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
                 }))
             {
                 build_chunk_mesh_at(*chunk_to_mesh);

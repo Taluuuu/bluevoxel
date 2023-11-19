@@ -75,6 +75,9 @@ namespace h2o
         i32 m_view_distance = 8;
         i32 m_stay_loaded_distance = 3;
 
+        std::atomic_int m_num_requested_chunks = 0;
+        std::atomic_int m_num_received_chunks = 0;
+
         v2i m_previous_player_chunk_col_pos{};
 
         Client*               m_client                 = nullptr;

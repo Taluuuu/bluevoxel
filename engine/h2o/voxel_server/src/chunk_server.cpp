@@ -36,7 +36,7 @@ namespace h2o
 
     void ChunkServer::update(f32 delta_time)
     {
-        log::info("{}", m_num_sent_chunks);
+
     }
 
     void ChunkServer::on_received_chunk_fetch_requests(
@@ -89,7 +89,5 @@ namespace h2o
                 }
             );
         }
-
-        m_num_sent_chunks++;
     }
 }

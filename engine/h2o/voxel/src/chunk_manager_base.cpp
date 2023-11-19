@@ -108,13 +108,13 @@ namespace h2o
 
         for (const v3i& chunk_pos : chunk_positions)
         {
-            auto chunk_column = find_or_create_chunk_column({ chunk_pos.x, chunk_pos.z });
-            assert(chunk_column);
+            if (auto chunk_column = find_chunk_column({ chunk_pos.x, chunk_pos.z }))
+            {
+                chunk_columns.insert(chunk_column);
 
-            chunk_columns.insert(chunk_column);
-
-            if (Chunk* chunk = chunk_column->get_chunk_safe(chunk_pos.y))
-                chunk_region.add_chunk(*chunk);
+                if (Chunk* chunk = chunk_column->get_chunk_safe(chunk_pos.y))
+                    chunk_region.add_chunk(*chunk);
+            }
         }
 
         // Non-exclusive lock, as the chunk region is const.
@@ -139,15 +139,15 @@ namespace h2o
         for (i32 j = min.y; j <= max.y; j++)
         {
             const v2i chunk_column_pos { i, j };
-            auto chunk_column = find_or_create_chunk_column(chunk_column_pos);
-            assert(chunk_column);
-
-            chunk_columns.push_back(chunk_column);
-
-            for (i32 y = min.y; y <= max.y; y++)
+            if (auto chunk_column = find_chunk_column(chunk_column_pos))
             {
-                if (Chunk* chunk = chunk_column->get_chunk_safe(y))
-                    chunk_region.add_chunk(*chunk);
+                chunk_columns.push_back(chunk_column);
+
+                for (i32 y = min.y; y <= max.y; y++)
+                {
+                    if (Chunk* chunk = chunk_column->get_chunk_safe(y))
+                        chunk_region.add_chunk(*chunk);
+                }
             }
         }
 
