@@ -1,9 +1,11 @@
 #pragma once
 
+#include "core/types.h"
+
 #include <condition_variable>
 #include <functional>
+#include <map>
 #include <mutex>
-#include <queue>
 #include <thread>
 #include <vector>
 
@@ -21,7 +23,13 @@ namespace h2o
         void start();
         void stop();
 
-        void queue_job(const Job& job);
+        /**
+         * Enqueue a job.
+         *
+         * @param priority The job's priority; 0 is highest priority.
+         * @param job The job to enqueue
+         */
+        void queue_job(f32 priority, const Job& job);
 
     private:
 
@@ -35,7 +43,7 @@ namespace h2o
 
         std::mutex m_queue_mutex{};
         std::condition_variable m_mutex_condition{};
-        std::queue<Job> m_job_queue{};
+        std::multimap<f32, Job> m_job_queue{};
 
         std::vector<std::thread> m_threads{};
 

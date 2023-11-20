@@ -29,7 +29,7 @@ namespace h2o
         m_voxel_rendering_module = &voxel_rendering_module;
     }
 
-    void ChunkMesh::update(const ChunkRegion& chunk_region)
+    void ChunkMesh::generate_vertices(const ChunkRegion& chunk_region)
     {
         assert(m_vertex_array);
         assert(m_buffer);
@@ -37,8 +37,10 @@ namespace h2o
 
         m_chunk_pos = chunk_region.center_chunk_pos();
         const Chunk* chunk = chunk_region.get_chunk_at(m_chunk_pos);
+        assert(chunk);
 
-        std::vector<u32> vertices;
+        std::lock_guard lock { m_vertices_mutex };
+        m_pending_vertices.clear();
 
         const auto append_face =
             [&](
@@ -57,7 +59,7 @@ namespace h2o
 
                     auto temp = vertex.to_array();
                     for (u32 data : temp)
-                        vertices.push_back(data);
+                        m_pending_vertices.push_back(data);
                 }
             };
 
@@ -79,15 +81,15 @@ namespace h2o
         {
             const v3i pos { x, y, z };
 
-            const auto block = chunk_region.get_block_at(pos, m_chunk_pos);
-            if (!block || *block == Block::Air)
+            const Block block = chunk->get_block_at(pos);
+            if (block == Block::Air)
                 continue;
 
-            const BlockModel* model = m_voxel_rendering_module->get_model_fast(block->id);
+            const BlockModel* model = m_voxel_rendering_module->get_model_fast(block.id);
             if (!model)
                 continue;
 
-            const auto& textures = m_voxel_rendering_module->get_textures_fast(block->id);
+            const auto& textures = m_voxel_rendering_module->get_textures_fast(block.id);
 
             u8 dir_index = 0;
             magic_enum::enum_for_each<voxel::Direction::Type>(
@@ -106,7 +108,10 @@ namespace h2o
             for (const auto& face : model->unoccluded_vertices)
                 append_face(pos, *model, textures, face);
         }
+    }
 
+    void ChunkMesh::update_mesh()
+    {
         if (m_vertex_count == 0)
         {
             m_vertex_array->attach_vertex_buffer(m_buffer, 0, 0, 3 * sizeof(u32));
@@ -115,9 +120,11 @@ namespace h2o
             m_vertex_array->setup_attribute(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
         }
 
-        m_vertex_count = static_cast<i32>(vertices.size() / 3);
+        m_vertex_count = static_cast<i32>(m_pending_vertices.size() / 3);
 
-        m_buffer->update_data(vertices.data(), i32(vertices.size() * sizeof(u32)));
+        m_buffer->update_data(m_pending_vertices.data(), i32(m_pending_vertices.size() * sizeof(u32)));
+
+        m_pending_vertices.clear();
     }
 
     const gfx::IVertexArray& ChunkMesh::vertex_array() const

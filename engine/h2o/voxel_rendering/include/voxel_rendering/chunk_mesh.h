@@ -2,8 +2,9 @@
 
 #include "core/types.h"
 
-#include <array>
 #include <memory>
+#include <mutex>
+#include <vector>
 
 namespace h2o
 {
@@ -27,7 +28,8 @@ namespace h2o
             const VoxelRenderingModule& voxel_rendering_module,
             gfx::IRenderer& renderer);
 
-        void update(const ChunkRegion& chunk_region);
+        void generate_vertices(const ChunkRegion& chunk_region);
+        void update_mesh();
 
         [[nodiscard]] const v3i& chunk_pos()    const { return m_chunk_pos;         }
         [[nodiscard]]       i32  vertex_count() const { return m_vertex_count;      }
@@ -40,6 +42,9 @@ namespace h2o
         std::shared_ptr<gfx::IBuffer> m_buffer = nullptr;
 
         const VoxelRenderingModule* m_voxel_rendering_module = nullptr;
+
+        std::vector<u32> m_pending_vertices{};
+        std::mutex m_vertices_mutex;
 
         v3i m_chunk_pos { 0, 0, 0 };
         i32 m_vertex_count = 0;

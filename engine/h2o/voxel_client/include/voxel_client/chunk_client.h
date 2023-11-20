@@ -49,7 +49,7 @@ namespace h2o
         void request_chunk_loads();
         void trim_far_chunks();
 
-        void build_chunk_meshes(i32 max_chunk_meshes, const v3& player_pos);
+        void build_chunk_meshes();
         void build_chunk_mesh_at(const v3i& chunk_pos);
 
         [[nodiscard]] bool is_in_range(v2i chunk_pos) const;

@@ -203,24 +203,20 @@ namespace h2o
         m_chunk_mgr.erase_far_chunks({ m_previous_player_chunk_col_pos }, m_view_distance);
     }
 
-    void ChunkClient::build_chunk_meshes(i32 max_chunk_meshes, const v3& player_pos)
+    void ChunkClient::build_chunk_meshes()
     {
         for (i32 i = 0; i < max_chunk_meshes; i++)
         {
             if (const auto chunk_to_mesh = m_chunk_meshing_queue.dequeue_first(
                 [&](const v3i& chunk_pos)
                 {
-                    const v2i chunk_column_pos{chunk_pos.x, chunk_pos.z};
+                    const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
 
                     return
-                        m_chunk_mgr.is_chunk_column_generated(
-                            voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
-                            m_chunk_mgr.is_chunk_column_generated(
-                                voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
-                            m_chunk_mgr.is_chunk_column_generated(
-                                voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
-                            m_chunk_mgr.is_chunk_column_generated(
-                                voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
+                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
+                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
+                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
+                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
                 }))
             {
                 build_chunk_mesh_at(*chunk_to_mesh);
@@ -256,7 +252,13 @@ namespace h2o
                 m_chunk_mesh_pool.fetch_or_create_chunk_mesh(chunk_pos,
                     [&](ChunkMesh& chunk_mesh)
                     {
-                        chunk_mesh.update(chunk_region);
+                        g_engine->thread_pool().queue_job(
+                            [&]()
+                            {
+                                chunk_mesh.generate_vertices(chunk_region);
+//                                ChunkMesh& chunk_mesh
+                            }
+                        );
                     }
                 );
             }

@@ -28,11 +28,11 @@ namespace h2o
         m_threads.clear();
     }
 
-    void ThreadPool::queue_job(const Job& job)
+    void ThreadPool::queue_job(f32 priority, const Job& job)
     {
         {
             std::unique_lock lock(m_queue_mutex);
-            m_job_queue.push(job);
+            m_job_queue.insert({ priority, job });
         }
 
         m_mutex_condition.notify_one();
@@ -55,8 +55,8 @@ namespace h2o
                 if (m_should_terminate)
                     return;
 
-                job = m_job_queue.front();
-                m_job_queue.pop();
+                job = m_job_queue.begin()->second;
+                m_job_queue.erase(m_job_queue.begin());
             }
 
             job();
