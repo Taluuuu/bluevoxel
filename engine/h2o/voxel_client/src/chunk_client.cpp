@@ -41,8 +41,6 @@ namespace h2o
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
-                m_num_received_chunks++;
-
                 if (!is_in_range(chunk_pos))
                     return;
 
@@ -51,9 +49,8 @@ namespace h2o
 
                 // Decompressing a chunk is slow. Run it on a thread.
                 g_engine->thread_pool().queue_job(100.0f,
-                    [&, compressed_chunks, chunk_pos]()
+                    [this, compressed_chunks, chunk_pos]()
                     {
-                        std::vector<v3i> chunks_to_mesh{};
                         m_chunk_mgr.fetch_or_create_chunk_column(chunk_pos, true,
                             [&](ChunkColumn& chunk_column, bool was_just_created)
                             {
@@ -64,33 +61,30 @@ namespace h2o
                                     chunk.decompress(compressed_chunks[i]);
 
                                     if (!chunk.is_empty())
-                                        chunks_to_mesh.push_back(chunk.chunk_pos());
+                                        m_chunk_meshing_queue.enqueue(chunk.chunk_pos());
                                 }
 
                                 chunk_column.finish_generation();
                             }
                         );
-
-                        for (const v3i& chunk_to_mesh : chunks_to_mesh)
-                            rebuild_chunk_mesh(chunk_to_mesh);
                     }
                 );
             }
         );
 
         m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request,
-            [&](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
+            [this](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
                 // TODO: It seems like the block placed event is called twice
                 if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block, false))
-                    rebuild_chunk_mesh(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+                    m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
             }
         );
 
         m_chunk_mgr.on_placed_block.add_listener(m_on_block_placed,
-            [&](const net_msg::BlockPlaceRequest& block_place_request)
+            [this](const net_msg::BlockPlaceRequest& block_place_request)
             {
-                rebuild_chunk_mesh(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+                m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
             }
         );
     }
@@ -119,6 +113,22 @@ namespace h2o
         m_refresh_chunk_requests = false;
 
         m_chunk_mesh_pool.update_dirty_chunk_meshes();
+
+        m_chunk_meshing_queue.set_player_actor(player);
+        while (auto chunk_pos = m_chunk_meshing_queue.dequeue_first(
+            [&](const v3i& chunk_pos) -> bool
+            {
+                const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
+
+                return
+                    m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
+                    m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
+                    m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
+                    m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
+            }))
+        {
+            rebuild_chunk_mesh(*chunk_pos);
+        }
     }
 
     void ChunkClient::render()
@@ -194,8 +204,6 @@ namespace h2o
 
         if (!chunk_fetch_request.requested_chunks.empty())
             m_client->send_message(0, chunk_fetch_request);
-
-        m_num_requested_chunks += i32(chunk_fetch_request.requested_chunks.size());
     }
 
     void ChunkClient::trim_far_chunks()

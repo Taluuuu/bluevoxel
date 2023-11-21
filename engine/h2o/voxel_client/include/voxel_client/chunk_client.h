@@ -8,6 +8,7 @@
 #include "voxel/chunk_container_interface.h"
 #include "voxel/chunk_manager_interface.h"
 #include "voxel/voxel_constants.h"
+#include "voxel_rendering/chunk_meshing_queue.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -57,6 +58,7 @@ namespace h2o
         ChunkManager_Client m_chunk_mgr;
 
         ChunkMeshPool m_chunk_mesh_pool{};
+        ChunkMeshingQueue m_chunk_meshing_queue{};
 
         bool m_refresh_chunk_requests = false;
 
@@ -70,9 +72,6 @@ namespace h2o
 
         i32 m_view_distance = 8;
         i32 m_stay_loaded_distance = 3;
-
-        std::atomic_int m_num_requested_chunks = 0;
-        std::atomic_int m_num_received_chunks = 0;
 
         v2i m_previous_player_chunk_col_pos{};
 
