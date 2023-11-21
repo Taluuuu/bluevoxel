@@ -8,7 +8,6 @@
 #include "voxel/chunk_container_interface.h"
 #include "voxel/chunk_manager_interface.h"
 #include "voxel/voxel_constants.h"
-#include "voxel_rendering/chunk_meshing_queue.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -32,7 +31,6 @@ namespace h2o
         ~ChunkClient() override = default;
 
         [[nodiscard]] ChunkManager_Client& chunk_mgr() { return m_chunk_mgr; }
-        [[nodiscard]] const ChunkMeshingQueue& chunk_meshing_queue() const { return m_chunk_meshing_queue; }
 
         // Tickable interface
         void update(f32 delta_time) override;
@@ -49,8 +47,7 @@ namespace h2o
         void request_chunk_loads();
         void trim_far_chunks();
 
-        void build_chunk_meshes();
-        void build_chunk_mesh_at(const v3i& chunk_pos);
+        void rebuild_chunk_mesh(const v3i& chunk_pos);
 
         [[nodiscard]] bool is_in_range(v2i chunk_pos) const;
 
@@ -60,7 +57,6 @@ namespace h2o
         ChunkManager_Client m_chunk_mgr;
 
         ChunkMeshPool m_chunk_mesh_pool{};
-        ChunkMeshingQueue m_chunk_meshing_queue{};
 
         bool m_refresh_chunk_requests = false;
 

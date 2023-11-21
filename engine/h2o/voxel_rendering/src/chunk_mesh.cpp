@@ -1,14 +1,14 @@
 #include "voxel_rendering/chunk_mesh.h"
 
 #include "core/log.h"
-#include "rendering/renderer.h"
 #include "rendering/buffer.h"
+#include "rendering/renderer.h"
+#include "rendering/rendering_module.h"
 #include "rendering/vertex_array.h"
 #include "voxel/chunk.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/direction.h"
-#include "voxel/voxel_utils.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 #include "voxel_rendering/block_model.h"
 
@@ -17,22 +17,35 @@
 
 namespace h2o
 {
+    ChunkMesh::ChunkMesh(ChunkMesh&& other)
+    {
+        std::lock_guard lock { other.m_vertices_mutex };
+
+        m_vertex_array = std::move(other.m_vertex_array);
+        m_buffer = std::move(other.m_buffer);
+        other.m_vertex_array = nullptr;
+        other.m_buffer = nullptr;
+
+        m_voxel_rendering_module = other.m_voxel_rendering_module;
+        m_rendering_module = other.m_rendering_module;
+
+        m_pending_vertices = std::move(other.m_pending_vertices);
+
+        m_chunk_pos = other.m_chunk_pos;
+        m_vertex_count = other.m_vertex_count;
+        other.m_vertex_count = 0;
+    }
+
     void ChunkMesh::init(
         const VoxelRenderingModule& voxel_rendering_module,
-        gfx::IRenderer& renderer)
+        const RenderingModule& rendering_module)
     {
-        assert(!m_vertex_array && !m_buffer);
-
-        m_vertex_array = renderer.create_vertex_array();
-        m_buffer = renderer.create_buffer();
-
         m_voxel_rendering_module = &voxel_rendering_module;
+        m_rendering_module = &rendering_module;
     }
 
     void ChunkMesh::generate_vertices(const ChunkRegion& chunk_region)
     {
-        assert(m_vertex_array);
-        assert(m_buffer);
         assert(m_voxel_rendering_module);
 
         m_chunk_pos = chunk_region.center_chunk_pos();
@@ -114,12 +127,18 @@ namespace h2o
     {
         if (m_vertex_count == 0)
         {
+            assert(m_rendering_module);
+
+            m_vertex_array = m_rendering_module->renderer().create_vertex_array();
+            m_buffer = m_rendering_module->renderer().create_buffer();
+
             m_vertex_array->attach_vertex_buffer(m_buffer, 0, 0, 3 * sizeof(u32));
             m_vertex_array->setup_attribute(0, 0, gfx::AttributeType::U32, 1, 0);
             m_vertex_array->setup_attribute(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
             m_vertex_array->setup_attribute(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
         }
 
+        std::lock_guard lock { m_vertices_mutex };
         m_vertex_count = static_cast<i32>(m_pending_vertices.size() / 3);
 
         m_buffer->update_data(m_pending_vertices.data(), i32(m_pending_vertices.size() * sizeof(u32)));

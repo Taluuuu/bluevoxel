@@ -46,7 +46,7 @@ namespace h2o
 
         // Queue generating the chunk
         m_chunks_pending_generation[chunk_column_pos].push_back(on_completed);
-        g_engine->thread_pool().queue_job(
+        g_engine->thread_pool().queue_job(0.0f,
             [&, chunk_column_pos]
             {
                 m_chunk_mgr->fetch_or_create_chunk_column(chunk_column_pos, true,

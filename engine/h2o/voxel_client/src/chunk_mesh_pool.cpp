@@ -15,13 +15,7 @@ namespace h2o
     {
         std::lock_guard lock { m_mutex };
 
-        ChunkMeshData* mesh_data = find_mesh(chunk_pos);
-        if (!mesh_data)
-            mesh_data = &create_mesh(chunk_pos);
-
-        assert(mesh_data);
-
-        function(mesh_data->chunk_mesh);
+        function(find_or_create_chunk_mesh(chunk_pos));
     }
 
     void ChunkMeshPool::for_each_chunk_mesh(const std::function<void(const ChunkMesh&)>& function) const
@@ -32,6 +26,31 @@ namespace h2o
             function(chunk_mesh.chunk_mesh);
     }
 
+    void ChunkMeshPool::mark_dirty(const v3i& chunk_pos)
+    {
+        std::lock_guard lock { m_mutex };
+
+        m_dirty_chunk_meshes.insert(chunk_pos);
+    }
+
+    void ChunkMeshPool::update_dirty_chunk_meshes()
+    {
+        std::lock_guard lock { m_mutex };
+
+        for (const v3i& chunk_pos : m_dirty_chunk_meshes)
+            find_or_create_chunk_mesh(chunk_pos).update_mesh();
+
+        m_dirty_chunk_meshes.clear();
+    }
+
+    ChunkMesh& ChunkMeshPool::find_or_create_chunk_mesh(const v3i& chunk_pos)
+    {
+        if (ChunkMeshData* mesh_data = find_mesh(chunk_pos))
+            return mesh_data->chunk_mesh;
+
+        return create_mesh(chunk_pos).chunk_mesh;
+    }
+
     ChunkMeshData& ChunkMeshPool::create_mesh(const v3i& chunk_pos)
     {
         assert(find_mesh(chunk_pos) == nullptr);
@@ -40,9 +59,7 @@ namespace h2o
         assign_chunk_mesh(chunk_pos, mesh_id);
 
         assert(m_voxel_rendering_module && m_rendering_module);
-        mesh_data.chunk_mesh.init(
-            *m_voxel_rendering_module,
-            m_rendering_module->renderer());
+        mesh_data.chunk_mesh.init(*m_voxel_rendering_module, *m_rendering_module);
 
         return mesh_data;
     }

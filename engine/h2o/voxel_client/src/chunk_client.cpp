@@ -50,9 +50,10 @@ namespace h2o
                     return;
 
                 // Decompressing a chunk is slow. Run it on a thread.
-                g_engine->thread_pool().queue_job(
+                g_engine->thread_pool().queue_job(100.0f,
                     [&, compressed_chunks, chunk_pos]()
                     {
+                        std::vector<v3i> chunks_to_mesh{};
                         m_chunk_mgr.fetch_or_create_chunk_column(chunk_pos, true,
                             [&](ChunkColumn& chunk_column, bool was_just_created)
                             {
@@ -63,12 +64,15 @@ namespace h2o
                                     chunk.decompress(compressed_chunks[i]);
 
                                     if (!chunk.is_empty())
-                                        m_chunk_meshing_queue.enqueue(chunk.chunk_pos());
+                                        chunks_to_mesh.push_back(chunk.chunk_pos());
                                 }
 
                                 chunk_column.finish_generation();
                             }
                         );
+
+                        for (const v3i& chunk_to_mesh : chunks_to_mesh)
+                            rebuild_chunk_mesh(chunk_to_mesh);
                     }
                 );
             }
@@ -79,30 +83,26 @@ namespace h2o
             {
                 // TODO: It seems like the block placed event is called twice
                 if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block, false))
-                    m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+                    rebuild_chunk_mesh(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
             }
         );
 
         m_chunk_mgr.on_placed_block.add_listener(m_on_block_placed,
             [&](const net_msg::BlockPlaceRequest& block_place_request)
             {
-                m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+                rebuild_chunk_mesh(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
             }
         );
     }
 
     void ChunkClient::update(f32 delta_time)
     {
-//        log::info("{} / {}", m_num_received_chunks, m_num_requested_chunks);
-
         if (!m_client->is_connected())
             return;
 
         auto player = m_scene->get_actor_by_tag(ActorTag::LocalPlayer);
         if (!player)
             return;
-
-        m_chunk_meshing_queue.set_player_actor(player);
 
         const v3& player_pos = player->transform.position;
         const v3i player_chunk_pos = voxel_utils::world_to_chunk_pos(player_pos);
@@ -118,7 +118,7 @@ namespace h2o
 
         m_refresh_chunk_requests = false;
 
-        build_chunk_meshes(5, player_pos);
+        m_chunk_mesh_pool.update_dirty_chunk_meshes();
     }
 
     void ChunkClient::render()
@@ -203,62 +203,48 @@ namespace h2o
         m_chunk_mgr.erase_far_chunks({ m_previous_player_chunk_col_pos }, m_view_distance);
     }
 
-    void ChunkClient::build_chunk_meshes()
+    void ChunkClient::rebuild_chunk_mesh(const v3i& chunk_pos)
     {
-        for (i32 i = 0; i < max_chunk_meshes; i++)
+        // Calculate the job's priority
+        const auto player = m_scene->get_actor_by_tag(ActorTag::LocalPlayer);
+        f32 job_priority = 0.0f;
+        if (player)
         {
-            if (const auto chunk_to_mesh = m_chunk_meshing_queue.dequeue_first(
-                [&](const v3i& chunk_pos)
-                {
-                    const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
-
-                    return
-                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
-                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
-                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
-                        m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
-                }))
-            {
-                build_chunk_mesh_at(*chunk_to_mesh);
-            }
-            else
-            {
-                break;
-            }
+            const v3 chunk_world_pos = voxel_utils::chunk_to_world_pos(chunk_pos);
+            const v3 player_pos = player->transform.position;
+            job_priority = glm::distance2(chunk_world_pos, player_pos);
         }
-    }
 
-    void ChunkClient::build_chunk_mesh_at(const v3i& chunk_pos)
-    {
-        std::vector<v3i> region_chunk_positions;
-        region_chunk_positions.reserve(7);
-
-        region_chunk_positions.push_back(chunk_pos);
-        magic_enum::enum_for_each<voxel::Direction::Type>(
-            [&](voxel::Direction::Type dir)
+        g_engine->thread_pool().queue_job(job_priority, [this, chunk_pos]
             {
-                const v3i offset = voxel::to_vec3(dir);
-                region_chunk_positions.push_back(chunk_pos + offset);
-            }
-        );
+                // Get all neighbouring chunks
+                std::vector<v3i> region_chunk_positions;
+                region_chunk_positions.reserve(7);
 
-        m_chunk_mgr.fetch_chunk_region(region_chunk_positions,
-            [&](const ChunkRegion& chunk_region)
-            {
-                const Chunk* chunk = chunk_region.get_chunk_at(chunk_pos);
-                if (!chunk || chunk->is_empty()) // TODO: Could chunk->is_empty() here cause a problem when destroying the last block of a chunk ?
-                    return;
-
-                m_chunk_mesh_pool.fetch_or_create_chunk_mesh(chunk_pos,
-                    [&](ChunkMesh& chunk_mesh)
+                region_chunk_positions.push_back(chunk_pos);
+                magic_enum::enum_for_each<voxel::Direction::Type>(
+                    [&](voxel::Direction::Type dir)
                     {
-                        g_engine->thread_pool().queue_job(
-                            [&]()
+                        const v3i offset = voxel::to_vec3(dir);
+                        region_chunk_positions.push_back(chunk_pos + offset);
+                    }
+                );
+
+                m_chunk_mgr.fetch_chunk_region(region_chunk_positions,
+                    [&](const ChunkRegion& chunk_region)
+                    {
+                        const Chunk* chunk = chunk_region.get_chunk_at(chunk_pos);
+                        if (!chunk || chunk->is_empty()) // TODO: Could chunk->is_empty() here cause a problem when destroying the last block of a chunk ?
+                            return;
+
+                        m_chunk_mesh_pool.fetch_or_create_chunk_mesh(chunk_pos,
+                            [&](ChunkMesh& chunk_mesh)
                             {
                                 chunk_mesh.generate_vertices(chunk_region);
-//                                ChunkMesh& chunk_mesh
                             }
                         );
+
+                        m_chunk_mesh_pool.mark_dirty(chunk_pos);
                     }
                 );
             }

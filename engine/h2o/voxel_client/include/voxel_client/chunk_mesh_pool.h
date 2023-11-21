@@ -8,6 +8,7 @@
 #include <mutex>
 #include <optional>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace h2o
@@ -35,7 +36,12 @@ namespace h2o
         void fetch_or_create_chunk_mesh(const v3i& chunk_pos, const std::function<void(ChunkMesh&)>& function);
         void for_each_chunk_mesh(const std::function<void(const ChunkMesh&)>& function) const;
 
+        void mark_dirty(const v3i& chunk_pos);
+        void update_dirty_chunk_meshes();
+
     private:
+
+        [[nodiscard]] ChunkMesh& find_or_create_chunk_mesh(const v3i& chunk_pos);
 
         [[nodiscard]] ChunkMeshData& create_mesh(const v3i& chunk_pos);
         [[nodiscard]] std::pair<ChunkMeshData&, ChunkMeshID> reserve_chunk_mesh();
@@ -48,6 +54,9 @@ namespace h2o
 
         std::vector<ChunkMeshData> m_chunk_mesh_pool{};
         std::unordered_map<v3i, ChunkMeshID> m_chunk_mesh_indices{};
+
+        std::unordered_set<v3i> m_dirty_chunk_meshes{};
+
         mutable std::mutex m_mutex;
 
         VoxelRenderingModule* const m_voxel_rendering_module = nullptr;

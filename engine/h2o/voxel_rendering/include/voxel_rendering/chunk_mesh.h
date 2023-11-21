@@ -9,6 +9,7 @@
 namespace h2o
 {
     class ChunkRegion;
+    class RenderingModule;
     class VoxelRenderingModule;
 
     namespace gfx
@@ -23,10 +24,11 @@ namespace h2o
     public:
 
         ChunkMesh() = default;
+        ChunkMesh(ChunkMesh&& other);
 
         void init(
             const VoxelRenderingModule& voxel_rendering_module,
-            gfx::IRenderer& renderer);
+            const RenderingModule& rendering_module);
 
         void generate_vertices(const ChunkRegion& chunk_region);
         void update_mesh();
@@ -42,9 +44,10 @@ namespace h2o
         std::shared_ptr<gfx::IBuffer> m_buffer = nullptr;
 
         const VoxelRenderingModule* m_voxel_rendering_module = nullptr;
+        const RenderingModule* m_rendering_module = nullptr;
 
         std::vector<u32> m_pending_vertices{};
-        std::mutex m_vertices_mutex;
+        mutable std::mutex m_vertices_mutex;
 
         v3i m_chunk_pos { 0, 0, 0 };
         i32 m_vertex_count = 0;

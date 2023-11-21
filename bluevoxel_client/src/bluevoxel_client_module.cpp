@@ -124,8 +124,6 @@ namespace bluevoxel
             ImGui::ColorEdit3("Light Color", &m_chunk_client->light_color.x);
             ImGui::SliderFloat("Ambient Strength", &m_chunk_client->ambient_strength, 0.0f, 1.0f);
 
-            ImGui::Text("%zu", m_chunk_client->chunk_meshing_queue().num_chunks_in_queue());
-
             ImGui::End();
         }
     }
