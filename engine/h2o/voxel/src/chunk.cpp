@@ -124,6 +124,7 @@ namespace h2o
     {
         assert(index < m_blocks.size());
 
+//        const Block previous_block = m_blocks[index];
         m_blocks[index] = block;
 
         // TODO: Check if the block is valid

@@ -4,10 +4,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 set(RENDERING_SOURCES
+    src/buffer.cpp
     src/camera.cpp
     src/mesh.cpp
     src/pipeline.cpp
-    src/rendering_module.cpp)
+    src/rendering_module.cpp
+    src/vertex_array.cpp)
 
 if(H2O_USE_VULKAN)
     list(APPEND RENDERING_SOURCES

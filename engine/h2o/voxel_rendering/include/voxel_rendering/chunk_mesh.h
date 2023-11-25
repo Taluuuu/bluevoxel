@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/types.h"
+#include "rendering/vertex_array.h"
 
 #include <memory>
 #include <mutex>
@@ -14,40 +15,37 @@ namespace h2o
 
     namespace gfx
     {
+        // TODO: Remove some of these
         class IVertexArray;
         class IBuffer;
         class IRenderer;
+
+        class Buffer;
     }
 
     class ChunkMesh
     {
     public:
 
-        ChunkMesh() = default;
-        ChunkMesh(ChunkMesh&& other);
+        ChunkMesh(
+            const ChunkRegion& chunk_region,
+            const VoxelRenderingModule& voxel_rendering_module);
 
-        void init(
-            const VoxelRenderingModule& voxel_rendering_module,
-            const RenderingModule& rendering_module);
-
-        void generate_vertices(const ChunkRegion& chunk_region);
-        void update_mesh();
+        void update_buffer(gfx::Buffer& vertex_buffer);
 
         [[nodiscard]] const v3i& chunk_pos()    const { return m_chunk_pos;         }
         [[nodiscard]]       i32  vertex_count() const { return m_vertex_count;      }
         [[nodiscard]]       bool is_empty()     const { return m_vertex_count == 0; }
-        [[nodiscard]] const gfx::IVertexArray& vertex_array() const;
 
     private:
 
-        std::shared_ptr<gfx::IVertexArray> m_vertex_array = nullptr;
-        std::shared_ptr<gfx::IBuffer> m_buffer = nullptr;
+        void build_mesh(
+            const ChunkRegion& chunk_region,
+            const VoxelRenderingModule& voxel_rendering_module);
 
-        const VoxelRenderingModule* m_voxel_rendering_module = nullptr;
-        const RenderingModule* m_rendering_module = nullptr;
+    private:
 
         std::vector<u32> m_pending_vertices{};
-        mutable std::mutex m_vertices_mutex;
 
         v3i m_chunk_pos { 0, 0, 0 };
         i32 m_vertex_count = 0;

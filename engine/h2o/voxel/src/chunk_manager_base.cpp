@@ -104,13 +104,13 @@ namespace h2o
         ChunkRegion chunk_region(min, max - min + v3i{ 1, 1, 1 });
 
         // Make sure chunk columns don't get deallocated.
-        std::set< std::shared_ptr<ChunkColumn> > chunk_columns;
+        std::vector< std::shared_ptr<ChunkColumn> > chunk_columns;
 
         for (const v3i& chunk_pos : chunk_positions)
         {
             if (auto chunk_column = find_chunk_column({ chunk_pos.x, chunk_pos.z }))
             {
-                chunk_columns.insert(chunk_column);
+                chunk_columns.push_back(chunk_column);
 
                 if (Chunk* chunk = chunk_column->get_chunk_safe(chunk_pos.y))
                     chunk_region.add_chunk(*chunk);

@@ -1,13 +1,13 @@
 #pragma once
 
 #include "core/events.h"
-#include "rendering/renderer.h"
+#include "rendering/renderer_base.h"
 
 namespace h2o::gfx
 {
     class Pipeline_OpenGL;
 
-    class Renderer_OpenGL : public IRenderer
+    class Renderer_OpenGL : public Renderer_Base
     {
     public:
 
@@ -20,12 +20,26 @@ namespace h2o::gfx
         PipelineCreateData create_pipeline() override;
         std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data) override;
         void bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;
-        std::shared_ptr<IBuffer> create_buffer() override;
-        std::shared_ptr<IVertexArray> create_vertex_array() override;
+        Buffer create_buffer() override;
+        std::shared_ptr<Buffer> create_buffer_ptr() override;
+        std::shared_ptr<IBuffer> create_buffer_OLD() override;
+        VertexArray create_vertex_array() override;
+        std::shared_ptr<IVertexArray> create_vertex_array_OLD() override;
         std::shared_ptr<ITexture> fetch_or_load_texture(const std::string& path) override;
         std::shared_ptr<ITextureArray> create_texture_array(size_t array_size) override;
+        void draw(const VertexArray& vertex_array, u32 vertex_count) override;
         void draw(const IVertexArray& vertex_array, i32 count) override;
         void draw(const Mesh& mesh) override;
+
+        // Renderer_Base interface
+        u32 allocate_vertex_array() override;
+        void destroy_vertex_array(u32 vertex_array_id) override;
+        void attach_vertex_buffer(VertexArray& vertex_array, const Buffer& buffer, u32 binding_index, i64 offset, i32 stride) override;
+        void update_index_buffer(VertexArray& vertex_array, const Buffer& buffer) override;
+        void setup_attribute(VertexArray& vertex_array, u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset) override;
+        u32 allocate_buffer() override;
+        void destroy_buffer(u32 buffer_id) override;
+        void update_buffer_data(Buffer& buffer, const void* data, size_t size) override;
 
     private:
 

@@ -48,7 +48,7 @@ namespace h2o
                     return;
 
                 // Decompressing a chunk is slow. Run it on a thread.
-                g_engine->thread_pool().queue_job(100.0f,
+                g_engine->thread_pool().queue_job(10000.0f,
                     [this, compressed_chunks, chunk_pos]()
                     {
                         m_chunk_mgr.fetch_or_create_chunk_column(chunk_pos, true,
@@ -112,7 +112,7 @@ namespace h2o
 
         m_refresh_chunk_requests = false;
 
-        m_chunk_mesh_pool.update_dirty_chunk_meshes();
+        m_chunk_mesh_pool.update_meshes();
 
         m_chunk_meshing_queue.set_player_actor(player);
         while (auto chunk_pos = m_chunk_meshing_queue.dequeue_first(
@@ -158,12 +158,12 @@ namespace h2o
         pipeline->set_uniform_float(5, ambient_strength);
 
         m_chunk_mesh_pool.for_each_chunk_mesh(
-            [&](const ChunkMesh& chunk_mesh)
+            [&](const ChunkMeshData& chunk_mesh)
             {
-                if (!chunk_mesh.is_empty())
+                if (chunk_mesh.vertex_count > 0)
                 {
-                    pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos());
-                    renderer.draw(chunk_mesh.vertex_array(), chunk_mesh.vertex_count());
+                    pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos);
+                    renderer.draw(chunk_mesh.vertex_array, chunk_mesh.vertex_count);
                 }
             }
         );
@@ -223,7 +223,8 @@ namespace h2o
             job_priority = glm::distance2(chunk_world_pos, player_pos);
         }
 
-        g_engine->thread_pool().queue_job(job_priority, [this, chunk_pos]
+        g_engine->thread_pool().queue_job(job_priority,
+            [this, chunk_pos]
             {
                 // Get all neighbouring chunks
                 std::vector<v3i> region_chunk_positions;
@@ -241,18 +242,9 @@ namespace h2o
                 m_chunk_mgr.fetch_chunk_region(region_chunk_positions,
                     [&](const ChunkRegion& chunk_region)
                     {
-                        const Chunk* chunk = chunk_region.get_chunk_at(chunk_pos);
-                        if (!chunk || chunk->is_empty()) // TODO: Could chunk->is_empty() here cause a problem when destroying the last block of a chunk ?
-                            return;
-
-                        m_chunk_mesh_pool.fetch_or_create_chunk_mesh(chunk_pos,
-                            [&](ChunkMesh& chunk_mesh)
-                            {
-                                chunk_mesh.generate_vertices(chunk_region);
-                            }
-                        );
-
-                        m_chunk_mesh_pool.mark_dirty(chunk_pos);
+                        // TODO: Could chunk->is_empty() here cause a problem when destroying the last block of a chunk ?
+                        if (const Chunk* chunk = chunk_region.get_chunk_at(chunk_pos); chunk && !chunk->is_empty())
+                            m_chunk_mesh_pool.build_chunk_mesh(chunk_region);
                     }
                 );
             }

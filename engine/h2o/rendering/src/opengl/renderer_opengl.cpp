@@ -40,12 +40,28 @@ namespace h2o::gfx
             glUseProgram(m_bound_pipeline->handle());
     }
 
-    std::shared_ptr<IBuffer> Renderer_OpenGL::create_buffer()
+    // TODO: This implementation and ones like it could be moved to Renderer_Base
+    Buffer Renderer_OpenGL::create_buffer()
+    {
+        return Buffer(*this);
+    }
+
+    std::shared_ptr<Buffer> Renderer_OpenGL::create_buffer_ptr()
+    {
+        return std::make_shared<Buffer>(*this);
+    }
+
+    std::shared_ptr<IBuffer> Renderer_OpenGL::create_buffer_OLD()
     {
         return std::make_shared<Buffer_OpenGL>();
     }
 
-    std::shared_ptr<IVertexArray> Renderer_OpenGL::create_vertex_array()
+    VertexArray Renderer_OpenGL::create_vertex_array()
+    {
+        return VertexArray(*this);
+    }
+
+    std::shared_ptr<IVertexArray> Renderer_OpenGL::create_vertex_array_OLD()
     {
         return std::make_shared<VertexArray_OpenGL>();
     }
@@ -70,6 +86,15 @@ namespace h2o::gfx
 
         vertex_array_gl->bind();
         glDrawArrays(GL_TRIANGLES, 0, count);
+    }
+
+    void Renderer_OpenGL::draw(const VertexArray& vertex_array, u32 vertex_count)
+    {
+        if (!m_bound_pipeline || vertex_count == 0)
+            return;
+
+        glBindVertexArray(vertex_array.id());
+        glDrawArrays(GL_TRIANGLES, 0, GLsizei(vertex_count));
     }
 
     void Renderer_OpenGL::draw(const Mesh& mesh)
@@ -152,5 +177,70 @@ namespace h2o::gfx
 #if H2O_USE_OPENGL
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 #endif
+    }
+
+    u32 Renderer_OpenGL::allocate_vertex_array()
+    {
+        GLuint vao;
+        glCreateVertexArrays(1, &vao);
+        return vao;
+    }
+
+    void Renderer_OpenGL::destroy_vertex_array(u32 vertex_array_id)
+    {
+        glDeleteVertexArrays(1, &vertex_array_id);
+    }
+
+    void Renderer_OpenGL::attach_vertex_buffer(VertexArray& vertex_array, const Buffer& buffer, u32 binding_index, i64 offset, i32 stride)
+    {
+        assert(vertex_array.is_valid());
+        assert(buffer.is_valid());
+        glVertexArrayVertexBuffer(vertex_array.id(), binding_index, buffer.id(), offset, stride);
+    }
+
+    void Renderer_OpenGL::update_index_buffer(VertexArray& vertex_array, const Buffer& buffer)
+    {
+        assert(vertex_array.is_valid());
+        assert(buffer.is_valid());
+        glVertexArrayElementBuffer(vertex_array.id(), buffer.id());
+    }
+
+    void Renderer_OpenGL::setup_attribute(VertexArray& vertex_array, u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset)
+    {
+        assert(vertex_array.is_valid());
+
+        glEnableVertexArrayAttrib(vertex_array.id(), attribute_index);
+
+        switch (type)
+        {
+        case AttributeType::F32:
+            glVertexArrayAttribFormat(vertex_array.id(), attribute_index, size, GL_FLOAT, GL_FALSE, relative_offset);
+            break;
+        case AttributeType::U32:
+            glVertexArrayAttribIFormat(vertex_array.id(), attribute_index, size, GL_UNSIGNED_INT, relative_offset);
+            break;
+        default:
+            assert(false);
+        }
+
+        glVertexArrayAttribBinding(vertex_array.id(), attribute_index, binding_index);
+    }
+
+    u32 Renderer_OpenGL::allocate_buffer()
+    {
+        GLuint vbo;
+        glCreateBuffers(1, &vbo);
+        return vbo;
+    }
+
+    void Renderer_OpenGL::destroy_buffer(u32 buffer_id)
+    {
+        glDeleteBuffers(1, &buffer_id);
+    }
+
+    void Renderer_OpenGL::update_buffer_data(Buffer& buffer, const void* data, size_t size)
+    {
+        assert(buffer.is_valid());
+        glNamedBufferData(buffer.id(), GLsizeiptr(size), data, GL_STATIC_DRAW);
     }
 }

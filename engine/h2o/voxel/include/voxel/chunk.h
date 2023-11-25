@@ -8,8 +8,8 @@
 #include "voxel/voxel_module.h"
 
 #include <iterator>
-#include <set>
 #include <shared_mutex>
+#include <unordered_set>
 #include <vector>
 
 namespace h2o
@@ -84,7 +84,7 @@ namespace h2o
         std::vector<Block> m_blocks{};
 
         // Stores the indices of blocks to tick
-        std::set<u32> m_blocks_to_tick{};
+        std::unordered_set<u32> m_blocks_to_tick{};
 
         const v3i m_chunk_pos{};
 

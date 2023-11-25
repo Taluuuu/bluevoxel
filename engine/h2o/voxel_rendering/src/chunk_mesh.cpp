@@ -17,47 +17,22 @@
 
 namespace h2o
 {
-    ChunkMesh::ChunkMesh(ChunkMesh&& other)
+    ChunkMesh::ChunkMesh(const ChunkRegion& chunk_region, const VoxelRenderingModule& voxel_rendering_module)
     {
-        std::lock_guard lock { other.m_vertices_mutex };
-
-        m_vertex_array = std::move(other.m_vertex_array);
-        m_buffer = std::move(other.m_buffer);
-        other.m_vertex_array = nullptr;
-        other.m_buffer = nullptr;
-
-        m_voxel_rendering_module = other.m_voxel_rendering_module;
-        m_rendering_module = other.m_rendering_module;
-
-        m_pending_vertices = std::move(other.m_pending_vertices);
-
-        m_chunk_pos = other.m_chunk_pos;
-        m_vertex_count = other.m_vertex_count;
-        other.m_vertex_count = 0;
+        build_mesh(chunk_region, voxel_rendering_module);
     }
 
-    void ChunkMesh::init(
-        const VoxelRenderingModule& voxel_rendering_module,
-        const RenderingModule& rendering_module)
+    void ChunkMesh::build_mesh(const ChunkRegion& chunk_region, const VoxelRenderingModule& voxel_rendering_module)
     {
-        m_voxel_rendering_module = &voxel_rendering_module;
-        m_rendering_module = &rendering_module;
-    }
-
-    void ChunkMesh::generate_vertices(const ChunkRegion& chunk_region)
-    {
-        assert(m_voxel_rendering_module);
-
         m_chunk_pos = chunk_region.center_chunk_pos();
         const Chunk* chunk = chunk_region.get_chunk_at(m_chunk_pos);
         assert(chunk);
 
-        std::lock_guard lock { m_vertices_mutex };
         m_pending_vertices.clear();
+        m_pending_vertices.reserve(m_vertex_count * 3);
 
         const auto append_face =
-            [&](
-                const v3i& pos,
+            [&](const v3i& pos,
                 const BlockModel& model,
                 const std::vector<u32>& textures,
                 const std::vector<BlockVertex>& face)
@@ -98,11 +73,11 @@ namespace h2o
             if (block == Block::Air)
                 continue;
 
-            const BlockModel* model = m_voxel_rendering_module->get_model_fast(block.id);
+            const BlockModel* model = voxel_rendering_module.get_model_fast(block.id);
             if (!model)
                 continue;
 
-            const auto& textures = m_voxel_rendering_module->get_textures_fast(block.id);
+            const auto& textures = voxel_rendering_module.get_textures_fast(block.id);
 
             u8 dir_index = 0;
             magic_enum::enum_for_each<voxel::Direction::Type>(
@@ -123,33 +98,13 @@ namespace h2o
         }
     }
 
-    void ChunkMesh::update_mesh()
+    void ChunkMesh::update_buffer(gfx::Buffer& vertex_buffer)
     {
-        if (m_vertex_count == 0)
-        {
-            assert(m_rendering_module);
-
-            m_vertex_array = m_rendering_module->renderer().create_vertex_array();
-            m_buffer = m_rendering_module->renderer().create_buffer();
-
-            m_vertex_array->attach_vertex_buffer(m_buffer, 0, 0, 3 * sizeof(u32));
-            m_vertex_array->setup_attribute(0, 0, gfx::AttributeType::U32, 1, 0);
-            m_vertex_array->setup_attribute(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
-            m_vertex_array->setup_attribute(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
-        }
-
-        std::lock_guard lock { m_vertices_mutex };
         m_vertex_count = static_cast<i32>(m_pending_vertices.size() / 3);
 
-        m_buffer->update_data(m_pending_vertices.data(), i32(m_pending_vertices.size() * sizeof(u32)));
+        vertex_buffer.update_data(m_pending_vertices.data(), m_pending_vertices.size() * sizeof(u32));
 
         m_pending_vertices.clear();
-    }
-
-    const gfx::IVertexArray& ChunkMesh::vertex_array() const
-    {
-        // TODO: Find a better way to check for vao validity
-        assert(m_vertex_array);
-        return *m_vertex_array;
+        m_pending_vertices.shrink_to_fit();
     }
 }

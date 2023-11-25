@@ -8,4 +8,10 @@ namespace h2o::gfx
         Fragment,
         Geometry,
     };
+
+    enum class AttributeType
+    {
+        F32,
+        U32
+    };
 }
