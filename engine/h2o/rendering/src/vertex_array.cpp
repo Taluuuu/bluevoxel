@@ -13,6 +13,7 @@ namespace h2o::gfx
     VertexArray::VertexArray(VertexArray&& other) noexcept
         : m_renderer(other.m_renderer)
         , m_id(other.m_id)
+        , m_vertex_buffers(std::move(other.m_vertex_buffers))
     {
         other.m_id = 0;
     }

@@ -9,7 +9,7 @@ namespace h2o
         m_should_terminate = false;
         m_threads.clear();
 
-        const i32 num_threads = 4;//i32(std::thread::hardware_concurrency());//std::min(4, i32(std::thread::hardware_concurrency()));
+        const i32 num_threads = std::max(1, i32(std::thread::hardware_concurrency()) / 2);
         for (i32 i = 0; i < num_threads; ++i)
             m_threads.emplace_back(&ThreadPool::thread_loop, this);
     }

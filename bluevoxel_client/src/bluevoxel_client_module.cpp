@@ -136,7 +136,7 @@ namespace bluevoxel
         player->tag_actor(h2o::ActorTag::LocalPlayer);
         player->add_component<h2o::BlockPlacingComponent>();
         player->set_replicate_transform(true);
-        player->transform.position = { 0.0f, 150.0f, 0.0f };
+        player->transform.position = { 0.0f, 300.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 90.0f };
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
         player->move_speed = 100.0f;

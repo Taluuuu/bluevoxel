@@ -8,6 +8,15 @@ namespace h2o
         set_bounds_distance(bounds_distance);
     }
 
+    void VoxelBounds::for_each_pos_in_bounds(const std::function<void(v2i)>& function) const
+    {
+        for (i32 i = -m_bounds_distance; i <= m_bounds_distance; i++)
+        for (i32 j = -m_bounds_distance; j <= m_bounds_distance; j++)
+        {
+            function(m_center + v2i{ i, j });
+        }
+    }
+
     void VoxelBounds::set_bounds_distance(i32 bounds_distance)
     {
         m_bounds_distance = bounds_distance;

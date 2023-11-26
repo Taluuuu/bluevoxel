@@ -23,6 +23,7 @@ namespace h2o
         : SceneSystem(system_initializer)
         , m_client(&client)
         , m_chunk_mgr(client)
+        , m_voxel_bounds(v2i{}, 16)
     {
         set_tick_phases(TickPhase::Update | TickPhase::Render);
 
@@ -41,7 +42,7 @@ namespace h2o
             {
                 auto& [compressed_chunks, chunk_pos] = chunk_fetch_result;
 
-                if (!is_in_range(chunk_pos))
+                if (!m_voxel_bounds.in_bounds(chunk_pos))
                     return;
 
                 if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
@@ -101,6 +102,7 @@ namespace h2o
         const v3& player_pos = player->transform.position;
         const v3i player_chunk_pos = voxel_utils::world_to_chunk_pos(player_pos);
         const v2i player_chunk_col_pos { player_chunk_pos.x, player_chunk_pos.z };
+        m_voxel_bounds.set_bounds_center(player_chunk_col_pos);
 
         if (player_chunk_col_pos != m_previous_player_chunk_col_pos || m_refresh_chunk_requests)
         {
@@ -112,7 +114,7 @@ namespace h2o
 
         m_refresh_chunk_requests = false;
 
-        m_chunk_mesh_pool.update_meshes();
+        m_chunk_mesh_pool.update_meshes(m_voxel_bounds);
 
         m_chunk_meshing_queue.set_player_actor(player);
         while (auto chunk_pos = m_chunk_meshing_queue.dequeue_first(
@@ -169,38 +171,24 @@ namespace h2o
         );
     }
 
-    bool ChunkClient::is_in_range(v2i chunk_pos) const
-    {
-        const i32 valid_dist = m_view_distance + m_stay_loaded_distance;
-        const v2i min = m_previous_player_chunk_col_pos - v2i { valid_dist, valid_dist };
-        const v2i max = m_previous_player_chunk_col_pos + v2i { valid_dist, valid_dist };
-
-        return
-            chunk_pos.x >= min.x && chunk_pos.x <= max.x &&
-            chunk_pos.y >= min.y && chunk_pos.y <= max.y;
-    }
-
     void ChunkClient::request_chunk_loads()
     {
         net_msg::ChunkFetchRequest chunk_fetch_request{};
 
-        for (i32 i = -m_view_distance; i <= m_view_distance; i++)
-        for (i32 j = -m_view_distance; j <= m_view_distance; j++)
-        {
-            const v2i chunk_column_pos {
-                m_previous_player_chunk_col_pos.x + i,
-                m_previous_player_chunk_col_pos.y + j };
-
-            // TODO: Add a for each chunk column in range function to the chunk mgr
-            //       to avoid locking the mutex every time
-            m_chunk_mgr.fetch_chunk_column(chunk_column_pos, false,
-                [&](const ChunkColumn* chunk_column)
-                {
-                    if (!chunk_column)
-                        chunk_fetch_request.requested_chunks.push_back(chunk_column_pos);
-                }
-            );
-        }
+        m_voxel_bounds.for_each_pos_in_bounds(
+            [&](v2i chunk_column_pos)
+            {
+                // TODO: Add a for each chunk column in range function to the chunk mgr
+                //       to avoid locking the mutex every time
+                m_chunk_mgr.fetch_chunk_column(chunk_column_pos, false,
+                    [&](const ChunkColumn* chunk_column)
+                    {
+                        if (!chunk_column)
+                            chunk_fetch_request.requested_chunks.push_back(chunk_column_pos);
+                    }
+                );
+            }
+        );
 
         if (!chunk_fetch_request.requested_chunks.empty())
             m_client->send_message(0, chunk_fetch_request);
@@ -208,7 +196,7 @@ namespace h2o
 
     void ChunkClient::trim_far_chunks()
     {
-        m_chunk_mgr.erase_far_chunks({ m_previous_player_chunk_col_pos }, m_view_distance);
+        m_chunk_mgr.erase_far_chunks({ m_previous_player_chunk_col_pos }, m_voxel_bounds.bounds_distance());
     }
 
     void ChunkClient::rebuild_chunk_mesh(const v3i& chunk_pos)

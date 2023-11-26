@@ -22,8 +22,7 @@ namespace h2o
     {
         gfx::VertexArray vertex_array;
         u32 vertex_count = 0;
-        v3i chunk_pos;
-        bool is_available = true;
+        v3i chunk_pos{};
     };
 
     /**
@@ -42,7 +41,7 @@ namespace h2o
 
     private:
 
-        [[nodiscard]] ChunkMeshData& reserve_chunk_mesh(const v3i& chunk_pos, const VoxelBounds& voxel_bounds);
+        [[nodiscard]] ChunkMeshData* get_or_reserve_chunk_mesh(const v3i& chunk_pos, const VoxelBounds& voxel_bounds);
 
     private:
 

@@ -28,8 +28,7 @@ namespace h2o
         const Chunk* chunk = chunk_region.get_chunk_at(m_chunk_pos);
         assert(chunk);
 
-        m_pending_vertices.clear();
-        m_pending_vertices.reserve(m_vertex_count * 3);
+        m_vertices.clear();
 
         const auto append_face =
             [&](const v3i& pos,
@@ -47,7 +46,7 @@ namespace h2o
 
                     auto temp = vertex.to_array();
                     for (u32 data : temp)
-                        m_pending_vertices.push_back(data);
+                        m_vertices.push_back(data);
                 }
             };
 
@@ -96,15 +95,5 @@ namespace h2o
             for (const auto& face : model->unoccluded_vertices)
                 append_face(pos, *model, textures, face);
         }
-    }
-
-    void ChunkMesh::update_buffer(gfx::Buffer& vertex_buffer)
-    {
-        m_vertex_count = static_cast<i32>(m_pending_vertices.size() / 3);
-
-        vertex_buffer.update_data(m_pending_vertices.data(), m_pending_vertices.size() * sizeof(u32));
-
-        m_pending_vertices.clear();
-        m_pending_vertices.shrink_to_fit();
     }
 }

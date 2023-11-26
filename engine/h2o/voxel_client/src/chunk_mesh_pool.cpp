@@ -2,6 +2,7 @@
 
 #include "core/engine.h"
 #include "rendering/rendering_module.h"
+#include "rendering/renderer.h"
 #include "voxel/voxel_bounds.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 
@@ -14,7 +15,8 @@ namespace h2o
 
     void ChunkMeshPool::for_each_chunk_mesh(const std::function<void(const ChunkMeshData&)>& function) const
     {
-
+        for (const ChunkMeshData& mesh_data : m_chunk_mesh_pool)
+            function(mesh_data);
     }
 
     void ChunkMeshPool::build_chunk_mesh(const ChunkRegion& chunk_region)
@@ -32,86 +34,62 @@ namespace h2o
         while (!m_built_chunk_meshes.empty())
         {
             auto& chunk_mesh = m_built_chunk_meshes.front();
-
-            auto it = m_chunk_mesh_indices.find(chunk_mesh.chunk_pos());
-            if (it == m_chunk_mesh_indices.end())
+            if (auto mesh_data = get_or_reserve_chunk_mesh(chunk_mesh.chunk_pos(), voxel_bounds))
             {
+                assert(mesh_data->vertex_array.get_vertex_buffer(0));
 
+                const auto& vertices = chunk_mesh.vertices();
+                mesh_data->vertex_array.get_vertex_buffer(0)->update_data(
+                    vertices.data(), vertices.size() * sizeof(u32));
+
+                mesh_data->vertex_count = chunk_mesh.vertex_count();
             }
-
-            chunk_mesh.update_buffer();
 
             m_built_chunk_meshes.pop();
         }
     }
 
-    ChunkMeshData& ChunkMeshPool::reserve_chunk_mesh(const v3i& chunk_pos, const VoxelBounds& voxel_bounds)
+    ChunkMeshData* ChunkMeshPool::get_or_reserve_chunk_mesh(const v3i& chunk_pos, const VoxelBounds& voxel_bounds)
     {
-        const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
-        if (!voxel_bounds.)
-    }
+        if (!voxel_bounds.in_bounds({ chunk_pos.x, chunk_pos.z }))
+            return nullptr;
 
-//    ChunkMesh& ChunkMeshPool::find_or_create_chunk_mesh(const v3i& chunk_pos)
-//    {
-//        if (ChunkMeshData* mesh_data = find_mesh(chunk_pos))
-//            return mesh_data->chunk_mesh;
-//
-//        return create_mesh(chunk_pos).chunk_mesh;
-//    }
-//
-//    ChunkMeshData& ChunkMeshPool::create_mesh(const v3i& chunk_pos)
-//    {
-//        assert(find_mesh(chunk_pos) == nullptr);
-//
-//        auto [mesh_data, mesh_id] = reserve_chunk_mesh();
-//        assign_chunk_mesh(chunk_pos, mesh_id);
-//
-//        assert(m_voxel_rendering_module && m_rendering_module);
-//        mesh_data.chunk_mesh.init(*m_voxel_rendering_module, *m_rendering_module);
-//
-//        return mesh_data;
-//    }
-//
-//    std::pair<ChunkMeshData&, ChunkMeshID> ChunkMeshPool::reserve_chunk_mesh()
-//    {
-//        i32 index = 0;
-//        for (; index < m_chunk_mesh_pool.size(); index++)
-//        {
-//            auto& chunk_mesh_data = m_chunk_mesh_pool[index];
-//            if (chunk_mesh_data.is_available)
-//            {
-//                chunk_mesh_data.is_available = false;
-//                return { chunk_mesh_data, index };
-//            }
-//        }
-//
-//        auto& chunk_mesh_data = m_chunk_mesh_pool.emplace_back();
-//        chunk_mesh_data.is_available = false;
-//
-//        return { chunk_mesh_data, index };
-//    }
-//
-//    void ChunkMeshPool::assign_chunk_mesh(const v3i& chunk_pos, ChunkMeshID mesh_id)
-//    {
-//        m_chunk_mesh_indices[chunk_pos] = mesh_id;
-//    }
-//
-//    ChunkMeshData* ChunkMeshPool::find_mesh(const v3i& chunk_pos)
-//    {
-//        if (auto mesh_id = find_mesh_id(chunk_pos))
-//        {
-//            assert(*mesh_id < m_chunk_mesh_pool.size());
-//            return &m_chunk_mesh_pool[*mesh_id];
-//        }
-//
-//        return nullptr;
-//    }
-//
-//    std::optional<ChunkMeshID> ChunkMeshPool::find_mesh_id(const v3i& chunk_pos) const
-//    {
-//        if (auto it = m_chunk_mesh_indices.find(chunk_pos); it != m_chunk_mesh_indices.end())
-//            return it->second;
-//
-//        return std::nullopt;
-//    }
+        if (const auto it = m_chunk_mesh_indices.find(chunk_pos); it != m_chunk_mesh_indices.end())
+            return &m_chunk_mesh_pool[it->second];
+
+        for (const auto& [other_chunk_pos, index] : m_chunk_mesh_indices)
+        {
+            if (!voxel_bounds.in_bounds({ other_chunk_pos.x, other_chunk_pos.z }))
+            {
+                // Reassign this chunk mesh
+                m_chunk_mesh_indices.erase(other_chunk_pos);
+                m_chunk_mesh_indices[chunk_pos] = index;
+
+                auto& mesh_data = m_chunk_mesh_pool[index];
+                mesh_data.chunk_pos = chunk_pos;
+                return &mesh_data;
+            }
+        }
+
+        assert(m_rendering_module);
+        auto& renderer = m_rendering_module->renderer();
+
+        // Create a new chunk mesh.
+        const u32 index = m_chunk_mesh_pool.size();
+        auto& chunk_mesh = m_chunk_mesh_pool.emplace_back(
+            renderer.create_vertex_array(),
+            0,
+            chunk_pos);
+
+        // Init vertex array
+        auto& vao = chunk_mesh.vertex_array;
+        vao.attach_vertex_buffer(renderer.create_buffer_ptr(), 0, 0, 3 * sizeof(u32));
+        vao.setup_attribute(0, 0, gfx::AttributeType::U32, 1, 0);
+        vao.setup_attribute(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
+        vao.setup_attribute(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
+
+        m_chunk_mesh_indices[chunk_pos] = index;
+
+        return &chunk_mesh;
+    }
 }

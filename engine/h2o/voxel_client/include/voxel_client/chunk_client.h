@@ -7,6 +7,7 @@
 #include "scene/scene_system.h"
 #include "voxel/chunk_container_interface.h"
 #include "voxel/chunk_manager_interface.h"
+#include "voxel/voxel_bounds.h"
 #include "voxel/voxel_constants.h"
 #include "voxel_rendering/chunk_meshing_queue.h"
 
@@ -50,8 +51,6 @@ namespace h2o
 
         void rebuild_chunk_mesh(const v3i& chunk_pos);
 
-        [[nodiscard]] bool is_in_range(v2i chunk_pos) const;
-
     private:
 
         // If there is an entry in the map, the chunk has been requested.
@@ -70,9 +69,7 @@ namespace h2o
         // Local events
         EventHandle m_on_block_placed{};
 
-        i32 m_view_distance = 8;
-        i32 m_stay_loaded_distance = 3;
-
+        VoxelBounds m_voxel_bounds;
         v2i m_previous_player_chunk_col_pos{};
 
         Client*               m_client                 = nullptr;

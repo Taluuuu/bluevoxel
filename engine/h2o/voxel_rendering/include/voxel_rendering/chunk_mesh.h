@@ -31,11 +31,9 @@ namespace h2o
             const ChunkRegion& chunk_region,
             const VoxelRenderingModule& voxel_rendering_module);
 
-        void update_buffer(gfx::Buffer& vertex_buffer);
-
-        [[nodiscard]] const v3i& chunk_pos()    const { return m_chunk_pos;         }
-        [[nodiscard]]       i32  vertex_count() const { return m_vertex_count;      }
-        [[nodiscard]]       bool is_empty()     const { return m_vertex_count == 0; }
+        [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
+        [[nodiscard]] const std::vector<u32>& vertices() const { return m_vertices; }
+        [[nodiscard]] u32 vertex_count() const { return m_vertices.size() / 3; }
 
     private:
 
@@ -45,10 +43,9 @@ namespace h2o
 
     private:
 
-        std::vector<u32> m_pending_vertices{};
+        std::vector<u32> m_vertices{};
 
         v3i m_chunk_pos { 0, 0, 0 };
-        i32 m_vertex_count = 0;
 
     };
 }
