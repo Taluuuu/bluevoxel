@@ -1,5 +1,6 @@
 #include "voxel/chunk_manager_base.h"
 
+#include "core/log.h"
 #include "voxel/chunk_column.h"
 #include "voxel/chunk_region.h"
 
@@ -161,7 +162,7 @@ namespace h2o
     {
         std::unique_lock lock { m_loaded_chunks_mutex };
 
-        erase_if(m_loaded_chunks,
+        const size_t num_erased_chunks = erase_if(m_loaded_chunks,
             [&](const auto& item) -> bool
             {
                 for (const v2i position : positions)
@@ -169,8 +170,8 @@ namespace h2o
                     const v2i min = position - v2i { range, range };
                     const v2i max = position + v2i { range, range };
 
-                    if (position.x < min.x || position.x > max.x ||
-                        position.y < min.y || position.y > max.y)
+                    if (item.first.x < min.x || item.first.x > max.x ||
+                        item.first.y < min.y || item.first.y > max.y)
                     {
                         return true;
                     }
@@ -179,6 +180,8 @@ namespace h2o
                 return false;
             }
         );
+
+        log::info("Erased {} chunks.", num_erased_chunks);
     }
 
     bool ChunkManager_Base::is_chunk_column_generated(v2i chunk_column_pos) const
