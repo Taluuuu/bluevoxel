@@ -37,21 +37,24 @@ namespace bluevoxel
 
     private:
 
+        void create_scene();
         void spawn_local_player();
         void spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform);
 
     private:
 
         std::string m_server_ip { "127.0.0.1" };
-        i32 m_server_port { 1338 };
+        i32 m_server_port = 1338;
 
         h2o::Client m_client;
 
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
         h2o::WeakHandle<h2o::ChunkClient> m_chunk_client = nullptr;
 
-        h2o::EventHandle m_on_client_created{};
+        h2o::EventHandle m_on_client_created_handle{};
         h2o::EventHandle m_on_client_connected_to_server_handle{};
+        h2o::EventHandle m_on_connected_handle{};
+        h2o::EventHandle m_on_disconnected_handle{};
 
     };
 }

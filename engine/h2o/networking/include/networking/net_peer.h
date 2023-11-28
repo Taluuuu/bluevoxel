@@ -45,7 +45,7 @@ namespace h2o
         /**
          * Disconnect a client or close a server
          */
-        virtual void stop(bool unregister_from_module /* = true */);
+        virtual void stop();
 
         // Tickable interface
         void update(f32 delta_time) override;
@@ -68,9 +68,6 @@ namespace h2o
         static void connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info);
 
     private:
-
-        void register_peer();
-        void unregister_peer();
 
         void poll_incoming_messages();
         void poll_connection_state_changes();
@@ -111,9 +108,6 @@ namespace h2o
         const MsgReceivedEventCallback<MsgType>& callback)
     {
         const MsgID id = MsgType::message_id;
-
-        const auto it = m_message_received_events.find(id);
-        assert(it == m_message_received_events.end()); // Is msg handled multiple times ?
 
         const auto event_lambda =
             [callback](const ReceivedMessageEvent& event)

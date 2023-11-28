@@ -11,12 +11,9 @@ namespace h2o
         : Tickable(owner)
     {}
 
-    void NetPeer::stop(bool unregister_from_module)
+    void NetPeer::stop()
     {
         set_tick_phases({});
-
-        if (unregister_from_module)
-            unregister_peer();
     }
 
     void NetPeer::update(f32 delta_time)
@@ -48,20 +45,6 @@ namespace h2o
         assert(info);
 
         s_callback_instance->on_connection_status_changed(*info);
-    }
-
-    void NetPeer::register_peer()
-    {
-        auto networking_module = g_engine->get_module<NetworkingModule>();
-        assert(networking_module);
-        networking_module->register_peer(*this);
-    }
-
-    void NetPeer::unregister_peer()
-    {
-        auto networking_module = g_engine->get_module<NetworkingModule>();
-        assert(networking_module);
-        networking_module->unregister_peer(*this);
     }
 
     void NetPeer::poll_incoming_messages()

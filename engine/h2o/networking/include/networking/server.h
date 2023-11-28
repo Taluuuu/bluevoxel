@@ -25,7 +25,7 @@ namespace h2o
 
         // NetPeer interface
         [[nodiscard]] const std::set<PeerID>& peers() const override { return m_client_ids; }
-        void stop(bool unregister_from_module) final;
+        void stop() final;
     protected:
         void send_message_raw(PeerID client_id, void* data, u32 size) const override;
         [[nodiscard]] i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;

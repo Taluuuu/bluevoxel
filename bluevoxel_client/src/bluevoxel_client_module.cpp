@@ -41,18 +41,25 @@ namespace bluevoxel
         input_module->register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, true);
         input_module->register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
 
-        m_scene = std::make_shared<h2o::Scene>("client_scene", &m_client);
-        m_scene->add_system<h2o::RenderingSystem>();
-        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
-        m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
-
-        spawn_local_player();
-
         m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
-            [&](h2o::PeerID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
+            [this](h2o::PeerID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
             {
                 const auto& [actor_id, transform] = player_join_event;
                 spawn_remote_player(actor_id, transform);
+            }
+        );
+
+        m_client.on_connected_to_server.add_listener(m_on_connected_handle,
+            [this](const h2o::Client::ConnectionEvent&)
+            {
+                create_scene();
+            }
+        );
+
+        m_client.on_disconnected_from_server.add_listener(m_on_disconnected_handle,
+            [this](const h2o::Client::ConnectionEvent&)
+            {
+                m_scene = nullptr;
             }
         );
 
@@ -61,7 +68,7 @@ namespace bluevoxel
 
     void BlueVoxelClientModule::cleanup()
     {
-        m_client.stop(true);
+        m_client.stop();
     }
 
     std::vector<std::type_index> BlueVoxelClientModule::dependencies() const
@@ -108,7 +115,7 @@ namespace bluevoxel
             ImGui::Begin("Connection");
 
             if (ImGui::Button("Disconnect from Server"))
-                m_client.stop(true);
+                m_client.stop();
 
             ImGui::End();
 
@@ -126,6 +133,18 @@ namespace bluevoxel
 
             ImGui::End();
         }
+    }
+
+    void BlueVoxelClientModule::create_scene()
+    {
+        assert(m_scene == nullptr);
+
+        m_scene = std::make_shared<h2o::Scene>("client_scene", &m_client);
+        m_scene->add_system<h2o::RenderingSystem>();
+        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
+        m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
+
+        spawn_local_player();
     }
 
     void BlueVoxelClientModule::spawn_local_player()

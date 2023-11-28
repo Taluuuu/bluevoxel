@@ -11,7 +11,7 @@ namespace h2o
 
     Client::~Client()
     {
-        stop(true);
+        stop();
     }
 
     bool Client::connect(const std::string& hostname, u16 port)
@@ -53,7 +53,7 @@ namespace h2o
         return client_peer;
     }
 
-    void Client::stop(bool unregister_from_module)
+    void Client::stop()
     {
         if (m_connection_state == ConnectionState::Disconnected)
             return;
@@ -63,9 +63,11 @@ namespace h2o
         m_interface->CloseConnection(m_connection, 0, nullptr, false);
         m_connection = k_HSteamNetConnection_Invalid;
 
+        on_disconnected_from_server.broadcast({});
+
         set_tick_phases({});
 
-        NetPeer::stop(unregister_from_module);
+        NetPeer::stop();
     }
 
     void Client::send_message_raw(PeerID client_id, void* data, u32 size) const
@@ -105,9 +107,6 @@ namespace h2o
         case k_ESteamNetworkingConnectionState_ClosedByPeer:
         case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
         {
-            stop(true);
-            m_connection_state = ConnectionState::Disconnected;
-
             if (info.m_eOldState == k_ESteamNetworkingConnectionState_Connecting)
             {
                 log::info("Could not connect to server: {}", info.m_info.m_szEndDebug);
@@ -121,8 +120,7 @@ namespace h2o
                 log::info("Disconnected from server: {}", info.m_info.m_szEndDebug);
             }
 
-            m_interface->CloseConnection(info.m_hConn, 0, nullptr, false);
-            m_connection = k_HSteamNetConnection_Invalid;
+            stop();
             break;
         }
 
@@ -131,13 +129,18 @@ namespace h2o
             break;
 
         case k_ESteamNetworkingConnectionState_Connected:
-            log::info("Connected to server.");
-            m_connection_state = ConnectionState::Connected;
-            on_connected_to_server.broadcast({});
+            on_connected();
             break;
 
         default:
             break;
         }
+    }
+
+    void Client::on_connected()
+    {
+        log::info("Connected to server.");
+        m_connection_state = ConnectionState::Connected;
+        on_connected_to_server.broadcast({});
     }
 }

@@ -11,7 +11,7 @@ namespace h2o
 
     Server::~Server()
     {
-        stop(true);
+        stop();
     }
 
     bool Server::start(u16 port)
@@ -49,7 +49,7 @@ namespace h2o
         return true;
     }
 
-    void Server::stop(bool unregister_from_module)
+    void Server::stop()
     {
         for (const u32 client_id : m_client_ids)
             m_interface->CloseConnection(client_id, 0, "Server is shutting down.", true);
@@ -64,7 +64,7 @@ namespace h2o
 
         m_is_active = false;
 
-        NetPeer::stop(unregister_from_module);
+        NetPeer::stop();
     }
 
     void Server::send_message_raw(PeerID client_id, void* data, u32 size) const

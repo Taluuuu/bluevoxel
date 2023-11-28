@@ -2,22 +2,9 @@
 
 #include "core/log.h"
 #include "networking/client.h"
-#include "networking/server.h"
-
-#include <steam/steamuniverse.h>
 
 namespace h2o
 {
-    void NetworkingModule::register_peer(h2o::NetPeer& peer)
-    {
-        m_active_peers.insert(&peer);
-    }
-
-    void NetworkingModule::unregister_peer(h2o::NetPeer& peer)
-    {
-        m_active_peers.erase(&peer);
-    }
-
     static void debug_output(ESteamNetworkingSocketsDebugOutputType type, const char* msg)
     {
         switch (type)
@@ -52,11 +39,6 @@ namespace h2o
 
     void NetworkingModule::cleanup()
     {
-        for (NetPeer* peer : m_active_peers)
-            peer->stop(false);
-
-        m_active_peers.clear();
-
         GameNetworkingSockets_Kill();
     }
 
