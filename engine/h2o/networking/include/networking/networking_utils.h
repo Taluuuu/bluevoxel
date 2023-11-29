@@ -34,6 +34,6 @@ namespace h2o::net_utils
             ctx, Reader { buffer.begin(), buffer.size() }, out_result);
 
         assert(ctx.isValid());
-        return !has_error;
+        return error == bitsery::ReaderError::NoError;
     }
 }

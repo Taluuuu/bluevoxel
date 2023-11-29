@@ -10,22 +10,13 @@ namespace h2o
 {
     ChunkMeshPool::ChunkMeshPool()
         : m_voxel_rendering_module(&g_engine->get_module_checked<VoxelRenderingModule>())
-        , m_rendering_module (&g_engine->get_module_checked<RenderingModule>())
+        , m_rendering_module(&g_engine->get_module_checked<RenderingModule>())
     {}
 
     void ChunkMeshPool::for_each_chunk_mesh(const std::function<void(const ChunkMeshData&)>& function) const
     {
         for (const ChunkMeshData& mesh_data : m_chunk_mesh_pool)
             function(mesh_data);
-    }
-
-    void ChunkMeshPool::build_chunk_mesh(const ChunkRegion& chunk_region)
-    {
-        assert(m_voxel_rendering_module);
-        ChunkMesh chunk_mesh(chunk_region, *m_voxel_rendering_module);
-
-        std::lock_guard lock { m_built_chunk_meshes_mutex };
-        m_built_chunk_meshes.push(std::move(chunk_mesh));
     }
 
     void ChunkMeshPool::update_meshes(const VoxelBounds& voxel_bounds)
@@ -49,6 +40,15 @@ namespace h2o
         }
     }
 
+    void ChunkMeshPool::build_chunk_mesh(const ChunkRegion& chunk_region)
+    {
+        assert(m_voxel_rendering_module);
+        ChunkMesh chunk_mesh(chunk_region, *m_voxel_rendering_module);
+
+        std::lock_guard lock { m_built_chunk_meshes_mutex };
+        m_built_chunk_meshes.push(std::move(chunk_mesh));
+    }
+
     ChunkMeshData* ChunkMeshPool::get_or_reserve_chunk_mesh(const v3i& chunk_pos, const VoxelBounds& voxel_bounds)
     {
         if (!voxel_bounds.in_bounds({ chunk_pos.x, chunk_pos.z }))
@@ -57,7 +57,7 @@ namespace h2o
         if (const auto it = m_chunk_mesh_indices.find(chunk_pos); it != m_chunk_mesh_indices.end())
             return &m_chunk_mesh_pool[it->second];
 
-        for (const auto& [other_chunk_pos, index] : m_chunk_mesh_indices)
+        for (const auto [other_chunk_pos, index] : m_chunk_mesh_indices)
         {
             if (!voxel_bounds.in_bounds({ other_chunk_pos.x, other_chunk_pos.z }))
             {

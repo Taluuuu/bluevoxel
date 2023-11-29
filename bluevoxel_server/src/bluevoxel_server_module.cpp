@@ -98,7 +98,7 @@ namespace bluevoxel
     void BlueVoxelServerModule::cleanup()
     {
         m_chunk_server.reset();
-        m_server.stop(true);
+        m_server.stop();
     }
 
     std::vector<std::type_index> bluevoxel::BlueVoxelServerModule::dependencies() const

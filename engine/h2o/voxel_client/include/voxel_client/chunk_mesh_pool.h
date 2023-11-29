@@ -35,9 +35,10 @@ namespace h2o
         ChunkMeshPool();
 
         void for_each_chunk_mesh(const std::function<void(const ChunkMeshData&)>& function) const;
-
-        void build_chunk_mesh(const ChunkRegion& chunk_region);
         void update_meshes(const VoxelBounds& voxel_bounds);
+
+        // Can be called from other threads
+        void build_chunk_mesh(const ChunkRegion& chunk_region);
 
     private:
 

@@ -29,7 +29,6 @@ namespace h2o
 
         m_rendering_module       = &g_engine->get_module_checked<RenderingModule>();
         m_voxel_rendering_module = &g_engine->get_module_checked<VoxelRenderingModule>();
-
         m_refresh_chunk_requests = true;
 
         m_client->handle_message<net_msg::ChunkFetchResult>(m_on_fetched_chunk_handle,
