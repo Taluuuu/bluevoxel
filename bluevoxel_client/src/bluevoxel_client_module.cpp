@@ -3,7 +3,6 @@
 #include "core/engine.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "input/input_module.h"
-#include "networking/test_message.h"
 #include "rendering/mesh.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
@@ -18,8 +17,7 @@
 #include "voxel_client/block_placing_component.h"
 #include "voxel_client/voxel_client_module.h"
 
-#include <imgui.h>
-#include <misc/cpp/imgui_stdlib.h>
+#include <nuklear.h>
 
 namespace bluevoxel
 {
@@ -87,37 +85,37 @@ namespace bluevoxel
         {
         case h2o::ConnectionState::Disconnected:
         {
-            ImGui::Begin("Connect to Server");
-
-            ImGui::InputText("Server IP", &m_server_ip);
-            if (ImGui::InputInt("Server Port", &m_server_port, 0))
-                m_server_port = glm::clamp(m_server_port, 0, 65'535);
-
-            if (ImGui::Button("Connect to server"))
-                m_client.connect(m_server_ip, m_server_port);
-
-            ImGui::End();
+//            ImGui::Begin("Connect to Server");
+//
+//            ImGui::InputText("Server IP", &m_server_ip);
+//            if (ImGui::InputInt("Server Port", &m_server_port, 0))
+//                m_server_port = glm::clamp(m_server_port, 0, 65'535);
+//
+//            if (ImGui::Button("Connect to server"))
+//                m_client.connect(m_server_ip, m_server_port);
+//
+//            ImGui::End();
             break;
         }
 
         case h2o::ConnectionState::Connecting:
         {
-            ImGui::Begin("Connection");
-
-            ImGui::Text("Connecting...");
-
-            ImGui::End();
+//            ImGui::Begin("Connection");
+//
+//            ImGui::Text("Connecting...");
+//
+//            ImGui::End();
             break;
         }
 
         case h2o::ConnectionState::Connected:
         {
-            ImGui::Begin("Connection");
-
-            if (ImGui::Button("Disconnect from Server"))
-                m_client.stop();
-
-            ImGui::End();
+//            ImGui::Begin("Connection");
+//
+//            if (ImGui::Button("Disconnect from Server"))
+//                m_client.stop();
+//
+//            ImGui::End();
 
             break;
         }
@@ -125,13 +123,13 @@ namespace bluevoxel
 
         if (m_chunk_client)
         {
-            ImGui::Begin("Voxel");
-
-            ImGui::SliderFloat3("Light Direction", &m_chunk_client->light_dir.x, -1.0f, 1.0f);
-            ImGui::ColorEdit3("Light Color", &m_chunk_client->light_color.x);
-            ImGui::SliderFloat("Ambient Strength", &m_chunk_client->ambient_strength, 0.0f, 1.0f);
-
-            ImGui::End();
+//            ImGui::Begin("Voxel");
+//
+//            ImGui::SliderFloat3("Light Direction", &m_chunk_client->light_dir.x, -1.0f, 1.0f);
+//            ImGui::ColorEdit3("Light Color", &m_chunk_client->light_color.x);
+//            ImGui::SliderFloat("Ambient Strength", &m_chunk_client->ambient_strength, 0.0f, 1.0f);
+//
+//            ImGui::End();
         }
     }
 

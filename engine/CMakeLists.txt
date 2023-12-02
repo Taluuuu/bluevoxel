@@ -54,11 +54,6 @@ add_subdirectory(lib/yaml-cpp)
 # GameNetworkingSockets
 find_package(GameNetworkingSockets REQUIRED)
 
-# imgui
-set(IMGUI_USE_OPENGL ${H2O_USE_OPENGL})
-set(IMGUI_USE_GLFW ${H2O_USE_GLFW})
-add_subdirectory(lib/imgui)
-
 # bitsery
 add_subdirectory(lib/bitsery)
 
@@ -73,6 +68,7 @@ add_subdirectory(h2o/core)
 add_subdirectory(h2o/input)
 add_subdirectory(h2o/windowing)
 add_subdirectory(h2o/rendering)
+add_subdirectory(h2o/ui)
 add_subdirectory(h2o/scene)
 add_subdirectory(h2o/scene_rendering)
 add_subdirectory(h2o/game_framework)

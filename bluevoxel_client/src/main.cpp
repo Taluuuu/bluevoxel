@@ -7,6 +7,7 @@
 #include "rendering/rendering_module.h"
 #include "scene/scene_module.h"
 #include "scene_rendering/scene_rendering_module.h"
+#include "ui/ui_module.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_client/voxel_client_module.h"
@@ -28,6 +29,7 @@ int main()
         .add_module<h2o::NetworkingModule>()
         .add_module<h2o::WindowingModule>()
         .add_module<h2o::RenderingModule>()
+        .add_module<h2o::UIModule>()
         .add_module<h2o::InputModule>()
         .add_module<h2o::SceneModule>()
         .add_module<h2o::SceneRenderingModule>()
