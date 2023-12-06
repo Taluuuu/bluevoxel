@@ -13,6 +13,8 @@
 #include "scene_rendering/mesh_renderer_component.h"
 #include "scene_rendering/rendering_scene_system.h"
 #include "scene_rendering/scene_rendering_module.h"
+#include "ui/ui_module.h"
+#include "ui/ui_renderer.h"
 #include "voxel_client/chunk_client.h"
 #include "voxel_client/block_placing_component.h"
 #include "voxel_client/voxel_client_module.h"
@@ -29,13 +31,12 @@ namespace bluevoxel
         set_tick_phases(h2o::TickPhase::Update);
 
         // Input setup
-        auto input_module = engine.get_module<h2o::InputModule>();
-        assert(input_module);
-        input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
-        input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
-        input_module->register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
-        input_module->register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, true);
-        input_module->register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
+        auto& input_module = engine.get_module_checked<h2o::InputModule>();
+        input_module.register_axis("move_x", h2o::Key::A, h2o::Key::D);
+        input_module.register_axis("move_y", h2o::Key::S, h2o::Key::W);
+        input_module.register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
+        input_module.register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, true);
+        input_module.register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
 
         m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
             [this](h2o::PeerID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
@@ -73,7 +74,8 @@ namespace bluevoxel
             typeid(h2o::VoxelClientModule),
             typeid(h2o::SceneModule),
             typeid(h2o::SceneRenderingModule),
-            typeid(h2o::RenderingModule)
+            typeid(h2o::RenderingModule),
+            typeid(h2o::UIModule)
         };
     }
 
@@ -83,6 +85,19 @@ namespace bluevoxel
         {
         case h2o::ConnectionState::Disconnected:
         {
+            auto& ui = g_engine->get_module_checked<h2o::UIModule>().ui();
+
+            ui.window("TEST", { { 50.0f, 50.0f }, { 256.0f, 256.0f } }, [&]()
+                {
+                    ui.row(50.0f, 2);
+
+                    if (ui.button("bouton :))"))
+                        h2o::log::info("BOUTONNN");
+
+                    if (ui.button("bouton 2 :))"))
+                        h2o::log::info("BOUTONNN 2");
+                }
+            );
 //            ImGui::Begin("Connect to Server");
 //
 //            ImGui::InputText("Server IP", &m_server_ip);

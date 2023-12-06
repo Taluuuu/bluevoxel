@@ -5,16 +5,7 @@
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
-#define NK_INCLUDE_FIXED_TYPES
-#define NK_INCLUDE_STANDARD_IO
-#define NK_INCLUDE_STANDARD_VARARGS
-#define NK_INCLUDE_DEFAULT_ALLOCATOR
-#define NK_INCLUDE_VERTEX_BUFFER_OUTPUT
-#define NK_INCLUDE_FONT_BAKING
-#define NK_INCLUDE_DEFAULT_FONT
-#define NK_KEYSTATE_BASED_INPUT
-#include <nuklear.h>
-#include <demo/glfw_opengl3/nuklear_glfw_gl3.h>
+#include "nuklear_headers.h"
 
 namespace h2o
 {
@@ -30,6 +21,9 @@ namespace h2o
         // IRendererUI interface
         bool init(Engine& engine) override;
         void cleanup() override;
+        void window(const std::string& title, const ui::Rect& rect, const std::function<void()>& window_contents) override;
+        void row(f32 height, i32 num_columns) override;
+        bool button(const std::string& title) override;
 
         // Tickable interface
         void frame_start(f32 delta_time) override;

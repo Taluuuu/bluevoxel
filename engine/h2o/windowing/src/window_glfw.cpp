@@ -283,7 +283,7 @@ namespace h2o
         auto window = static_cast<Window_GLFW*>(glfwGetWindowUserPointer(window_handle));
         assert(window);
 
-        if (action == GLFW_PRESS || action == GLFW_RELEASE)
+        if (key != GLFW_KEY_UNKNOWN && (action == GLFW_PRESS || action == GLFW_RELEASE))
             window->m_key_changed_event.broadcast({ to_h2o_key(key), action == GLFW_PRESS });
     }
 

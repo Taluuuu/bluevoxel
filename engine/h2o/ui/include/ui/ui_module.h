@@ -17,6 +17,8 @@ namespace h2o
 
         UIModule();
 
+        [[nodiscard]] IUIRenderer& ui() const;
+
         // IModule interface
         bool init(Engine& engine) override;
         void cleanup() override;

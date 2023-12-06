@@ -2,7 +2,7 @@
 
 #include "core/engine.h"
 #include "rendering/rendering_module.h"
-#include "ui_renderer_nuklear.h"
+#include "nuklear/ui_renderer_nuklear.h"
 #include "windowing/windowing_module.h"
 
 namespace h2o
@@ -26,5 +26,11 @@ namespace h2o
     std::vector<std::type_index> UIModule::dependencies() const
     {
         return { typeid(RenderingModule), typeid(WindowingModule) };
+    }
+
+    IUIRenderer& UIModule::ui() const
+    {
+        assert(m_ui_renderer);
+        return *m_ui_renderer;
     }
 }
