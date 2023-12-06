@@ -33,4 +33,4 @@
 	url = https://github.com/fraillt/bitsery
 [submodule "engine/lib/nuklear"]
 	path = engine/lib/nuklear
-	url = https://github.com/Immediate-Mode-UI/Nuklear.git
+	url = https://github.com/Immediate-Mode-UI/Nuklear

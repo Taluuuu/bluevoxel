@@ -17,8 +17,6 @@
 #include "voxel_client/block_placing_component.h"
 #include "voxel_client/voxel_client_module.h"
 
-#include <nuklear.h>
-
 namespace bluevoxel
 {
     BlueVoxelClientModule::BlueVoxelClientModule()

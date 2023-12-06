@@ -43,6 +43,7 @@ namespace h2o
         explicit Tickable(Tickable* owner);
         Tickable(const Tickable&) = delete;
         Tickable(Tickable&&) = delete;
+
         virtual ~Tickable();
 
         void add_child(Tickable& tickable);

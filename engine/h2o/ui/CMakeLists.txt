@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_ui
     src/ui_module.cpp
+    src/ui_renderer_nuklear.cpp
 )
 
 target_link_libraries(h2o_ui
@@ -20,13 +21,13 @@ target_link_libraries(h2o_ui
 target_include_directories(h2o_ui
     PUBLIC
         include/
-        ../../lib/nuklear
 
     PRIVATE
         h2o_core
         h2o_rendering
         h2o_windowing
 
+        ../../lib/nuklear
         glad
         glfw
 )
