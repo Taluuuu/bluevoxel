@@ -1,11 +1,8 @@
 #pragma once
 
 #include "core/tickable.h"
+#include "nuklear_glfw_gl3.h"
 #include "ui/ui_renderer.h"
-
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-#include "nuklear_headers.h"
 
 namespace h2o
 {

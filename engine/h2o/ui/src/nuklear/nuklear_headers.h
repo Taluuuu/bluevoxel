@@ -7,4 +7,3 @@
 #define NK_INCLUDE_DEFAULT_FONT
 #define NK_KEYSTATE_BASED_INPUT
 #include <nuklear.h>
-#include <demo/glfw_opengl3/nuklear_glfw_gl3.h>
