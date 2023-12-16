@@ -4,8 +4,16 @@
 #include "nuklear_glfw_gl3.h"
 #include "ui/ui_renderer.h"
 
+#include <memory>
+
 namespace h2o
 {
+    namespace gfx
+    {
+        class IPipeline;
+        class IRenderer;
+    }
+
     class UIRenderer_Nuklear
         : public Tickable
         , public IUIRenderer

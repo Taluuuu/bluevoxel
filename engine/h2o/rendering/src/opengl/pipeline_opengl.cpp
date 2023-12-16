@@ -181,6 +181,18 @@ namespace h2o::gfx
         glProgramUniform1i(m_program, location, value);
     }
 
+    i32 Pipeline_OpenGL::get_uniform_location(const std::string& name) const
+    {
+        assert(m_program);
+        return glGetUniformLocation(m_program, name.c_str());
+    }
+
+    i32 Pipeline_OpenGL::get_attribute_location(const std::string& name) const
+    {
+        assert(m_program);
+        return glGetAttribLocation(m_program, name.c_str());
+    }
+
     Pipeline_OpenGL::Pipeline_OpenGL(GLuint program)
         : m_program(program)
     {}

@@ -2,6 +2,10 @@
 
 #include "core/engine.h"
 #include "nuklear_utils.h"
+#include "rendering/pipeline.h"
+#include "rendering/renderer.h"
+#include "rendering/rendering_module.h"
+#include "rendering/vertex_array.h"
 #include "windowing/windowing_module.h"
 
 namespace h2o
@@ -14,6 +18,36 @@ namespace h2o
     {
         const auto& windowing_module = engine.get_module_checked<WindowingModule>();
         const IWindow& window = windowing_module.window();
+
+        const auto& rendering_module = engine.get_module_checked<RenderingModule>();
+        gfx::IRenderer& renderer = rendering_module.renderer();
+
+        {
+            auto pipeline = renderer
+                .create_pipeline()
+                .add_shader(gfx::ShaderStage::Vertex, "../Resources/engine/shaders/opengl/nuklear_ui.vert")
+                .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/opengl/nuklear_ui.frag")
+                .compile();
+
+            if (!pipeline)
+                return false;
+
+            pipeline->get_uniform_location("Texture");
+            pipeline->get_uniform_location("ProjMtx");
+            pipeline->get_attribute_location("Position");
+            pipeline->get_attribute_location("TexCoord");
+            pipeline->get_attribute_location("Color");
+        }
+
+        {
+            auto index_buffer = renderer.create_buffer_ptr();
+            auto vertex_buffer = renderer.create_buffer_ptr();
+            assert(index_buffer && vertex_buffer);
+
+            auto vertex_array = renderer.create_vertex_array();
+            vertex_array.attach_vertex_buffer(vertex_buffer, 0, sizeof(struct nk_glfw_vertex));
+            vertex_array.attach_index_buffer(index_buffer);
+        }
 
         if (m_nk_context = nk_glfw3_init(&m_glfw, static_cast<GLFWwindow*>(window.handle()), nk_glfw_init_state::NK_GLFW3_INSTALL_CALLBACKS); !m_nk_context)
         {

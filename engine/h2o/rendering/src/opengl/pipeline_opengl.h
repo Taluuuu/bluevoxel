@@ -22,6 +22,8 @@ namespace h2o::gfx
         void set_uniform_ivec3(i32 location, const v3i& value) const override;
         void set_uniform_float(i32 location, f32 value) const override;
         void set_uniform_int(i32 location, i32 value) const override;
+        i32 get_uniform_location(const std::string& name) const override;
+        i32 get_attribute_location(const std::string& name) const override;
 
         [[nodiscard]] GLuint handle() const { return m_program; }
 
