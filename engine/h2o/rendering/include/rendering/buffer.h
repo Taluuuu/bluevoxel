@@ -1,22 +1,13 @@
 #pragma once
 
 #include "core/types.h"
+#include "renderer_enums.h"
 
-#include <span>
+#include <functional>
 
 namespace h2o::gfx
 {
     class Renderer_Base;
-
-    class IBuffer
-    {
-    public:
-
-        virtual ~IBuffer() = default;
-
-        virtual void update_data(const void* data, i32 size) = 0;
-
-    };
 
     class Buffer
     {
@@ -27,11 +18,15 @@ namespace h2o::gfx
         Buffer(const Buffer&) = delete;
         ~Buffer();
 
-        void update_data(const void* data, size_t size);
-        void destroy();
+        void update_data(const void* data, size_t size, BufferUsage buffer_usage);
+        void map_read_write(const std::function<void(void*, size_t)>& function);
+        void map_write_only(const std::function<void(void*, size_t)>& function);
+        void map_read_only(const std::function<void(const void*, size_t)>& function) const;
 
         [[nodiscard]] bool is_valid() const { return m_id != 0; }
         [[nodiscard]] u32 id() const { return m_id; }
+
+        void destroy();
 
     private:
 

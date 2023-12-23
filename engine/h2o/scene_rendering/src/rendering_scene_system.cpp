@@ -36,13 +36,13 @@ namespace h2o
         // Pipeline setup
         m_renderer = &rendering_module->renderer();
 
-        (*m_renderer).create_pipeline();
-
         // TODO: Move this to the system's init function
         m_pipeline = (*m_renderer)
             .create_pipeline()
             .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/opengl/triangle.vert")
             .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/opengl/triangle.frag")
+            .with_feature(gfx::PipelineFeature::CullFace)
+            .with_feature(gfx::PipelineFeature::DepthTest)
             .compile();
 
         set_tick_phases(TickPhase::Render);

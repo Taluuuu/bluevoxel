@@ -62,16 +62,16 @@ namespace h2o::gfx
             indices_offset += (vertices.size() / 3);
         }
 
-        auto vertex_buffer = renderer.create_buffer_OLD();
-        vertex_buffer->update_data(vertices.data(), i32(vertices.size() * sizeof(f32)));
+        auto vertex_buffer = renderer.create_buffer_ptr();
+        vertex_buffer->update_data(vertices.data(), i32(vertices.size() * sizeof(f32)), gfx::BufferUsage::StaticDraw);
 
-        auto uv_buffer = renderer.create_buffer_OLD();
-        uv_buffer->update_data(uvs.data(), i32(uvs.size() * sizeof(f32)));
+        auto uv_buffer = renderer.create_buffer_ptr();
+        uv_buffer->update_data(uvs.data(), i32(uvs.size() * sizeof(f32)), gfx::BufferUsage::StaticDraw);
 
-        auto index_buffer = renderer.create_buffer_OLD();
-        index_buffer->update_data(indices.data(), i32(indices.size() * sizeof(u32)));
+        auto index_buffer = renderer.create_buffer_ptr();
+        index_buffer->update_data(indices.data(), i32(indices.size() * sizeof(u32)), gfx::BufferUsage::StaticDraw);
 
-        m_vertex_array = renderer.create_vertex_array_OLD();
+        m_vertex_array = renderer.create_vertex_array_ptr();
         m_vertex_array->attach_vertex_buffer(vertex_buffer, 0, 0, 3 * sizeof(f32));
         m_vertex_array->setup_attribute(0, 0, AttributeType::F32, 3, 0);
 

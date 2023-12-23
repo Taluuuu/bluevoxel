@@ -24,14 +24,17 @@ namespace h2o::gfx
         void set_uniform_int(i32 location, i32 value) const override;
         i32 get_uniform_location(const std::string& name) const override;
         i32 get_attribute_location(const std::string& name) const override;
+        const PipelineConfig& pipeline_config() const override;
 
         [[nodiscard]] GLuint handle() const { return m_program; }
 
     private:
 
-        explicit Pipeline_OpenGL(GLuint program);
+        Pipeline_OpenGL(GLuint program, const PipelineConfig& pipeline_config);
 
     private:
+
+        PipelineConfig m_pipeline_config{};
 
         GLuint m_program = 0;
 

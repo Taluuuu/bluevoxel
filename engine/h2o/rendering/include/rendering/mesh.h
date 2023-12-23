@@ -5,7 +5,7 @@
 
 namespace h2o::gfx
 {
-    class IVertexArray;
+    class VertexArray;
 
     class Mesh : public IResource
     {
@@ -16,7 +16,7 @@ namespace h2o::gfx
         Mesh(Mesh&&) = delete;
         ~Mesh() override = default;
 
-        [[nodiscard]] const std::shared_ptr<IVertexArray>& vertex_array() const { return m_vertex_array; }
+        [[nodiscard]] const std::shared_ptr<VertexArray>& vertex_array() const { return m_vertex_array; }
         [[nodiscard]] i32 vertex_count() const { return m_vertex_count; }
 
         // IResource interface
@@ -24,7 +24,7 @@ namespace h2o::gfx
 
     private:
 
-        std::shared_ptr<IVertexArray> m_vertex_array = nullptr;
+        std::shared_ptr<VertexArray> m_vertex_array = nullptr;
 
         i32 m_vertex_count = 0;
 

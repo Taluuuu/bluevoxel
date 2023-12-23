@@ -9,13 +9,12 @@ add_library(h2o_rendering
     src/mesh.cpp
     src/pipeline.cpp
     src/rendering_module.cpp
+    src/texture.cpp
+    src/texture_array.cpp
     src/vertex_array.cpp
 
-    src/opengl/buffer_opengl.cpp
     src/opengl/pipeline_opengl.cpp
     src/opengl/renderer_opengl.cpp
-    src/opengl/vertex_array_opengl.cpp
-    src/opengl/texture_opengl.cpp
     src/opengl/texture_array_opengl.cpp
 )
 

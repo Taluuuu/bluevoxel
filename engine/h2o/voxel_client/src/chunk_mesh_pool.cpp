@@ -1,8 +1,9 @@
 #include "voxel_client/chunk_mesh_pool.h"
 
 #include "core/engine.h"
-#include "rendering/rendering_module.h"
+#include "rendering/buffer.h"
 #include "rendering/renderer.h"
+#include "rendering/rendering_module.h"
 #include "voxel/voxel_bounds.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 
@@ -31,7 +32,7 @@ namespace h2o
 
                 const auto& vertices = chunk_mesh.vertices();
                 mesh_data->vertex_array.get_vertex_buffer(0)->update_data(
-                    vertices.data(), vertices.size() * sizeof(u32));
+                    vertices.data(), vertices.size() * sizeof(u32), gfx::BufferUsage::StaticDraw);
 
                 mesh_data->vertex_count = chunk_mesh.vertex_count();
             }

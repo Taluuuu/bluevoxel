@@ -231,6 +231,8 @@ namespace h2o
             .create_pipeline()
             .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/opengl/chunk.vert")
             .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/opengl/chunk.frag")
+            .with_feature(gfx::PipelineFeature::CullFace)
+            .with_feature(gfx::PipelineFeature::DepthTest)
             .compile();
 
         if (!m_pipeline)

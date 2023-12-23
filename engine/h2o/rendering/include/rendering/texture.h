@@ -1,29 +1,39 @@
 #pragma once
 
+#include "core/resources.h"
 #include "core/types.h"
+#include "texture_format.h"
 
 namespace h2o::gfx
 {
-    struct TextureFormat
-    {
-        v2i size { 0, 0 };
-        i32 nb_channels { 0 };
+    class Renderer_Base;
 
-        bool operator==(const TextureFormat& other) const
-        {
-            return size == other.size && nb_channels == other.nb_channels;
-        }
-    };
-
-    class ITexture
+    class Texture : public IResource
     {
     public:
 
-        virtual ~ITexture() = default;
+        Texture();
+        Texture(const Texture&) = delete;
+        Texture(Texture&&) = delete;
+        ~Texture() override;
 
-        virtual void bind(u32 index) const = 0;
+        void update_data(const TextureFormat& format, const void* data);
+        void bind(u32 texture_slot);
+        void destroy();
 
-        [[nodiscard]] virtual const TextureFormat& format() const = 0;
+        [[nodiscard]] const TextureFormat& format() const { return m_format; };
+        [[nodiscard]] u32 id() const { return m_id; }
+
+        // IResource interface
+        bool load(const std::string& path) override;
+
+    private:
+
+        Renderer_Base* const m_renderer = nullptr;
+
+        u32 m_id = 0;
+
+        TextureFormat m_format{};
 
     };
 }

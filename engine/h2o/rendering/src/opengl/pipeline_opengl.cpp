@@ -136,7 +136,7 @@ namespace h2o::gfx
                 vert_shader_create_data->path, frag_shader_create_data->path);
         }
 
-        return std::shared_ptr<Pipeline_OpenGL>(new Pipeline_OpenGL(program));
+        return std::shared_ptr<Pipeline_OpenGL>(new Pipeline_OpenGL(program, create_data.pipeline_config()));
     }
 
     Pipeline_OpenGL::Pipeline_OpenGL(Pipeline_OpenGL&& other) noexcept
@@ -193,7 +193,13 @@ namespace h2o::gfx
         return glGetAttribLocation(m_program, name.c_str());
     }
 
-    Pipeline_OpenGL::Pipeline_OpenGL(GLuint program)
+    const PipelineConfig& Pipeline_OpenGL::pipeline_config() const
+    {
+        return m_pipeline_config;
+    }
+
+    Pipeline_OpenGL::Pipeline_OpenGL(GLuint program, const PipelineConfig& pipeline_config)
         : m_program(program)
+        , m_pipeline_config(pipeline_config)
     {}
 }

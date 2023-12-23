@@ -16,19 +16,18 @@ namespace h2o::gfx
         // IRenderer interface
         bool init(IWindow& window, const GameInfo& game_info) override;
         void start_frame() override;
-        void end_frame()  override;
+        void end_frame() override;
+        void set_scissor(v2i scissor_pos, v2i scissor_size) override;
         PipelineCreateData create_pipeline() override;
         std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data) override;
         void bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;
         Buffer create_buffer() override;
         std::shared_ptr<Buffer> create_buffer_ptr() override;
-        std::shared_ptr<IBuffer> create_buffer_OLD() override;
         VertexArray create_vertex_array() override;
-        std::shared_ptr<IVertexArray> create_vertex_array_OLD() override;
-        std::shared_ptr<ITexture> fetch_or_load_texture(const std::string& path) override;
+        std::shared_ptr<VertexArray> create_vertex_array_ptr() override;
         std::shared_ptr<ITextureArray> create_texture_array(size_t array_size) override;
-        void draw(const VertexArray& vertex_array, u32 vertex_count) override;
-        void draw(const IVertexArray& vertex_array, i32 count) override;
+        void draw_arrays(const VertexArray& vertex_array, u32 vertex_count) override;
+        void draw_elements(const VertexArray& vertex_array, u32 vertex_count, AttributeType indices_type, u64 byte_offset = 0) override;
         void draw(const Mesh& mesh) override;
 
         // Renderer_Base interface
@@ -39,7 +38,11 @@ namespace h2o::gfx
         void setup_attribute(VertexArray& vertex_array, u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset) override;
         u32 allocate_buffer() override;
         void destroy_buffer(u32 buffer_id) override;
-        void update_buffer_data(Buffer& buffer, const void* data, size_t size) override;
+        void update_buffer_data(Buffer& buffer, const void* data, size_t size, BufferUsage buffer_usage) override;
+        u32 allocate_texture() override;
+        void destroy_texture(u32 texture_id) override;
+        void bind_texture(Texture& texture, u32 texture_slot) override;
+        void update_texture_data(Texture& texture, const TextureFormat& format, const void* data) override;
 
     private:
 

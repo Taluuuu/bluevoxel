@@ -54,7 +54,13 @@ namespace h2o
 
     gfx::IRenderer& RenderingModule::renderer() const
     {
-        assert(m_renderer != nullptr);
+        assert(m_renderer);
+        return *m_renderer;
+    }
+
+    gfx::Renderer_Base& RenderingModule::renderer_base() const
+    {
+        assert(m_renderer);
         return *m_renderer;
     }
 }

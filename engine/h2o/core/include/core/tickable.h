@@ -11,6 +11,7 @@ namespace h2o
     {
         enum Type : u32
         {
+            None = 0,
             FrameStart = 1 << 0,
             Update = 1 << 1,
             NetworkUpdate = 1 << 2,
@@ -20,21 +21,12 @@ namespace h2o
             FrameEnd = 1 << 6,
         };
 
-        inline constexpr Type None = static_cast<Type>(0);
+        inline TickPhase::Type operator|(TickPhase::Type lhs, TickPhase::Type rhs)
+        {
+            return static_cast<TickPhase::Type>(static_cast<u32>(lhs) | static_cast<u32>(rhs));
+        }
     }
 
-    inline constexpr TickPhase::Type operator<<(TickPhase::Type phase, int shift)
-    {
-        using type = std::underlying_type_t<TickPhase::Type>;
-        return static_cast<TickPhase::Type>(static_cast<type>(phase) << shift);
-    }
-
-    inline TickPhase::Type operator|(TickPhase::Type lhs, TickPhase::Type rhs)
-    {
-        return static_cast<TickPhase::Type>(static_cast<u32>(lhs) | static_cast<u32>(rhs));
-    }
-
-    constexpr size_t tick_phase_count = magic_enum::enum_count<TickPhase::Type>();
 
     class Tickable
     {

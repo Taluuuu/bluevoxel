@@ -2,14 +2,19 @@
 
 #include "core/tickable.h"
 #include "nuklear_glfw_gl3.h"
+#include "rendering/vertex_array.h"
 #include "ui/ui_renderer.h"
 
 #include <memory>
 
 namespace h2o
 {
+    class RenderingModule;
+    class WindowingModule;
+
     namespace gfx
     {
+        class Buffer;
         class IPipeline;
         class IRenderer;
     }
@@ -36,8 +41,34 @@ namespace h2o
 
     private:
 
-        nk_glfw m_glfw { nullptr };
-        nk_context* m_nk_context = nullptr;
+        struct NkVertex
+        {
+            v2 position{};
+            v2 uv{};
+            v4 col{};
+        };
+
+        nk_context m_nk_context{};
+        nk_buffer m_nk_commands{};
+        nk_draw_null_texture m_nk_texture_null{};
+
+        std::shared_ptr<gfx::IPipeline> m_nuklear_pipeline = nullptr;
+
+        static constexpr i32 max_vertex_buffer = 512 * 1024;
+        std::shared_ptr<gfx::Buffer> m_nuklear_vertex_buffer = nullptr;
+        static constexpr i32 max_index_buffer = 128 * 1024;
+        std::shared_ptr<gfx::Buffer> m_nuklear_index_buffer = nullptr;
+        std::shared_ptr<gfx::VertexArray> m_nuklear_vertex_array = nullptr;
+
+        // Pipeline locations
+        i32 m_uniform_tex = 0;
+        i32 m_uniform_proj = 0;
+        i32 m_attrib_pos = 0;
+        i32 m_attrib_uv = 0;
+        i32 m_attrib_col = 0;
+
+        RenderingModule* m_rendering_module = nullptr;
+        WindowingModule* m_windowing_module = nullptr;
 
     };
 }

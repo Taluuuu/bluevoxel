@@ -38,7 +38,7 @@ namespace h2o
     void Engine::run()
     {
         // Fixes output in debug in CLion
-        setvbuf(stdout, NULL, _IONBF, 0);
+        setvbuf(stdout, nullptr, _IONBF, 0);
 
         m_thread_pool.start();
 
@@ -119,6 +119,7 @@ namespace h2o
                 m_modules_to_init.erase(it);
 
                 // Query interfaces...
+                // TODO: These should go, modules should do stuff by themselves.
                 if (auto window_module = dynamic_cast<IWindowModule*>(module))
                 {
                     assert(!m_window_module);

@@ -1,19 +1,55 @@
 #include "renderer_opengl.h"
 
-#include "core/log.h"
 #include "core/engine.h"
 #include "core/game_info.h"
-#include "rendering/pipeline.h"
-#include "windowing/window.h"
+#include "core/log.h"
 #include "pipeline_opengl.h"
-#include "buffer_opengl.h"
+#include "rendering/buffer.h"
 #include "rendering/mesh.h"
-#include "texture_opengl.h"
+#include "rendering/pipeline.h"
+#include "rendering/vertex_array.h"
 #include "texture_array_opengl.h"
-#include "vertex_array_opengl.h"
+#include "texture_opengl.h"
+#include "windowing/window.h"
 
 namespace h2o::gfx
 {
+    static constexpr GLenum to_gl_blend_equation(BlendEquation blend_equation)
+    {
+        switch (blend_equation)
+        {
+        case BlendEquation::Add: return GL_FUNC_ADD;
+        }
+
+        assert(false);
+        return {};
+    }
+
+    static constexpr GLenum to_gl_blend_factor(BlendFactor blend_factor)
+    {
+        switch (blend_factor)
+        {
+        case BlendFactor::SrcAlpha: return GL_SRC_ALPHA;
+        case BlendFactor::OneMinusSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
+        }
+
+        assert(false);
+        return {};
+    }
+
+    static constexpr GLenum to_gl_attribute_type(AttributeType attribute_type)
+    {
+        switch (attribute_type)
+        {
+        case AttributeType::U16: return GL_UNSIGNED_SHORT;
+        case AttributeType::U32: return GL_UNSIGNED_INT;
+        case AttributeType::F32: return GL_FLOAT;
+        }
+
+        assert(false);
+        return {};
+    }
+
     PipelineCreateData Renderer_OpenGL::create_pipeline()
     {
         return PipelineCreateData(*this);
@@ -26,10 +62,29 @@ namespace h2o::gfx
 
     void Renderer_OpenGL::bind_pipeline(const std::shared_ptr<IPipeline>& pipeline)
     {
-        // TODO: Shader pipelines should use the resource manager
         m_bound_pipeline = std::dynamic_pointer_cast<Pipeline_OpenGL>(pipeline);
-        if (m_bound_pipeline)
-            glUseProgram(m_bound_pipeline->handle());
+        if (!m_bound_pipeline)
+            return;
+
+        glUseProgram(m_bound_pipeline->handle());
+
+        const auto& pipeline_cfg = m_bound_pipeline->pipeline_config();
+
+        // Enable/disable GL features
+        if (pipeline_cfg.pipeline_features & PipelineFeature::Blend) glEnable(GL_BLEND);
+        else glDisable(GL_BLEND);
+        if (pipeline_cfg.pipeline_features & PipelineFeature::CullFace) glEnable(GL_CULL_FACE);
+        else glDisable(GL_CULL_FACE);
+        if (pipeline_cfg.pipeline_features & PipelineFeature::DepthTest) glEnable(GL_DEPTH_TEST);
+        else glDisable(GL_DEPTH_TEST);
+        if (pipeline_cfg.pipeline_features & PipelineFeature::ScissorTest) glEnable(GL_SCISSOR_TEST);
+        else glDisable(GL_SCISSOR_TEST);
+
+        // Blending
+        glBlendEquation(to_gl_blend_equation(pipeline_cfg.blend_equation));
+        glBlendFunc(
+            to_gl_blend_factor(pipeline_cfg.blend_source_factor),
+            to_gl_blend_factor(pipeline_cfg.blend_dest_factor));
     }
 
     // TODO: This implementation and ones like it could be moved to Renderer_Base
@@ -43,19 +98,14 @@ namespace h2o::gfx
         return std::make_shared<Buffer>(*this);
     }
 
-    std::shared_ptr<IBuffer> Renderer_OpenGL::create_buffer_OLD()
+    std::shared_ptr<VertexArray> Renderer_OpenGL::create_vertex_array_ptr()
     {
-        return std::make_shared<Buffer_OpenGL>();
+        return std::make_shared<VertexArray>(*this);
     }
 
     VertexArray Renderer_OpenGL::create_vertex_array()
     {
         return VertexArray(*this);
-    }
-
-    std::shared_ptr<IVertexArray> Renderer_OpenGL::create_vertex_array_OLD()
-    {
-        return std::make_shared<VertexArray_OpenGL>();
     }
 
     std::shared_ptr<ITexture> Renderer_OpenGL::fetch_or_load_texture(const std::string& path)
@@ -68,19 +118,7 @@ namespace h2o::gfx
         return std::make_shared<TextureArray_OpenGL>(array_size);
     }
 
-    void Renderer_OpenGL::draw(const IVertexArray& vertex_array, i32 count)
-    {
-        if (!m_bound_pipeline || count == 0)
-            return;
-
-        auto vertex_array_gl = dynamic_cast<const VertexArray_OpenGL*>(&vertex_array);
-        assert(vertex_array_gl);
-
-        vertex_array_gl->bind();
-        glDrawArrays(GL_TRIANGLES, 0, count);
-    }
-
-    void Renderer_OpenGL::draw(const VertexArray& vertex_array, u32 vertex_count)
+    void Renderer_OpenGL::draw_arrays(const VertexArray& vertex_array, u32 vertex_count)
     {
         if (!m_bound_pipeline || vertex_count == 0)
             return;
@@ -89,16 +127,19 @@ namespace h2o::gfx
         glDrawArrays(GL_TRIANGLES, 0, GLsizei(vertex_count));
     }
 
-    void Renderer_OpenGL::draw(const Mesh& mesh)
+    void Renderer_OpenGL::draw_elements(const VertexArray& vertex_array, u32 vertex_count, AttributeType indices_type, u64 byte_offset)
     {
-        if (!m_bound_pipeline)
+        if (!m_bound_pipeline || vertex_count == 0)
             return;
 
-        auto vertex_array_gl = dynamic_cast<const VertexArray_OpenGL*>(mesh.vertex_array().get());
-        assert(vertex_array_gl);
+        glBindVertexArray(vertex_array.id());
+        glDrawElements(GL_TRIANGLES, GLsizei(vertex_count), to_gl_attribute_type(indices_type), (void*)byte_offset);
+    }
 
-        vertex_array_gl->bind();
-        glDrawElements(GL_TRIANGLES, mesh.vertex_count(), GL_UNSIGNED_INT, nullptr);
+    void Renderer_OpenGL::draw(const Mesh& mesh)
+    {
+        assert(mesh.vertex_array());
+        draw_elements(*mesh.vertex_array(), mesh.vertex_count(), AttributeType::U32, 0);
     }
 
     bool Renderer_OpenGL::init(IWindow& window, const GameInfo& game_info)
@@ -114,9 +155,6 @@ namespace h2o::gfx
 
         glViewport(0, 0, window.window_size().x, window.window_size().y);
         glClearColor(0.53f, 0.81f, 0.92f, 1.0f);
-        // glEnable(GL_DEBUG_OUTPUT);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
 
         window.resize_event().add_listener(m_window_resize_event_handle,
             [](const WindowResizeEvent& event)
@@ -135,6 +173,11 @@ namespace h2o::gfx
     void Renderer_OpenGL::end_frame()
     {
 
+    }
+
+    void Renderer_OpenGL::set_scissor(v2i scissor_pos, v2i scissor_size)
+    {
+        glScissor(scissor_pos.x, scissor_pos.y, scissor_size.x, scissor_size.y);
     }
 
     u32 Renderer_OpenGL::allocate_vertex_array()
@@ -196,9 +239,45 @@ namespace h2o::gfx
         glDeleteBuffers(1, &buffer_id);
     }
 
-    void Renderer_OpenGL::update_buffer_data(Buffer& buffer, const void* data, size_t size)
+    void Renderer_OpenGL::update_buffer_data(Buffer& buffer, const void* data, size_t size, BufferUsage buffer_usage)
     {
         assert(buffer.is_valid());
-        glNamedBufferData(buffer.id(), GLsizeiptr(size), data, GL_STATIC_DRAW);
+
+        GLenum usage = GL_STATIC_DRAW;
+        switch (buffer_usage)
+        {
+        case BufferUsage::StreamDraw: usage = GL_STREAM_DRAW; break;
+        case BufferUsage::StaticDraw: usage = GL_STATIC_DRAW; break;
+        }
+
+        glNamedBufferData(buffer.id(), GLsizeiptr(size), data, usage);
+    }
+
+    void Renderer_OpenGL::destroy_texture(u32 texture_id)
+    {
+        glDeleteTextures(1, &texture_id);
+    }
+
+    void Renderer_OpenGL::bind_texture(Texture& texture, u32 texture_slot)
+    {
+        glBindTextureUnit(texture_slot, texture.id());
+    }
+
+    u32 Renderer_OpenGL::allocate_texture()
+    {
+        u32 handle;
+        glCreateTextures(GL_TEXTURE_2D, 1, &handle);
+        return handle;
+    }
+
+    void Renderer_OpenGL::update_texture_data(Texture& texture, const TextureFormat& format, const void* data)
+    {
+        glTextureParameteri(texture.id(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(texture.id(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(texture.id(), GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(texture.id(), GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glTextureStorage2D(texture.id(), 1, GL_RGBA8, i32(format.size.x), i32(format.size.y));
+        glTextureSubImage2D(texture.id(), 0, 0, 0, i32(format.size.x), i32(format.size.y), GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
 }

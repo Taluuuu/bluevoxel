@@ -7,7 +7,11 @@
 
 namespace h2o
 {
-    namespace gfx { class IRenderer; };
+    namespace gfx
+    {
+        class IRenderer;
+        class Renderer_Base;
+    };
 
     class RenderingModule
         : public Tickable
@@ -27,11 +31,14 @@ namespace h2o
         void frame_start(f32 delta_time) override;
         void frame_end(f32 delta_time) override;
 
+        // High level renderer, meant for user
         [[nodiscard]] gfx::IRenderer& renderer() const;
+        // Lower level renderer
+        [[nodiscard]] gfx::Renderer_Base& renderer_base() const;
 
     private:
 
-        std::unique_ptr<gfx::IRenderer> m_renderer;
+        std::unique_ptr<gfx::Renderer_Base> m_renderer;
 
     };
 }
