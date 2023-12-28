@@ -5,6 +5,7 @@
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
 #include "rendering/pipeline.h"
+#include "rendering/texture.h"
 #include "rendering/texture_array.h"
 #include "voxel_rendering/block_model.h"
 #include "voxel/direction.h"
@@ -210,13 +211,13 @@ namespace h2o
         auto& renderer = m_rendering_module->renderer();
 
         // Load textures
-        m_block_textures = renderer.create_texture_array(texture_index_map.size());
+        m_block_textures = renderer.create_texture_array_ptr(texture_index_map.size());
         if (!m_block_textures)
             return false;
 
         for (const auto& [tex_name, tex_index] : texture_index_map)
         {
-            auto tex = renderer.fetch_or_load_texture(
+            auto tex = g_engine->resource_mgr().fetch<gfx::Texture>(
                 (m_voxel_pack->textures_path() / fs::path(tex_name)).string());
 
             if (!tex)
@@ -287,7 +288,7 @@ namespace h2o
         return m_pipeline;
     }
 
-    const std::shared_ptr<gfx::ITextureArray>& VoxelRenderingModule::block_textures() const
+    const std::shared_ptr<gfx::TextureArray>& VoxelRenderingModule::block_textures() const
     {
         assert(m_block_textures);
         return m_block_textures;

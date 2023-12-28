@@ -8,6 +8,7 @@ add_library(h2o_rendering
     src/camera.cpp
     src/mesh.cpp
     src/pipeline.cpp
+    src/renderer_base.cpp
     src/rendering_module.cpp
     src/texture.cpp
     src/texture_array.cpp
@@ -15,7 +16,6 @@ add_library(h2o_rendering
 
     src/opengl/pipeline_opengl.cpp
     src/opengl/renderer_opengl.cpp
-    src/opengl/texture_array_opengl.cpp
 )
 
 target_link_libraries(h2o_rendering

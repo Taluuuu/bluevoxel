@@ -27,7 +27,7 @@ namespace h2o
         m_mesh = mesh;
     }
 
-    void MeshRendererComponent::set_texture(const std::shared_ptr<gfx::ITexture>& texture)
+    void MeshRendererComponent::set_texture(const std::shared_ptr<gfx::Texture>& texture)
     {
         m_texture = texture;
     }

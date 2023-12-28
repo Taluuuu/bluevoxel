@@ -37,13 +37,17 @@ namespace h2o::gfx
         virtual PipelineCreateData            create_pipeline() = 0;
         virtual void                          bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) = 0;
 
+        // Buffer
         virtual Buffer                        create_buffer() = 0;
         virtual std::shared_ptr<Buffer>       create_buffer_ptr() = 0;
+
+        // Vertex Array
         virtual VertexArray                   create_vertex_array() = 0;
         virtual std::shared_ptr<VertexArray>  create_vertex_array_ptr() = 0;
 
-        virtual std::shared_ptr<Texture>      fetch_or_load_texture(const std::string& path) = 0;
-        virtual std::shared_ptr<TextureArray> create_texture_array(size_t array_size) = 0;
+        // Texture
+        virtual TextureArray                  create_texture_array(u32 array_size) = 0;
+        virtual std::shared_ptr<TextureArray> create_texture_array_ptr(u32 array_size) = 0;
 
         // Drawing
         virtual void                          draw_arrays(const VertexArray& vertex_array, u32 vertex_count) = 0;

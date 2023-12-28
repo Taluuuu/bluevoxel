@@ -6,9 +6,8 @@ namespace h2o::gfx
 {
     VertexArray::VertexArray(Renderer_Base& renderer)
         : m_renderer(&renderer)
-    {
-        m_id = m_renderer->allocate_vertex_array();
-    }
+        , m_id(renderer.allocate_vertex_array())
+    {}
 
     VertexArray::VertexArray(VertexArray&& other) noexcept
         : m_renderer(other.m_renderer)

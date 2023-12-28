@@ -160,7 +160,7 @@ namespace h2o
             if (!cmd->elem_count)
                 continue;
 
-            renderer.bind_texture(cmd->texture.id, 0);
+//            renderer.bind_texture(cmd->texture.id(), 0);
 
             const v2i scissor_pos {
                 cmd->clip_rect.x * framebuffer_scale.x,

@@ -7,9 +7,9 @@
 #include "rendering/buffer.h"
 #include "rendering/mesh.h"
 #include "rendering/pipeline.h"
+#include "rendering/texture.h"
+#include "rendering/texture_array.h"
 #include "rendering/vertex_array.h"
-#include "texture_array_opengl.h"
-#include "texture_opengl.h"
 #include "windowing/window.h"
 
 namespace h2o::gfx
@@ -50,11 +50,6 @@ namespace h2o::gfx
         return {};
     }
 
-    PipelineCreateData Renderer_OpenGL::create_pipeline()
-    {
-        return PipelineCreateData(*this);
-    }
-
     std::shared_ptr<IPipeline> Renderer_OpenGL::compile_pipeline(const PipelineCreateData& create_data)
     {
         return Pipeline_OpenGL::create(create_data);
@@ -85,37 +80,6 @@ namespace h2o::gfx
         glBlendFunc(
             to_gl_blend_factor(pipeline_cfg.blend_source_factor),
             to_gl_blend_factor(pipeline_cfg.blend_dest_factor));
-    }
-
-    // TODO: This implementation and ones like it could be moved to Renderer_Base
-    Buffer Renderer_OpenGL::create_buffer()
-    {
-        return Buffer(*this);
-    }
-
-    std::shared_ptr<Buffer> Renderer_OpenGL::create_buffer_ptr()
-    {
-        return std::make_shared<Buffer>(*this);
-    }
-
-    std::shared_ptr<VertexArray> Renderer_OpenGL::create_vertex_array_ptr()
-    {
-        return std::make_shared<VertexArray>(*this);
-    }
-
-    VertexArray Renderer_OpenGL::create_vertex_array()
-    {
-        return VertexArray(*this);
-    }
-
-    std::shared_ptr<ITexture> Renderer_OpenGL::fetch_or_load_texture(const std::string& path)
-    {
-        return g_engine->resource_mgr().fetch<Texture_OpenGL>(path);
-    }
-
-    std::shared_ptr<ITextureArray> Renderer_OpenGL::create_texture_array(size_t array_size)
-    {
-        return std::make_shared<TextureArray_OpenGL>(array_size);
     }
 
     void Renderer_OpenGL::draw_arrays(const VertexArray& vertex_array, u32 vertex_count)
@@ -279,5 +243,47 @@ namespace h2o::gfx
 
         glTextureStorage2D(texture.id(), 1, GL_RGBA8, i32(format.size.x), i32(format.size.y));
         glTextureSubImage2D(texture.id(), 0, 0, 0, i32(format.size.x), i32(format.size.y), GL_RGBA, GL_UNSIGNED_BYTE, data);
+    }
+
+    u32 Renderer_OpenGL::allocate_texture_array()
+    {
+        u32 handle;
+        glCreateTextures(GL_TEXTURE_2D_ARRAY, 1, &handle);
+        return handle;
+    }
+
+    void Renderer_OpenGL::destroy_texture_array(u32 texture_array_id)
+    {
+        glDeleteTextures(1, &texture_array_id);
+    }
+
+    void Renderer_OpenGL::init_texture_array(TextureArray& texture_array, const TextureFormat& texture_format)
+    {
+        const u32 handle = texture_array.id();
+        assert(texture_format.nb_channels == 4); // TODO: Support more formats later
+
+        glTextureStorage3D(handle, 1, GL_RGBA8,
+            GLsizei(texture_format.size.x),
+            GLsizei(texture_format.size.y),
+            GLsizei(texture_array.size()));
+
+        // Set texture parameters
+        glTextureParameteri(handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(handle, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(handle, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    }
+
+    void Renderer_OpenGL::bind_texture_array(TextureArray& texture_array, u32 texture_slot)
+    {
+        glBindTextureUnit(texture_slot, texture_array.id());
+    }
+
+    void Renderer_OpenGL::attach_texture_to_texture_array(TextureArray& texture_array, const Texture& texture, u32 index)
+    {
+        glCopyImageSubData(
+            texture.id(),       GL_TEXTURE_2D,       0, 0, 0, 0,
+            texture_array.id(), GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(index),
+            GLsizei(texture.format().size.x), GLsizei(texture.format().size.y), 1);
     }
 }

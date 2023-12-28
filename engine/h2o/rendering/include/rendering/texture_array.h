@@ -9,26 +9,33 @@
 
 namespace h2o::gfx
 {
+    class Renderer_Base;
     class Texture;
 
     class TextureArray
     {
     public:
 
-        explicit TextureArray(size_t size);
+        TextureArray(Renderer_Base& renderer, u32 size);
         TextureArray(const TextureArray&) = delete;
         TextureArray(TextureArray&&) = delete;
+        ~TextureArray();
 
         void set_texture(u32 index, const std::shared_ptr<Texture>& texture);
         void bind(u32 texture_slot);
 
+        [[nodiscard]] u32 id() const { return m_id; }
+        [[nodiscard]] u32 size() const { return m_textures.size(); }
+
     private:
 
-        u32 m_id = 0;
 
         std::optional<TextureFormat> m_format{};
-
         std::vector< std::shared_ptr<Texture> > m_textures{};
+
+        Renderer_Base* const m_renderer = nullptr;
+
+        u32 m_id = 0;
 
     };
 }

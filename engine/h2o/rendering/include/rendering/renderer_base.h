@@ -37,5 +37,21 @@ namespace h2o::gfx
         virtual void bind_texture(Texture& texture, u32 texture_slot) = 0;
         virtual void update_texture_data(Texture& texture, const TextureFormat& format, const void* data) = 0;
 
+        // Texture Array
+        virtual u32 allocate_texture_array() = 0;
+        virtual void destroy_texture_array(u32 texture_array_id) = 0;
+        virtual void init_texture_array(TextureArray& texture_array, const TextureFormat& texture_format) = 0;
+        virtual void bind_texture_array(TextureArray& texture_array, u32 texture_slot) = 0;
+        virtual void attach_texture_to_texture_array(TextureArray& texture_array, const Texture& texture, u32 index) = 0;
+
+        // IRenderer interface
+        PipelineCreateData create_pipeline() override;
+        Buffer create_buffer() override;
+        std::shared_ptr<Buffer> create_buffer_ptr() override;
+        VertexArray create_vertex_array() override;
+        std::shared_ptr<VertexArray> create_vertex_array_ptr() override;
+        TextureArray create_texture_array(u32 array_size) override;
+        std::shared_ptr<TextureArray> create_texture_array_ptr(u32 array_size) override;
+
     };
 }

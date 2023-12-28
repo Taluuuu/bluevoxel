@@ -18,14 +18,8 @@ namespace h2o::gfx
         void start_frame() override;
         void end_frame() override;
         void set_scissor(v2i scissor_pos, v2i scissor_size) override;
-        PipelineCreateData create_pipeline() override;
         std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data) override;
         void bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;
-        Buffer create_buffer() override;
-        std::shared_ptr<Buffer> create_buffer_ptr() override;
-        VertexArray create_vertex_array() override;
-        std::shared_ptr<VertexArray> create_vertex_array_ptr() override;
-        std::shared_ptr<ITextureArray> create_texture_array(size_t array_size) override;
         void draw_arrays(const VertexArray& vertex_array, u32 vertex_count) override;
         void draw_elements(const VertexArray& vertex_array, u32 vertex_count, AttributeType indices_type, u64 byte_offset = 0) override;
         void draw(const Mesh& mesh) override;
@@ -43,6 +37,11 @@ namespace h2o::gfx
         void destroy_texture(u32 texture_id) override;
         void bind_texture(Texture& texture, u32 texture_slot) override;
         void update_texture_data(Texture& texture, const TextureFormat& format, const void* data) override;
+        u32 allocate_texture_array() override;
+        void destroy_texture_array(u32 texture_array_id) override;
+        void init_texture_array(TextureArray& texture_array, const TextureFormat& texture_format) override;
+        void bind_texture_array(TextureArray& texture_array, u32 texture_slot) override;
+        void attach_texture_to_texture_array(TextureArray& texture_array, const Texture& texture, u32 index) override;
 
     private:
 

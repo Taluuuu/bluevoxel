@@ -6,6 +6,7 @@
 #include "rendering/mesh.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
+#include "rendering/texture.h"
 #include "scene/scene.h"
 #include "scene/scene_module.h"
 #include "scene/scene_networking_system.h"
@@ -98,6 +99,8 @@ namespace bluevoxel
                         h2o::log::info("BOUTONNN 2");
                 }
             );
+
+            m_client.connect("127.0.0.1", 1338);
 //            ImGui::Begin("Connect to Server");
 //
 //            ImGui::InputText("Server IP", &m_server_ip);
@@ -185,7 +188,7 @@ namespace bluevoxel
             mesh_renderer->set_mesh(
                 g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel_client/models/robot.fbx"));
             mesh_renderer->set_texture(
-                rendering_module->renderer().fetch_or_load_texture("../Resources/bluevoxel_client/textures/robot.png"));
+                g_engine->resource_mgr().fetch<h2o::gfx::Texture>("../Resources/bluevoxel_client/textures/robot.png"));
         }
     }
 }
