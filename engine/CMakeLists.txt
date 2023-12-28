@@ -26,12 +26,17 @@ add_subdirectory(lib/glfw)
 add_subdirectory(lib/glm)
 
 # Vulkan
-find_package(Vulkan REQUIRED)
-set(VULKAN_PATH ${Vulkan_INCLUDE_DIRS})
-STRING(REGEX REPLACE "/Include" "" VULKAN_PATH ${VULKAN_PATH})
+if(H2O_USE_VULKAN)
+    find_package(Vulkan REQUIRED)
+    set(VULKAN_PATH ${Vulkan_INCLUDE_DIRS})
+    STRING(REGEX REPLACE "/Include" "" VULKAN_PATH ${VULKAN_PATH})
+endif()
 
 # OpenGL
 add_subdirectory(lib/glad)
+
+# OpenAL
+find_package(OpenAL REQUIRED)
 
 # magic_enum
 add_subdirectory(lib/magic_enum)
@@ -77,6 +82,7 @@ add_subdirectory(h2o/voxel_rendering)
 add_subdirectory(h2o/voxel_client)
 add_subdirectory(h2o/voxel_server)
 add_subdirectory(h2o/networking)
+add_subdirectory(h2o/audio)
 #add_subdirectory(tests)
 
 # Add this resource path
