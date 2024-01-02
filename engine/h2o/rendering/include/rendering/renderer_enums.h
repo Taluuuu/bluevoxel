@@ -46,6 +46,7 @@ namespace h2o::gfx
     enum class AttributeType
     {
         F32,
+        U8,
         U16,
         U32,
     };

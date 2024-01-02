@@ -73,10 +73,10 @@ namespace h2o::gfx
 
         m_vertex_array = renderer.create_vertex_array_ptr();
         m_vertex_array->attach_vertex_buffer(vertex_buffer, 0, 0, 3 * sizeof(f32));
-        m_vertex_array->setup_attribute(0, 0, AttributeType::F32, 3, 0);
+        m_vertex_array->setup_attribute_float(0, 0, AttributeType::F32, false, 3, 0);
 
         m_vertex_array->attach_vertex_buffer(uv_buffer, 1, 0, 2 * sizeof(f32));
-        m_vertex_array->setup_attribute(1, 1, AttributeType::F32, 2, 0);
+        m_vertex_array->setup_attribute_float(1, 1, AttributeType::F32, false, 2, 0);
 
         m_vertex_array->attach_index_buffer(index_buffer);
 

@@ -27,7 +27,7 @@ namespace h2o::gfx
         assert(buffer != nullptr);
         assert(binding_index < m_vertex_buffers.size());
 
-        m_renderer->attach_vertex_buffer(*this, *buffer, binding_index, offset, stride);
+        m_renderer->attach_vertex_buffer(id(), *buffer, binding_index, offset, stride);
         m_vertex_buffers[binding_index] = buffer;
     }
 
@@ -35,13 +35,18 @@ namespace h2o::gfx
     {
         assert(buffer != nullptr);
 
-        m_renderer->update_index_buffer(*this, *buffer);
+        m_renderer->update_index_buffer(id(), *buffer);
         m_index_buffer = buffer;
     }
 
-    void VertexArray::setup_attribute(u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset)
+    void VertexArray::setup_attribute_float(u32 attribute_index, u32 binding_index, AttributeType type, bool normalize, i32 size, u32 relative_offset)
     {
-        m_renderer->setup_attribute(*this, attribute_index, binding_index, type, size, relative_offset);
+        m_renderer->setup_attribute_float(id(), attribute_index, binding_index, type, normalize, size, relative_offset);
+    }
+
+    void VertexArray::setup_attribute_int(u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset)
+    {
+        m_renderer->setup_attribute_int(id(), attribute_index, binding_index, type, size, relative_offset);
     }
 
     const std::shared_ptr<Buffer>& VertexArray::get_vertex_buffer(u32 binding_index) const

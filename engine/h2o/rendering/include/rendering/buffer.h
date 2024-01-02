@@ -19,9 +19,9 @@ namespace h2o::gfx
         ~Buffer();
 
         void update_data(const void* data, size_t size, BufferUsage buffer_usage);
-        void map_read_write(const std::function<void(void*, size_t)>& function);
-        void map_write_only(const std::function<void(void*, size_t)>& function);
-        void map_read_only(const std::function<void(const void*, size_t)>& function) const;
+        void map_read_only(const std::function<void(const void*)>& function) const;
+        void map_write_only(const std::function<void(void*)>& function);
+        void map_read_write(const std::function<void(void*)>& function);
 
         [[nodiscard]] bool is_valid() const { return m_id != 0; }
         [[nodiscard]] u32 id() const { return m_id; }

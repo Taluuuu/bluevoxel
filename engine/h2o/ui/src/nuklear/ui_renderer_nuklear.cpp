@@ -1,12 +1,13 @@
 #include "ui_renderer_nuklear.h"
 
 #include "core/engine.h"
+#include "input/input_module.h"
 #include "nuklear_utils.h"
 #include "rendering/buffer.h"
 #include "rendering/pipeline.h"
 #include "rendering/renderer_base.h"
 #include "rendering/rendering_module.h"
-#include "rendering/vertex_array.h"
+#include "rendering/texture.h"
 #include "windowing/windowing_module.h"
 
 namespace h2o
@@ -17,11 +18,12 @@ namespace h2o
 
     bool UIRenderer_Nuklear::init(Engine& engine)
     {
+        m_input_module     = &engine.get_module_checked<InputModule>();
         m_rendering_module = &engine.get_module_checked<RenderingModule>();
         m_windowing_module = &engine.get_module_checked<WindowingModule>();
 
         const auto& rendering_module = engine.get_module_checked<RenderingModule>();
-        gfx::IRenderer& renderer = rendering_module.renderer();
+        gfx::Renderer_Base& renderer = rendering_module.renderer_base();
 
         nk_init_default(&m_nk_context, nullptr);
         nk_buffer_init_default(&m_nk_commands);
@@ -54,9 +56,21 @@ namespace h2o
 
         m_nuklear_vertex_array->attach_index_buffer(m_nuklear_index_buffer);
         m_nuklear_vertex_array->attach_vertex_buffer(m_nuklear_vertex_buffer, 0, 0, sizeof(NkVertex));
-        m_nuklear_vertex_array->setup_attribute(m_attrib_pos, 0, gfx::AttributeType::F32, 2, offsetof(NkVertex, position));
-        m_nuklear_vertex_array->setup_attribute(m_attrib_uv,  0, gfx::AttributeType::F32, 2, offsetof(NkVertex, uv));
-        m_nuklear_vertex_array->setup_attribute(m_attrib_col, 0, gfx::AttributeType::F32, 4, offsetof(NkVertex, col));
+        m_nuklear_vertex_array->setup_attribute_float(m_attrib_pos, 0, gfx::AttributeType::F32, false, 2, offsetof(NkVertex, position));
+        m_nuklear_vertex_array->setup_attribute_float(m_attrib_uv,  0, gfx::AttributeType::F32, false, 2, offsetof(NkVertex, uv));
+        m_nuklear_vertex_array->setup_attribute_float(m_attrib_col, 0, gfx::AttributeType::U8, true, 4, offsetof(NkVertex, col));
+
+        nk_font_atlas_init_default(&m_nk_atlas);
+        nk_font_atlas_begin(&m_nk_atlas);
+
+        // Bake default font
+        v2i image_size{};
+        const void* image = nk_font_atlas_bake(&m_nk_atlas, &image_size.x, &image_size.y, NK_FONT_ATLAS_RGBA32);
+        m_font_texture = renderer.create_texture_ptr();
+        m_font_texture->update_data({ image_size, 4 }, image);
+
+        nk_font_atlas_end(&m_nk_atlas, nk_handle_id(m_font_texture->id()), &m_nk_texture_null);
+        nk_style_set_font(&m_nk_context, &m_nk_atlas.default_font->handle);
 
         set_tick_phases(TickPhase::FrameStart | TickPhase::FrameEnd);
         return true;
@@ -72,27 +86,38 @@ namespace h2o
         const ui::Rect& rect,
         const std::function<void()>& window_contents)
     {
-//        nk_begin(m_nk_context, title.c_str(), ui::to_nk_rect(rect), 0);
+        if (nk_begin(&m_nk_context, title.c_str(), ui::to_nk_rect(rect),
+            NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
+            NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
+        {
+            window_contents();
+        }
 
-        window_contents();
-
-//        nk_end(m_nk_context);
+        nk_end(&m_nk_context);
     }
 
     void UIRenderer_Nuklear::row(f32 height, i32 num_columns)
     {
-//        nk_layout_row_dynamic(m_nk_context, height, num_columns);
+        nk_layout_row_dynamic(&m_nk_context, height, num_columns);
     }
 
     bool UIRenderer_Nuklear::button(const std::string& title)
     {
-//        return nk_button_label(m_nk_context, title.c_str());
-        return false;
+        return nk_button_label(&m_nk_context, title.c_str());
     }
 
     void UIRenderer_Nuklear::frame_start(f32 delta_time)
     {
-//        nk_glfw3_new_frame(&m_glfw);
+        nk_input_begin(&m_nk_context);
+
+        // Mouse input
+        const v2i mouse_position = m_input_module->mouse_position();
+        nk_input_motion(&m_nk_context, mouse_position.x, mouse_position.y);
+        nk_input_button(&m_nk_context, NK_BUTTON_LEFT,
+            mouse_position.x, mouse_position.y,
+            m_input_module->mouse_button_state(MouseButton::Left).held);
+
+        nk_input_end(&m_nk_context);
     }
 
     void UIRenderer_Nuklear::frame_end(f32 delta_time)
@@ -124,12 +149,12 @@ namespace h2o
 
         nk_convert_config config
         {
-            .global_alpha = 0.0f,
+            .global_alpha = 1.0f,
             .line_AA = nk_anti_aliasing::NK_ANTI_ALIASING_ON,
             .shape_AA = nk_anti_aliasing::NK_ANTI_ALIASING_ON,
-            .circle_segment_count = 22,
-            .arc_segment_count = 22,
-            .curve_segment_count = 22,
+            .circle_segment_count = 3,
+            .arc_segment_count = 3,
+            .curve_segment_count = 3,
             .tex_null = m_nk_texture_null,
             .vertex_layout = vertex_layout,
             .vertex_size = sizeof(NkVertex),
@@ -137,10 +162,10 @@ namespace h2o
         };
 
         m_nuklear_vertex_buffer->map_write_only(
-            [&](void* vertex_data, size_t index_length)
+            [&](void* vertex_data)
             {
                 m_nuklear_index_buffer->map_write_only(
-                    [&](void* index_data, size_t vertex_length)
+                    [&](void* index_data)
                     {
                         nk_buffer_init_fixed(&vbuf, vertex_data, max_vertex_buffer);
                         nk_buffer_init_fixed(&ebuf, index_data, max_index_buffer);
@@ -151,16 +176,17 @@ namespace h2o
         );
 
         gfx::Renderer_Base& renderer = m_rendering_module->renderer_base();
+        renderer.bind_pipeline(m_nuklear_pipeline);
 
         // Draw each draw command
         nk_size offset = 0;
-        const nk_draw_command* cmd = nullptr;
+        const nk_draw_command* cmd;
         nk_draw_foreach(cmd, &m_nk_context, &m_nk_commands)
         {
             if (!cmd->elem_count)
                 continue;
 
-//            renderer.bind_texture(cmd->texture.id(), 0);
+            renderer.bind_texture(cmd->texture.id, 0);
 
             const v2i scissor_pos {
                 cmd->clip_rect.x * framebuffer_scale.x,
@@ -174,5 +200,8 @@ namespace h2o
 
             offset += cmd->elem_count * sizeof(nk_draw_index);
         }
+
+        nk_clear(&m_nk_context);
+        nk_buffer_clear(&m_nk_commands);
     }
 }

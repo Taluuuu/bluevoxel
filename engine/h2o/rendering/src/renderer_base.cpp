@@ -2,6 +2,7 @@
 
 #include "rendering/buffer.h"
 #include "rendering/pipeline.h"
+#include "rendering/texture.h"
 #include "rendering/texture_array.h"
 #include "rendering/vertex_array.h"
 
@@ -30,6 +31,16 @@ namespace h2o::gfx
     std::shared_ptr<VertexArray> Renderer_Base::create_vertex_array_ptr()
     {
         return std::make_shared<VertexArray>(*this);
+    }
+
+    Texture Renderer_Base::create_texture()
+    {
+        return Texture();
+    }
+
+    std::shared_ptr<Texture> Renderer_Base::create_texture_ptr()
+    {
+        return std::make_shared<Texture>();
     }
 
     TextureArray Renderer_Base::create_texture_array(u32 array_size)

@@ -85,9 +85,9 @@ namespace h2o
         // Init vertex array
         auto& vao = chunk_mesh.vertex_array;
         vao.attach_vertex_buffer(renderer.create_buffer_ptr(), 0, 0, 3 * sizeof(u32));
-        vao.setup_attribute(0, 0, gfx::AttributeType::U32, 1, 0);
-        vao.setup_attribute(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
-        vao.setup_attribute(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
+        vao.setup_attribute_int(0, 0, gfx::AttributeType::U32, 1, 0);
+        vao.setup_attribute_int(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
+        vao.setup_attribute_int(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
 
         m_chunk_mesh_indices[chunk_pos] = index;
 

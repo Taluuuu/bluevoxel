@@ -82,24 +82,24 @@ namespace bluevoxel
 
     void BlueVoxelClientModule::update(f32 delta_time)
     {
+        auto& ui = g_engine->get_module_checked<h2o::UIModule>().ui();
+
+        ui.window("TEST", { { 50.0f, 50.0f }, { 256.0f, 256.0f } }, [&]()
+            {
+                ui.row(50.0f, 2);
+
+                if (ui.button("bouton :))"))
+                    h2o::log::info("BOUTONNN");
+
+                if (ui.button("bouton 2 :))"))
+                    h2o::log::info("BOUTONNN 2");
+            }
+        );
+
         switch (m_client.connection_state())
         {
         case h2o::ConnectionState::Disconnected:
         {
-            auto& ui = g_engine->get_module_checked<h2o::UIModule>().ui();
-
-            ui.window("TEST", { { 50.0f, 50.0f }, { 256.0f, 256.0f } }, [&]()
-                {
-                    ui.row(50.0f, 2);
-
-                    if (ui.button("bouton :))"))
-                        h2o::log::info("BOUTONNN");
-
-                    if (ui.button("bouton 2 :))"))
-                        h2o::log::info("BOUTONNN 2");
-                }
-            );
-
             m_client.connect("127.0.0.1", 1338);
 //            ImGui::Begin("Connect to Server");
 //

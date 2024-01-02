@@ -12,6 +12,7 @@ add_library(h2o_ui
 target_link_libraries(h2o_ui
     PRIVATE
         h2o_core
+        h2o_input
         h2o_rendering
         h2o_windowing
 
@@ -25,6 +26,7 @@ target_include_directories(h2o_ui
 
     PRIVATE
         h2o_core
+        h2o_input
         h2o_rendering
         h2o_windowing
 

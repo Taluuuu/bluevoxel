@@ -46,6 +46,8 @@ namespace h2o::gfx
         virtual std::shared_ptr<VertexArray>  create_vertex_array_ptr() = 0;
 
         // Texture
+        virtual Texture                       create_texture() = 0;
+        virtual std::shared_ptr<Texture>      create_texture_ptr() = 0;
         virtual TextureArray                  create_texture_array(u32 array_size) = 0;
         virtual std::shared_ptr<TextureArray> create_texture_array_ptr(u32 array_size) = 0;
 

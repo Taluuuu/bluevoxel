@@ -9,6 +9,7 @@
 
 namespace h2o
 {
+    class InputModule;
     class RenderingModule;
     class WindowingModule;
 
@@ -17,6 +18,7 @@ namespace h2o
         class Buffer;
         class IPipeline;
         class IRenderer;
+        class Texture;
     }
 
     class UIRenderer_Nuklear
@@ -45,12 +47,14 @@ namespace h2o
         {
             v2 position{};
             v2 uv{};
-            v4 col{};
+            u8 col[4];
         };
 
         nk_context m_nk_context{};
         nk_buffer m_nk_commands{};
         nk_draw_null_texture m_nk_texture_null{};
+        nk_font_atlas m_nk_atlas{};
+        std::shared_ptr<gfx::Texture> m_font_texture{};
 
         std::shared_ptr<gfx::IPipeline> m_nuklear_pipeline = nullptr;
 
@@ -67,6 +71,7 @@ namespace h2o
         i32 m_attrib_uv = 0;
         i32 m_attrib_col = 0;
 
+        InputModule*     m_input_module     = nullptr;
         RenderingModule* m_rendering_module = nullptr;
         WindowingModule* m_windowing_module = nullptr;
 

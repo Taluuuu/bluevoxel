@@ -33,6 +33,7 @@ namespace h2o
 
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
+        [[nodiscard]] v2 mouse_position() const;
         [[nodiscard]] v2 mouse_delta() const;
 
     private:

@@ -162,6 +162,11 @@ namespace h2o
         return m_mouse_button_states[*btn_idx];
     }
 
+    v2 InputModule::mouse_position() const
+    {
+        return m_mouse_pos;
+    }
+
     v2 InputModule::mouse_delta() const
     {
         return m_mouse_delta;

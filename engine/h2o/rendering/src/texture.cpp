@@ -22,13 +22,13 @@ namespace h2o::gfx
 
     void Texture::update_data(const TextureFormat& format, const void* data)
     {
-        m_renderer->update_texture_data(*this, format, data);
+        m_renderer->update_texture_data(id(), format, data);
         m_format = format;
     }
 
     void Texture::bind(u32 texture_slot)
     {
-        m_renderer->bind_texture(*this, texture_slot);
+        m_renderer->bind_texture(id(), texture_slot);
     }
 
     void Texture::destroy()

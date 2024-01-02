@@ -41,6 +41,7 @@ namespace h2o::gfx
     {
         switch (attribute_type)
         {
+        case AttributeType::U8:  return GL_UNSIGNED_BYTE;
         case AttributeType::U16: return GL_UNSIGNED_SHORT;
         case AttributeType::U32: return GL_UNSIGNED_INT;
         case AttributeType::F32: return GL_FLOAT;
@@ -156,39 +157,30 @@ namespace h2o::gfx
         glDeleteVertexArrays(1, &vertex_array_id);
     }
 
-    void Renderer_OpenGL::attach_vertex_buffer(VertexArray& vertex_array, const Buffer& buffer, u32 binding_index, i64 offset, i32 stride)
+    void Renderer_OpenGL::attach_vertex_buffer(u32 vertex_array_id, const Buffer& buffer, u32 binding_index, i64 offset, i32 stride)
     {
-        assert(vertex_array.is_valid());
         assert(buffer.is_valid());
-        glVertexArrayVertexBuffer(vertex_array.id(), binding_index, buffer.id(), offset, stride);
+        glVertexArrayVertexBuffer(vertex_array_id, binding_index, buffer.id(), offset, stride);
     }
 
-    void Renderer_OpenGL::update_index_buffer(VertexArray& vertex_array, const Buffer& buffer)
+    void Renderer_OpenGL::update_index_buffer(u32 vertex_array_id, const Buffer& buffer)
     {
-        assert(vertex_array.is_valid());
         assert(buffer.is_valid());
-        glVertexArrayElementBuffer(vertex_array.id(), buffer.id());
+        glVertexArrayElementBuffer(vertex_array_id, buffer.id());
     }
 
-    void Renderer_OpenGL::setup_attribute(VertexArray& vertex_array, u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset)
+    void Renderer_OpenGL::setup_attribute_float(u32 vertex_array_id, u32 attribute_index, u32 binding_index, AttributeType type, bool normalize, i32 size, u32 relative_offset)
     {
-        assert(vertex_array.is_valid());
+        glEnableVertexArrayAttrib(vertex_array_id, attribute_index);
+        glVertexArrayAttribFormat(vertex_array_id, attribute_index, size, to_gl_attribute_type(type), normalize, relative_offset);
+        glVertexArrayAttribBinding(vertex_array_id, attribute_index, binding_index);
+    }
 
-        glEnableVertexArrayAttrib(vertex_array.id(), attribute_index);
-
-        switch (type)
-        {
-        case AttributeType::F32:
-            glVertexArrayAttribFormat(vertex_array.id(), attribute_index, size, GL_FLOAT, GL_FALSE, relative_offset);
-            break;
-        case AttributeType::U32:
-            glVertexArrayAttribIFormat(vertex_array.id(), attribute_index, size, GL_UNSIGNED_INT, relative_offset);
-            break;
-        default:
-            assert(false);
-        }
-
-        glVertexArrayAttribBinding(vertex_array.id(), attribute_index, binding_index);
+    void Renderer_OpenGL::setup_attribute_int(u32 vertex_array_id, u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset)
+    {
+        glEnableVertexArrayAttrib(vertex_array_id, attribute_index);
+        glVertexArrayAttribIFormat(vertex_array_id, attribute_index, size, to_gl_attribute_type(type), relative_offset);
+        glVertexArrayAttribBinding(vertex_array_id, attribute_index, binding_index);
     }
 
     u32 Renderer_OpenGL::allocate_buffer()
@@ -203,10 +195,8 @@ namespace h2o::gfx
         glDeleteBuffers(1, &buffer_id);
     }
 
-    void Renderer_OpenGL::update_buffer_data(Buffer& buffer, const void* data, size_t size, BufferUsage buffer_usage)
+    void Renderer_OpenGL::update_buffer_data(u32 buffer_id, const void* data, size_t size, BufferUsage buffer_usage)
     {
-        assert(buffer.is_valid());
-
         GLenum usage = GL_STATIC_DRAW;
         switch (buffer_usage)
         {
@@ -214,7 +204,27 @@ namespace h2o::gfx
         case BufferUsage::StaticDraw: usage = GL_STATIC_DRAW; break;
         }
 
-        glNamedBufferData(buffer.id(), GLsizeiptr(size), data, usage);
+        glNamedBufferData(buffer_id, GLsizeiptr(size), data, usage);
+    }
+
+    const void* Renderer_OpenGL::map_buffer_read_only(u32 buffer_id)
+    {
+        return glMapNamedBuffer(buffer_id, GL_READ_ONLY);
+    }
+
+    void* Renderer_OpenGL::map_buffer_write_only(u32 buffer_id)
+    {
+        return glMapNamedBuffer(buffer_id, GL_WRITE_ONLY);
+    }
+
+    void* Renderer_OpenGL::map_buffer_read_write(u32 buffer_id)
+    {
+        return glMapNamedBuffer(buffer_id, GL_READ_WRITE);
+    }
+
+    void Renderer_OpenGL::unmap_buffer(u32 buffer_id)
+    {
+        glUnmapNamedBuffer(buffer_id);
     }
 
     void Renderer_OpenGL::destroy_texture(u32 texture_id)
@@ -222,9 +232,9 @@ namespace h2o::gfx
         glDeleteTextures(1, &texture_id);
     }
 
-    void Renderer_OpenGL::bind_texture(Texture& texture, u32 texture_slot)
+    void Renderer_OpenGL::bind_texture(u32 texture_id, u32 texture_slot)
     {
-        glBindTextureUnit(texture_slot, texture.id());
+        glBindTextureUnit(texture_slot, texture_id);
     }
 
     u32 Renderer_OpenGL::allocate_texture()
@@ -234,15 +244,15 @@ namespace h2o::gfx
         return handle;
     }
 
-    void Renderer_OpenGL::update_texture_data(Texture& texture, const TextureFormat& format, const void* data)
+    void Renderer_OpenGL::update_texture_data(u32 texture_id, const TextureFormat& format, const void* data)
     {
-        glTextureParameteri(texture.id(), GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(texture.id(), GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTextureParameteri(texture.id(), GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTextureParameteri(texture.id(), GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTextureParameteri(texture_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(texture_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(texture_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(texture_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-        glTextureStorage2D(texture.id(), 1, GL_RGBA8, i32(format.size.x), i32(format.size.y));
-        glTextureSubImage2D(texture.id(), 0, 0, 0, i32(format.size.x), i32(format.size.y), GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glTextureStorage2D(texture_id, 1, GL_RGBA8, i32(format.size.x), i32(format.size.y));
+        glTextureSubImage2D(texture_id, 0, 0, 0, i32(format.size.x), i32(format.size.y), GL_RGBA, GL_UNSIGNED_BYTE, data);
     }
 
     u32 Renderer_OpenGL::allocate_texture_array()
@@ -257,33 +267,32 @@ namespace h2o::gfx
         glDeleteTextures(1, &texture_array_id);
     }
 
-    void Renderer_OpenGL::init_texture_array(TextureArray& texture_array, const TextureFormat& texture_format)
+    void Renderer_OpenGL::init_texture_array(u32 texture_array_id, u32 array_size, const TextureFormat& texture_format)
     {
-        const u32 handle = texture_array.id();
         assert(texture_format.nb_channels == 4); // TODO: Support more formats later
 
-        glTextureStorage3D(handle, 1, GL_RGBA8,
+        glTextureStorage3D(texture_array_id, 1, GL_RGBA8,
             GLsizei(texture_format.size.x),
             GLsizei(texture_format.size.y),
-            GLsizei(texture_array.size()));
+            GLsizei(array_size));
 
         // Set texture parameters
-        glTextureParameteri(handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTextureParameteri(handle, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTextureParameteri(handle, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTextureParameteri(texture_array_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(texture_array_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTextureParameteri(texture_array_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(texture_array_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     }
 
-    void Renderer_OpenGL::bind_texture_array(TextureArray& texture_array, u32 texture_slot)
+    void Renderer_OpenGL::bind_texture_array(u32 texture_array_id, u32 texture_slot)
     {
-        glBindTextureUnit(texture_slot, texture_array.id());
+        glBindTextureUnit(texture_slot, texture_array_id);
     }
 
-    void Renderer_OpenGL::attach_texture_to_texture_array(TextureArray& texture_array, const Texture& texture, u32 index)
+    void Renderer_OpenGL::attach_texture_to_texture_array(u32 texture_array_id, const Texture& texture, u32 index)
     {
         glCopyImageSubData(
-            texture.id(),       GL_TEXTURE_2D,       0, 0, 0, 0,
-            texture_array.id(), GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(index),
+            texture.id(),     GL_TEXTURE_2D,       0, 0, 0, 0,
+            texture_array_id, GL_TEXTURE_2D_ARRAY, 0, 0, 0, GLint(index),
             GLsizei(texture.format().size.x), GLsizei(texture.format().size.y), 1);
     }
 }

@@ -23,22 +23,28 @@ namespace h2o::gfx
 
     void Buffer::update_data(const void* data, size_t size, BufferUsage buffer_usage)
     {
-        m_renderer->update_buffer_data(*this, data, size, buffer_usage);
+        m_renderer->update_buffer_data(id(), data, size, buffer_usage);
     }
 
-    void Buffer::map_read_write(const std::function<void(void*, size_t)>& function)
+    void Buffer::map_read_only(const std::function<void(const void*)>& function) const
     {
-        
+        const void* data = m_renderer->map_buffer_read_only(id());
+        function(data);
+        m_renderer->unmap_buffer(id());
     }
 
-    void Buffer::map_write_only(const std::function<void(void*, size_t)>& function)
+    void Buffer::map_write_only(const std::function<void(void*)>& function)
     {
-
+        void* data = m_renderer->map_buffer_write_only(id());
+        function(data);
+        m_renderer->unmap_buffer(id());
     }
 
-    void Buffer::map_read_only(const std::function<void(const void*, size_t)>& function) const
+    void Buffer::map_read_write(const std::function<void(void*)>& function)
     {
-
+        void* data = m_renderer->map_buffer_read_write(id());
+        function(data);
+        m_renderer->unmap_buffer(id());
     }
 
     void Buffer::destroy()

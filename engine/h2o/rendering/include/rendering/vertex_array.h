@@ -23,7 +23,9 @@ namespace h2o::gfx
         void attach_vertex_buffer(const std::shared_ptr<Buffer>& buffer, u32 binding_index, i64 offset, i32 stride);
         void attach_index_buffer(const std::shared_ptr<Buffer>& buffer);
 
-        void setup_attribute(u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset);
+
+        void setup_attribute_float(u32 attribute_index, u32 binding_index, AttributeType type, bool normalize, i32 size, u32 relative_offset);
+        void setup_attribute_int(u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset);
 
         [[nodiscard]] bool is_valid() const { return m_id != 0; }
         [[nodiscard]] u32 id() const { return m_id; }

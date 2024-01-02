@@ -25,7 +25,7 @@ namespace h2o::gfx
 
         if (!m_format.has_value())
         {
-            m_renderer->init_texture_array(*this, texture->format());
+            m_renderer->init_texture_array(id(), size(), texture->format());
             m_format = texture->format();
         }
 
@@ -43,11 +43,11 @@ namespace h2o::gfx
         }
 
         m_textures[index] = texture;
-        m_renderer->attach_texture_to_texture_array(*this, *texture, index);
+        m_renderer->attach_texture_to_texture_array(id(), *texture, index);
     }
 
     void TextureArray::bind(u32 texture_slot)
     {
-        m_renderer->bind_texture_array(*this, texture_slot);
+        m_renderer->bind_texture_array(id(), texture_slot);
     }
 }

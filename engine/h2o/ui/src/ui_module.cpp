@@ -1,6 +1,7 @@
 #include "ui/ui_module.h"
 
 #include "core/engine.h"
+#include "input/input_module.h"
 #include "rendering/rendering_module.h"
 #include "nuklear/ui_renderer_nuklear.h"
 #include "windowing/windowing_module.h"
@@ -25,7 +26,10 @@ namespace h2o
 
     std::vector<std::type_index> UIModule::dependencies() const
     {
-        return { typeid(RenderingModule), typeid(WindowingModule) };
+        return {
+            typeid(RenderingModule),
+            typeid(WindowingModule),
+            typeid(InputModule) };
     }
 
     IUIRenderer& UIModule::ui() const
