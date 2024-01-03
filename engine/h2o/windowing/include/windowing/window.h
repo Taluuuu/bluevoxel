@@ -18,6 +18,11 @@ namespace h2o
         bool pressed { false };
     };
 
+    struct CharEvent
+    {
+        u32 unicode_char = 0;
+    };
+
     struct MouseButtonChangedEvent
     {
         MouseButton button { MouseButton::Unknown };
@@ -89,6 +94,7 @@ namespace h2o
         [[nodiscard]] virtual Event<WindowResizeEvent>& resize_event() = 0;
         
         [[nodiscard]] virtual Event<KeyChangedEvent>& key_changed_event() = 0;
+        [[nodiscard]] virtual Event<CharEvent>& char_event() = 0;
         [[nodiscard]] virtual Event<MouseButtonChangedEvent>& mouse_button_changed_event() = 0;
         [[nodiscard]] virtual Event<MouseMovedEvent>& mouse_moved_event() = 0;
         

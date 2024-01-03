@@ -17,14 +17,19 @@ namespace h2o
         virtual bool init(Engine& engine) = 0;
         virtual void cleanup() = 0;
 
-        virtual void window(
+        virtual bool window_begin(
             const std::string& title,
-            const ui::Rect& rect,
-            const std::function<void()>& window_contents) = 0;
+            const ui::Rect& rect) = 0;
+        virtual void window_end() = 0;
 
         virtual void row(f32 height, i32 num_columns) = 0;
 
+        virtual void label(const std::string& label) = 0;
+
         virtual bool button(const std::string& title) = 0;
+
+        virtual bool input_text(const std::string& label, std::string& text) = 0;
+        virtual bool input_int(const std::string& label, i32& num) = 0;
 
     };
 }

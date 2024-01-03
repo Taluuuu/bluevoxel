@@ -2,7 +2,9 @@
 
 #include "core/module.h"
 #include "core/tickable.h"
+#include "ui_types.h"
 
+#include <functional>
 #include <memory>
 
 namespace h2o
@@ -17,7 +19,10 @@ namespace h2o
 
         UIModule();
 
-        [[nodiscard]] IUIRenderer& ui() const;
+        void window(
+            const std::string& title,
+            const ui::Rect& rect,
+            const std::function<void(IUIRenderer&)>& window_contents);
 
         // IModule interface
         bool init(Engine& engine) override;

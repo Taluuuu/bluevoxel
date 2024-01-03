@@ -12,6 +12,19 @@ namespace h2o
         : Tickable(g_engine)
     {}
 
+    void UIModule::window(
+        const std::string& title,
+        const ui::Rect& rect,
+        const std::function<void(IUIRenderer&)>& window_contents)
+    {
+        assert(m_ui_renderer);
+
+        if (m_ui_renderer->window_begin(title, rect))
+            window_contents(*m_ui_renderer);
+
+        m_ui_renderer->window_end();
+    }
+
     bool UIModule::init(Engine& engine)
     {
         m_ui_renderer = std::make_shared<UIRenderer_Nuklear>(this);
@@ -30,11 +43,5 @@ namespace h2o
             typeid(RenderingModule),
             typeid(WindowingModule),
             typeid(InputModule) };
-    }
-
-    IUIRenderer& UIModule::ui() const
-    {
-        assert(m_ui_renderer);
-        return *m_ui_renderer;
     }
 }

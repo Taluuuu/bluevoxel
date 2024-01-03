@@ -25,7 +25,7 @@ namespace h2o
         const auto& rendering_module = engine.get_module_checked<RenderingModule>();
         gfx::Renderer_Base& renderer = rendering_module.renderer_base();
 
-        nk_init_default(&m_nk_context, nullptr);
+        nk_init_default(&m_nk_ctx, nullptr);
         nk_buffer_init_default(&m_nk_commands);
 
         // Setup Nuklear rendering pipeline
@@ -70,7 +70,14 @@ namespace h2o
         m_font_texture->update_data({ image_size, 4 }, image);
 
         nk_font_atlas_end(&m_nk_atlas, nk_handle_id(m_font_texture->id()), &m_nk_texture_null);
-        nk_style_set_font(&m_nk_context, &m_nk_atlas.default_font->handle);
+        nk_style_set_font(&m_nk_ctx, &m_nk_atlas.default_font->handle);
+
+        m_windowing_module->window().char_event().add_listener(m_char_event_handle,
+            [this](const CharEvent& char_event)
+            {
+                m_pressed_unicode_chars.push_back(char_event.unicode_char);
+            }
+        );
 
         set_tick_phases(TickPhase::FrameStart | TickPhase::FrameEnd);
         return true;
@@ -81,43 +88,99 @@ namespace h2o
 
     }
 
-    void UIRenderer_Nuklear::window(
+    bool UIRenderer_Nuklear::window_begin(
         const std::string& title,
-        const ui::Rect& rect,
-        const std::function<void()>& window_contents)
+        const ui::Rect& rect)
     {
-        if (nk_begin(&m_nk_context, title.c_str(), ui::to_nk_rect(rect),
+        return nk_begin(
+            &m_nk_ctx, title.c_str(), ui::to_nk_rect(rect),
             NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
-            NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
-        {
-            window_contents();
-        }
+            NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE);
+    }
 
-        nk_end(&m_nk_context);
+    void UIRenderer_Nuklear::window_end()
+    {
+        nk_end(&m_nk_ctx);
     }
 
     void UIRenderer_Nuklear::row(f32 height, i32 num_columns)
     {
-        nk_layout_row_dynamic(&m_nk_context, height, num_columns);
+        nk_layout_row_dynamic(&m_nk_ctx, height, num_columns);
+    }
+
+    void UIRenderer_Nuklear::label(const std::string& label)
+    {
+        nk_label(&m_nk_ctx, label.c_str(), NK_TEXT_LEFT);
     }
 
     bool UIRenderer_Nuklear::button(const std::string& title)
     {
-        return nk_button_label(&m_nk_context, title.c_str());
+        return nk_button_label(&m_nk_ctx, title.c_str());
+    }
+
+    bool UIRenderer_Nuklear::input_text(const std::string& label, std::string& text)
+    {
+        // Super scuffed
+        static constexpr size_t max_len = 100;
+        i32 text_len = i32(text.size());
+        assert(text_len + 1 <= max_len);
+
+        char temp[max_len];
+        strcpy_s(temp, text_len + 1, text.c_str());
+
+        if (nk_edit_string(
+            &m_nk_ctx, NK_EDIT_FIELD,
+            temp, &text_len, max_len,
+            nk_filter_ascii) != NK_EDIT_ACTIVE)
+        {
+            return false;
+        }
+
+        text.clear();
+        text.append(temp, text_len);
+
+        return true;
+    }
+
+    bool UIRenderer_Nuklear::input_int(const std::string& label, i32& num)
+    {
+        const i32 prev_val = num;
+        nk_property_int(&m_nk_ctx, label.c_str(), 0, &num, 9999999, 1, 0.0f);
+        return num != prev_val;
     }
 
     void UIRenderer_Nuklear::frame_start(f32 delta_time)
     {
-        nk_input_begin(&m_nk_context);
+        nk_input_begin(&m_nk_ctx);
+
+        nk_input_key(&m_nk_ctx, NK_KEY_DEL, m_input_module->key_state(Key::Delete).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_ENTER, m_input_module->key_state(Key::Enter).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_TAB, m_input_module->key_state(Key::Tab).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_BACKSPACE, m_input_module->key_state(Key::Backspace).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_UP, m_input_module->key_state(Key::Up).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_DOWN, m_input_module->key_state(Key::Down).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_LEFT, m_input_module->key_state(Key::Left).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_RIGHT, m_input_module->key_state(Key::Right).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_TEXT_START, m_input_module->key_state(Key::Home).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_TEXT_END, m_input_module->key_state(Key::End).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_START, m_input_module->key_state(Key::Home).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_END, m_input_module->key_state(Key::End).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_DOWN, m_input_module->key_state(Key::PageDown).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_UP, m_input_module->key_state(Key::PageUp).held);
+        nk_input_key(&m_nk_ctx, NK_KEY_SHIFT, m_input_module->key_state(Key::LeftShift).held || m_input_module->key_state(Key::RightShift).held);
+
+        for (u32 unicode_char : m_pressed_unicode_chars)
+            nk_input_unicode(&m_nk_ctx, unicode_char);
+        m_pressed_unicode_chars.clear();
 
         // Mouse input
         const v2i mouse_position = m_input_module->mouse_position();
-        nk_input_motion(&m_nk_context, mouse_position.x, mouse_position.y);
-        nk_input_button(&m_nk_context, NK_BUTTON_LEFT,
+        nk_input_motion(&m_nk_ctx, mouse_position.x, mouse_position.y);
+        nk_input_button(&m_nk_ctx, NK_BUTTON_LEFT,
             mouse_position.x, mouse_position.y,
             m_input_module->mouse_button_state(MouseButton::Left).held);
 
-        nk_input_end(&m_nk_context);
+        nk_input_end(&m_nk_ctx);
     }
 
     void UIRenderer_Nuklear::frame_end(f32 delta_time)
@@ -169,7 +232,7 @@ namespace h2o
                     {
                         nk_buffer_init_fixed(&vbuf, vertex_data, max_vertex_buffer);
                         nk_buffer_init_fixed(&ebuf, index_data, max_index_buffer);
-                        nk_convert(&m_nk_context, &m_nk_commands, &vbuf, &ebuf, &config);
+                        nk_convert(&m_nk_ctx, &m_nk_commands, &vbuf, &ebuf, &config);
                     }
                 );
             }
@@ -181,7 +244,7 @@ namespace h2o
         // Draw each draw command
         nk_size offset = 0;
         const nk_draw_command* cmd;
-        nk_draw_foreach(cmd, &m_nk_context, &m_nk_commands)
+        nk_draw_foreach(cmd, &m_nk_ctx, &m_nk_commands)
         {
             if (!cmd->elem_count)
                 continue;
@@ -201,7 +264,7 @@ namespace h2o
             offset += cmd->elem_count * sizeof(nk_draw_index);
         }
 
-        nk_clear(&m_nk_context);
+        nk_clear(&m_nk_ctx);
         nk_buffer_clear(&m_nk_commands);
     }
 }

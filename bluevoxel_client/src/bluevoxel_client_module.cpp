@@ -61,6 +61,8 @@ namespace bluevoxel
             }
         );
 
+        m_ui_module = &engine.get_module_checked<h2o::UIModule>();
+
         return true;
     }
 
@@ -82,71 +84,45 @@ namespace bluevoxel
 
     void BlueVoxelClientModule::update(f32 delta_time)
     {
-        auto& ui = g_engine->get_module_checked<h2o::UIModule>().ui();
-
-        ui.window("TEST", { { 50.0f, 50.0f }, { 256.0f, 256.0f } }, [&]()
+        m_ui_module->window("Connection", {{50.0f, 50.0f}, {250.0f, 250.0f}},
+            [&](h2o::IUIRenderer& ui)
             {
-                ui.row(50.0f, 2);
+                switch (m_client.connection_state())
+                {
+                case h2o::ConnectionState::Disconnected:
+                {
+                    ui.row(25.0f, 1);
 
-                if (ui.button("bouton :))"))
-                    h2o::log::info("BOUTONNN");
+                    ui.input_text("Server IP", m_server_ip);
 
-                if (ui.button("bouton 2 :))"))
-                    h2o::log::info("BOUTONNN 2");
+                    if (ui.input_int("Server Port", m_server_port))
+                        m_server_port = glm::clamp(m_server_port, 0, 65'535);
+
+                    if (ui.button("Connect"))
+                        m_client.connect(m_server_ip, m_server_port);
+
+                    break;
+                }
+
+                case h2o::ConnectionState::Connecting:
+                {
+                    ui.row(25.0f, 1);
+                    ui.label("Connecting to Server...");
+
+                    break;
+                }
+
+                case h2o::ConnectionState::Connected:
+                {
+                    ui.row(25.0f, 1);
+                    if (ui.button("Disconnect"))
+                        m_client.stop();
+
+                    break;
+                }
+                }
             }
         );
-
-        switch (m_client.connection_state())
-        {
-        case h2o::ConnectionState::Disconnected:
-        {
-            m_client.connect("127.0.0.1", 1338);
-//            ImGui::Begin("Connect to Server");
-//
-//            ImGui::InputText("Server IP", &m_server_ip);
-//            if (ImGui::InputInt("Server Port", &m_server_port, 0))
-//                m_server_port = glm::clamp(m_server_port, 0, 65'535);
-//
-//            if (ImGui::Button("Connect to server"))
-//                m_client.connect(m_server_ip, m_server_port);
-//
-//            ImGui::End();
-            break;
-        }
-
-        case h2o::ConnectionState::Connecting:
-        {
-//            ImGui::Begin("Connection");
-//
-//            ImGui::Text("Connecting...");
-//
-//            ImGui::End();
-            break;
-        }
-
-        case h2o::ConnectionState::Connected:
-        {
-//            ImGui::Begin("Connection");
-//
-//            if (ImGui::Button("Disconnect from Server"))
-//                m_client.stop();
-//
-//            ImGui::End();
-
-            break;
-        }
-        }
-
-        if (m_chunk_client)
-        {
-//            ImGui::Begin("Voxel");
-//
-//            ImGui::SliderFloat3("Light Direction", &m_chunk_client->light_dir.x, -1.0f, 1.0f);
-//            ImGui::ColorEdit3("Light Color", &m_chunk_client->light_color.x);
-//            ImGui::SliderFloat("Ambient Strength", &m_chunk_client->ambient_strength, 0.0f, 1.0f);
-//
-//            ImGui::End();
-        }
     }
 
     void BlueVoxelClientModule::create_scene()
