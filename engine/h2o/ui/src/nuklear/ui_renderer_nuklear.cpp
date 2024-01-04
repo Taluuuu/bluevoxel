@@ -10,6 +10,9 @@
 #include "rendering/texture.h"
 #include "windowing/windowing_module.h"
 
+#define NK_IMPLEMENTATION
+#include "nuklear_headers.h"
+
 namespace h2o
 {
     UIRenderer_Nuklear::UIRenderer_Nuklear(Tickable* owner)
