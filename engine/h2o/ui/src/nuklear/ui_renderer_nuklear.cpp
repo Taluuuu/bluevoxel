@@ -34,8 +34,8 @@ namespace h2o
         // Setup Nuklear rendering pipeline
         m_nuklear_pipeline = renderer
             .create_pipeline()
-            .add_shader(gfx::ShaderStage::Vertex, "../Resources/engine/shaders/opengl/nuklear_ui.vert")
-            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/opengl/nuklear_ui.frag")
+            .add_shader(gfx::ShaderStage::Vertex, "../Resources/engine/shaders/nuklear_ui.vert")
+            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/nuklear_ui.frag")
             .with_feature(gfx::PipelineFeature::Blend)
             .with_blend_config(gfx::BlendEquation::Add, gfx::BlendFactor::SrcAlpha, gfx::BlendFactor::OneMinusSrcAlpha)
             .with_feature(gfx::PipelineFeature::ScissorTest)

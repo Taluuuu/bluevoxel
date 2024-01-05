@@ -12,14 +12,8 @@ namespace h2o
         ~VoxelServerModule() override = default;
 
         // IModule interface
-        [[nodiscard]] bool init(Engine& engine) override;
-        void cleanup() override;
-        [[nodiscard]] std::string_view module_name() const override;
+        [[nodiscard]] std::string_view module_name() const override { return "h2o_voxel_server"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
-
-//    private:
-//
-//        ChunkServer m_chunk_server{};
 
     };
 }

@@ -25,7 +25,7 @@ namespace bluevoxel
         // h2o::IModule interface
         [[nodiscard]] bool init(h2o::Engine& engine) override;
         void cleanup() override;
-        [[nodiscard]] std::string_view module_name() const override { return "bluevoxel_server_module"; }
+        [[nodiscard]] std::string_view module_name() const override { return "bluevoxel_server"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
     private:

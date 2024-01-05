@@ -11,7 +11,7 @@ namespace h2o
         ~VoxelClientModule() override = default;
 
         // IModule interface
-        [[nodiscard]] std::string_view module_name() const override;
+        [[nodiscard]] std::string_view module_name() const override { return "h2o_voxel_client"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
     };

@@ -230,8 +230,8 @@ namespace h2o
         // Create rendering pipeline
         m_pipeline = renderer
             .create_pipeline()
-            .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/opengl/chunk.vert")
-            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/opengl/chunk.frag")
+            .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/chunk.vert")
+            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/chunk.frag")
             .with_feature(gfx::PipelineFeature::CullFace)
             .with_feature(gfx::PipelineFeature::DepthTest)
             .compile();
@@ -244,8 +244,8 @@ namespace h2o
 
     const BlockModel* VoxelRenderingModule::get_model(const std::string& name) const
     {
-        auto it = m_block_model_indices_by_name.find(name);
-        if (it == m_block_model_indices_by_name.end())
+        auto it = m_model_name_index_map.find(name);
+        if (it == m_model_name_index_map.end())
             return nullptr;
 
         assert(it->second < m_block_models.size());
@@ -296,8 +296,8 @@ namespace h2o
 
     std::optional<u32> VoxelRenderingModule::get_model_index(const std::string& name) const
     {
-        const auto it = m_block_model_indices_by_name.find(name);
-        if (it == m_block_model_indices_by_name.end())
+        const auto it = m_model_name_index_map.find(name);
+        if (it == m_model_name_index_map.end())
             return std::nullopt;
 
         return it->second;
@@ -316,6 +316,6 @@ namespace h2o
         const u32 new_index = m_block_models.size();
         m_block_models.emplace_back(std::move(block_model));
 
-        m_block_model_indices_by_name[name] = new_index;
+        m_model_name_index_map[name] = new_index;
     }
 }

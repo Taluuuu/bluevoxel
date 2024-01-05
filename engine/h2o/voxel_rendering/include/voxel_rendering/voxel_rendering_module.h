@@ -52,7 +52,7 @@ namespace h2o
 
         // Block models
         std::vector<BlockModel> m_block_models;
-        std::unordered_map<std::string, u32> m_block_model_indices_by_name;
+        std::unordered_map<std::string, u32> m_model_name_index_map;
         std::vector<u32> m_block_model_indices_by_block_id;
 
         // Block textures

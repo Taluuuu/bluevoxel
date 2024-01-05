@@ -24,7 +24,7 @@ namespace bluevoxel
 {
     BlueVoxelClientModule::BlueVoxelClientModule()
         : Tickable(g_engine)
-        , m_client(g_engine)
+        , m_client(this)
     {}
 
     bool BlueVoxelClientModule::init(h2o::Engine& engine)
@@ -84,7 +84,7 @@ namespace bluevoxel
 
     void BlueVoxelClientModule::update(f32 delta_time)
     {
-        m_ui_module->window("Connection", {{50.0f, 50.0f}, {250.0f, 250.0f}},
+        m_ui_module->window("Connection", { { 50.0f, 50.0f }, { 250.0f, 250.0f } },
             [&](h2o::IUIRenderer& ui)
             {
                 switch (m_client.connection_state())
@@ -162,9 +162,9 @@ namespace bluevoxel
         {
             auto mesh_renderer = remote_player->add_component<h2o::MeshRendererComponent>();
             mesh_renderer->set_mesh(
-                g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel_client/models/robot.fbx"));
+                g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel/models/robot.fbx"));
             mesh_renderer->set_texture(
-                g_engine->resource_mgr().fetch<h2o::gfx::Texture>("../Resources/bluevoxel_client/textures/robot.png"));
+                g_engine->resource_mgr().fetch<h2o::gfx::Texture>("../Resources/bluevoxel/textures/robot.png"));
         }
     }
 }

@@ -30,7 +30,7 @@ namespace bluevoxel
         // h2o::IModule interface
         [[nodiscard]] bool init(h2o::Engine& engine) override;
         void cleanup() override;
-        [[nodiscard]] std::string_view module_name() const override { return "bluevoxel_client_module"; }
+        [[nodiscard]] std::string_view module_name() const override { return "bluevoxel_client"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         // h2o::Tickable interface

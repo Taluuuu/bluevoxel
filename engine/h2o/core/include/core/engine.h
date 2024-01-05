@@ -22,7 +22,7 @@ namespace h2o
         explicit Engine(const GameInfo& game_info);
         Engine(const Engine&) = delete;
         Engine(Engine&&) = delete;
-        ~Engine();
+        ~Engine() override;
 
         /**
          * @brief Add a module to the engine. Initialize it once all its dependencies

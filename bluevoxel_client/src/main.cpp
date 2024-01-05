@@ -20,7 +20,7 @@ int main()
 
     const auto voxel_pack = engine
         .resource_mgr()
-        .fetch<h2o::VoxelPack>("../Resources/bluevoxel_server/voxel/pack.yml");
+        .fetch<h2o::VoxelPack>("../Resources/bluevoxel/voxel/pack.yml");
 
     engine
         .add_module<h2o::VoxelModule>(voxel_pack)
