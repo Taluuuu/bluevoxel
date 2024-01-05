@@ -1,0 +1,3 @@
+block_types_path: "block_types.yml"
+block_models_path: "block_models.yml"
+textures_path: "textures"
