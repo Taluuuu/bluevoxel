@@ -17,32 +17,39 @@
 
 namespace h2o
 {
-    VoxelRenderingModule::VoxelRenderingModule(const std::shared_ptr<VoxelPack>& voxel_pack)
-        : m_voxel_pack(voxel_pack)
-    {}
-
     std::vector<std::type_index> VoxelRenderingModule::dependencies() const
     {
-        return { typeid(VoxelModule), typeid(RenderingModule) };
+        return {
+            typeid(VoxelModule),
+            typeid(RenderingModule) };
     }
 
     bool VoxelRenderingModule::init(Engine& engine)
     {
-        if (!m_voxel_pack)
-        {
-            log::error("No usable voxel pack found in voxel rendering module.");
-            return false;
-        }
+        const auto& voxel_module = engine.get_module_checked<VoxelModule>();
+        const auto& rendering_module = engine.get_module_checked<RenderingModule>();
+        auto& renderer = rendering_module.renderer();
 
-        m_voxel_module = engine.get_module<VoxelModule>();
-        m_rendering_module = engine.get_module<RenderingModule>();
-        if (!m_voxel_module || !m_rendering_module)
+        // Create rendering pipeline
+        m_pipeline = renderer
+            .create_pipeline()
+            .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/chunk.vert")
+            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/chunk.frag")
+            .with_feature(gfx::PipelineFeature::CullFace)
+            .with_feature(gfx::PipelineFeature::DepthTest)
+            .compile();
+
+        if (!m_pipeline)
+            return false;
+
+        auto voxel_pack = voxel_module.voxel_pack();
+        if (!voxel_pack)
             return false;
 
         // Load block models
         try
         {
-            const auto root = YAML::LoadFile(m_voxel_pack->block_models_path().string());
+            const auto root = YAML::LoadFile(voxel_pack->block_models_path().string());
             const auto block_models = root["block_models"];
             for (const auto block_model : block_models)
             {
@@ -54,7 +61,7 @@ namespace h2o
                 }
 
                 // An index that keeps track of the order in which faces are defined.
-                // This is a bit of a hack as the tex_idx defined here is not the same as the tex_idx that
+                // This is a bit ugly as the tex_idx defined here is not the same as the tex_idx that
                 // is sent to the gpu, which is defined per-block.
                 u32 tex_idx = 0;
 
@@ -154,13 +161,13 @@ namespace h2o
         i32 current_tex_index = 0;
         std::unordered_map<std::string, i32> texture_index_map;
 
-        size_t block_type_count = m_voxel_module->block_type_count();
+        size_t block_type_count = voxel_module.block_type_count();
         m_block_model_indices_by_block_id.resize(block_type_count);
         m_texture_indices_by_block_id.resize(block_type_count);
 
         for (size_t i = 0; i < block_type_count; i++)
         {
-            const BlockType* block_type = m_voxel_module->get_block_type(i);
+            const BlockType* block_type = voxel_module.get_block_type(i);
             if (!block_type)
                 continue;
 
@@ -208,7 +215,6 @@ namespace h2o
             m_texture_indices_by_block_id[i] = std::move(block_tex_indices);
         }
 
-        auto& renderer = m_rendering_module->renderer();
 
         // Load textures
         m_block_textures = renderer.create_texture_array_ptr(texture_index_map.size());
@@ -218,7 +224,7 @@ namespace h2o
         for (const auto& [tex_name, tex_index] : texture_index_map)
         {
             auto tex = g_engine->resource_mgr().fetch<gfx::Texture>(
-                (m_voxel_pack->textures_path() / fs::path(tex_name)).string());
+                (voxel_pack->textures_path() / fs::path(tex_name)).string());
 
             if (!tex)
                 continue;
@@ -226,18 +232,6 @@ namespace h2o
             assert(tex_index < texture_index_map.size());
             m_block_textures->set_texture(tex_index, tex);
         }
-
-        // Create rendering pipeline
-        m_pipeline = renderer
-            .create_pipeline()
-            .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/chunk.vert")
-            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/chunk.frag")
-            .with_feature(gfx::PipelineFeature::CullFace)
-            .with_feature(gfx::PipelineFeature::DepthTest)
-            .compile();
-
-        if (!m_pipeline)
-            return false;
 
         return true;
     }

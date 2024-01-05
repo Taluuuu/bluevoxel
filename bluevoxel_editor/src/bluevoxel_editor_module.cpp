@@ -3,6 +3,8 @@
 #include "core/engine.h"
 #include "ui/ui_module.h"
 #include "ui/ui_renderer.h"
+#include "voxel/chunk.h"
+#include "voxel/voxel_module.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 
 namespace bluevoxel
@@ -15,14 +17,19 @@ namespace bluevoxel
     {
         m_ui_module = &engine.get_module_checked<h2o::UIModule>();
 
-        set_tick_phases(h2o::TickPhase::Update);
+        auto& voxel_module = engine.get_module_checked<h2o::VoxelModule>();
+        h2o::Chunk chunk({ 0, 0, 0 }, voxel_module);
+        chunk.set_block_at({ 0, 0, 0 }, { 1 });
+
+        set_tick_phases(h2o::TickPhase::Update | h2o::TickPhase::Render);
         return true;
     }
 
     std::vector<std::type_index> BlueVoxelEditorModule::dependencies() const
     {
         return {
-//            typeid(h2o::VoxelRenderingModule),
+            typeid(h2o::VoxelModule),
+            typeid(h2o::VoxelRenderingModule),
             typeid(h2o::UIModule) };
     }
 
@@ -37,5 +44,10 @@ namespace bluevoxel
                     h2o::log::info("oui");
             }
         );
+    }
+
+    void BlueVoxelEditorModule::render()
+    {
+
     }
 }

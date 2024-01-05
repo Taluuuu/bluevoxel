@@ -25,7 +25,7 @@ namespace h2o
     {
     public:
 
-        explicit VoxelRenderingModule(const std::shared_ptr<VoxelPack>& voxel_pack);
+        VoxelRenderingModule() = default;
         ~VoxelRenderingModule() override = default;
 
         // IModule interface
@@ -61,12 +61,6 @@ namespace h2o
         // Rendering
         std::shared_ptr<gfx::IPipeline> m_pipeline = nullptr;
         std::shared_ptr<gfx::TextureArray> m_block_textures = nullptr;
-
-        // Module refs
-        VoxelModule* m_voxel_module = nullptr;
-        RenderingModule* m_rendering_module = nullptr;
-
-        std::shared_ptr<VoxelPack> m_voxel_pack = nullptr;
 
     };
 }

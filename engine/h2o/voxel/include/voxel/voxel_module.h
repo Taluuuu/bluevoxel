@@ -26,15 +26,23 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override { return "h2o_voxel"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
+        [[nodiscard]] const std::shared_ptr<VoxelPack>& voxel_pack() const { return m_voxel_pack; }
+
         [[nodiscard]] const BlockType* get_block_type(BlockID id) const;
         [[nodiscard]] size_t block_type_count() const;
+        [[nodiscard]] bool is_valid_block_id(BlockID id) const;
 
         [[nodiscard]] const BlockPreset_Base* get_block_preset(BlockID id) const;
-        [[nodiscard]] BlockPresetFlags get_block_preset_data(BlockID id) const;
+        [[nodiscard]] std::optional<BlockPresetFlags> get_block_preset_data(BlockID id) const;
         void register_block_preset(
             const std::string& name,
-            std::shared_ptr<BlockPreset_Base>&& preset);
-//        [[nodiscard]] size_t block_preset_count() const;
+            const std::shared_ptr<BlockPreset_Base>& preset);
+
+    protected:
+
+        void set_block_types(const std::vector<std::optional<BlockType>>& block_types);
+
+        static std::vector<std::optional<BlockType>> load_block_types_from_voxel_pack(const VoxelPack& voxel_pack);
 
     private:
 

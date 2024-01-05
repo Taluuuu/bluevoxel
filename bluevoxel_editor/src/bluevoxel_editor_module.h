@@ -24,8 +24,11 @@ namespace bluevoxel
         [[nodiscard]] std::string_view module_name() const override { return "bluevoxel_editor"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
+    protected:
+
         // h2o::Tickable interface
         void update(f32 delta_time) override;
+        void render() override;
 
     private:
 

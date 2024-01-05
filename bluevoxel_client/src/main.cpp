@@ -24,7 +24,7 @@ int main()
 
     engine
         .add_module<h2o::VoxelModule>(voxel_pack)
-        .add_module<h2o::VoxelRenderingModule>(voxel_pack)
+        .add_module<h2o::VoxelRenderingModule>()
         .add_module<h2o::VoxelClientModule>()
         .add_module<h2o::NetworkingModule>()
         .add_module<h2o::WindowingModule>()
