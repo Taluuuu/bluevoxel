@@ -2,9 +2,7 @@
 
 #include "core/resources.h"
 
-#include <filesystem>
-
-namespace fs = std::filesystem;
+#include <string_view>
 
 namespace h2o
 {
@@ -15,15 +13,13 @@ namespace h2o
         // IResource interface
         bool load(const std::string& path) override;
 
-        [[nodiscard]] const fs::path& block_types_path()  const { return m_block_types_path;  }
-        [[nodiscard]] const fs::path& block_models_path() const { return m_block_models_path; }
-        [[nodiscard]] const fs::path& textures_path()     const { return m_textures_path;     }
 
-    private:
 
-        fs::path m_block_types_path;
-        fs::path m_block_models_path;
-        fs::path m_textures_path;
+    protected:
+
+        static constexpr std::string_view block_types_file_name { "block_types.yml" };
+        static constexpr std::string_view block_models_file_name { "block_models.yml" };
+        static constexpr std::string_view textures_folder_name { "textures" };
 
     };
 }

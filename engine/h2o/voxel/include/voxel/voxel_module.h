@@ -19,7 +19,8 @@ namespace h2o
     {
     public:
 
-        explicit VoxelModule(const std::shared_ptr<VoxelPack>& voxel_pack);
+        VoxelModule() = default;
+        ~VoxelModule() override = default;
 
         // IModule interface
         [[nodiscard]] bool init(Engine& engine) override;

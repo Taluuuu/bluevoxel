@@ -1,5 +1,6 @@
 #include "voxel/voxel_module.h"
 
+#include "core/engine.h"
 #include "core/log.h"
 #include "voxel/block.h"
 #include "voxel/block_presets/block_preset_crop.h"
@@ -10,14 +11,14 @@
 
 namespace h2o
 {
-    VoxelModule::VoxelModule(const std::shared_ptr<VoxelPack>& voxel_pack)
-        : m_voxel_pack(voxel_pack)
-    {}
-
     bool VoxelModule::init(Engine& engine)
     {
         register_block_preset("normal", std::make_shared<BlockPreset_Base>());
         register_block_preset("crop", std::make_shared<BlockPreset_Crop>());
+
+        m_voxel_pack = engine
+            .resource_mgr()
+            .fetch<h2o::VoxelPack>("../Resources/bluevoxel/voxel/pack.yml");
 
         if (m_voxel_pack)
             set_block_types(load_block_types_from_voxel_pack(*m_voxel_pack));
@@ -32,8 +33,7 @@ namespace h2o
 
     const BlockType* VoxelModule::get_block_type(BlockID id) const
     {
-        // Can't use an assert here as the data is loaded at runtime
-        if (id >= m_block_types.size())
+        if (!is_valid_block_id(id))
             return nullptr;
 
         if (const auto& block_type = m_block_types[id]; block_type.has_value())

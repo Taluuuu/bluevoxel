@@ -19,7 +19,6 @@ namespace bluevoxel
 
         auto& voxel_module = engine.get_module_checked<h2o::VoxelModule>();
         h2o::Chunk chunk({ 0, 0, 0 }, voxel_module);
-        chunk.set_block_at({ 0, 0, 0 }, { 1 });
 
         set_tick_phases(h2o::TickPhase::Update | h2o::TickPhase::Render);
         return true;

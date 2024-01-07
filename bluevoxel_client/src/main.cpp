@@ -18,12 +18,8 @@ int main()
 {
     h2o::Engine engine { { "BlueVoxel Client" } };
 
-    const auto voxel_pack = engine
-        .resource_mgr()
-        .fetch<h2o::VoxelPack>("../Resources/bluevoxel/voxel/pack.yml");
-
     engine
-        .add_module<h2o::VoxelModule>(voxel_pack)
+        .add_module<h2o::VoxelModule>()
         .add_module<h2o::VoxelRenderingModule>()
         .add_module<h2o::VoxelClientModule>()
         .add_module<h2o::NetworkingModule>()

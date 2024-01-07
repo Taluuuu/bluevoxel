@@ -19,8 +19,8 @@ int main()
         .add_module<h2o::UIModule>()
         .add_module<h2o::InputModule>()
         .add_module<h2o::SceneModule>()
-        .add_module<h2o::VoxelModule>(nullptr)
-        .add_module<h2o::VoxelRenderingModule>(nullptr)
+        .add_module<h2o::VoxelModule>()
+        .add_module<h2o::VoxelRenderingModule>()
         .add_module<bluevoxel::BlueVoxelEditorModule>()
         .run();
 }
