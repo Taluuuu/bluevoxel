@@ -13,10 +13,6 @@ namespace h2o
         explicit FpsCameraComponent(const ComponentInitializer& component_initializer);
         ~FpsCameraComponent() override = default;
 
-    public:
-
-        f32 mouse_sensitivity = 1.0f;
-
     protected:
 
         void update(f32 delta_time) override;

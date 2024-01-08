@@ -40,6 +40,7 @@ namespace h2o
         Event<CharEvent>& char_event() override;
         Event<MouseButtonChangedEvent>& mouse_button_changed_event() override;
         Event<MouseMovedEvent>& mouse_moved_event() override;
+        Event<MouseScrollEvent>& mouse_scroll_event() override;
         
     private:
 
@@ -48,16 +49,18 @@ namespace h2o
         static void mouse_button_callback(GLFWwindow* window_handle, int button, int action, int mods);
         static void framebuffer_size_callback(GLFWwindow* window_handle, int width, int height);
         static void mouse_moved_callback(GLFWwindow* window_handle, double xpos, double ypos);
+        static void mouse_scroll_callback(GLFWwindow* window_handle, double xoffset, double yoffset);
 
     private:
         
         GLFWwindow* m_handle = nullptr;
 
-        Event<WindowResizeEvent> m_resize_event;
-        Event<KeyChangedEvent> m_key_changed_event;
-        Event<CharEvent> m_char_event;
-        Event<MouseButtonChangedEvent> m_mouse_button_changed_event;
-        Event<MouseMovedEvent> m_mouse_moved_event;
+        Event<WindowResizeEvent> m_resize_event{};
+        Event<KeyChangedEvent> m_key_changed_event{};
+        Event<CharEvent> m_char_event{};
+        Event<MouseButtonChangedEvent> m_mouse_button_changed_event{};
+        Event<MouseMovedEvent> m_mouse_moved_event{};
+        Event<MouseScrollEvent> m_mouse_scroll_event{};
 
         f64 m_previous_time = 0.0f;
         f64 m_delta_time = 0.0f;

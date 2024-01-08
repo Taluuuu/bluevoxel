@@ -15,9 +15,8 @@ namespace h2o
 
     public:
 
-        f32 mouse_sensitivity = 1.0f;
         f32 distance_with_actor = 5.0f;
-        // f32 scroll_zoom_factor = 1.5f;
+        f32 scroll_zoom_factor = 0.1f;
 
     protected:
 

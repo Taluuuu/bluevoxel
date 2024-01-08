@@ -48,6 +48,7 @@ namespace h2o
         glfwSetMouseButtonCallback(m_handle, mouse_button_callback);
         glfwSetMouseButtonCallback(m_handle, mouse_button_callback);
         glfwSetCursorPosCallback(m_handle, mouse_moved_callback);
+        glfwSetScrollCallback(m_handle, mouse_scroll_callback);
     }
 
     Window_GLFW::Window_GLFW(Window_GLFW&& other) noexcept
@@ -142,6 +143,11 @@ namespace h2o
     Event<MouseMovedEvent>& Window_GLFW::mouse_moved_event()
     {
         return m_mouse_moved_event;
+    }
+
+    Event<MouseScrollEvent>& Window_GLFW::mouse_scroll_event()
+    {
+        return m_mouse_scroll_event;
     }
 
     static constexpr Key to_h2o_key(int keycode)
@@ -328,5 +334,14 @@ namespace h2o
         assert(window);
 
         window->m_mouse_moved_event.broadcast({{ static_cast<f32>(xpos), static_cast<f32>(ypos) }});
+    }
+
+    void Window_GLFW::mouse_scroll_callback(GLFWwindow* window_handle, double xoffset, double yoffset)
+    {
+        auto window = static_cast<Window_GLFW*>(glfwGetWindowUserPointer(window_handle));
+        assert(window);
+
+        window->m_mouse_scroll_event.broadcast({{ static_cast<f32>(xoffset), static_cast<f32>(yoffset) }});
+
     }
 }

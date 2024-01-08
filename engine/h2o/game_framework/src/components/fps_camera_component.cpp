@@ -29,7 +29,7 @@ namespace h2o
             m_input->get_axis("cam_x"),
             m_input->get_axis("cam_y"), 0.0f };
 
-        owner()->transform.rotation += cam_input * mouse_sensitivity;
+        owner()->transform.rotation += cam_input;
         owner()->transform.rotation.x = glm::clamp(owner()->transform.rotation.x, -89.0f, 89.0f);
     }
 }

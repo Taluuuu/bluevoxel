@@ -140,7 +140,12 @@ namespace h2o
         Unknown
     };
 
-    enum class MouseDelta : i32
+    enum class MouseMoveDelta : i32
+    {
+        X, Y
+    };
+
+    enum class MouseScrollDelta : i32
     {
         X, Y
     };

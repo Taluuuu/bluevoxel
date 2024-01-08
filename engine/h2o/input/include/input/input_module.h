@@ -10,6 +10,8 @@
 
 namespace h2o
 {
+    class WindowingModule;
+
     class InputModule
         : public IModule
         , public IInputModule // TODO: Remove this and make the module tick by itself
@@ -28,35 +30,41 @@ namespace h2o
         void prepare() override;
 
         void register_axis(const std::string_view& name, Key negative, Key positive);
-        void register_axis(const std::string_view& name, MouseDelta mouse_delta, f32 sensitivity = 1.0f, bool invert = false);
+        void register_axis(const std::string_view& name, MouseMoveDelta mouse_delta, f32 sensitivity = 1.0f, bool invert = false);
+        void register_axis(const std::string_view& name, MouseScrollDelta scroll_delta, f32 sensitivity = 1.0f, bool invert = false);
         [[nodiscard]] f32 get_axis(const std::string_view& name);
 
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
         [[nodiscard]] v2 mouse_position() const;
         [[nodiscard]] v2 mouse_delta() const;
+        [[nodiscard]] v2 scroll_delta() const;
 
     private:
 
         // Input state
         std::vector<KeyState> m_key_states;
         std::vector<KeyState> m_mouse_button_states;
-        v2 m_mouse_pos{}, m_mouse_delta{};
+        v2 m_mouse_pos{}, m_mouse_delta{}, m_scroll_delta{};
         bool m_mouse_captured = false;
         i32 m_mouse_move_frames_to_ignore = false;
 
         // Input configuration
         struct KeyAxis { Key positive, negative; };
-        struct MouseDeltaAxis { MouseDelta delta; f32 sensitivity; bool invert; };
+        struct MouseDeltaAxis { MouseMoveDelta delta; f32 sensitivity; bool invert; };
+        struct MouseScrollAxis { MouseScrollDelta delta; f32 sensitivity; bool invert; };
 
-        using InputMapping = std::variant<KeyAxis, MouseDeltaAxis>;
+        using InputMapping = std::variant<KeyAxis, MouseDeltaAxis, MouseScrollAxis>;
         std::unordered_map<std::string_view, InputMapping> m_input_axes;
+
+        WindowingModule* m_windowing_module = nullptr;
 
         // Event handles
         EventHandle
             m_key_state_event_handle,
             m_mouse_button_state_event_handle,
-            m_mouse_moved_event_handle;
+            m_mouse_moved_event_handle,
+            m_mouse_scroll_event_handle;
 
     };
 }

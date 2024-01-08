@@ -47,8 +47,9 @@ namespace bluevoxel
         input_module.register_axis("move_x", h2o::Key::A, h2o::Key::D);
         input_module.register_axis("move_y", h2o::Key::S, h2o::Key::W);
         input_module.register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
-        input_module.register_axis("cam_x", h2o::MouseDelta::Y, 0.2f, true);
-        input_module.register_axis("cam_y", h2o::MouseDelta::X, 0.2f, false);
+        input_module.register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.2f, true);
+        input_module.register_axis("cam_y", h2o::MouseMoveDelta::X, 0.2f, false);
+        input_module.register_axis("cam_zoom", h2o::MouseScrollDelta::Y, 1.0f, false);
 
         m_scene = std::make_shared<h2o::Scene>("editor_scene", nullptr);
         m_scene->add_system<h2o::RenderingSystem>();

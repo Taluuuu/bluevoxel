@@ -14,8 +14,8 @@ namespace h2o
 
     struct KeyChangedEvent
     {
-        Key key { Key::Unknown };
-        bool pressed { false };
+        Key key = Key::Unknown;
+        bool pressed = false;
     };
 
     struct CharEvent
@@ -25,13 +25,18 @@ namespace h2o
 
     struct MouseButtonChangedEvent
     {
-        MouseButton button { MouseButton::Unknown };
-        bool pressed { false };
+        MouseButton button = MouseButton::Unknown;
+        bool pressed = false;
     };
 
     struct MouseMovedEvent
     {
-        v2 new_position {};
+        v2 new_position{};
+    };
+
+    struct MouseScrollEvent
+    {
+        v2 scroll_delta{};
     };
 
     class IWindow
@@ -97,6 +102,7 @@ namespace h2o
         [[nodiscard]] virtual Event<CharEvent>& char_event() = 0;
         [[nodiscard]] virtual Event<MouseButtonChangedEvent>& mouse_button_changed_event() = 0;
         [[nodiscard]] virtual Event<MouseMovedEvent>& mouse_moved_event() = 0;
+        [[nodiscard]] virtual Event<MouseScrollEvent>& mouse_scroll_event() = 0;
         
     };
 }

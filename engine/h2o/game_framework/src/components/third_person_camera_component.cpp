@@ -21,11 +21,15 @@ namespace h2o
         if (!m_input)
             return;
 
+        // Camera scroll
+        distance_with_actor -= distance_with_actor * scroll_zoom_factor * m_input->get_axis("cam_zoom");
+
+        // Camera rotation
         const v3 cam_input {
             m_input->get_axis("cam_x"),
             m_input->get_axis("cam_y"), 0.0f };
 
-        owner()->transform.rotation += cam_input * mouse_sensitivity;
+        owner()->transform.rotation += cam_input;
         owner()->transform.rotation.x = glm::clamp(owner()->transform.rotation.x, -89.0f, 89.0f);
     }
 
