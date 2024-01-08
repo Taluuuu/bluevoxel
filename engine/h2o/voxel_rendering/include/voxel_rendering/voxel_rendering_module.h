@@ -1,9 +1,10 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/module.h"
 #include "core/types.h"
 #include "voxel/block.h"
-#include "voxel_rendering/block_model.h"
+#include "voxel/block_model.h"
 
 #include <memory>
 #include <unordered_map>
@@ -33,10 +34,7 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override { return "h2o_voxel_rendering"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
-        [[nodiscard]] const BlockModel* get_model(const std::string& name) const;
-        [[nodiscard]] const BlockModel* get_model_safe(BlockID id) const;
-        [[nodiscard]] const BlockModel* get_model_fast(BlockID id) const;
-        [[nodiscard]] const std::vector<u32>& get_textures_fast(BlockID id) const;
+        [[nodiscard]] const BlockModel* get_model(BlockID id, const std::vector<u32>*& out_texture_ids) const;
 
         // Return value is always valid or an assert fails
         [[nodiscard]] const std::shared_ptr<gfx::IPipeline>& pipeline() const;
@@ -50,17 +48,15 @@ namespace h2o
 
     private:
 
-        // Block models
-        std::vector<BlockModel> m_block_models;
-        std::unordered_map<std::string, u32> m_model_name_index_map;
-        std::vector<u32> m_block_model_indices_by_block_id;
-
-        // Block textures
-        std::vector<std::vector<u32>> m_texture_indices_by_block_id;
-
         // Rendering
         std::shared_ptr<gfx::IPipeline> m_pipeline = nullptr;
         std::shared_ptr<gfx::TextureArray> m_block_textures = nullptr;
+
+        // Module refs
+        VoxelModule* m_voxel_module = nullptr;
+        RenderingModule* m_rendering_module = nullptr;
+
+        EventHandle m_on_voxel_pack_changed_handle{};
 
     };
 }

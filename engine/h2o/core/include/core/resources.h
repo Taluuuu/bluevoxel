@@ -3,9 +3,12 @@
 #include "core/log.h"
 
 #include <cassert>
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <unordered_map>
+
+namespace fs = std::filesystem;
 
 namespace h2o
 {
@@ -15,7 +18,7 @@ namespace h2o
 
         virtual ~IResource() = default;
 
-        virtual bool load(const std::string& path) = 0;
+        virtual bool load(const fs::path& path) = 0;
 
     };
 
@@ -32,6 +35,13 @@ namespace h2o
         std::shared_ptr<T> fetch(const std::string& path);
 
         /**
+         * Get a resource handle by its path. Always load from disk.
+         */
+        template<class T>
+        requires (std::derived_from<T, IResource> && !std::same_as<IResource, T>)
+        std::shared_ptr<T> reload(const std::string& path);
+
+        /**
          * Stop owning loaded resources. Shared pointers to resources stored
          * elsewhere will stay valid.
          */
@@ -40,7 +50,7 @@ namespace h2o
     private:
 
         using ResourceHandle = std::shared_ptr<IResource>;
-        std::unordered_map<std::string, ResourceHandle> m_resources;
+        std::unordered_map<fs::path, ResourceHandle> m_resources;
 
     };
 
@@ -58,6 +68,13 @@ namespace h2o
             return res;
         }
 
+        return reload<T>(path);
+    }
+
+    template<class T>
+    requires (std::derived_from<T, IResource> && !std::same_as<IResource, T>)
+    std::shared_ptr<T> ResourceManager::reload(const std::string& path)
+    {
         auto res = std::make_shared<T>();
         if (!res || !res->load(path))
         {

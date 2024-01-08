@@ -1,6 +1,6 @@
 #include "game_framework/actors/fps_character_actor.h"
 
-#include "scene_rendering/camera_component.h"
+#include "game_framework/components/fps_camera_component.h"
 #include "input/input_component.h"
 #include "rendering/camera.h"
 
@@ -11,24 +11,15 @@ namespace h2o
     FpsCharacterActor::FpsCharacterActor(const ActorInitializer& actor_initializer)
         : Actor(actor_initializer)
     {
-        add_component<CameraComponent>();
-
         m_input = add_component<InputComponent>();
+
+        add_component<FpsCameraComponent>();
 
         set_tick_phases(TickPhase::Update);
     }
 
     void FpsCharacterActor::update(f32 delta_time)
     {
-        assert(m_input);
-
-        const v3 cam_input {
-            m_input->get_axis("cam_x"),
-            m_input->get_axis("cam_y"), 0.0f };
-
-        transform.rotation += cam_input * mouse_sensitivity;
-        transform.rotation.x = glm::clamp(transform.rotation.x, -89.0f, 89.0f);
-        
         v2 move_input {
             m_input->get_axis("move_y"),
             m_input->get_axis("move_x") };

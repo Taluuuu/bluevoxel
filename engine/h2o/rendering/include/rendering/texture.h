@@ -25,7 +25,7 @@ namespace h2o::gfx
         [[nodiscard]] u32 id() const { return m_id; }
 
         // IResource interface
-        bool load(const std::string& path) override;
+        bool load(const fs::path& path) override;
 
     private:
 

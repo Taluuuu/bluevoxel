@@ -7,6 +7,7 @@
 #include "scene/scene_net_messages.h"
 //#include "voxel/chunk_generators/chunk_generator_flat.h"
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
+#include "voxel/voxel_pack.h"
 #include "voxel_server/chunk_server.h"
 #include "voxel_server/voxel_server_module.h"
 
@@ -20,6 +21,16 @@ namespace bluevoxel
 
     bool BlueVoxelServerModule::init(h2o::Engine& engine)
     {
+        auto voxel_pack = engine
+            .resource_mgr()
+            .fetch<h2o::VoxelPack>("../Resources/bluevoxel/voxel/");
+
+        if (!voxel_pack)
+            return false;
+
+        auto& voxel_module = engine.get_module_checked<h2o::VoxelModule>();
+        voxel_module.set_voxel_pack(voxel_pack);
+
         if (!m_server.start(1338))
             return false;
 

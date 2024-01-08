@@ -16,6 +16,7 @@
 #include "scene_rendering/scene_rendering_module.h"
 #include "ui/ui_module.h"
 #include "ui/ui_renderer.h"
+#include "voxel/voxel_pack.h"
 #include "voxel_client/chunk_client.h"
 #include "voxel_client/block_placing_component.h"
 #include "voxel_client/voxel_client_module.h"
@@ -29,6 +30,16 @@ namespace bluevoxel
 
     bool BlueVoxelClientModule::init(h2o::Engine& engine)
     {
+        auto voxel_pack = engine
+            .resource_mgr()
+            .fetch<h2o::VoxelPack>("../Resources/bluevoxel/voxel/");
+
+        if (!voxel_pack)
+            return false;
+
+        auto& voxel_module = engine.get_module_checked<h2o::VoxelModule>();
+        voxel_module.set_voxel_pack(voxel_pack);
+
         set_tick_phases(h2o::TickPhase::Update);
 
         // Input setup
@@ -154,9 +165,6 @@ namespace bluevoxel
     void BlueVoxelClientModule::spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform)
     {
         assert(g_engine);
-
-        auto rendering_module = g_engine->get_module<h2o::RenderingModule>();
-        assert(rendering_module);
 
         if (auto remote_player = m_scene->spawn_actor(spawn_transform, actor_id))
         {

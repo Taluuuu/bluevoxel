@@ -1,6 +1,7 @@
 #include "bluevoxel_editor_module.h"
 
 #include "core/engine.h"
+#include "game_framework/game_framework_module.h"
 #include "input/input_module.h"
 #include "rendering/rendering_module.h"
 #include "scene/scene_module.h"
@@ -21,6 +22,7 @@ int main()
         .add_module<h2o::SceneModule>()
         .add_module<h2o::VoxelModule>()
         .add_module<h2o::VoxelRenderingModule>()
+        .add_module<h2o::GameFrameworkModule>()
         .add_module<bluevoxel::BlueVoxelEditorModule>()
         .run();
 }

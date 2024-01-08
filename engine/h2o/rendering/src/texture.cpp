@@ -40,10 +40,10 @@ namespace h2o::gfx
         }
     }
 
-    bool Texture::load(const std::string& path)
+    bool Texture::load(const fs::path& path)
     {
         int width, height, nb_channels;
-        if (unsigned char* data = stbi_load(path.c_str(), &width, &height, &nb_channels, 0))
+        if (unsigned char* data = stbi_load(path.string().c_str(), &width, &height, &nb_channels, 0))
         {
             update_data({ { width, height }, u32(nb_channels) }, data);
             stbi_image_free(data);
@@ -51,8 +51,6 @@ namespace h2o::gfx
             return true;
         }
 
-        log::warn("Could not load texture at path: {}", path);
-
-        return true;
+        return false;
     }
 }

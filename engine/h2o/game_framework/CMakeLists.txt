@@ -5,7 +5,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_game_framework
     src/game_framework_module.cpp
-    src/actors/fps_character_actor.cpp)
+    src/actors/fps_character_actor.cpp
+    src/components/fps_camera_component.cpp
+    src/components/third_person_camera_component.cpp
+)
 
 target_link_libraries(h2o_game_framework
     PRIVATE
@@ -13,7 +16,8 @@ target_link_libraries(h2o_game_framework
         h2o_input
         h2o_scene
         h2o_scene_rendering
-        h2o_rendering)
+        h2o_rendering
+)
 
 target_include_directories(h2o_game_framework
     PUBLIC
@@ -24,4 +28,5 @@ target_include_directories(h2o_game_framework
         h2o_input
         h2o_scene
         h2o_scene_rendering
-        h2o_rendering)
+        h2o_rendering
+)

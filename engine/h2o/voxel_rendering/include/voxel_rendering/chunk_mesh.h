@@ -15,11 +15,7 @@ namespace h2o
 
     namespace gfx
     {
-        // TODO: Remove some of these
-        class IVertexArray;
-        class IBuffer;
         class IRenderer;
-
         class Buffer;
     }
 

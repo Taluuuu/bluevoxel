@@ -1,4 +1,4 @@
-#include "voxel_client/chunk_mesh_pool.h"
+#include "voxel_rendering/chunk_mesh_pool.h"
 
 #include "core/engine.h"
 #include "rendering/buffer.h"

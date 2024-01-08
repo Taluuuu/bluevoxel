@@ -20,7 +20,7 @@ namespace h2o::gfx
         [[nodiscard]] i32 vertex_count() const { return m_vertex_count; }
 
         // IResource interface
-        bool load(const std::string& path) override;
+        bool load(const fs::path& path) override;
 
     private:
 

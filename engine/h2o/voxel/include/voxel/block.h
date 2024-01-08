@@ -9,21 +9,13 @@ namespace h2o
 {
     using BlockID = u16;
 
-    struct BlockType
-    {
-        std::string name{};
-        std::string model_name{};
-        std::string block_preset_name{};
-        std::vector<std::string> texture_names{};
-        BlockID block_id{};
-    };
-
     struct Block
     {
-        u32 id{};
+        BlockID id{};
+        u16 data{};
 
         Block() : Block(0) {}
-        Block(u16 id) : id { id } {}
+        Block(BlockID id) : id { id } {}
 
         static const Block Air;
 

@@ -10,7 +10,7 @@
 #include "voxel/voxel_constants.h"
 #include "voxel/direction.h"
 #include "voxel_rendering/voxel_rendering_module.h"
-#include "voxel_rendering/block_model.h"
+#include "voxel/block_model.h"
 
 #include <array>
 #include <magic_enum.hpp>
@@ -42,6 +42,7 @@ namespace h2o
                     vertex.y += pos.y * 8;
                     vertex.z += pos.z * 8;
 
+                    // Left is texture index relative to all textures; right is the face index.
                     vertex.tex_idx = textures[vertex.tex_idx];
 
                     auto temp = vertex.to_array();
@@ -72,11 +73,12 @@ namespace h2o
             if (block == Block::Air)
                 continue;
 
-            const BlockModel* model = voxel_rendering_module.get_model_fast(block.id);
+            const std::vector<u32>* texture_ids = nullptr;
+            const auto* model = voxel_rendering_module.get_model(block.id, texture_ids);
             if (!model)
                 continue;
 
-            const auto& textures = voxel_rendering_module.get_textures_fast(block.id);
+            assert(texture_ids);
 
             u8 dir_index = 0;
             magic_enum::enum_for_each<voxel::Direction::Type>(
@@ -84,16 +86,16 @@ namespace h2o
                 {
                     if (get_adj_block_at(pos, dir) == Block::Air)
                     {
-                        for (const auto& face : model->occluded_vertices[dir_index])
-                            append_face(pos, *model, textures, face);
+                        for (const auto& face : model->occluded_faces_per_side[dir_index])
+                            append_face(pos, *model, *texture_ids, face);
                     }
 
                     dir_index++;
                 }
             );
 
-            for (const auto& face : model->unoccluded_vertices)
-                append_face(pos, *model, textures, face);
+            for (const auto& face : model->unoccluded_faces)
+                append_face(pos, *model, *texture_ids, face);
         }
     }
 }

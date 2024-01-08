@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(vulkan-test)
-
-set(GAME_NAME "BlueVoxel")
+project(bluevoxel)
 
 add_subdirectory(engine)
 add_subdirectory(bluevoxel_client)

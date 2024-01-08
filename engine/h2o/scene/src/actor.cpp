@@ -10,9 +10,7 @@ namespace h2o
         : Tickable(&actor_initializer.scene)
         , m_actor_id(actor_initializer.actor_id)
         , m_scene(&actor_initializer.scene)
-    {
-
-    }
+    {}
 
     void Actor::tag_actor(ActorTag tag)
     {

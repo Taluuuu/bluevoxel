@@ -2,10 +2,11 @@
 
 #include "core/types.h"
 #include "voxel/direction.h"
-#include "voxel_rendering_constants.h"
+#include "voxel/voxel_constants.h"
 
 #include <array>
-#include "magic_enum.hpp"
+#include <magic_enum.hpp>
+#include <string>
 #include <vector>
 
 namespace h2o
@@ -25,8 +26,8 @@ namespace h2o
         u32 : 0; // 27-bit
 
         // Byte 3
-        u32 n_pitch : voxel_rendering_constants::num_normal_pitch_bits;
-        u32 n_yaw : voxel_rendering_constants::num_normal_yaw_bits;
+        u32 n_pitch : voxel_constants::num_normal_pitch_bits;
+        u32 n_yaw : voxel_constants::num_normal_yaw_bits;
         u32 : 0; // 7-bit
 
         [[nodiscard]] constexpr std::array<u32, 3> to_array() const
@@ -42,8 +43,11 @@ namespace h2o
 
     struct BlockModel
     {
+        std::string name{};
+        u32 id = 0;
+
         using Face = std::vector<BlockVertex>;
-        std::array<std::vector<Face>, 6> occluded_vertices;
-        std::vector<Face> unoccluded_vertices;
+        std::array<std::vector<Face>, 6> occluded_faces_per_side{};
+        std::vector<Face> unoccluded_faces{};
     };
 }

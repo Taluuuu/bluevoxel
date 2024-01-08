@@ -18,7 +18,6 @@ namespace h2o
 
     public:
 
-        f32 mouse_sensitivity = 1.0f;
         f32 move_speed = 10.0f;
 
     private:

@@ -81,10 +81,21 @@ namespace h2o
     requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
     WeakHandle<T> Actor::get_component()
     {
-        auto comp_it = m_components.find(typeid(T));
-        return (comp_it == m_components.end()) ?
-            nullptr :
-            oup::dynamic_pointer_cast<T>(WeakHandle<Component>(comp_it->second));
+        // No clue how slow this is but it is the only way I could find at 2:12 AM to allow gettings
+        // a child component and not a component of just type T. I left the old implementation under
+        // for future reference.
+        for (const auto& [_, component] : m_components)
+        {
+            if (auto comp = oup::dynamic_pointer_cast<T>(WeakHandle<Component>(component)))
+                return comp;
+        }
+
+        return nullptr;
+
+//        auto comp_it = m_components.find(typeid(T));
+//        return (comp_it == m_components.end()) ?
+//            nullptr :
+//            oup::dynamic_pointer_cast<T>(WeakHandle<Component>(comp_it->second));
     }
 
     template<class T, typename... Args>

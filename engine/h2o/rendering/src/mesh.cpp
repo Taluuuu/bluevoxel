@@ -12,11 +12,11 @@
 
 namespace h2o::gfx
 {
-    bool Mesh::load(const std::string& path)
+    bool Mesh::load(const fs::path& path)
     {
         Assimp::Importer importer;
 
-        const aiScene* scene = importer.ReadFile(path,
+        const aiScene* scene = importer.ReadFile(path.string(),
             aiProcess_Triangulate      |
             aiProcess_JoinIdenticalVertices   |
             aiProcess_FlipUVs                 |
@@ -25,7 +25,7 @@ namespace h2o::gfx
 
         if (!scene)
         {
-            log::error("Failed to import mesh at '{}': {}.", path, importer.GetErrorString());
+            log::error("Failed to import mesh at '{}': {}.", path.string(), importer.GetErrorString());
             return false;
         }
 

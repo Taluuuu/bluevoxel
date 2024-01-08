@@ -50,11 +50,11 @@ namespace h2o
         for (const u32 block_idx : m_blocks_to_tick)
         {
             Block& block = m_blocks[block_idx];
-            if (const auto block_preset = m_voxel_module->get_block_preset(block.id))
-            {
-                block_preset->tick(
-                    block, *this, to_local_block_pos(i32(block_idx)));
-            }
+//            if (const auto block_preset = m_voxel_module->get_block_preset(block.id))
+//            {
+//                block_preset->tick(
+//                    block, *this, to_local_block_pos(i32(block_idx)));
+//            }
         }
     }
 
@@ -132,13 +132,13 @@ namespace h2o
         if (block != Block::Air)
             m_is_empty = false;
 
-        if (m_voxel_module->get_block_preset_data(block.id).value_or(BlockPresetFlags{}).should_tick)
-        {
-            m_blocks_to_tick.insert(index);
-        }
-        else
-        {
-            m_blocks_to_tick.erase(index);
-        }
+//        if (m_voxel_module->get_block_preset_data(block.id).value_or(BlockPresetFlags{}).should_tick)
+//        {
+//            m_blocks_to_tick.insert(index);
+//        }
+//        else
+//        {
+//            m_blocks_to_tick.erase(index);
+//        }
     }
 }

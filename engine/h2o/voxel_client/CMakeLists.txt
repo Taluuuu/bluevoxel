@@ -7,7 +7,6 @@ add_library(h2o_voxel_client
     src/block_placing_component.cpp
     src/chunk_manager_client.cpp
     src/chunk_client.cpp
-    src/chunk_mesh_pool.cpp
     src/voxel_client_module.cpp
 )
 

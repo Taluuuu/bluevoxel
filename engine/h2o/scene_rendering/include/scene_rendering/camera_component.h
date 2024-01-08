@@ -1,14 +1,10 @@
 #pragma once
 
+#include "rendering/camera.h" // TODO: Remove this include
 #include "scene/component.h"
 
 namespace h2o
 {
-    namespace gfx
-    {
-        class Camera;
-    }
-
     class CameraComponent : public Component
     {
     public:
@@ -21,6 +17,11 @@ namespace h2o
 
         [[nodiscard]] const gfx::Camera& camera() const;
         void set_as_main_camera() const;
+
+    protected:
+
+        [[nodiscard]] virtual v3 camera_location() const;
+        [[nodiscard]] virtual v3 camera_rotation() const;
 
     private:
 

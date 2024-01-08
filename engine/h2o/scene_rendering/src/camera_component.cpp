@@ -26,12 +26,8 @@ namespace h2o
 
     void CameraComponent::pre_render()
     {
-        // TODO: Transform ref in components
-        assert(owner());
-        auto& transform = owner()->transform;
-
         if (m_camera)
-            m_camera->update(transform.position, transform.rotation);
+            m_camera->update(camera_location(), camera_rotation());
     }
 
     void CameraComponent::set_as_main_camera() const
@@ -45,5 +41,15 @@ namespace h2o
     {
         assert(m_camera);
         return *m_camera;
+    }
+
+    v3 CameraComponent::camera_location() const
+    {
+        return owner()->transform.position;
+    }
+
+    v3 CameraComponent::camera_rotation() const
+    {
+        return owner()->transform.rotation;
     }
 }

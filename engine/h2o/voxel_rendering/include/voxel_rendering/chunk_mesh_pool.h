@@ -4,7 +4,7 @@
 #include "voxel_rendering/chunk_mesh.h"
 
 #include <functional>
-#include <glm/gtx/hash.hpp>
+#include "glm/gtx/hash.hpp"
 #include <mutex>
 #include <optional>
 #include <queue>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chunk_mesh_pool.h"
+#include "voxel_rendering/chunk_mesh_pool.h"
 #include "chunk_manager_client.h"
 #include "core/distance_queue.h"
 #include "networking/client.h"

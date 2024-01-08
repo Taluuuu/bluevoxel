@@ -29,8 +29,8 @@ namespace h2o::gfx
 
     v3 Camera::calc_front() const
     {
-        f32 pitch = m_rotation.x;
-        f32 yaw   = m_rotation.y;
+        const f32 pitch = m_rotation.x;
+        const f32 yaw   = m_rotation.y;
 
         return glm::normalize(v3(
             glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch)),

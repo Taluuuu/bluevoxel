@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/module.h"
 #include "voxel/block.h"
 #include "voxel/block_presets/block_preset_base.h"
@@ -15,6 +16,11 @@ namespace h2o
     class BlockPreset_Base;
     class VoxelPack;
 
+    struct OnVoxelPackChanged
+    {
+        const VoxelPack& voxel_pack;
+    };
+
     class VoxelModule : public IModule
     {
     public:
@@ -28,33 +34,33 @@ namespace h2o
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         [[nodiscard]] const std::shared_ptr<VoxelPack>& voxel_pack() const { return m_voxel_pack; }
+        void set_voxel_pack(const std::shared_ptr<VoxelPack>& voxel_pack);
 
-        [[nodiscard]] const BlockType* get_block_type(BlockID id) const;
-        [[nodiscard]] size_t block_type_count() const;
-        [[nodiscard]] bool is_valid_block_id(BlockID id) const;
+//        [[nodiscard]] const BlockType* get_block_type(BlockID id) const;
+//        [[nodiscard]] size_t block_type_count() const;
+//        [[nodiscard]] bool is_valid_block_id(BlockID id) const;
 
-        [[nodiscard]] const BlockPreset_Base* get_block_preset(BlockID id) const;
-        [[nodiscard]] std::optional<BlockPresetFlags> get_block_preset_data(BlockID id) const;
+//        [[nodiscard]] const BlockPreset_Base* get_block_preset(BlockID id) const;
+//        [[nodiscard]] std::optional<BlockPresetFlags> get_block_preset_data(BlockID id) const;
+        [[nodiscard]] std::optional<u32> find_block_preset_id(const std::string& preset_name) const;
         void register_block_preset(
             const std::string& name,
             const std::shared_ptr<BlockPreset_Base>& preset);
 
-    protected:
+    public:
 
-        void set_block_types(const std::vector<std::optional<BlockType>>& block_types);
-
-        static std::vector<std::optional<BlockType>> load_block_types_from_voxel_pack(const VoxelPack& voxel_pack);
+        Event<OnVoxelPackChanged> on_voxel_pack_changed{};
 
     private:
 
-        std::vector< std::optional<BlockType> > m_block_types;
-
         // Block presets
-        std::unordered_map< std::string, std::shared_ptr<BlockPreset_Base> > m_block_presets;
-        std::vector<BlockPreset_Base*> m_block_presets_per_id;
-        std::vector<BlockPresetFlags> m_block_preset_flags_per_id;
+        struct BlockPresetData
+        {
+            std::string name{};
+            std::shared_ptr<BlockPreset_Base> preset{};
+        };
+        std::vector<BlockPresetData> m_block_presets;
 
-        // TODO: Could the voxel pack load and store its own data?
         std::shared_ptr<VoxelPack> m_voxel_pack = nullptr;
 
     };
