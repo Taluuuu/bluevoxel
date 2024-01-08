@@ -11,6 +11,7 @@
 namespace h2o
 {
     class ChunkClient;
+    class InputModule;
     class Scene;
     class Transform;
     class UIModule;
@@ -57,6 +58,7 @@ namespace bluevoxel
         h2o::EventHandle m_on_connected_handle{};
         h2o::EventHandle m_on_disconnected_handle{};
 
+        h2o::InputModule* m_input_module = nullptr;
         h2o::UIModule* m_ui_module = nullptr;
 
     };

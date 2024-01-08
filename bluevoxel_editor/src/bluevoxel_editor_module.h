@@ -13,6 +13,7 @@ namespace h2o
     class ChunkMeshPool;
     class Scene;
 
+    class InputModule;
     class RenderingModule;
     class UIModule;
     class VoxelRenderingModule;
@@ -56,6 +57,7 @@ namespace bluevoxel
         h2o::VoxelBounds m_voxel_bounds;
         std::shared_ptr<h2o::ChunkMeshPool> m_chunk_mesh_pool = nullptr;
 
+        h2o::InputModule* m_input_module = nullptr;
         h2o::RenderingModule* m_rendering_module = nullptr;
         h2o::UIModule* m_ui_module = nullptr;
         h2o::VoxelRenderingModule* m_voxel_rendering_module = nullptr;

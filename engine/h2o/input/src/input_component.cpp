@@ -29,4 +29,14 @@ namespace h2o
         return m_input_module ?
             m_input_module->get_axis(name) : 0.0f;
     }
+
+    void InputComponent::set_capture_mouse(bool capture)
+    {
+        m_input_module->set_capture_mouse(capture);
+    }
+
+    bool InputComponent::is_mouse_captured() const
+    {
+        return m_input_module->is_mouse_captured();
+    }
 }

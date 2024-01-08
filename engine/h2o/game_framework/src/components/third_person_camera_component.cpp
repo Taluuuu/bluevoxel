@@ -23,6 +23,16 @@ namespace h2o
 
         // Camera scroll
         distance_with_actor -= distance_with_actor * scroll_zoom_factor * m_input->get_axis("cam_zoom");
+        distance_with_actor = glm::clamp(distance_with_actor, min_distance_with_actor, max_distance_with_actor);
+
+        if (hold_click_to_rotate)
+        {
+            const bool click_pressed = m_input->mouse_button_state(MouseButton::Left).held;
+            m_input->set_capture_mouse(click_pressed);
+
+            if (!click_pressed)
+                return;
+        }
 
         // Camera rotation
         const v3 cam_input {

@@ -43,13 +43,13 @@ namespace bluevoxel
             return false;
 
         // Input setup
-        auto& input_module = engine.get_module_checked<h2o::InputModule>();
-        input_module.register_axis("move_x", h2o::Key::A, h2o::Key::D);
-        input_module.register_axis("move_y", h2o::Key::S, h2o::Key::W);
-        input_module.register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
-        input_module.register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.2f, true);
-        input_module.register_axis("cam_y", h2o::MouseMoveDelta::X, 0.2f, false);
-        input_module.register_axis("cam_zoom", h2o::MouseScrollDelta::Y, 1.0f, false);
+        m_input_module = &engine.get_module_checked<h2o::InputModule>();
+        m_input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
+        m_input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
+        m_input_module->register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
+        m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.2f, true);
+        m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.2f, false);
+        m_input_module->register_axis("cam_zoom", h2o::MouseScrollDelta::Y, 1.0f, false);
 
         m_scene = std::make_shared<h2o::Scene>("editor_scene", nullptr);
         m_scene->add_system<h2o::RenderingSystem>();
@@ -57,7 +57,8 @@ namespace bluevoxel
         // Spawn camera
         auto camera = m_scene->spawn_actor();
         camera->add_component<h2o::InputComponent>();
-        camera->add_component<h2o::ThirdPersonCameraComponent>();
+        auto tps_cam = camera->add_component<h2o::ThirdPersonCameraComponent>();
+        tps_cam->hold_click_to_rotate = true;
         camera->tag_actor(h2o::ActorTag::LocalPlayer);
         camera->transform.position = { 0.5f, 0.5f, 0.5f };
         camera->transform.rotation = { 0.0f, 0.0f, 90.0f };

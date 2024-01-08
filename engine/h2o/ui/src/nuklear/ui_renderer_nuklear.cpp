@@ -156,32 +156,36 @@ namespace h2o
     {
         nk_input_begin(&m_nk_ctx);
 
-        nk_input_key(&m_nk_ctx, NK_KEY_DEL, m_input_module->key_state(Key::Delete).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_ENTER, m_input_module->key_state(Key::Enter).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_TAB, m_input_module->key_state(Key::Tab).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_BACKSPACE, m_input_module->key_state(Key::Backspace).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_UP, m_input_module->key_state(Key::Up).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_DOWN, m_input_module->key_state(Key::Down).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_LEFT, m_input_module->key_state(Key::Left).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_RIGHT, m_input_module->key_state(Key::Right).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_TEXT_START, m_input_module->key_state(Key::Home).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_TEXT_END, m_input_module->key_state(Key::End).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_START, m_input_module->key_state(Key::Home).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_END, m_input_module->key_state(Key::End).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_DOWN, m_input_module->key_state(Key::PageDown).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_UP, m_input_module->key_state(Key::PageUp).held);
-        nk_input_key(&m_nk_ctx, NK_KEY_SHIFT, m_input_module->key_state(Key::LeftShift).held || m_input_module->key_state(Key::RightShift).held);
+        if (!m_input_module->is_mouse_captured())
+        {
+            nk_input_key(&m_nk_ctx, NK_KEY_DEL, m_input_module->key_state(Key::Delete).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_ENTER, m_input_module->key_state(Key::Enter).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_TAB, m_input_module->key_state(Key::Tab).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_BACKSPACE, m_input_module->key_state(Key::Backspace).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_UP, m_input_module->key_state(Key::Up).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_DOWN, m_input_module->key_state(Key::Down).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_LEFT, m_input_module->key_state(Key::Left).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_RIGHT, m_input_module->key_state(Key::Right).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_TEXT_START, m_input_module->key_state(Key::Home).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_TEXT_END, m_input_module->key_state(Key::End).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_START, m_input_module->key_state(Key::Home).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_END, m_input_module->key_state(Key::End).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_DOWN, m_input_module->key_state(Key::PageDown).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_SCROLL_UP, m_input_module->key_state(Key::PageUp).held);
+            nk_input_key(&m_nk_ctx, NK_KEY_SHIFT,
+                m_input_module->key_state(Key::LeftShift).held || m_input_module->key_state(Key::RightShift).held);
 
-        for (u32 unicode_char : m_pressed_unicode_chars)
-            nk_input_unicode(&m_nk_ctx, unicode_char);
-        m_pressed_unicode_chars.clear();
+            for (u32 unicode_char: m_pressed_unicode_chars)
+                nk_input_unicode(&m_nk_ctx, unicode_char);
+            m_pressed_unicode_chars.clear();
 
-        // Mouse input
-        const v2i mouse_position = m_input_module->mouse_position();
-        nk_input_motion(&m_nk_ctx, mouse_position.x, mouse_position.y);
-        nk_input_button(&m_nk_ctx, NK_BUTTON_LEFT,
-            mouse_position.x, mouse_position.y,
-            m_input_module->mouse_button_state(MouseButton::Left).held);
+            // Mouse input
+            const v2i mouse_position = m_input_module->mouse_position();
+            nk_input_motion(&m_nk_ctx, mouse_position.x, mouse_position.y);
+            nk_input_button(&m_nk_ctx, NK_BUTTON_LEFT,
+                mouse_position.x, mouse_position.y,
+                m_input_module->mouse_button_state(MouseButton::Left).held);
+        }
 
         nk_input_end(&m_nk_ctx);
     }

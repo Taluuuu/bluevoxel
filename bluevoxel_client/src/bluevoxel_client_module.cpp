@@ -43,12 +43,12 @@ namespace bluevoxel
         set_tick_phases(h2o::TickPhase::Update);
 
         // Input setup
-        auto& input_module = engine.get_module_checked<h2o::InputModule>();
-        input_module.register_axis("move_x", h2o::Key::A, h2o::Key::D);
-        input_module.register_axis("move_y", h2o::Key::S, h2o::Key::W);
-        input_module.register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
-        input_module.register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.2f, true);
-        input_module.register_axis("cam_y", h2o::MouseMoveDelta::X, 0.2f, false);
+        m_input_module = &engine.get_module_checked<h2o::InputModule>();
+        m_input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
+        m_input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
+        m_input_module->register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
+        m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.2f, true);
+        m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.2f, false);
 
         m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
             [this](h2o::PeerID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
@@ -95,6 +95,9 @@ namespace bluevoxel
 
     void BlueVoxelClientModule::update(f32 delta_time)
     {
+        if (m_input_module->key_state(h2o::Key::Escape).pressed_this_frame)
+            m_input_module->set_capture_mouse(!m_input_module->is_mouse_captured());
+
         m_ui_module->window("Connection", { { 50.0f, 50.0f }, { 250.0f, 250.0f } },
             [&](h2o::IUIRenderer& ui)
             {

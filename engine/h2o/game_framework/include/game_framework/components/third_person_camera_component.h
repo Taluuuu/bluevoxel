@@ -16,7 +16,11 @@ namespace h2o
     public:
 
         f32 distance_with_actor = 5.0f;
+        f32 min_distance_with_actor = 1.0f;
+        f32 max_distance_with_actor = 10.0f;
         f32 scroll_zoom_factor = 0.1f;
+
+        bool hold_click_to_rotate = false;
 
     protected:
 

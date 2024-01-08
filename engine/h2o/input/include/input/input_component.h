@@ -19,6 +19,9 @@ namespace h2o
 
         [[nodiscard]] f32 get_axis(const std::string& name) const;
 
+        void set_capture_mouse(bool capture);
+        [[nodiscard]] bool is_mouse_captured() const;
+
     private:
 
         InputModule* const m_input_module = nullptr;

@@ -34,6 +34,9 @@ namespace h2o
         void register_axis(const std::string_view& name, MouseScrollDelta scroll_delta, f32 sensitivity = 1.0f, bool invert = false);
         [[nodiscard]] f32 get_axis(const std::string_view& name);
 
+        void set_capture_mouse(bool capture);
+        [[nodiscard]] bool is_mouse_captured() const { return m_mouse_captured; }
+
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
         [[nodiscard]] v2 mouse_position() const;

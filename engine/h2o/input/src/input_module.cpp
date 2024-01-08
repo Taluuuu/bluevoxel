@@ -25,19 +25,6 @@ namespace h2o
 
                 m_key_states[*key_idx].held               = evt.pressed;
                 m_key_states[*key_idx].pressed_this_frame = evt.pressed;
-
-                // Hard-coded capture mouse key
-                if (evt.key == Key::Escape)
-                {
-                    if (evt.pressed)
-                    {
-                        m_mouse_captured = !m_mouse_captured;
-                        m_windowing_module->window().set_capture_mouse(m_mouse_captured);
-                    }
-
-                    // Hack, see comment below
-                    m_mouse_move_frames_to_ignore = 2;
-                }
             });
 
         m_windowing_module->window().mouse_button_changed_event().add_listener(m_mouse_button_state_event_handle,
@@ -176,6 +163,18 @@ namespace h2o
         }
 
         return 0.0f;
+    }
+
+    void InputModule::set_capture_mouse(bool capture)
+    {
+        // TODO: Prevent mouse capture if mouse is over UI
+        if (m_mouse_captured == capture)
+            return;
+
+        m_mouse_captured = capture;
+        m_windowing_module->window().set_capture_mouse(capture);
+
+        m_mouse_move_frames_to_ignore = 2;
     }
 
     KeyState InputModule::key_state(Key key) const
