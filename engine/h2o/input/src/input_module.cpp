@@ -165,10 +165,12 @@ namespace h2o
         return 0.0f;
     }
 
-    void InputModule::set_capture_mouse(bool capture)
+    void InputModule::set_capture_mouse(bool capture, bool allow_mouse_over_ui)
     {
-        // TODO: Prevent mouse capture if mouse is over UI
         if (m_mouse_captured == capture)
+            return;
+
+        if (!allow_mouse_over_ui && is_interacting_with_ui)
             return;
 
         m_mouse_captured = capture;

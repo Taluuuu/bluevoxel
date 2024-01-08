@@ -140,6 +140,11 @@ namespace h2o::gfx
 
     }
 
+    void Renderer_OpenGL::set_clear_color(const v4& color)
+    {
+        glClearColor(color.x, color.y, color.z, color.w);
+    }
+
     void Renderer_OpenGL::set_scissor(v2i scissor_pos, v2i scissor_size)
     {
         glScissor(scissor_pos.x, scissor_pos.y, scissor_size.x, scissor_size.y);

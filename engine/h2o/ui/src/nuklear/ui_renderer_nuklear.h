@@ -22,18 +22,19 @@ namespace h2o
         class Texture;
     }
 
-    class UIRenderer_Nuklear
-        : public Tickable
-        , public IUIRenderer
+    class UIRenderer_Nuklear : public IUIRenderer
     {
     public:
 
-        explicit UIRenderer_Nuklear(Tickable* owner);
+        UIRenderer_Nuklear() = default;
         ~UIRenderer_Nuklear() override = default;
 
         // IRendererUI interface
         bool init(Engine& engine) override;
         void cleanup() override;
+        void frame_start() override;
+        void frame_end() override;
+        bool is_mouse_over_ui() const override;
         bool window_begin(const std::string& title, const ui::Rect& rect) override;
         void window_end() override;
         void row(f32 height, i32 num_columns) override;
@@ -41,10 +42,6 @@ namespace h2o
         bool button(const std::string& title) override;
         bool input_text(const std::string& label, std::string& text) override;
         bool input_int(const std::string& label, i32& num) override;
-
-        // Tickable interface
-        void frame_start(f32 delta_time) override;
-        void frame_end(f32 delta_time) override;
 
     private:
 
@@ -75,6 +72,8 @@ namespace h2o
         i32 m_attrib_pos = 0;
         i32 m_attrib_uv = 0;
         i32 m_attrib_col = 0;
+
+        bool m_is_mouse_over_ui = false;
 
         std::vector<u32> m_pressed_unicode_chars{};
         EventHandle m_char_event_handle{};

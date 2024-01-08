@@ -31,6 +31,7 @@ namespace h2o::gfx
         virtual void start_frame() = 0;
         virtual void end_frame() = 0;
 
+        virtual void set_clear_color(const v4& color) = 0;
         virtual void set_scissor(v2i scissor_pos, v2i scissor_size) = 0;
 
         // Pipeline

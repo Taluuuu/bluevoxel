@@ -17,6 +17,7 @@ namespace h2o::gfx
         bool init(IWindow& window, const GameInfo& game_info) override;
         void start_frame() override;
         void end_frame() override;
+        void set_clear_color(const v4& color) override;
         void set_scissor(v2i scissor_pos, v2i scissor_size) override;
         std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data) override;
         void bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;

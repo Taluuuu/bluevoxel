@@ -30,9 +30,9 @@ namespace h2o
             m_input_module->get_axis(name) : 0.0f;
     }
 
-    void InputComponent::set_capture_mouse(bool capture)
+    void InputComponent::set_capture_mouse(bool capture, bool allow_mouse_over_ui)
     {
-        m_input_module->set_capture_mouse(capture);
+        m_input_module->set_capture_mouse(capture, allow_mouse_over_ui);
     }
 
     bool InputComponent::is_mouse_captured() const

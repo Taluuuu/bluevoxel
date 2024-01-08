@@ -17,6 +17,11 @@ namespace h2o
         virtual bool init(Engine& engine) = 0;
         virtual void cleanup() = 0;
 
+        virtual void frame_start() = 0;
+        virtual void frame_end() = 0;
+
+        [[nodiscard]] virtual bool is_mouse_over_ui() const = 0;
+
         virtual bool window_begin(
             const std::string& title,
             const ui::Rect& rect) = 0;

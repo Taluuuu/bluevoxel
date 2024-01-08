@@ -9,6 +9,7 @@
 
 namespace h2o
 {
+    class InputModule;
     class IUIRenderer;
 
     class UIModule
@@ -30,9 +31,17 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override { return "h2o_ui"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
+    protected:
+
+        // Tickable interface
+        void frame_start(f32 delta_time) override;
+        void frame_end(f32 delta_time) override;
+
     private:
 
         std::shared_ptr<IUIRenderer> m_ui_renderer = nullptr;
+
+        InputModule* m_input_module = nullptr;
 
     };
 }

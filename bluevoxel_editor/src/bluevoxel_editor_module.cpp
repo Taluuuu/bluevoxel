@@ -42,6 +42,9 @@ namespace bluevoxel
         if (!voxel_pack)
             return false;
 
+        auto& renderer = m_rendering_module->renderer();
+        renderer.set_clear_color({ 0.16f, 0.26f, 0.34f, 1.0f });
+
         // Input setup
         m_input_module = &engine.get_module_checked<h2o::InputModule>();
         m_input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);

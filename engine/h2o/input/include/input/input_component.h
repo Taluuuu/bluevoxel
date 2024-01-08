@@ -19,7 +19,13 @@ namespace h2o
 
         [[nodiscard]] f32 get_axis(const std::string& name) const;
 
-        void set_capture_mouse(bool capture);
+        /**
+         * Capture or free the mouse
+         *
+         * @param capture true if the mouse should be captured
+         * @param allow_mouse_over_ui true if the mouse should be captured when it is hovering over UI
+         */
+        void set_capture_mouse(bool capture, bool allow_mouse_over_ui = true);
         [[nodiscard]] bool is_mouse_captured() const;
 
     private:
