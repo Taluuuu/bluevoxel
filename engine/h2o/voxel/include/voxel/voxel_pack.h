@@ -2,6 +2,7 @@
 
 #include "block_model.h"
 #include "block_type.h"
+#include "core/events.h"
 #include "core/resources.h"
 
 #include <optional>
@@ -14,6 +15,10 @@ namespace h2o
     using BlockTypeList = std::vector< std::optional<BlockType> >;
     using TextureNameIdMap = std::unordered_map<std::string, u32>;
 
+    class VoxelPack;
+
+    struct VoxelPackUpdatedEvent { const VoxelPack& voxel_pack; };
+
     class VoxelPack : public IResource
     {
     public:
@@ -25,10 +30,13 @@ namespace h2o
         [[nodiscard]] const BlockTypeList&    block_types()  const { return m_block_types;  }
         [[nodiscard]] const TextureNameIdMap& texture_ids()  const { return m_texture_ids;  }
 
-        [[nodiscard]] const fs::path& path() const { return m_path; }
+        [[nodiscard]] const fs::path& path()     const { return m_path;     }
+        [[nodiscard]] bool            is_dirty() const { return m_is_dirty; }
 
-        // Apply local changes to files in the specified path
-        void save(const fs::path& path) const;
+        void edit_block_type(BlockID block_id, BlockType edited_block_type);
+
+        // Apply local changes
+        void save() const;
 
         // IResource interface
         bool load(const fs::path& path) override;
@@ -38,6 +46,8 @@ namespace h2o
         static constexpr std::string_view block_types_file_name { "block_types.yml" };
         static constexpr std::string_view block_models_file_name { "block_models.yml" };
         static constexpr std::string_view textures_folder_name { "textures" };
+
+        Event<VoxelPackUpdatedEvent> on_voxel_pack_updated{};
 
     protected:
 
@@ -57,6 +67,8 @@ namespace h2o
         TextureNameIdMap m_texture_ids{};
 
         fs::path m_path{};
+
+        bool m_is_dirty = false;
 
     };
 }

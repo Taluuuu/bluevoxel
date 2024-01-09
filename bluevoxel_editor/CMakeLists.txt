@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_executable(bluevoxel_editor
     src/bluevoxel_editor_module.cpp
+    src/editor_modes/block_type_editor.cpp
     src/main.cpp
 )
 

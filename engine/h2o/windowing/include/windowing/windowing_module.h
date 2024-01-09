@@ -38,7 +38,7 @@ namespace h2o
 
         std::unique_ptr<IWindow> m_window = nullptr;
 
-        static constexpr v2i default_size { 800, 600 };
+        static constexpr v2i default_size { 1600, 900 };
 
     };
 }

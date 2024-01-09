@@ -35,7 +35,7 @@ namespace h2o
         for (i32 x = 0; x < voxel_constants::chunk_size; x++)
         for (i32 z = 0; z < voxel_constants::chunk_size; z++)
         {
-            const i32 ground_level = i32(noise_outputs[z * voxel_constants::chunk_size + x]);
+            const i32 ground_level = i32(noise_outputs[z * voxel_constants::chunk_size + x]) + 64;
             const i32 layers_start = ground_level - i32(block_layers.size());
 
             for (i32 y = 0; y < ground_level; y++)

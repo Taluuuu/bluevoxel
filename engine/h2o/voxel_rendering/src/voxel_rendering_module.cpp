@@ -42,7 +42,7 @@ namespace h2o
             return false;
 
         m_voxel_module->on_voxel_pack_changed.add_listener(m_on_voxel_pack_changed_handle,
-            [this](const OnVoxelPackChanged& event)
+            [this](const VoxelPackChangedEvent& event)
             {
                 const auto& voxel_pack = event.voxel_pack;
                 const auto& texture_name_id_map = voxel_pack.texture_ids();

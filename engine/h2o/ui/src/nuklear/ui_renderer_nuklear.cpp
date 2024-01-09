@@ -216,21 +216,6 @@ namespace h2o
         return m_is_mouse_over_ui;
     }
 
-    bool UIRenderer_Nuklear::window_begin(
-        const std::string& title,
-        const ui::Rect& rect)
-    {
-        return nk_begin(
-            &m_nk_ctx, title.c_str(), ui::to_nk_rect(rect),
-            NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
-            NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE);
-    }
-
-    void UIRenderer_Nuklear::window_end()
-    {
-        nk_end(&m_nk_ctx);
-    }
-
     void UIRenderer_Nuklear::row(f32 height, i32 num_columns)
     {
         nk_layout_row_dynamic(&m_nk_ctx, height, num_columns);
@@ -275,5 +260,36 @@ namespace h2o
         const i32 prev_val = num;
         nk_property_int(&m_nk_ctx, label.c_str(), 0, &num, 9999999, 1, 0.0f);
         return num != prev_val;
+    }
+
+    bool UIRenderer_Nuklear::combobox(const std::vector<const char*>& options, u32& selected_index)
+    {
+        i32 current_index_value = static_cast<i32>(selected_index);
+        nk_combobox(&m_nk_ctx,
+            const_cast<const char**>(options.data()), static_cast<i32>(options.size()),
+            &current_index_value, 20, { 250.0f, 250.0f });
+
+        if (selected_index != current_index_value)
+        {
+            selected_index = current_index_value;
+            return true;
+        }
+
+        return false;
+    }
+
+    bool UIRenderer_Nuklear::window_begin(
+        const std::string& title,
+        const ui::Rect& rect)
+    {
+        return nk_begin(
+            &m_nk_ctx, title.c_str(), ui::to_nk_rect(rect),
+            NK_WINDOW_BORDER | NK_WINDOW_MOVABLE | NK_WINDOW_SCALABLE |
+            NK_WINDOW_MINIMIZABLE | NK_WINDOW_TITLE);
+    }
+
+    void UIRenderer_Nuklear::window_end()
+    {
+        nk_end(&m_nk_ctx);
     }
 }

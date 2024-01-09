@@ -49,5 +49,14 @@ namespace h2o
         using Face = std::vector<BlockVertex>;
         std::array<std::vector<Face>, 6> occluded_faces_per_side{};
         std::vector<Face> unoccluded_faces{};
+
+        [[nodiscard]] u32 calculate_face_count() const
+        {
+            u32 face_count = unoccluded_faces.size();
+            for (const auto& side : occluded_faces_per_side)
+                face_count += side.size();
+
+            return face_count;
+        }
     };
 }

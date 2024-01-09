@@ -3,13 +3,103 @@
 #include "core/engine.h"
 #include "voxel/voxel_module.h"
 
+#include <fstream>
 #include <yaml-cpp/yaml.h>
 
 namespace h2o
 {
-    void VoxelPack::save(const fs::path& path) const
+    void VoxelPack::edit_block_type(BlockID block_id, BlockType edited_block_type)
     {
-        assert(false && "Not implemented");
+        // Do some validations here
+        assert(block_id < m_block_types.size());
+        assert(edited_block_type.model_id < m_block_models.size());
+
+        // TODO: Test this with 0 textures
+        const u32 face_count = m_block_models[edited_block_type.model_id].calculate_face_count();
+        edited_block_type.texture_ids.resize(face_count, 0);
+
+        m_block_types[block_id] = edited_block_type;
+
+        on_voxel_pack_updated.broadcast({ *this });
+
+        m_is_dirty = true;
+    }
+
+    void VoxelPack::save() const
+    {
+        if (!m_is_dirty)
+            return;
+
+        try
+        {
+            YAML::Emitter yaml{};
+
+            yaml << YAML::BeginMap;
+
+                yaml << YAML::Key << "block_types";
+                yaml << YAML::Value;
+
+                yaml << YAML::BeginSeq;
+
+                    for (const auto& block_type : m_block_types)
+                    {
+                        if (!block_type)
+                            continue;
+
+                        yaml << YAML::BeginMap;
+
+                            yaml << YAML::Key << "name";
+                            yaml << YAML::Value << block_type->name;
+
+                            auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
+                            if (const auto preset_name = voxel_module.find_block_preset_name(block_type->preset_id))
+                            {
+                                yaml << YAML::Key << "preset";
+                                yaml << YAML::Value << *preset_name;
+                            }
+
+                            yaml << YAML::Key << "id";
+                            yaml << YAML::Value << block_type->block_id;
+
+                            yaml << YAML::Key << "model";
+                            yaml << YAML::Value << m_block_models[block_type->model_id].name;
+
+                            yaml << YAML::Key << "textures";
+                            yaml << YAML::Value;
+
+                            yaml << YAML::BeginSeq;
+
+                                for (u32 texture_id : block_type->texture_ids)
+                                {
+                                    // Find texture name with id texture_id
+                                    const auto it = std::find_if(m_texture_ids.begin(), m_texture_ids.end(),
+                                        [&](const auto& item)
+                                        { return item.second == texture_id; }
+                                    );
+
+                                    if (it != m_texture_ids.end())
+                                        yaml << it->first;
+                                }
+
+                            yaml << YAML::EndSeq;
+
+                        yaml << YAML::EndMap;
+                    }
+
+                yaml << YAML::EndSeq;
+
+            yaml << YAML::EndMap;
+
+            const auto block_types_path = m_path / block_types_file_name;
+            std::ofstream file(block_types_path.string());
+            file << yaml.c_str();
+
+            log::info("Saved block types to file at '{}'", absolute(block_types_path).string());
+        }
+        catch(const std::exception& e)
+        {
+            log::error("Failed to save voxel pack: {}", e.what());
+        }
     }
 
     bool VoxelPack::load(const fs::path& path)
@@ -251,10 +341,7 @@ namespace h2o
                 // Find texture ids
                 const auto texture_names = block_type_yml["textures"].as<std::vector<std::string>>();
 
-                u32 face_count = model_it->unoccluded_faces.size();
-                for (const auto& side : model_it->occluded_faces_per_side)
-                    face_count += side.size();
-
+                u32 face_count = model_it->calculate_face_count();
                 if (face_count != texture_names.size())
                 {
                     log::warn("Mismatch between number of faces in model and number of textures for block type '{}'. Skipping.", name);

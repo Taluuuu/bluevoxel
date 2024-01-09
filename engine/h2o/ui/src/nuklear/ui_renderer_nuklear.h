@@ -35,13 +35,14 @@ namespace h2o
         void frame_start() override;
         void frame_end() override;
         bool is_mouse_over_ui() const override;
-        bool window_begin(const std::string& title, const ui::Rect& rect) override;
-        void window_end() override;
         void row(f32 height, i32 num_columns) override;
         void label(const std::string& label) override;
         bool button(const std::string& title) override;
         bool input_text(const std::string& label, std::string& text) override;
         bool input_int(const std::string& label, i32& num) override;
+        bool combobox(const std::vector<const char*>& options, u32& selected_index) override;
+        bool window_begin(const std::string& title, const ui::Rect& rect) override;
+        void window_end() override;
 
     private:
 
