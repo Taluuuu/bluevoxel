@@ -130,6 +130,7 @@ namespace bluevoxel
 
         // TODO: Avoid calculating proj_view matrix here.
         const m4 proj_view = camera->calc_proj_view();
+        renderer.set_proj_view_matrix(proj_view); // TODO: This is a hack to allow drawing debug lines. Rework this ASAP.
         pipeline->set_uniform_mat4(0, proj_view);
 
         block_textures->bind(0);
@@ -144,10 +145,15 @@ namespace bluevoxel
                 if (chunk_mesh.vertex_count > 0)
                 {
                     pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos);
-                    renderer.draw_arrays(chunk_mesh.vertex_array, chunk_mesh.vertex_count);
+                    renderer.draw_arrays(chunk_mesh.vertex_array, chunk_mesh.vertex_count, h2o::gfx::DrawMode::Triangles);
                 }
             }
         );
+
+        // Draw gizmo
+        renderer.draw_debug_line(v3(-0.5f), { 1.5f,-0.5f,-0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+        renderer.draw_debug_line(v3(-0.5f), {-0.5f,-0.5f, 1.5f }, { 0.0f, 0.0f, 1.0f, 1.0f });
+        renderer.draw_debug_line(v3(-0.5f), {-0.5f, 1.5f,-0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f });
     }
 
     void BlockTypeEditor::on_changed_block_type_selection(h2o::BlockID block_id)

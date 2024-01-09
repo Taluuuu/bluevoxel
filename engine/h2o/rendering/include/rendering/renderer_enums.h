@@ -5,7 +5,14 @@ namespace h2o::gfx
     enum class BufferUsage
     {
         StaticDraw,
-        StreamDraw
+        StreamDraw,
+        DynamicDraw,
+    };
+
+    enum class DrawMode
+    {
+        Triangles,
+        Lines,
     };
 
     enum class ShaderStage

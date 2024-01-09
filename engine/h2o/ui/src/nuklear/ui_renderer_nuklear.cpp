@@ -49,9 +49,9 @@ namespace h2o
         // Create VAO and VBOs
         m_nuklear_vertex_array = renderer.create_vertex_array_ptr();
         m_nuklear_index_buffer = renderer.create_buffer_ptr();
-        m_nuklear_index_buffer->update_data(nullptr, max_index_buffer, gfx::BufferUsage::StreamDraw);
+        m_nuklear_index_buffer->update_data(nullptr, max_index_buffer, gfx::BufferUsage::DynamicDraw);
         m_nuklear_vertex_buffer = renderer.create_buffer_ptr();
-        m_nuklear_vertex_buffer->update_data(nullptr, max_vertex_buffer, gfx::BufferUsage::StreamDraw);
+        m_nuklear_vertex_buffer->update_data(nullptr, max_vertex_buffer, gfx::BufferUsage::DynamicDraw);
 
         m_nuklear_vertex_array->attach_index_buffer(m_nuklear_index_buffer);
         m_nuklear_vertex_array->attach_vertex_buffer(m_nuklear_vertex_buffer, 0, 0, sizeof(NkVertex));

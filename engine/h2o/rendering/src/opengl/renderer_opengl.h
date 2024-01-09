@@ -14,18 +14,19 @@ namespace h2o::gfx
         Renderer_OpenGL() = default;
 
         // IRenderer interface
-        bool init(IWindow& window, const GameInfo& game_info) override;
-        void start_frame() override;
-        void end_frame() override;
         void set_clear_color(const v4& color) override;
         void set_scissor(v2i scissor_pos, v2i scissor_size) override;
         std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data) override;
         void bind_pipeline(const std::shared_ptr<IPipeline>& pipeline) override;
-        void draw_arrays(const VertexArray& vertex_array, u32 vertex_count) override;
+        void draw_arrays(const VertexArray& vertex_array, u32 vertex_count, DrawMode draw_mode) override;
         void draw_elements(const VertexArray& vertex_array, u32 vertex_count, AttributeType indices_type, u64 byte_offset = 0) override;
         void draw(const Mesh& mesh) override;
 
         // Renderer_Base interface
+        bool init(IWindow& window, const GameInfo& game_info) override;
+        void cleanup() override;
+        void start_frame() override;
+        void end_frame() override;
         u32 allocate_vertex_array() override;
         void destroy_vertex_array(u32 vertex_array_id) override;
         void attach_vertex_buffer(u32 vertex_array_id, const Buffer& buffer, u32 binding_index, i64 offset, i32 stride) override;

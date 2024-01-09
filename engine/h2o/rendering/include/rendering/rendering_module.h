@@ -24,6 +24,7 @@ namespace h2o
 
         // IModule interface
         bool init(Engine& engine) override;
+        void cleanup() override;
         [[nodiscard]] std::string_view module_name() const override { return "h2o_rendering"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
@@ -38,7 +39,7 @@ namespace h2o
 
     private:
 
-        std::unique_ptr<gfx::Renderer_Base> m_renderer;
+        std::shared_ptr<gfx::Renderer_Base> m_renderer = nullptr;
 
     };
 }

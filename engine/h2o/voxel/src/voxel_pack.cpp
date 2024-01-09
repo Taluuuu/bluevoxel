@@ -27,7 +27,7 @@ namespace h2o
 
     void VoxelPack::save() const
     {
-        if (!m_is_dirty)
+        if (!is_dirty())
             return;
 
         try

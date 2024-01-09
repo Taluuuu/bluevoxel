@@ -4,6 +4,8 @@
 #include "renderer_enums.h"
 #include "rendering/renderer.h"
 
+#include <vector>
+
 namespace h2o::gfx
 {
     class VertexArray;
@@ -15,6 +17,16 @@ namespace h2o::gfx
     class Renderer_Base : public IRenderer
     {
     public:
+
+        Renderer_Base() = default;
+        ~Renderer_Base() override = default;
+
+        virtual bool init(IWindow& window, const GameInfo& game_info);
+        virtual void cleanup();
+        virtual void start_frame();
+        virtual void end_frame();
+
+        void draw_debug_shapes();
 
         // Pipeline
         virtual std::shared_ptr<IPipeline> compile_pipeline(const PipelineCreateData& create_data) = 0;
@@ -59,6 +71,26 @@ namespace h2o::gfx
         std::shared_ptr<Texture> create_texture_ptr() override;
         TextureArray create_texture_array(u32 array_size) override;
         std::shared_ptr<TextureArray> create_texture_array_ptr(u32 array_size) override;
+        void set_proj_view_matrix(const m4& proj_view) override;
+        void draw_debug_line(const v3& origin, const v3& end, const v4& color) override;
+
+    private:
+
+        // Debug drawing
+        std::shared_ptr<gfx::IPipeline> m_debug_draw_pipeline = nullptr;
+
+        struct DebugLine
+        {
+            v3 start{}, end{};
+            v4 color{};
+        };
+
+        std::vector<DebugLine> m_lines_to_draw{};
+
+        std::shared_ptr<VertexArray> m_debug_lines_vao = nullptr;
+        std::shared_ptr<Buffer> m_debug_lines_vbo = nullptr;
+
+        m4 m_proj_view_matrix{};
 
     };
 }

@@ -51,6 +51,18 @@ namespace h2o::gfx
         return {};
     }
 
+    static constexpr GLenum to_gl_draw_mode(DrawMode draw_mode)
+    {
+        switch (draw_mode)
+        {
+        case DrawMode::Triangles: return GL_TRIANGLES;
+        case DrawMode::Lines:     return GL_LINES;
+        }
+
+        assert(false);
+        return {};
+    }
+
     std::shared_ptr<IPipeline> Renderer_OpenGL::compile_pipeline(const PipelineCreateData& create_data)
     {
         return Pipeline_OpenGL::create(create_data);
@@ -83,13 +95,13 @@ namespace h2o::gfx
             to_gl_blend_factor(pipeline_cfg.blend_dest_factor));
     }
 
-    void Renderer_OpenGL::draw_arrays(const VertexArray& vertex_array, u32 vertex_count)
+    void Renderer_OpenGL::draw_arrays(const VertexArray& vertex_array, u32 vertex_count, DrawMode draw_mode)
     {
         if (!m_bound_pipeline || vertex_count == 0)
             return;
 
         glBindVertexArray(vertex_array.id());
-        glDrawArrays(GL_TRIANGLES, 0, GLsizei(vertex_count));
+        glDrawArrays(to_gl_draw_mode(draw_mode), 0, GLsizei(vertex_count));
     }
 
     void Renderer_OpenGL::draw_elements(const VertexArray& vertex_array, u32 vertex_count, AttributeType indices_type, u64 byte_offset)
@@ -127,17 +139,24 @@ namespace h2o::gfx
                 glViewport(0, 0, static_cast<i32>(event.new_size.x), static_cast<i32>(event.new_size.y));
             });
 
-        return true;
+        return Renderer_Base::init(window, game_info);
+    }
+
+    void Renderer_OpenGL::cleanup()
+    {
+        Renderer_Base::cleanup();
     }
 
     void Renderer_OpenGL::start_frame()
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        Renderer_Base::start_frame();
     }
 
     void Renderer_OpenGL::end_frame()
     {
-
+        Renderer_Base::end_frame();
     }
 
     void Renderer_OpenGL::set_clear_color(const v4& color)
@@ -205,8 +224,9 @@ namespace h2o::gfx
         GLenum usage = GL_STATIC_DRAW;
         switch (buffer_usage)
         {
-        case BufferUsage::StreamDraw: usage = GL_STREAM_DRAW; break;
-        case BufferUsage::StaticDraw: usage = GL_STATIC_DRAW; break;
+        case BufferUsage::StreamDraw:  usage = GL_STREAM_DRAW;  break;
+        case BufferUsage::StaticDraw:  usage = GL_STATIC_DRAW;  break;
+        case BufferUsage::DynamicDraw: usage = GL_DYNAMIC_DRAW; break;
         }
 
         glNamedBufferData(buffer_id, GLsizeiptr(size), data, usage);

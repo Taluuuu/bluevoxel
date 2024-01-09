@@ -1,6 +1,7 @@
 #include "rendering/rendering_module.h"
 
 #include "core/engine.h"
+#include "rendering/pipeline.h"
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
 
@@ -29,10 +30,15 @@ namespace h2o
 #if H2O_USE_VULKAN
         m_renderer = std::make_unique<Renderer_Vulkan>();
 #elif H2O_USE_OPENGL
-        m_renderer = std::make_unique<gfx::Renderer_OpenGL>();
+        m_renderer = std::make_shared<gfx::Renderer_OpenGL>();
 #endif
 
         return m_renderer->init(window, engine.game_info());
+    }
+
+    void RenderingModule::cleanup()
+    {
+        m_renderer->cleanup();
     }
 
     std::vector<std::type_index> RenderingModule::dependencies() const
