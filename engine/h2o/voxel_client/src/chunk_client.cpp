@@ -159,7 +159,7 @@ namespace h2o
                 if (chunk_mesh.vertex_count > 0)
                 {
                     pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos);
-                    renderer.draw_arrays(chunk_mesh.vertex_array, chunk_mesh.vertex_count);
+                    renderer.draw_arrays(chunk_mesh.vertex_array, chunk_mesh.vertex_count, gfx::DrawMode::Triangles);
                 }
             }
         );

@@ -21,7 +21,7 @@ namespace h2o
 
     bool RenderingModule::init(Engine& engine)
     {
-        set_tick_phases(TickPhase::FrameStart | TickPhase::FrameEnd);
+        set_tick_phases(TickPhase::FrameStart | TickPhase::PostRender | TickPhase::FrameEnd);
 
         const auto windowing_module = engine.get_module<WindowingModule>();
         assert(windowing_module != nullptr);
@@ -48,13 +48,16 @@ namespace h2o
 
     void RenderingModule::frame_start(f32 delta_time)
     {
-        assert(m_renderer);
         m_renderer->start_frame();
+    }
+
+    void RenderingModule::post_render()
+    {
+        m_renderer->post_render();
     }
 
     void RenderingModule::frame_end(f32 delta_time)
     {
-        assert(m_renderer);
         m_renderer->end_frame();
     }
 

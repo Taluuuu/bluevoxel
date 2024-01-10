@@ -34,7 +34,8 @@ namespace h2o
         void cleanup() override;
         void frame_start() override;
         void frame_end() override;
-        bool is_mouse_over_ui() const override;
+        [[nodiscard]] bool is_mouse_over_ui() const override;
+        [[nodiscard]] bool is_mouse_over_next_widget() const override;
         void row(f32 height, i32 num_columns) override;
         void label(const std::string& label) override;
         bool button(const std::string& title) override;

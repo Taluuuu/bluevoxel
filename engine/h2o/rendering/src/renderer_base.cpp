@@ -40,9 +40,14 @@ namespace h2o::gfx
 
     }
 
-    void Renderer_Base::end_frame()
+    void Renderer_Base::post_render()
     {
         draw_debug_shapes();
+    }
+
+    void Renderer_Base::end_frame()
+    {
+
     }
 
     void Renderer_Base::draw_debug_shapes()

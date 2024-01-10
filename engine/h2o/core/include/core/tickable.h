@@ -27,7 +27,6 @@ namespace h2o
         }
     }
 
-
     class Tickable
     {
     public:

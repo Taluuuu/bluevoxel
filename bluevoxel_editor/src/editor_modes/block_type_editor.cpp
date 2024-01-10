@@ -103,7 +103,7 @@ namespace bluevoxel
                 if (ui.combobox(m_block_type_names_c_str, m_selected_block_id))
                     on_changed_block_type_selection(m_selected_block_id);
 
-                if (auto edited_block_type = voxel_pack->block_types()[m_selected_block_id])
+                if (auto edited_block_type = voxel_pack->block_types()[m_selected_block_id]; edited_block_type->block_id != 0)
                 {
                     ui.label(fmt::format("id: {}", m_selected_block_id));
 
@@ -228,6 +228,8 @@ namespace bluevoxel
 
         m_chunk_mesh_pool->build_chunk_mesh(m_chunk_region);
         m_chunk_mesh_pool->update_meshes(m_voxel_bounds);
+
+        m_selected_block_name_edit = std::nullopt;
     }
 
     void BlockTypeEditor::on_voxel_pack_changed()

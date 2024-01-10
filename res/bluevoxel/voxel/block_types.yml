@@ -9,7 +9,7 @@ block_types:
       - dirt_block.png
       - grass_block_top.png
       - grass_block_side.png
-      - stone_block.png
+      - grass_block_side.png
   - name: dirt_block
     preset: normal
     id: 2

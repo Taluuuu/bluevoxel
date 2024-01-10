@@ -216,6 +216,11 @@ namespace h2o
         return m_is_mouse_over_ui;
     }
 
+    bool UIRenderer_Nuklear::is_mouse_over_next_widget() const
+    {
+        return nk_widget_is_hovered(const_cast<nk_context*>(&m_nk_ctx));
+    }
+
     void UIRenderer_Nuklear::row(f32 height, i32 num_columns)
     {
         nk_layout_row_dynamic(&m_nk_ctx, height, num_columns);

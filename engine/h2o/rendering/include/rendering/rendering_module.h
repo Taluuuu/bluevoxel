@@ -30,6 +30,7 @@ namespace h2o
 
         // Tickable interface
         void frame_start(f32 delta_time) override;
+        void post_render() override;
         void frame_end(f32 delta_time) override;
 
         // High level renderer, meant for user

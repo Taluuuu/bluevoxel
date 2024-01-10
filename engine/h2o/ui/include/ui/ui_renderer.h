@@ -21,6 +21,7 @@ namespace h2o
         virtual void frame_end() = 0;
 
         [[nodiscard]] virtual bool is_mouse_over_ui() const = 0;
+        [[nodiscard]] virtual bool is_mouse_over_next_widget() const = 0;
 
         virtual void row(f32 height, i32 num_columns) = 0;
 

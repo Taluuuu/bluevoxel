@@ -26,8 +26,17 @@ namespace h2o
 
     BlockID VoxelPack::create_block_type(const std::string& name)
     {
-        const BlockID block_id = m_block_types.size();
-        m_block_types.emplace_back(BlockType { name, block_id, {}, 0, 0 });
+        const auto it = std::find(m_block_types.begin(), m_block_types.end(), std::nullopt);
+
+        const BlockID block_id = it - m_block_types.begin();
+        if (it == m_block_types.end())
+        {
+            m_block_types.emplace_back(BlockType{ name, block_id, {}, 0, 0 });
+        }
+        else
+        {
+            *it = BlockType{ name, block_id, {}, 0, 0 };
+        }
 
         on_voxel_pack_updated.broadcast({ *this });
         m_is_dirty = true;
@@ -40,15 +49,21 @@ namespace h2o
         if (block_id < m_block_types.size())
             m_block_types[block_id] = std::nullopt;
 
+        // Trim null blocks at the end
+        i32 i = i32(m_block_types.size()) - 1;
+        for (; i >= 0; i--)
+        {
+            if (m_block_types[i])
+                break;
+        }
+        m_block_types.resize(i + 1);
+
         on_voxel_pack_updated.broadcast({ *this });
         m_is_dirty = true;
     }
 
     void VoxelPack::save() const
     {
-        if (!is_dirty())
-            return;
-
         try
         {
             YAML::Emitter yaml{};
@@ -62,7 +77,7 @@ namespace h2o
 
                     for (const auto& block_type : m_block_types)
                     {
-                        if (!block_type)
+                        if (!block_type || block_type->block_id == 0)
                             continue;
 
                         yaml << YAML::BeginMap;
@@ -329,6 +344,7 @@ namespace h2o
         auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
         BlockTypeList result{};
+        result.emplace_back(BlockType{ "air", 0, {}, 0, 0 });
 
         try
         {
@@ -341,10 +357,9 @@ namespace h2o
                     result.resize(id + 1);
 
                 const auto name = block_type_yml["name"].as<std::string>();
-
-                if (id == 0)
+                if (const auto& block_type_with_id = result[id])
                 {
-                    log::warn("Block type with name '{}' uses reserved id: {}. Skipping.", name, id);
+                    log::warn("Block type with name '{}' uses already assigned id: {} to block '{}'.", name, id, block_type_with_id->name);
                     continue;
                 }
 

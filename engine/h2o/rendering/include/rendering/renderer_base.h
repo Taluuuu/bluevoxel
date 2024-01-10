@@ -24,6 +24,7 @@ namespace h2o::gfx
         virtual bool init(IWindow& window, const GameInfo& game_info);
         virtual void cleanup();
         virtual void start_frame();
+        virtual void post_render();
         virtual void end_frame();
 
         void draw_debug_shapes();
