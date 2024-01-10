@@ -17,6 +17,8 @@
 #include "voxel_rendering/chunk_mesh_pool.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 
+#include <fmt/core.h>
+
 namespace bluevoxel
 {
     BlockTypeEditor::BlockTypeEditor(h2o::Tickable* owner)
@@ -57,7 +59,6 @@ namespace bluevoxel
         );
 
         // This should be updatable on-demand
-        update_texture_paths();
         update_preset_names();
 
         set_tick_phases(h2o::TickPhase::Update | h2o::TickPhase::Render);
@@ -66,27 +67,54 @@ namespace bluevoxel
     void BlockTypeEditor::update(f32 delta_time)
     {
         const auto& voxel_pack = m_voxel_module->voxel_pack();
-        if (!voxel_pack)
-            return;
 
-        auto edited_block_type = voxel_pack->block_types()[m_selected_block_id];
-
-        m_ui_module->window("Block Type Editor", { { 50.0f, 50.0f }, { 350.0f, 700.0f } },
+        m_ui_module->window("Block Type Editor", { { 50.0f, 50.0f }, { 400.0f, 700.0f } },
             [&](h2o::IUIRenderer& ui)
             {
+                // TODO: Place this in another window
+                if (!voxel_pack)
+                {
+                    ui.row(25.0f, 2);
+
+                    ui.label("Missing Voxel Pack.");
+                    if (ui.button("Refresh"))
+                        reload_voxel_pack();
+
+                    return;
+                }
+
+                ui.row(25.0f, 2);
+
+                if (ui.button("Refresh"))
+                    reload_voxel_pack();
+
+                if (ui.button("Save"))
+                    voxel_pack->save();
+
+                if (ui.button("Create Block"))
+                {
+                    m_selected_block_id = voxel_pack->create_block_type("new_block");
+                    m_selected_block_name_edit = "new_block";
+                }
+
                 ui.row(25.0f, 1);
 
                 // Block type picker
                 if (ui.combobox(m_block_type_names_c_str, m_selected_block_id))
                     on_changed_block_type_selection(m_selected_block_id);
 
-                if (ui.button("Save"))
-                    voxel_pack->save();
-
-                if (edited_block_type)
+                if (auto edited_block_type = voxel_pack->block_types()[m_selected_block_id])
                 {
-                    // In the future, we should be able to change a block type's id
-                    // ui.input_int("Block ID", m_selected_block_id);
+                    ui.label(fmt::format("id: {}", m_selected_block_id));
+
+                    ui.row(25.0f, 2);
+
+                    // TODO: Investigate if deleting the last block id will crash
+                    if (ui.button(fmt::format("Delete '{}'", edited_block_type->name)))
+                        voxel_pack->delete_block_type(m_selected_block_id);
+
+                    if (ui.button(fmt::format("Rename '{}'", edited_block_type->name)))
+                        m_selected_block_name_edit = edited_block_type->name;
 
                     ui.row(25.0f, 2);
 
@@ -110,6 +138,40 @@ namespace bluevoxel
                 }
             }
         );
+
+        if (m_selected_block_name_edit)
+        {
+            m_ui_module->window("Name Selected Block", { { 500.0f, 50.0f }, { 200.0f, 200.0f } },
+                [&](h2o::IUIRenderer& ui)
+                {
+                    if (!voxel_pack)
+                        return;
+
+                    auto edited_block_type = voxel_pack->block_types()[m_selected_block_id];
+                    if (!edited_block_type)
+                        return;
+
+                    ui.row(25.0f, 1);
+
+                    ui.input_text("New Name", *m_selected_block_name_edit);
+
+                    ui.row(25.0f, 2);
+
+                    if (ui.button("Confirm"))
+                    {
+                        edited_block_type->name = *m_selected_block_name_edit;
+                        voxel_pack->edit_block_type(m_selected_block_id, *edited_block_type);
+
+                        m_selected_block_name_edit = std::nullopt;
+                    }
+
+                    if (ui.button("Cancel"))
+                    {
+                        m_selected_block_name_edit = std::nullopt;
+                    }
+                }
+            );
+        }
     }
 
     void BlockTypeEditor::render()
@@ -122,8 +184,11 @@ namespace bluevoxel
         if (!camera)
             return;
 
-        const auto& pipeline = m_voxel_rendering_module->pipeline();
         const auto& block_textures = m_voxel_rendering_module->block_textures();
+        if (!block_textures)
+            return;
+
+        const auto& pipeline = m_voxel_rendering_module->pipeline();
 
         auto& renderer = m_rendering_module->renderer();
         renderer.bind_pipeline(pipeline);
@@ -184,6 +249,7 @@ namespace bluevoxel
     {
         update_block_type_names();
         update_model_names();
+        update_texture_names();
 
         if (const auto& voxel_pack = m_voxel_module->voxel_pack())
         {
@@ -216,21 +282,17 @@ namespace bluevoxel
         }
     }
 
-    void BlockTypeEditor::update_texture_paths()
+    void BlockTypeEditor::update_texture_names()
     {
         m_texture_names_c_str.clear();
-        m_texture_names.clear();
 
         if (const auto& voxel_pack = m_voxel_module->voxel_pack())
         {
-            const auto textures_path = voxel_pack->path() / h2o::VoxelPack::textures_folder_name;
+            const auto& texture_ids = voxel_pack->texture_ids();
 
-            for (const auto& texture_path : fs::directory_iterator(textures_path))
-                m_texture_names.push_back(texture_path.path().filename().string());
-
-            m_texture_names_c_str.reserve(m_texture_names.size());
-            for (const auto& texture_path_string : m_texture_names)
-                m_texture_names_c_str.push_back(texture_path_string.c_str());
+            m_texture_names_c_str.reserve(texture_ids.size());
+            for (const auto& texture_path_string : texture_ids)
+                m_texture_names_c_str.push_back(texture_path_string.first.c_str());
         }
     }
 
@@ -238,7 +300,7 @@ namespace bluevoxel
     {
         m_block_preset_names_c_str.clear();
 
-        const auto& block_presets = m_voxel_module->block_presets();\
+        const auto& block_presets = m_voxel_module->block_presets();
 
         m_block_preset_names_c_str.reserve(block_presets.size());
         for (const auto& block_preset : block_presets)
@@ -257,5 +319,11 @@ namespace bluevoxel
             for (const auto& block_model: block_models)
                 m_block_model_names_c_str.push_back(block_model.name.c_str());
         }
+    }
+
+    void BlockTypeEditor::reload_voxel_pack()
+    {
+        if (auto voxel_pack = g_engine->resource_mgr().reload<h2o::VoxelPack>("../Resources/bluevoxel/voxel/"))
+            m_voxel_module->set_voxel_pack(voxel_pack);
     }
 }

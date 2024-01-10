@@ -67,7 +67,8 @@ namespace h2o
     const BlockModel* VoxelRenderingModule::get_model(BlockID id, const std::vector<u32>*& out_texture_ids) const
     {
         const auto& voxel_pack = m_voxel_module->voxel_pack();
-        assert(voxel_pack);
+        if (!voxel_pack)
+            return nullptr;
 
         const auto& block_types = voxel_pack->block_types();
 
@@ -92,7 +93,6 @@ namespace h2o
 
     const std::shared_ptr<gfx::TextureArray>& VoxelRenderingModule::block_textures() const
     {
-        assert(m_block_textures);
         return m_block_textures;
     }
 }

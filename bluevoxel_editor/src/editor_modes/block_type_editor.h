@@ -46,16 +46,17 @@ namespace bluevoxel
         void on_voxel_pack_updated();
 
         void update_block_type_names();
-        void update_texture_paths();
+        void update_texture_names();
         void update_preset_names();
         void update_model_names();
+
+        void reload_voxel_pack();
 
     private:
 
         u32 m_selected_block_id = 0;
+        std::optional<std::string> m_selected_block_name_edit{};
 
-        // Keep strings in memory while using char pointers
-        std::vector<std::string> m_texture_names{};
         std::vector<const char*> m_block_type_names_c_str{};
         std::vector<const char*> m_texture_names_c_str{};
         std::vector<const char*> m_block_preset_names_c_str{};

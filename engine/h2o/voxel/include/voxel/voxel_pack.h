@@ -12,7 +12,7 @@
 namespace h2o
 {
     using BlockModelList = std::vector<BlockModel>;
-    using BlockTypeList = std::vector< std::optional<BlockType> >;
+    using BlockTypeList = std::vector<std::optional<BlockType>>;
     using TextureNameIdMap = std::unordered_map<std::string, u32>;
 
     class VoxelPack;
@@ -33,7 +33,9 @@ namespace h2o
         [[nodiscard]] const fs::path& path()     const { return m_path;     }
         [[nodiscard]] bool            is_dirty() const { return m_is_dirty; }
 
-        void edit_block_type(BlockID block_id, BlockType edited_block_type);
+        void edit_block_type(BlockID block_id, BlockType& edited_block_type);
+        BlockID create_block_type(const std::string& name);
+        void delete_block_type(BlockID block_id);
 
         // Apply local changes
         void save() const;
@@ -51,14 +53,10 @@ namespace h2o
 
     protected:
 
+        static TextureNameIdMap generate_texture_ids(const fs::path& path);
         static std::optional<BlockModelList> load_block_models(const fs::path& path);
-
-        struct BlockTypeLoadResult
-        {
-            BlockTypeList block_types{};
-            TextureNameIdMap texture_ids{};
-        };
-        static std::optional<BlockTypeLoadResult> load_block_types(const fs::path& path, const BlockModelList& block_models);
+        static std::optional<BlockTypeList> load_block_types(
+            const fs::path& path, const BlockModelList& block_models, const TextureNameIdMap& texture_id_map);
 
     private:
 

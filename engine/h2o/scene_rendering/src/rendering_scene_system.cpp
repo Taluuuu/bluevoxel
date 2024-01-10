@@ -106,7 +106,7 @@ namespace h2o
 
     void RenderingSystem::unregister_component(const MeshRendererComponent& renderer_component)
     {
-        auto num_erased = std::erase(m_mesh_renderer_components, &renderer_component);
+        [[maybe_unused]] auto num_erased = std::erase(m_mesh_renderer_components, &renderer_component);
         assert(num_erased == 1);
     }
 

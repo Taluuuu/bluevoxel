@@ -8,7 +8,7 @@
 
 namespace h2o
 {
-    void VoxelPack::edit_block_type(BlockID block_id, BlockType edited_block_type)
+    void VoxelPack::edit_block_type(BlockID block_id, BlockType& edited_block_type)
     {
         // Do some validations here
         assert(block_id < m_block_types.size());
@@ -21,7 +21,26 @@ namespace h2o
         m_block_types[block_id] = edited_block_type;
 
         on_voxel_pack_updated.broadcast({ *this });
+        m_is_dirty = true;
+    }
 
+    BlockID VoxelPack::create_block_type(const std::string& name)
+    {
+        const BlockID block_id = m_block_types.size();
+        m_block_types.emplace_back(BlockType { name, block_id, {}, 0, 0 });
+
+        on_voxel_pack_updated.broadcast({ *this });
+        m_is_dirty = true;
+
+        return block_id;
+    }
+
+    void VoxelPack::delete_block_type(BlockID block_id)
+    {
+        if (block_id < m_block_types.size())
+            m_block_types[block_id] = std::nullopt;
+
+        on_voxel_pack_updated.broadcast({ *this });
         m_is_dirty = true;
     }
 
@@ -132,8 +151,9 @@ namespace h2o
             return false;
         }
 
-        const auto block_types_and_texture_ids = load_block_types(block_types_path, *block_models);
-        if (!block_types_and_texture_ids)
+        const auto texture_ids = generate_texture_ids(textures_path);
+        const auto block_types = load_block_types(block_types_path, *block_models, texture_ids);
+        if (!block_types)
         {
             log::error("Failed to import block types.");
             return false;
@@ -141,8 +161,8 @@ namespace h2o
 
         m_path = path;
         m_block_models = *block_models;
-        m_block_types = block_types_and_texture_ids->block_types;
-        m_texture_ids = block_types_and_texture_ids->texture_ids;
+        m_block_types = *block_types;
+        m_texture_ids = texture_ids;
 
         return true;
     }
@@ -245,9 +265,24 @@ namespace h2o
         return model;
     }
 
+    TextureNameIdMap VoxelPack::generate_texture_ids(const fs::path& path)
+    {
+        TextureNameIdMap result{};
+        u32 current_texture_id = 0;
+        for (const auto& texture_path : fs::directory_iterator(path))
+        {
+            if (!texture_path.is_directory())
+                result.insert({ texture_path.path().filename().string(), current_texture_id++ });
+        }
+
+        return result;
+    }
+
     std::optional<BlockModelList> VoxelPack::load_block_models(const fs::path& path)
     {
         BlockModelList result{};
+
+        result.emplace_back(BlockModel{ "none", 0, {}, {} });
 
         try
         {
@@ -288,14 +323,12 @@ namespace h2o
         return result;
     }
 
-    std::optional<VoxelPack::BlockTypeLoadResult> VoxelPack::load_block_types(const fs::path& path, const BlockModelList& block_models)
+    std::optional<BlockTypeList> VoxelPack::load_block_types(
+        const fs::path& path, const BlockModelList& block_models, const TextureNameIdMap& texture_id_map)
     {
         auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
-        u32 current_tex_index = 0;
-
-        BlockTypeLoadResult result{};
-        auto& [block_types, texture_index_map] = result;
+        BlockTypeList result{};
 
         try
         {
@@ -304,8 +337,8 @@ namespace h2o
             for (const auto block_type_yml : block_types_yml)
             {
                 const auto id = block_type_yml["id"].as<BlockID>();
-                if (id >= block_types.size())
-                    block_types.resize(id + 1);
+                if (id >= result.size())
+                    result.resize(id + 1);
 
                 const auto name = block_type_yml["name"].as<std::string>();
 
@@ -353,11 +386,11 @@ namespace h2o
 
                 for (const auto& texture_name : texture_names)
                 {
-                    const auto tex_it = texture_index_map.find(texture_name);
-                    if (tex_it == texture_index_map.end())
+                    const auto tex_it = texture_id_map.find(texture_name);
+                    if (tex_it == texture_id_map.end())
                     {
-                        texture_ids.push_back(current_tex_index);
-                        texture_index_map.insert({ texture_name, current_tex_index++ });
+                        log::warn("Block type '{}' uses unknown texture '{}'.", name, texture_name);
+                        texture_ids.push_back(0);
                     }
                     else
                     {
@@ -365,7 +398,7 @@ namespace h2o
                     }
                 }
 
-                block_types[id] =
+                result[id] =
                     BlockType
                     {
                         .name = name,

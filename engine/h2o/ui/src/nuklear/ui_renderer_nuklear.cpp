@@ -136,7 +136,7 @@ namespace h2o
             2.0f / f32(window_size.x),  0.0f,                       0.0f,  0.0f,
             0.0f,                      -2.0f / f32(window_size.y),  0.0f,  0.0f,
             0.0f,                       0.0f,                      -1.0f,  0.0f,
-            -1.0f,                       1.0f,                       0.0f,  1.0f
+            -1.0f,                      1.0f,                       0.0f,  1.0f
         };
 
         nk_buffer vbuf{}, ebuf{};
