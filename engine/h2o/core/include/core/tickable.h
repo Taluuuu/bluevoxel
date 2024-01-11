@@ -3,6 +3,7 @@
 #include "types.h"
 
 #include <magic_enum.hpp>
+#include <queue>
 #include <set>
 
 namespace h2o
@@ -68,6 +69,7 @@ namespace h2o
     private:
 
         std::set<Tickable*> m_children{};
+        std::queue<Tickable*> m_pending_children{}; // Add children on the next frame
         Tickable* const m_owner = nullptr;
 
         TickPhase::Type m_tick_phases = TickPhase::None;

@@ -55,6 +55,7 @@ namespace h2o::gfx
 
         // Debug
         // TODO: Make the renderer know the camera and set itself the proj view matrix in the shader
+        virtual const m4&                     proj_view_matrix() const = 0;
         virtual void                          set_proj_view_matrix(const m4& proj_view) = 0;
         virtual void                          draw_debug_line(const v3& origin, const v3& end, const v4& color) = 0;
 

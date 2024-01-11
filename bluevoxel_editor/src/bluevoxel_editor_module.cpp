@@ -67,13 +67,13 @@ namespace bluevoxel
     {
         if (holds_alternative<nullptr_t>(m_editor_mode))
         {
-            m_ui_module->window("Editor Selection", { { 50.0f, 50.0f }, { 250.0f, 250.0f } },
+            m_ui_module->window("Editor Selection", { { 25.0f, 25.0f }, { 250.0f, 250.0f } },
                 [&](h2o::IUIRenderer& ui)
                 {
                     ui.row(25.0f, 1);
 
-                    if (ui.button("Block Type Editor"))
-                        m_editor_mode.emplace<BlockTypeEditor>(this);
+                    if (ui.button("Block Editor"))
+                        m_editor_mode.emplace<BlockEditorWorkspace>(this);
                 }
             );
         }

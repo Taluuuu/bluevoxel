@@ -72,6 +72,7 @@ namespace h2o::gfx
         std::shared_ptr<Texture> create_texture_ptr() override;
         TextureArray create_texture_array(u32 array_size) override;
         std::shared_ptr<TextureArray> create_texture_array_ptr(u32 array_size) override;
+        const m4& proj_view_matrix() const override;
         void set_proj_view_matrix(const m4& proj_view) override;
         void draw_debug_line(const v3& origin, const v3& end, const v4& color) override;
 

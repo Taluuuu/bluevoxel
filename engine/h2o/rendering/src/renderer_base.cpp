@@ -132,6 +132,11 @@ namespace h2o::gfx
         return std::make_shared<TextureArray>(*this, array_size);
     }
 
+    const m4& Renderer_Base::proj_view_matrix() const
+    {
+        return m_proj_view_matrix;
+    }
+
     void Renderer_Base::set_proj_view_matrix(const m4& proj_view)
     {
         m_proj_view_matrix = proj_view;

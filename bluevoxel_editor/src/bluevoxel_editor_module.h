@@ -2,7 +2,7 @@
 
 #include "core/module.h"
 #include "core/tickable.h"
-#include "editor_modes/block_type_editor.h"
+#include "editor_modes/block_editor_workspace.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_bounds.h"
 
@@ -40,7 +40,7 @@ namespace bluevoxel
 
     private:
 
-        std::variant<nullptr_t, BlockTypeEditor> m_editor_mode{};
+        std::variant<nullptr_t, BlockEditorWorkspace> m_editor_mode{};
 
         h2o::InputModule* m_input_module = nullptr;
         h2o::UIModule*    m_ui_module    = nullptr;
