@@ -19,9 +19,6 @@
 [submodule "engine/lib/yaml-cpp"]
 	path = engine/lib/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp
-[submodule "engine/lib/imgui"]
-	path = engine/lib/imgui
-	url = https://github.com/ocornut/imgui
 [submodule "engine/lib/assimp"]
 	path = engine/lib/assimp
 	url = https://github.com/assimp/assimp
@@ -31,6 +28,3 @@
 [submodule "engine/lib/bitsery"]
 	path = engine/lib/bitsery
 	url = https://github.com/fraillt/bitsery
-[submodule "engine/lib/nuklear"]
-	path = engine/lib/nuklear
-	url = https://github.com/Immediate-Mode-UI/Nuklear
