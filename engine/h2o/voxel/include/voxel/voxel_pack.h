@@ -37,6 +37,8 @@ namespace h2o
         BlockID create_block_type(const std::string& name);
         void delete_block_type(BlockID block_id);
 
+        void edit_block_model(u32 model_id, BlockModel& edited_block_model);
+
         // Apply local changes
         void save() const;
 

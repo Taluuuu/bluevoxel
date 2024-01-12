@@ -267,6 +267,20 @@ namespace h2o
         return num != prev_val;
     }
 
+    bool UIRenderer_Nuklear::input_uint(const std::string& label, u32& num)
+    {
+        i32 current_val = num;
+        nk_property_int(&m_nk_ctx, label.c_str(), 0, &current_val, 9999999, 1, 0.0f);
+
+        if (current_val != num)
+        {
+            num = current_val;
+            return true;
+        }
+
+        return false;
+    }
+
     bool UIRenderer_Nuklear::combobox(const std::vector<const char*>& options, u32& selected_index)
     {
         i32 current_index_value = static_cast<i32>(selected_index);
@@ -281,6 +295,25 @@ namespace h2o
         }
 
         return false;
+    }
+
+    void UIRenderer_Nuklear::group(const std::string& title, const std::function<void()>& group_contents)
+    {
+        if (nk_group_begin(&m_nk_ctx, title.c_str(), 0))
+        {
+            group_contents();
+            nk_group_end(&m_nk_ctx);
+        }
+    }
+
+    void UIRenderer_Nuklear::tree_push(const std::string& title, const std::function<void()>& tree_contents)
+    {
+        if (nk_tree_push(&m_nk_ctx, NK_TREE_TAB, title.c_str(), NK_MAXIMIZED))
+        {
+            tree_contents();
+
+            nk_tree_pop(&m_nk_ctx);
+        }
     }
 
     bool UIRenderer_Nuklear::window_begin(

@@ -38,9 +38,9 @@ namespace h2o
             {
                 for (BlockVertex vertex : face)
                 {
-                    vertex.x += pos.x * 8;
-                    vertex.y += pos.y * 8;
-                    vertex.z += pos.z * 8;
+                    vertex.x += pos.x * 16;
+                    vertex.y += pos.y * 16;
+                    vertex.z += pos.z * 16;
 
                     // Left is texture index relative to all textures; right is the face index.
                     vertex.tex_idx = textures[vertex.tex_idx];

@@ -62,6 +62,22 @@ namespace h2o
         m_is_dirty = true;
     }
 
+    void VoxelPack::edit_block_model(u32 model_id, BlockModel& edited_block_model)
+    {
+        // Do some validations here
+        assert(model_id < m_block_models.size());
+        assert(edited_block_model.id < m_block_models.size());
+
+        // TODO: Test this with 0 textures
+//        const u32 face_count = m_block_models[model_id].calculate_face_count();
+//        edited_block_type.texture_ids.resize(face_count, 0);
+
+        m_block_models[model_id] = edited_block_model;
+
+        on_voxel_pack_updated.broadcast({ *this });
+        m_is_dirty = true;
+    }
+
     void VoxelPack::save() const
     {
         try

@@ -31,8 +31,12 @@ namespace h2o
 
         virtual bool input_text(const std::string& label, std::string& text) = 0;
         virtual bool input_int(const std::string& label, i32& num) = 0;
+        virtual bool input_uint(const std::string& label, u32& num) = 0;
 
         virtual bool combobox(const std::vector<const char*>& options, u32& selected_index) = 0;
+
+        virtual void group(const std::string& title, const std::function<void()>& group_contents) = 0;
+        virtual void tree_push(const std::string& title, const std::function<void()>& tree_contents) = 0;
 
         // Not meant to be called directly by the user
         virtual bool window_begin(

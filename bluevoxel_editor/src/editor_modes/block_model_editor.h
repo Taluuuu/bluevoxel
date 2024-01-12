@@ -4,6 +4,9 @@
 
 namespace h2o
 {
+    struct BlockVertex;
+    class IUIRenderer;
+
     class UIModule;
     class VoxelModule;
 }
@@ -23,6 +26,11 @@ namespace bluevoxel
 
         // h2o::Tickable interface
         void update(f32 delta_time) override;
+
+        bool edit_triangle(h2o::IUIRenderer& ui, u32 triangle_index, h2o::BlockVertex& p0, h2o::BlockVertex& p1, h2o::BlockVertex& p2);
+        bool edit_vertex(h2o::IUIRenderer& ui, h2o::BlockVertex& vertex);
+
+        void create_triangle();
 
     private:
 

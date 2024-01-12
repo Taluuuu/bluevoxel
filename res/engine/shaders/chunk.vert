@@ -1,6 +1,6 @@
 #version 460 core
 
-const uint MAX_BLOCK_COORD_VALUE = 8; // Max possible value for each block coordinate
+const uint MAX_BLOCK_COORD_VALUE = 16; // Max possible value for each block coordinate
 const uint MAX_TEXTURE_COORD_VALUE = 16; // Max possible value for each texture coord
 const uint MAX_PITCH_VALUE = 8;
 const uint MAX_YAW_VALUE = 16;

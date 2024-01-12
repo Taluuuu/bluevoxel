@@ -41,7 +41,10 @@ namespace h2o
         bool button(const std::string& title) override;
         bool input_text(const std::string& label, std::string& text) override;
         bool input_int(const std::string& label, i32& num) override;
+        bool input_uint(const std::string& label, u32& num) override;
         bool combobox(const std::vector<const char*>& options, u32& selected_index) override;
+        void group(const std::string& title, const std::function<void()>& group_contents) override;
+        void tree_push(const std::string& title, const std::function<void()>& tree_contents) override;
         bool window_begin(const std::string& title, const ui::Rect& rect) override;
         void window_end() override;
 
