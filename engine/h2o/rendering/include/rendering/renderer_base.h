@@ -74,20 +74,30 @@ namespace h2o::gfx
         std::shared_ptr<TextureArray> create_texture_array_ptr(u32 array_size) override;
         const m4& proj_view_matrix() const override;
         void set_proj_view_matrix(const m4& proj_view) override;
-        void draw_debug_line(const v3& origin, const v3& end, const v4& color) override;
+        void draw_line(const v3& origin, const v3& end, const v4& color) override;
+        void draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color) override;
 
     private:
 
         // Debug drawing
         std::shared_ptr<gfx::IPipeline> m_debug_draw_pipeline = nullptr;
 
-        struct DebugLine
+        struct LineData
         {
             v3 start{}, end{};
             v4 color{};
         };
 
-        std::vector<DebugLine> m_lines_to_draw{};
+        std::vector<LineData> m_lines_to_draw{};
+
+        struct CylinderData
+        {
+            v3 start{}, end{};
+            f32 radius = 0.0f;
+            v4 color{};
+        };
+
+        std::vector<CylinderData> m_cylinders_to_draw{};
 
         std::shared_ptr<VertexArray> m_debug_lines_vao = nullptr;
         std::shared_ptr<Buffer> m_debug_lines_vbo = nullptr;

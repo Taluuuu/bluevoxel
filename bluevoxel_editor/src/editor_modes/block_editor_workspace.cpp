@@ -113,9 +113,9 @@ namespace bluevoxel
         m_block_renderer->render(renderer);
 
         // Draw gizmo
-        renderer.draw_debug_line(v3(-0.5f), { 1.5f,-0.5f,-0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f });
-        renderer.draw_debug_line(v3(-0.5f), {-0.5f,-0.5f, 1.5f }, { 0.0f, 0.0f, 1.0f, 1.0f });
-        renderer.draw_debug_line(v3(-0.5f), {-0.5f, 1.5f,-0.5f }, { 0.0f, 1.0f, 0.0f, 1.0f });
+        renderer.draw_line(v3(-0.5f), {1.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f, 1.0f});
+        renderer.draw_line(v3(-0.5f), {-0.5f, -0.5f, 1.5f}, {0.0f, 0.0f, 1.0f, 1.0f});
+        renderer.draw_line(v3(-0.5f), {-0.5f, 1.5f, -0.5f}, {0.0f, 1.0f, 0.0f, 1.0f});
     }
 
     void BlockEditorWorkspace::on_voxel_pack_changed()

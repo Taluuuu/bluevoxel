@@ -142,8 +142,13 @@ namespace h2o::gfx
         m_proj_view_matrix = proj_view;
     }
 
-    void Renderer_Base::draw_debug_line(const v3& origin, const v3& end, const v4& color)
+    void Renderer_Base::draw_line(const v3& origin, const v3& end, const v4& color)
     {
         m_lines_to_draw.push_back({ origin, end, color });
+    }
+
+    void Renderer_Base::draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color)
+    {
+
     }
 }

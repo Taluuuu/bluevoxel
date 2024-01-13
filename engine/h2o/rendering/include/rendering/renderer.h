@@ -53,11 +53,11 @@ namespace h2o::gfx
         virtual void                          draw_elements(const VertexArray& vertex_array, u32 vertex_count, AttributeType indices_type, u64 byte_offset = 0) = 0;
         virtual void                          draw(const Mesh& mesh) = 0;
 
-        // Debug
         // TODO: Make the renderer know the camera and set itself the proj view matrix in the shader
         virtual const m4&                     proj_view_matrix() const = 0;
         virtual void                          set_proj_view_matrix(const m4& proj_view) = 0;
-        virtual void                          draw_debug_line(const v3& origin, const v3& end, const v4& color) = 0;
+        virtual void                          draw_line(const v3& origin, const v3& end, const v4& color) = 0;
+        virtual void                          draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color) = 0;
 
     };
 }
