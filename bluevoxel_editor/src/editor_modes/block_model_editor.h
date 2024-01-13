@@ -4,8 +4,8 @@
 
 namespace h2o
 {
+    struct BlockModel;
     struct BlockVertex;
-    class IUIRenderer;
 
     class UIModule;
     class VoxelModule;
@@ -27,17 +27,16 @@ namespace bluevoxel
         // h2o::Tickable interface
         void update(f32 delta_time) override;
 
-        bool edit_triangle(h2o::IUIRenderer& ui, u32 triangle_index, h2o::BlockVertex& p0, h2o::BlockVertex& p1, h2o::BlockVertex& p2);
-        bool edit_vertex(h2o::IUIRenderer& ui, h2o::BlockVertex& vertex);
+        static bool edit_vertex(u32 vertex_index, h2o::BlockVertex& vertex);
 
-        void create_triangle();
+        static void create_face(u32 side_index, h2o::BlockModel& block_model);
+        static void create_triangle(u32 side_index, u32 face_index, h2o::BlockModel& block_model);
 
     private:
 
         BlockEditorWorkspace* const m_workspace = nullptr;
 
         // Module refs
-        h2o::UIModule* const m_ui_module = nullptr;
         h2o::VoxelModule* const m_voxel_module = nullptr;
 
     };

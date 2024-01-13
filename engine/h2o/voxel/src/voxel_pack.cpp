@@ -68,9 +68,14 @@ namespace h2o
         assert(model_id < m_block_models.size());
         assert(edited_block_model.id < m_block_models.size());
 
-        // TODO: Test this with 0 textures
-//        const u32 face_count = m_block_models[model_id].calculate_face_count();
-//        edited_block_type.texture_ids.resize(face_count, 0);
+        const u32 face_count = edited_block_model.calculate_face_count();
+        for (auto& block_type : m_block_types)
+        {
+            if (block_type && block_type->model_id == model_id)
+            {
+                block_type->texture_ids.resize(face_count, 0);
+            }
+        }
 
         m_block_models[model_id] = edited_block_model;
 

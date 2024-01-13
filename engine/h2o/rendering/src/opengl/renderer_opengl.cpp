@@ -12,6 +12,14 @@
 #include "rendering/vertex_array.h"
 #include "windowing/window.h"
 
+#include <imgui.h>
+#include <backends/imgui_impl_opengl3.h>
+#if H2O_USE_GLFW
+#   include <backends/imgui_impl_glfw.h>
+#else
+#   error "Only GLFW backend is supported for ImGUI at the moment."
+#endif
+
 namespace h2o::gfx
 {
     static constexpr GLenum to_gl_blend_equation(BlendEquation blend_equation)
@@ -139,6 +147,22 @@ namespace h2o::gfx
                 glViewport(0, 0, static_cast<i32>(event.new_size.x), static_cast<i32>(event.new_size.y));
             });
 
+        // Init ImGui
+        ImGui::CreateContext();
+
+        // TODO: Move this to windowing module ??
+        if (!ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(window.handle()), true))
+        {
+            log::error("Failed to initialize ImGui GLFW.");
+            return false;
+        }
+
+        if (!ImGui_ImplOpenGL3_Init())
+        {
+            log::error("Failed to initialize ImGui OpenGL3.");
+            return false;
+        }
+
         return Renderer_Base::init(window, game_info);
     }
 
@@ -151,11 +175,25 @@ namespace h2o::gfx
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        ImGui_ImplOpenGL3_NewFrame();
+
+#if H2O_USE_GLFW
+        ImGui_ImplGlfw_NewFrame();
+#endif
+
+        ImGui::NewFrame();
+
         Renderer_Base::start_frame();
     }
 
     void Renderer_OpenGL::end_frame()
     {
+        ImGui::Render();
+
+#if H2O_USE_OPENGL
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+#endif
+
         Renderer_Base::end_frame();
     }
 

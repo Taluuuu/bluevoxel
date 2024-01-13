@@ -41,7 +41,7 @@ namespace bluevoxel
 
     private:
 
-        std::optional<std::string> m_selected_block_name_edit{};
+        std::string m_selected_block_name_edit{};
 
         std::vector<const char*> m_block_type_names_c_str{};
         std::vector<const char*> m_texture_names_c_str{};

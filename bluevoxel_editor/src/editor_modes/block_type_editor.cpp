@@ -13,6 +13,8 @@
 #include "voxel_rendering/voxel_rendering_module.h"
 
 #include <fmt/core.h>
+#include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 namespace bluevoxel
 {
@@ -31,7 +33,7 @@ namespace bluevoxel
 
     void BlockTypeEditor::on_selected_block_changed()
     {
-        m_selected_block_name_edit = std::nullopt;
+
     }
 
     void BlockTypeEditor::update(f32 delta_time)
@@ -42,91 +44,81 @@ namespace bluevoxel
 
         u32 selected_block_id = m_workspace->selected_block_id();
 
-        m_ui_module->window("Block Type Editor", { { 25.0f, 25.0f }, { 400.0f, 850.0f } },
-            [&](h2o::IUIRenderer& ui)
+        if (ImGui::Begin("Block Type Editor"))
+        {
+            if (ImGui::Button("Create Block"))
             {
-                ui.row(25.0f, 1);
+                m_workspace->select_block(voxel_pack->create_block_type("new_block"));
 
-                if (ui.button("Create Block"))
+                m_selected_block_name_edit = "new_block";
+                ImGui::OpenPopup("Name Selected Block");
+            }
+
+            // Block type picker
+            if (ImGui::Combo("Block Type", (i32*) (&selected_block_id), m_block_type_names_c_str.data(),
+                m_block_type_names_c_str.size()))
+                m_workspace->select_block(selected_block_id);
+
+            if (auto edited_block_type = voxel_pack->block_types()[selected_block_id]; edited_block_type->block_id != 0)
+            {
+                ImGui::Text("ID: %i", selected_block_id);
+
+                if (ImGui::Button(fmt::format("Delete '{}'", edited_block_type->name).c_str()))
+                    voxel_pack->delete_block_type(selected_block_id);
+
+                ImGui::SameLine();
+
+                if (ImGui::Button(fmt::format("Rename '{}'", edited_block_type->name).c_str()))
                 {
-                    m_workspace->select_block(voxel_pack->create_block_type("new_block"));
-                    m_selected_block_name_edit = "new_block";
+                    m_selected_block_name_edit = edited_block_type->name;
+                    ImGui::OpenPopup("Name Selected Block");
                 }
 
-                ui.row(25.0f, 1);
+                if (ImGui::Combo("Block Preset", (i32*) (&edited_block_type->preset_id),
+                    m_block_preset_names_c_str.data(), m_block_preset_names_c_str.size()))
+                    voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
 
-                // Block type picker
-                if (ui.combobox(m_block_type_names_c_str, selected_block_id))
-                    m_workspace->select_block(selected_block_id);
+                if (ImGui::Combo("Block Model", (i32*) (&edited_block_type->model_id), m_block_model_names_c_str.data(),
+                    m_block_model_names_c_str.size()))
+                    voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
 
-                if (auto edited_block_type = voxel_pack->block_types()[selected_block_id]; edited_block_type->block_id != 0)
+                if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    ui.label(fmt::format("id: {}", selected_block_id));
-
-                    ui.row(25.0f, 2);
-
-                    if (ui.button(fmt::format("Delete '{}'", edited_block_type->name)))
-                        voxel_pack->delete_block_type(selected_block_id);
-
-                    if (ui.button(fmt::format("Rename '{}'", edited_block_type->name)))
-                        m_selected_block_name_edit = edited_block_type->name;
-
-                    ui.row(25.0f, 2);
-
-                    ui.label("Block preset: ");
-                    if (ui.combobox(m_block_preset_names_c_str, edited_block_type->preset_id))
-                        voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
-
-                    ui.label("Block model: ");
-                    if (ui.combobox(m_block_model_names_c_str, edited_block_type->model_id))
-                        voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
-
-                    ui.row(25.0f, 1);
-
-                    ui.label("Textures: ");
                     const auto& model = voxel_pack->block_models()[edited_block_type->model_id];
                     for (u32 i = 0; i < model.calculate_face_count(); i++)
                     {
-                        if (ui.combobox(m_texture_names_c_str, edited_block_type->texture_ids[i]))
+                        if (ImGui::Combo(fmt::format("Face {}", i).c_str(), (i32*) (&edited_block_type->texture_ids[i]),
+                            m_texture_names_c_str.data(), m_texture_names_c_str.size()))
                             voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
                     }
                 }
             }
-        );
 
-        if (m_selected_block_name_edit)
-        {
-            m_ui_module->window("Name Selected Block", { { 700.0f, 25.0f }, { 200.0f, 125.0f } },
-                [&](h2o::IUIRenderer& ui)
+            if (ImGui::BeginPopupModal("Name Selected Block"))
+            {
+                auto edited_block_type = voxel_pack->block_types()[selected_block_id];
+                if (!edited_block_type)
+                    return;
+
+                ImGui::InputText("New Name", &m_selected_block_name_edit);
+
+                if (ImGui::Button("Confirm"))
                 {
-                    if (!voxel_pack)
-                        return;
+                    edited_block_type->name = m_selected_block_name_edit;
+                    voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
 
-                    auto edited_block_type = voxel_pack->block_types()[selected_block_id];
-                    if (!edited_block_type)
-                        return;
-
-                    ui.row(25.0f, 1);
-
-                    ui.input_text("New Name", *m_selected_block_name_edit);
-
-                    ui.row(25.0f, 2);
-
-                    if (ui.button("Confirm"))
-                    {
-                        edited_block_type->name = *m_selected_block_name_edit;
-                        voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
-
-                        m_selected_block_name_edit = std::nullopt;
-                    }
-
-                    if (ui.button("Cancel"))
-                    {
-                        m_selected_block_name_edit = std::nullopt;
-                    }
+                    ImGui::CloseCurrentPopup();
                 }
-            );
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Cancel"))
+                    ImGui::CloseCurrentPopup();
+
+                ImGui::EndPopup();
+            }
         }
+        ImGui::End();
     }
 
     void BlockTypeEditor::on_voxel_pack_updated()

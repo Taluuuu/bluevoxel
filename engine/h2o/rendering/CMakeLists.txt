@@ -19,6 +19,9 @@ add_library(h2o_rendering
 )
 
 target_link_libraries(h2o_rendering
+    PUBLIC
+        imgui
+
     PRIVATE
         h2o_core
         h2o_windowing
@@ -33,6 +36,8 @@ target_link_libraries(h2o_rendering
 target_include_directories(h2o_rendering
     PUBLIC
         include/
+
+        imgui
 
     PRIVATE
         h2o_core

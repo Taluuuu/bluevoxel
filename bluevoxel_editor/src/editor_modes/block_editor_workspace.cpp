@@ -15,6 +15,8 @@
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
 
+#include <imgui.h>
+
 namespace bluevoxel
 {
     BlockEditorWorkspace::BlockEditorWorkspace(h2o::Tickable* owner)
@@ -40,6 +42,7 @@ namespace bluevoxel
 
         m_block_type_editor = std::make_shared<BlockTypeEditor>(*this);
         m_block_model_editor = std::make_shared<BlockModelEditor>(*this);
+        m_block_model_editor->set_enabled(false);
 
         on_voxel_pack_changed();
         m_voxel_module->on_voxel_pack_changed.add_listener(m_on_voxel_pack_changed_event_handle,
@@ -54,9 +57,6 @@ namespace bluevoxel
 
     void BlockEditorWorkspace::select_block(u32 block_id)
     {
-        if (m_selected_block_id == block_id)
-            return;
-
         m_selected_block_id = block_id;
         m_block_renderer->set_block(h2o::Block{ static_cast<h2o::BlockID>(block_id) });
 
@@ -67,27 +67,31 @@ namespace bluevoxel
     {
         const auto& voxel_pack = m_voxel_module->voxel_pack();
 
-        m_ui_module->window("Workspace", { { 1175.0f, 25.0f }, { 400.0f, 100.0f } },
-            [&](h2o::IUIRenderer& ui)
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
             {
-                ui.row(25.0f, 2);
+                ImGui::BeginDisabled(voxel_pack == nullptr);
+                if (ImGui::MenuItem("Save"))
+                    voxel_pack->save();
+                ImGui::EndDisabled();
 
-                if (!voxel_pack)
-                {
-                    ui.label("Missing Voxel Pack.");
-                    if (ui.button("Refresh"))
-                        reload_voxel_pack();
-                }
-                else
-                {
-                    if (ui.button("Refresh"))
-                        reload_voxel_pack();
+                if (ImGui::MenuItem("Reload Voxel Pack"))
+                    reload_voxel_pack();
 
-                    if (ui.button("Save"))
-                        voxel_pack->save();
-                }
+                ImGui::EndMenu();
             }
-        );
+
+            if (ImGui::BeginMenu("Tools"))
+            {
+                if (ImGui::MenuItem("Show Block Model Editor", nullptr, m_block_model_editor->is_enabled()))
+                    m_block_model_editor->set_enabled(!m_block_model_editor->is_enabled());
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMainMenuBar();
+        }
     }
 
     void BlockEditorWorkspace::render()

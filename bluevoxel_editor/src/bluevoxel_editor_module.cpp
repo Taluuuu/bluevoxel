@@ -16,6 +16,8 @@
 #include "voxel_rendering/chunk_mesh_pool.h"
 #include "voxel_rendering/voxel_rendering_module.h"
 
+#include <imgui.h>
+
 namespace bluevoxel
 {
     BlueVoxelEditorModule::BlueVoxelEditorModule()
@@ -67,15 +69,12 @@ namespace bluevoxel
     {
         if (holds_alternative<nullptr_t>(m_editor_mode))
         {
-            m_ui_module->window("Editor Selection", { { 25.0f, 25.0f }, { 250.0f, 250.0f } },
-                [&](h2o::IUIRenderer& ui)
-                {
-                    ui.row(25.0f, 1);
+            ImGui::Begin("Editor Selection");
 
-                    if (ui.button("Block Editor"))
-                        m_editor_mode.emplace<BlockEditorWorkspace>(this);
-                }
-            );
+            if (ImGui::Button("Block Editor"))
+                m_editor_mode.emplace<BlockEditorWorkspace>(this);
+
+            ImGui::End();
         }
     }
 

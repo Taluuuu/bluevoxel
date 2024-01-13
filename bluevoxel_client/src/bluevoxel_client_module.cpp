@@ -21,6 +21,9 @@
 #include "voxel_client/block_placing_component.h"
 #include "voxel_client/voxel_client_module.h"
 
+#include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
+
 namespace bluevoxel
 {
     BlueVoxelClientModule::BlueVoxelClientModule()
@@ -98,45 +101,40 @@ namespace bluevoxel
         if (m_input_module->key_state(h2o::Key::Escape).pressed_this_frame)
             m_input_module->set_capture_mouse(!m_input_module->is_mouse_captured());
 
-        m_ui_module->window("Connection", { { 50.0f, 50.0f }, { 250.0f, 250.0f } },
-            [&](h2o::IUIRenderer& ui)
-            {
-                switch (m_client.connection_state())
-                {
-                case h2o::ConnectionState::Disconnected:
-                {
-                    ui.row(25.0f, 1);
+        ImGui::Begin("Connection");
 
-                    ui.input_text("Server IP", m_server_ip);
+        switch (m_client.connection_state())
+        {
+        case h2o::ConnectionState::Disconnected:
+        {
+            ImGui::InputText("Server IP", &m_server_ip);
 
-                    if (ui.input_int("Server Port", m_server_port))
-                        m_server_port = glm::clamp(m_server_port, 0, 65'535);
+            if (ImGui::InputInt("Server Port", &m_server_port))
+                m_server_port = glm::clamp(m_server_port, 0, 65'535);
 
-                    if (ui.button("Connect"))
-                        m_client.connect(m_server_ip, m_server_port);
+            if (ImGui::Button("Connect"))
+                m_client.connect(m_server_ip, m_server_port);
 
-                    break;
-                }
+            break;
+        }
 
-                case h2o::ConnectionState::Connecting:
-                {
-                    ui.row(25.0f, 1);
-                    ui.label("Connecting to Server...");
+        case h2o::ConnectionState::Connecting:
+        {
+            ImGui::Text("Connecting to Server...");
 
-                    break;
-                }
+            break;
+        }
 
-                case h2o::ConnectionState::Connected:
-                {
-                    ui.row(25.0f, 1);
-                    if (ui.button("Disconnect"))
-                        m_client.stop();
+        case h2o::ConnectionState::Connected:
+        {
+            if (ImGui::Button("Disconnect"))
+                m_client.stop();
 
-                    break;
-                }
-                }
-            }
-        );
+            break;
+        }
+        }
+
+        ImGui::End();
     }
 
     void BlueVoxelClientModule::create_scene()

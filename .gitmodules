@@ -28,3 +28,6 @@
 [submodule "engine/lib/bitsery"]
 	path = engine/lib/bitsery
 	url = https://github.com/fraillt/bitsery
+[submodule "engine/lib/imgui"]
+	path = engine/lib/imgui
+	url = https://github.com/Taluuuu/imgui

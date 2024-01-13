@@ -3,8 +3,10 @@
 #include "core/engine.h"
 #include "input/input_module.h"
 #include "rendering/rendering_module.h"
-#include "nuklear/ui_renderer_nuklear.h"
+//#include "nuklear/ui_renderer_nuklear.h"
 #include "windowing/windowing_module.h"
+
+#include <imgui.h>
 
 namespace h2o
 {
@@ -17,22 +19,22 @@ namespace h2o
         const ui::Rect& rect,
         const std::function<void(IUIRenderer&)>& window_contents)
     {
-        assert(m_ui_renderer);
-
-        if (m_ui_renderer->window_begin(title, rect))
-            window_contents(*m_ui_renderer);
-
-        m_ui_renderer->window_end();
+//        assert(m_ui_renderer);
+//
+//        if (m_ui_renderer->window_begin(title, rect))
+//            window_contents(*m_ui_renderer);
+//
+//        m_ui_renderer->window_end();
     }
 
     bool UIModule::init(Engine& engine)
     {
         m_input_module = &engine.get_module_checked<InputModule>();
 
-        m_ui_renderer = std::make_shared<UIRenderer_Nuklear>();
-        if (!m_ui_renderer->init(engine))
-            return false;
-
+//        m_ui_renderer = std::make_shared<UIRenderer_Nuklear>();
+//        if (!m_ui_renderer->init(engine))
+//            return false;
+//
         set_tick_phases(TickPhase::FrameStart | TickPhase::FrameEnd);
 
         return true;
@@ -40,8 +42,8 @@ namespace h2o
 
     void UIModule::cleanup()
     {
-        m_ui_renderer->cleanup();
-        m_ui_renderer.reset();
+//        m_ui_renderer->cleanup();
+//        m_ui_renderer.reset();
     }
 
     std::vector<std::type_index> UIModule::dependencies() const
@@ -54,17 +56,17 @@ namespace h2o
 
     void UIModule::frame_start(f32 delta_time)
     {
-        assert(m_ui_renderer);
-        m_ui_renderer->frame_start();
+//        assert(m_ui_renderer);
+//        m_ui_renderer->frame_start();
     }
 
     void UIModule::frame_end(f32 delta_time)
     {
-        assert(m_ui_renderer);
-        m_ui_renderer->frame_end();
+//        assert(m_ui_renderer);
+//        m_ui_renderer->frame_end();
 
         // Only change UI interaction state if left click is not currently being held down.
-        const bool is_mouse_over_ui = m_ui_renderer->is_mouse_over_ui();
+        const bool is_mouse_over_ui = ImGui::GetIO().WantCaptureMouse;
         if (m_input_module->is_interacting_with_ui != is_mouse_over_ui)
         {
             if (!m_input_module->mouse_button_state(MouseButton::Left).held)

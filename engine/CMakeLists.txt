@@ -63,6 +63,11 @@ find_package(assimp REQUIRED)
 # FastNoise2
 add_subdirectory(lib/FastNoise2)
 
+# ImGui
+set(IMGUI_USE_OPENGL ${H2O_USE_OPENGL})
+set(IMGUI_USE_GLFW ${H2O_USE_GLFW})
+add_subdirectory(lib/imgui)
+
 # Engine libraries
 add_subdirectory(h2o/core)
 add_subdirectory(h2o/input)
