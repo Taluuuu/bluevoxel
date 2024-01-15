@@ -32,7 +32,7 @@ namespace h2o
 
         auto& chunk_mgr = chunk_client->chunk_mgr();
 
-        const v3 front = m_camera->camera().calc_front(); // TODO: Cache front vector...
+        const v3 front = m_camera->camera().front();
         const v3 origin = owner()->transform.position;
         const v3 end = origin + front * 15.0f;
 

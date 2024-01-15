@@ -26,6 +26,7 @@ namespace h2o
         ~RenderingSystem() override;
 
         // Tickable interface
+        void pre_render() override;
         void render() override;
 
         // Registered mesh renderer components MUST unregister themselves on delete

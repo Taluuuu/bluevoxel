@@ -106,10 +106,6 @@ namespace bluevoxel
 
         auto& renderer = m_rendering_module->renderer();
 
-        // TODO: Avoid calculating proj_view matrix here.
-        const m4 proj_view = camera->calc_proj_view();
-        renderer.set_proj_view_matrix(proj_view); // TODO: This is a hack to allow drawing debug lines. Rework this ASAP.
-
         m_block_renderer->render(renderer);
 
         // Draw gizmo

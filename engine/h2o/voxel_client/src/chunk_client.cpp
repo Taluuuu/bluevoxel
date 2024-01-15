@@ -133,19 +133,12 @@ namespace h2o
         if (!render_system)
             return;
 
-        const auto& camera = render_system->main_camera();
-        if (!camera)
-            return;
-
         const auto& pipeline = m_voxel_rendering_module->pipeline();
         const auto& block_textures = m_voxel_rendering_module->block_textures();
 
         auto& renderer = m_rendering_module->renderer();
         renderer.bind_pipeline(pipeline);
-
-        // TODO: Avoid calculating proj_view matrix here.
-        const m4 proj_view = camera->calc_proj_view();
-        pipeline->set_uniform_mat4(0, proj_view);
+        pipeline->set_uniform_mat4(0, renderer.proj_view_matrix());
 
         block_textures->bind(0);
         pipeline->set_uniform_int(2, 0);

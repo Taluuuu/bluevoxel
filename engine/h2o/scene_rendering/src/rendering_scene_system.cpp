@@ -17,15 +17,14 @@ namespace h2o
     RenderingSystem::RenderingSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
     {
-        auto rendering_module = g_engine->get_module<RenderingModule>();
-        auto windowing_module = g_engine->get_module<WindowingModule>();
-        assert(rendering_module && windowing_module);
+        auto& rendering_module = g_engine->get_module_checked<RenderingModule>();
+        auto& windowing_module = g_engine->get_module_checked<WindowingModule>();
 
         // Window resize logic
-        v2i fb_size = windowing_module->window().framebuffer_size();
+        v2i fb_size = windowing_module.window().framebuffer_size();
         m_aspect_ratio = (f32)fb_size.x / (f32)fb_size.y;
 
-        windowing_module->window().resize_event().add_listener(m_resize_event_handle,
+        windowing_module.window().resize_event().add_listener(m_resize_event_handle,
             [&](const WindowResizeEvent& event)
             {
                 m_aspect_ratio = (f32)event.new_size.x / (f32)event.new_size.y;
@@ -34,7 +33,7 @@ namespace h2o
             });
 
         // Pipeline setup
-        m_renderer = &rendering_module->renderer();
+        m_renderer = &rendering_module.renderer();
 
         // TODO: Move this to the system's init function
         m_pipeline = (*m_renderer)
@@ -45,12 +44,18 @@ namespace h2o
             .with_feature(gfx::PipelineFeature::DepthTest)
             .compile();
 
-        set_tick_phases(TickPhase::Render);
+        set_tick_phases(TickPhase::PreRender | TickPhase::Render);
     }
 
     RenderingSystem::~RenderingSystem()
     {
         assert(m_mesh_renderer_components.empty());
+    }
+
+    void RenderingSystem::pre_render()
+    {
+        if (m_main_camera)
+            m_renderer->set_camera(*m_main_camera);
     }
 
     void RenderingSystem::render()
@@ -67,8 +72,7 @@ namespace h2o
             return;
         }
 
-        m4 proj_view = m_main_camera->calc_proj_view();
-        m_pipeline->set_uniform_mat4(0, proj_view);
+        m_pipeline->set_uniform_mat4(0, m_renderer->proj_view_matrix());
 
         m_renderer->bind_pipeline(m_pipeline);
         for (const auto& render_comp : m_mesh_renderer_components)

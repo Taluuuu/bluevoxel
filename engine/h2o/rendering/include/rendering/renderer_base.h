@@ -1,5 +1,6 @@
 #pragma once
 
+#include "camera.h"
 #include "core/types.h"
 #include "renderer_enums.h"
 #include "rendering/renderer.h"
@@ -72,15 +73,18 @@ namespace h2o::gfx
         std::shared_ptr<Texture> create_texture_ptr() override;
         TextureArray create_texture_array(u32 array_size) override;
         std::shared_ptr<TextureArray> create_texture_array_ptr(u32 array_size) override;
+        void set_camera(const Camera& camera) override;
+        const Camera& camera() const override;
         const m4& proj_view_matrix() const override;
-        void set_proj_view_matrix(const m4& proj_view) override;
         void draw_line(const v3& origin, const v3& end, const v4& color) override;
         void draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color) override;
 
     private:
 
-        // Debug drawing
-        std::shared_ptr<gfx::IPipeline> m_debug_draw_pipeline = nullptr;
+        // Line drawing
+        std::shared_ptr<gfx::IPipeline> m_colored_line_pipeline = nullptr;
+        std::shared_ptr<VertexArray> m_debug_lines_vao = nullptr;
+        std::shared_ptr<Buffer> m_debug_lines_vbo = nullptr;
 
         struct LineData
         {
@@ -89,6 +93,13 @@ namespace h2o::gfx
         };
 
         std::vector<LineData> m_lines_to_draw{};
+
+        // Cylinder drawing
+        std::shared_ptr<gfx::IPipeline> m_colored_shape_pipeline = nullptr;
+        std::shared_ptr<VertexArray> m_cylinder_vao = nullptr;
+        std::shared_ptr<Buffer> m_cylinder_vbo = nullptr;
+        std::shared_ptr<Buffer> m_cylinder_ebo = nullptr;
+        u32 m_cylinder_vertex_count = 0;
 
         struct CylinderData
         {
@@ -99,10 +110,9 @@ namespace h2o::gfx
 
         std::vector<CylinderData> m_cylinders_to_draw{};
 
-        std::shared_ptr<VertexArray> m_debug_lines_vao = nullptr;
-        std::shared_ptr<Buffer> m_debug_lines_vbo = nullptr;
-
-        m4 m_proj_view_matrix{};
+        Camera m_camera{};
+        // Cached camera matrices
+        m4 m_view_matrix, m_proj_matrix, m_proj_view_matrix{};
 
     };
 }

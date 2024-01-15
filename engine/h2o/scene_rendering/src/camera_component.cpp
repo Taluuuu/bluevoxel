@@ -32,8 +32,7 @@ namespace h2o
 
     void CameraComponent::set_as_main_camera() const
     {
-        auto render_system = m_scene->get_system<RenderingSystem>();
-        if (render_system)
+        if (auto render_system = m_scene->get_system<RenderingSystem>())
             render_system->set_main_camera(m_camera);
     }
 

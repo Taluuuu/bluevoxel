@@ -8,6 +8,7 @@ namespace h2o
     struct BlockVertex;
 
     class UIModule;
+    class RenderingModule;
     class VoxelModule;
 }
 
@@ -37,6 +38,7 @@ namespace bluevoxel
         BlockEditorWorkspace* const m_workspace = nullptr;
 
         // Module refs
+        h2o::RenderingModule* const m_rendering_module = nullptr;
         h2o::VoxelModule* const m_voxel_module = nullptr;
 
     };

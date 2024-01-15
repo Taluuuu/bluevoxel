@@ -2,10 +2,13 @@
 
 #include "block_editor_workspace.h"
 #include "core/engine.h"
-#include "ui/ui_module.h"
-#include "ui/ui_renderer.h"
+#include "input/input_module.h"
+#include "rendering/renderer.h"
+#include "rendering/rendering_module.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
+#include "windowing/window.h"
+#include "windowing/windowing_module.h"
 
 #include <imgui.h>
 
@@ -14,6 +17,7 @@ namespace bluevoxel
     BlockModelEditor::BlockModelEditor(BlockEditorWorkspace& workspace)
         : h2o::Tickable(&workspace)
         , m_workspace(&workspace)
+        , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
     {
         set_tick_phases(h2o::TickPhase::Update);
@@ -21,6 +25,26 @@ namespace bluevoxel
 
     void BlockModelEditor::update(f32 delta_time)
     {
+        // WIP gizmo
+//        auto& renderer = m_rendering_module->renderer();
+//        renderer.draw_cylinder({0.0f, 0.0f, 0.0f}, {2.0f, 0.0f, 0.0f}, 0.1f, {1.0f, 0.0f, 0.0f, 1.0f});
+//        renderer.draw_cylinder({0.0f, 0.0f, 0.0f}, {0.0f, 2.0f, 0.0f}, 0.1f, {0.0f, 1.0f, 0.0f, 1.0f});
+//        renderer.draw_cylinder({0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 2.0f}, 0.1f, {0.0f, 0.0f, 1.0f, 1.0f});
+//
+//        const auto& window = g_engine->get_module_checked<h2o::WindowingModule>().window();
+//        const v2 window_size { window.window_size() };
+//
+//        const auto& input = g_engine->get_module_checked<h2o::InputModule>();
+//        const v2 mouse_pos = (input.mouse_position() / window_size) * 2.0f - v2{ 1.0f, 1.0f };
+//
+//        const m4 inv_proj_view = glm::inverse(renderer.proj_view_matrix());
+//        const v4 temp{ mouse_pos.x, mouse_pos.y, 1.0f, 1.0f };
+//        v4 result = temp * inv_proj_view;
+//        result.w = 1.0 / result.w;
+//        result.x *= result.w;
+//        result.y *= result.w;
+//        result.z *= result.w;
+
         const auto& voxel_pack = m_voxel_module->voxel_pack();
         if (!voxel_pack)
             return;
