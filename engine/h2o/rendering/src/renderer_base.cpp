@@ -42,7 +42,7 @@ namespace h2o::gfx
         const std::vector<v2> unit_vertices = calc_unit_circle_vertices(num_sectors);
 
         const f32 height = 1.0f;
-        const f32 radius = 0.5f;
+        const f32 radius = 1.0f;
 
         for (i32 i = 0; i < 2; i++)
         {
@@ -300,6 +300,16 @@ namespace h2o::gfx
     const Camera& Renderer_Base::camera() const
     {
         return m_camera;
+    }
+
+    const m4& Renderer_Base::view_matrix() const
+    {
+        return m_view_matrix;
+    }
+
+    const m4& Renderer_Base::proj_matrix() const
+    {
+        return m_proj_matrix;
     }
 
     const m4& Renderer_Base::proj_view_matrix() const

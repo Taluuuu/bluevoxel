@@ -75,6 +75,8 @@ namespace h2o::gfx
         std::shared_ptr<TextureArray> create_texture_array_ptr(u32 array_size) override;
         void set_camera(const Camera& camera) override;
         const Camera& camera() const override;
+        const m4& view_matrix() const override;
+        const m4& proj_matrix() const override;
         const m4& proj_view_matrix() const override;
         void draw_line(const v3& origin, const v3& end, const v4& color) override;
         void draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color) override;

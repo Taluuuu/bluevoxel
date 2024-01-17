@@ -56,6 +56,8 @@ namespace h2o::gfx
 
         virtual void                          set_camera(const Camera& camera) = 0;
         virtual const Camera&                 camera() const = 0;
+        virtual const m4&                     view_matrix() const = 0;
+        virtual const m4&                     proj_matrix() const = 0;
         virtual const m4&                     proj_view_matrix() const = 0;
 
         // Immediate drawing
