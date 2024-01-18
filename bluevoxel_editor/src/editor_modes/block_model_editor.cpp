@@ -17,6 +17,7 @@ namespace bluevoxel
 {
     BlockModelEditor::BlockModelEditor(BlockEditorWorkspace& workspace)
         : h2o::Tickable(&workspace)
+        , m_gizmo(this)
         , m_workspace(&workspace)
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
@@ -24,142 +25,8 @@ namespace bluevoxel
         set_tick_phases(h2o::TickPhase::Update);
     }
 
-    // https://antongerdelan.net/opengl/raycasting.html
-    static v3 screen_to_ray(v2 screen_pos, v2 window_size, const m4& view, const m4& proj)
-    {
-        const v3 ray_nds{
-            (2.0f * screen_pos.x) / window_size.x - 1.0f,
-            1.0f - (2.0f * screen_pos.y) / window_size.y, 1.0f };
-
-        const v4 ray_clip{ ray_nds.x, ray_nds.y, -1.0f, 1.0f };
-
-        v4 ray_eye = glm::inverse(proj) * ray_clip;
-        ray_eye = v4{ ray_eye.x, ray_eye.y, -1.0f, 0.0f };
-
-        return glm::normalize(glm::inverse(view) * ray_eye);
-    }
-
-    std::optional<std::pair<f32, f32>> quadratic(f32 a, f32 b, f32 c)
-    {
-        const f32 discriminant = b * b - 4.0f * a * c;
-
-        if (discriminant >= 0)
-        {
-            const f32 r1 = (-b + sqrt(discriminant)) / (2.0f * a);
-            const f32 r2 = (-b - sqrt(discriminant)) / (2.0f * a);
-
-            return std::pair<f32, f32>{ r1, r2 };
-        }
-
-        return std::nullopt;
-    }
-
-    static std::optional<f32> intersect_plane(
-        const v3& ray_start, const v3& ray_dir,
-        const v3& plane_point, const v3& plane_normal)
-    {
-        static constexpr f32 e = glm::epsilon<f32>();
-        const f32 denom = glm::dot(ray_dir, plane_normal);
-        if (denom < e)
-            return std::nullopt;
-
-        const f32 t = glm::dot(plane_point - ray_start, plane_normal) / denom;
-        return (t >= 0.0f) ? std::optional<f32>{ t } : std::nullopt;
-    }
-
-    static std::optional<f32> intersect_disk(
-        const v3& ray_start, const v3& ray_dir,
-        const v3& disk_center, const v3& disk_normal, f32 disk_radius)
-    {
-        if (const auto t = intersect_plane(ray_start, ray_dir, disk_center, disk_normal))
-        {
-            const v3 plane_intersection = ray_start + ray_dir * *t;
-            const v3 plane_intersection_to_disk_center = disk_center - plane_intersection;
-            const f32 distance_sqr = glm::dot(plane_intersection_to_disk_center, plane_intersection_to_disk_center);
-            const f32 radius_sqr = disk_radius * disk_radius;
-            return (distance_sqr <= radius_sqr) ? t : std::nullopt;
-        }
-
-        return std::nullopt;
-    }
-
-    // https://hugi.scene.org/online/hugi24/coding%20graphics%20chris%20dragan%20raytracing%20shapes.htm
-    // https://mrl.cs.nyu.edu/~dzorin/rendering/lectures/lecture3/lecture3.pdf
-    static std::optional<f32> intersect_cylinder(
-        const v3& ray_start, const v3& ray_dir,
-        const v3& p1, const v3& p2, f32 radius)
-    {
-        const v3 C = p2;
-        const v3 D = ray_dir;
-        const v3 V = glm::normalize(p1 - p2);
-        const v3 O = ray_start;
-        const v3 X = O - C;
-
-        const f32 d_dot_v = glm::dot(D, V);
-        const f32 x_dot_v = glm::dot(X, V);
-
-        const f32 a = glm::dot(D, D) - d_dot_v * d_dot_v;
-        const f32 b = 2.0f * (glm::dot(D, X) - glm::dot(D, V) * glm::dot(X, V));
-        const f32 c = glm::dot(X, X) - x_dot_v * x_dot_v - radius * radius;
-
-        std::array<f32, 4> t_values{};
-        size_t size = 0;
-
-        if (const auto temp = quadratic(a, b, c))
-        {
-            const f32 t1 = temp->first;
-            const f32 t2 = temp->second;
-
-            const f32 maxm = glm::distance(p1, p2);
-            const f32 m1 = d_dot_v * t1 + x_dot_v;
-            const f32 m2 = d_dot_v * t2 + x_dot_v;
-
-            if (t1 >= 0.0f && m1 >= 0.0f && m1 <= maxm)
-                t_values[size++] = t1;
-
-            if (t2 >= 0.0f && m2 >= 0.0f && m2 <= maxm)
-                t_values[size++] = t2;
-        }
-
-        if (const auto t = intersect_disk(ray_start, ray_dir, p1, -V, radius))
-            t_values[size++] = *t;
-
-        if (const auto t = intersect_disk(ray_start, ray_dir, p2,  V, radius))
-            t_values[size++] = *t;
-
-        if (size == 0)
-            return std::nullopt;
-
-        f32 min_t = FLT_MAX;
-        for (size_t i = 0; i < size; i++)
-        {
-            const f32 t = t_values[i];
-            if (t < min_t)
-                min_t = t;
-        }
-
-        return min_t;
-    }
-
     void BlockModelEditor::update(f32 delta_time)
     {
-        // WIP gizmo
-        auto& renderer = m_rendering_module->renderer();
-        renderer.draw_cylinder({0.0f, 0.0f, 0.0f}, {2.0f, 0.0f, 0.0f}, 0.1f, {1.0f, 0.0f, 0.0f, 1.0f});
-        renderer.draw_cylinder({0.0f, 0.0f, 0.0f}, {0.0f, 2.0f, 0.0f}, 0.5f, {0.0f, 1.0f, 0.0f, 1.0f});
-        renderer.draw_cylinder({0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 2.0f}, 0.1f, {0.0f, 0.0f, 1.0f, 1.0f});
-
-        const auto& window = g_engine->get_module_checked<h2o::WindowingModule>().window();
-        const auto& input = g_engine->get_module_checked<h2o::InputModule>();
-        const v3 ray_dir = screen_to_ray(
-            input.mouse_position(),
-            window.window_size(),
-            renderer.view_matrix(),
-            renderer.proj_matrix());
-
-        if (const auto t = intersect_cylinder(renderer.camera().position(), ray_dir, {0.0f, 0.0f, 0.0f}, {0.0f, 2.0f, 0.0f}, 0.5f))
-            h2o::log::info("{}", *t);
-
         const auto& voxel_pack = m_voxel_module->voxel_pack();
         if (!voxel_pack)
             return;

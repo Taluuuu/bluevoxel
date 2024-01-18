@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/tickable.h"
+#include "gizmo.h"
 
 namespace h2o
 {
@@ -34,6 +35,8 @@ namespace bluevoxel
         static void create_triangle(u32 side_index, u32 face_index, h2o::BlockModel& block_model);
 
     private:
+
+        Gizmo m_gizmo;
 
         BlockEditorWorkspace* const m_workspace = nullptr;
 

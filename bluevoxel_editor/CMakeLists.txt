@@ -9,6 +9,7 @@ add_executable(bluevoxel_editor
     src/editor_modes/block_editor_workspace.cpp
     src/editor_modes/block_model_editor.cpp
     src/editor_modes/block_type_editor.cpp
+    src/gizmo.cpp
     src/main.cpp
 )
 
@@ -18,6 +19,7 @@ target_link_libraries(bluevoxel_editor
         h2o_game_framework
         h2o_input
         h2o_networking
+        h2o_physics
         h2o_rendering
         h2o_scene
         h2o_scene_rendering
@@ -36,6 +38,7 @@ target_include_directories(bluevoxel_editor
         h2o_input
         h2o_networking
         h2o_rendering
+        h2o_physics
         h2o_scene
         h2o_scene_rendering
         h2o_ui
