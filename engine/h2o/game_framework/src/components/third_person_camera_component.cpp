@@ -28,7 +28,7 @@ namespace h2o
         if (hold_click_to_rotate)
         {
             const bool click_pressed = m_input->mouse_button_state(MouseButton::Left).held;
-            m_input->set_capture_mouse(click_pressed, false);
+            m_input->set_capture_mouse(click_pressed);
 
             if (!click_pressed)
                 return;

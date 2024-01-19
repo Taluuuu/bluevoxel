@@ -165,12 +165,22 @@ namespace h2o
         return 0.0f;
     }
 
-    void InputModule::set_capture_mouse(bool capture, bool allow_mouse_over_ui)
+    void InputModule::prevent_mouse_capture(const std::string& reason)
+    {
+        m_mouse_capture_is_blocked.lock(reason);
+    }
+
+    void InputModule::allow_mouse_capture(const std::string& reason)
+    {
+        m_mouse_capture_is_blocked.unlock(reason);
+    }
+
+    void InputModule::set_capture_mouse(bool capture)
     {
         if (m_mouse_captured == capture)
             return;
 
-        if (!allow_mouse_over_ui && is_interacting_with_ui)
+        if (m_mouse_capture_is_blocked)
             return;
 
         m_mouse_captured = capture;

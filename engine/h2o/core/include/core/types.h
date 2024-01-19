@@ -9,9 +9,12 @@
 using v2   = glm::vec2;
 using v2i  = glm::ivec2;
 using v2u  = glm::uvec2;
+using v2b  = glm::bvec2;
+
 using v3   = glm::vec3;
 using v3i  = glm::ivec3;
 using v3u  = glm::uvec3;
+using v3b  = glm::bvec3;
 
 using v4   = glm::vec4;
 using quat = glm::quat;

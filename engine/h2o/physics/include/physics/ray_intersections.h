@@ -8,6 +8,7 @@
 namespace h2o::physics
 {
     [[nodiscard]] std::optional<f32> intersect_plane(const Ray& ray, const Plane& plane);
+    [[nodiscard]] std::optional<f32> intersect_plane_two_directions(const Ray& ray, const Plane& plane);
 
     [[nodiscard]] std::optional<f32> intersect_disk(const Ray& ray, const Disk& disk);
 

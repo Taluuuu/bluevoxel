@@ -65,12 +65,13 @@ namespace h2o
 //        assert(m_ui_renderer);
 //        m_ui_renderer->frame_end();
 
-        // Only change UI interaction state if left click is not currently being held down.
-        const bool is_mouse_over_ui = ImGui::GetIO().WantCaptureMouse;
-        if (m_input_module->is_interacting_with_ui != is_mouse_over_ui)
+        if (ImGui::GetIO().WantCaptureMouse)
         {
-            if (!m_input_module->mouse_button_state(MouseButton::Left).held)
-                m_input_module->is_interacting_with_ui = is_mouse_over_ui;
+            m_input_module->prevent_mouse_capture("ui");
+        }
+        else
+        {
+            m_input_module->allow_mouse_capture("ui");
         }
     }
 }

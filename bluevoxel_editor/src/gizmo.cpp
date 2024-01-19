@@ -31,29 +31,129 @@ namespace bluevoxel
             renderer.view_matrix(),
             renderer.proj_matrix());
 
-        draw_axis(Axis::X, mouse_ray_dir);
-        draw_axis(Axis::Y, mouse_ray_dir);
-        draw_axis(Axis::Z, mouse_ray_dir);
+        v3 hover_offset;
+        const v3i hovered_axes = find_hovered_axes(mouse_ray_dir, hover_offset);
+
+        draw_axis({ 1, 0, 0 }, hovered_axes.x, m_selected_axes.x);
+        draw_axis({ 0, 1, 0 }, hovered_axes.y, m_selected_axes.y);
+        draw_axis({ 0, 0, 1 }, hovered_axes.z, m_selected_axes.z);
+
+        const bool is_any_axis_hovered = hovered_axes != v3i{};
+        const bool is_any_axis_selected = m_selected_axes != v3i{};
+
+        const bool mouse_pressed = m_input_module->mouse_button_state(h2o::MouseButton::Left).held;
+        if (is_any_axis_selected)
+        {
+            if (mouse_pressed)
+            {
+                // Move on selected axes
+                const u32 num_selected_axes = m_selected_axes.x + m_selected_axes.y + m_selected_axes.z;
+                switch (num_selected_axes)
+                {
+                case 1:
+                {
+                    const v3 axis{ m_selected_axes };
+
+                    const auto& camera = renderer.camera();
+                    const v3 plane_normal = glm::normalize(glm::cross(axis, camera.up()));
+
+                    m_position += m_grab_offset;
+                    const h2o::physics::Plane plane{ m_position, plane_normal };
+                    const h2o::physics::Ray ray{ camera.position(), mouse_ray_dir };
+
+                    if (const auto t = h2o::physics::intersect_plane_two_directions(ray, plane))
+                    {
+                        const v3 previous_pos = m_position;
+                        const v3 new_pos = ray.origin + ray.direction * *t;
+
+                        const v3 delta = new_pos - previous_pos;
+
+                        m_position += glm::dot(delta, axis) * axis - m_grab_offset;
+                    }
+
+                    break;
+                }
+
+                case 2:
+                case 3:
+                    // TODO
+                    break;
+
+                default:
+                    assert(false);
+                    break;
+                }
+            }
+            else
+            {
+                // Deselect axes
+                m_selected_axes = {};
+                m_input_module->allow_mouse_capture("gizmo");
+            }
+        }
+        else if (is_any_axis_hovered)
+        {
+            if (mouse_pressed)
+            {
+                // Select axes
+                m_selected_axes = hovered_axes;
+                m_input_module->prevent_mouse_capture("gizmo");
+                m_grab_offset = hover_offset;
+            }
+        }
     }
 
-    void Gizmo::draw_axis(Gizmo::Axis axis, const v3& mouse_ray_dir) const
+    void Gizmo::draw_axis(v3i axis, bool is_hovered, bool is_selected) const
     {
+        const v3 handle_start = m_position;
+        const v3 handle_end = handle_start + v3(axis) * handle_length;
+
+        v4 handle_color;
+        if (is_selected)
+        {
+            handle_color = held_color;
+        }
+        else if (is_hovered)
+        {
+            handle_color = hover_color;
+        }
+        else
+        {
+            handle_color = v4{ axis.x, axis.y, axis.z, 1.0f };
+        }
+
         auto& renderer = m_rendering_module->renderer();
-        const auto& camera = renderer.camera();
-
-        const v3i axis_dir = to_direction(axis);
-
-        const v3 handle_start{ 0.0f, 0.0f, 0.0f };
-        const v3 handle_end = handle_start + v3(axis_dir) * handle_length;
-
-        const auto t = h2o::physics::intersect_cylinder(
-            h2o::physics::Ray{ camera.position(), mouse_ray_dir },
-            h2o::physics::Cylinder{ handle_start, handle_end, handle_radius });
-
-        const v4 handle_color = t.has_value() ?
-            hover_color :
-            v4{ axis_dir.x, axis_dir.y, axis_dir.z, 1.0f };
-
         renderer.draw_cylinder(handle_start, handle_end, handle_radius, handle_color);
+    }
+
+    v3i Gizmo::find_hovered_axes(const v3& mouse_ray_dir, v3& out_grab_offset) const
+    {
+        v3i result{};
+
+        const auto& camera = m_rendering_module->renderer().camera();
+        h2o::physics::Ray ray{ camera.position(), mouse_ray_dir };
+
+        const v3 handle_start = m_position;
+
+        const auto is_axis_hovered =
+            [&](const v3i& axis) -> bool
+            {
+                const v3 handle_end = handle_start + v3(axis) * handle_length;
+                const h2o::physics::Cylinder cylinder{ handle_start, handle_end, handle_radius };
+
+                if (const auto t = h2o::physics::intersect_cylinder(ray, cylinder))
+                {
+                    out_grab_offset = ray.origin + ray.direction * *t;
+                    return true;
+                }
+
+                return false;
+            };
+
+        result += is_axis_hovered({ 1, 0, 0 }) ? v3i{ 1, 0, 0 } : v3i{};
+        result += is_axis_hovered({ 0, 1, 0 }) ? v3i{ 0, 1, 0 } : v3i{};
+        result += is_axis_hovered({ 0, 0, 1 }) ? v3i{ 0, 0, 1 } : v3i{};
+
+        return result;
     }
 }

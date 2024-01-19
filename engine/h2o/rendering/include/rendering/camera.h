@@ -16,12 +16,13 @@ namespace h2o::gfx
 
         void update(const v3& position, const v3& rotation);
 
-        m4 calc_view_matrix();
-        m4 calc_proj_matrix();
+        m4 calc_view_matrix() const;
+        m4 calc_proj_matrix() const;
 
         [[nodiscard]] const v3& position() const { return m_position; }
         [[nodiscard]] const v3& rotation() const { return m_rotation; }
         [[nodiscard]] const v3& front() const { return m_front; }
+        [[nodiscard]] const v3& up() const { return m_up; }
 
     public:
 
@@ -34,12 +35,14 @@ namespace h2o::gfx
     private:
 
         [[nodiscard]] v3 calc_front() const;
+        [[nodiscard]] v3 calc_up() const;
 
     private:
 
         v3 m_position{};
         v3 m_rotation{};
         v3 m_front{};
+        v3 m_up{};
 
     };
 }
