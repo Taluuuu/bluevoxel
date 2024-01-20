@@ -34,20 +34,23 @@ namespace h2o
             [&](const v3i& pos,
                 const BlockModel& model,
                 const std::vector<u32>& textures,
-                const std::vector<BlockVertex>& face)
+                const BlockModel::Face& face)
             {
-                for (BlockVertex vertex : face)
+                for (const auto& triangle : face)
                 {
-                    vertex.x += pos.x * 16;
-                    vertex.y += pos.y * 16;
-                    vertex.z += pos.z * 16;
+                    for (BlockVertex vertex : triangle)
+                    {
+                        vertex.x += pos.x * 16;
+                        vertex.y += pos.y * 16;
+                        vertex.z += pos.z * 16;
 
-                    // Left is texture index relative to all textures; right is the face index.
-                    vertex.tex_idx = textures[vertex.tex_idx];
+                        // Left is texture index relative to all textures; right is the face index.
+                        vertex.tex_idx = textures[vertex.tex_idx];
 
-                    auto temp = vertex.to_array();
-                    for (u32 data : temp)
-                        m_vertices.push_back(data);
+                        auto temp = vertex.to_array();
+                        for (u32 data : temp)
+                            m_vertices.push_back(data);
+                    }
                 }
             };
 

@@ -22,4 +22,9 @@ namespace h2o::physics
         v3 normal{};
         f32 radius = 0.0f;
     };
+
+    struct Triangle
+    {
+        v3 p1{}, p2{}, p3{};
+    };
 }

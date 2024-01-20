@@ -72,7 +72,7 @@ namespace bluevoxel
                     if (const auto t = h2o::physics::intersect_plane_two_directions(ray, plane))
                     {
                         const v3 previous_pos = m_position;
-                        const v3 new_pos = ray.origin + ray.direction * *t;
+                        const v3 new_pos = ray.point_at(*t);
 
                         const v3 delta = new_pos - previous_pos;
 
@@ -155,7 +155,7 @@ namespace bluevoxel
 
                 if (const auto t = h2o::physics::intersect_cylinder(ray, cylinder))
                 {
-                    out_grab_offset = ray.origin + ray.direction * *t - handle_start;
+                    out_grab_offset = ray.point_at(*t) - handle_start;
                     return true;
                 }
 

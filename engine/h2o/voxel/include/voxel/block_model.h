@@ -46,7 +46,9 @@ namespace h2o
         std::string name{};
         u32 id = 0;
 
-        using Face = std::vector<BlockVertex>;
+        using Triangle = std::array<BlockVertex, 3>;
+        using Face = std::vector<Triangle>;
+
         std::array<std::vector<Face>, 6> occluded_faces_per_side{};
         std::vector<Face> unoccluded_faces{};
 

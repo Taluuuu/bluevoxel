@@ -109,13 +109,13 @@ namespace bluevoxel
 
             if (ImGui::CollapsingHeader("Faces"))
             {
-                edit_side("Occluded by X-", 0, block_model.occluded_faces_per_side[0]);
-                edit_side("Occluded by X+", 1, block_model.occluded_faces_per_side[1]);
-                edit_side("Occluded by Z-", 2, block_model.occluded_faces_per_side[2]);
-                edit_side("Occluded by Z+", 3, block_model.occluded_faces_per_side[3]);
-                edit_side("Occluded by Y-", 4, block_model.occluded_faces_per_side[4]);
-                edit_side("Occluded by Y+", 5, block_model.occluded_faces_per_side[5]);
-                edit_side("Unoccluded Faces", 6, block_model.unoccluded_faces);
+//                edit_side("Occluded by X-", 0, block_model.occluded_faces_per_side[0]);
+//                edit_side("Occluded by X+", 1, block_model.occluded_faces_per_side[1]);
+//                edit_side("Occluded by Z-", 2, block_model.occluded_faces_per_side[2]);
+//                edit_side("Occluded by Z+", 3, block_model.occluded_faces_per_side[3]);
+//                edit_side("Occluded by Y-", 4, block_model.occluded_faces_per_side[4]);
+//                edit_side("Occluded by Y+", 5, block_model.occluded_faces_per_side[5]);
+//                edit_side("Unoccluded Faces", 6, block_model.unoccluded_faces);
             }
         }
         ImGui::End();
