@@ -21,6 +21,10 @@ namespace bluevoxel
         [[nodiscard]] const v3& position() const { return m_position; }
         void set_position(const v3& position) { m_position = position; }
 
+    public:
+
+        std::optional<f32> increment_size = std::nullopt;
+
     protected:
 
         // h2o::Tickable interface

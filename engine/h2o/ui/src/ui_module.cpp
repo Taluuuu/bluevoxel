@@ -67,11 +67,11 @@ namespace h2o
 
         if (ImGui::GetIO().WantCaptureMouse)
         {
-            m_input_module->prevent_mouse_capture("ui");
+            m_input_module->set_mouse_state(h2o::MouseCapturePriority::UI, false);
         }
         else
         {
-            m_input_module->allow_mouse_capture("ui");
+            m_input_module->clear_mouse_state(h2o::MouseCapturePriority::UI);
         }
     }
 }

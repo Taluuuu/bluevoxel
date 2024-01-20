@@ -120,6 +120,11 @@ namespace h2o
             capture ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
     }
 
+    bool Window_GLFW::is_mouse_captured() const
+    {
+        return glfwGetInputMode(m_handle, GLFW_CURSOR) == GLFW_CURSOR_DISABLED;
+    }
+
     Event<WindowResizeEvent>& Window_GLFW::resize_event()
     {
         return m_resize_event;

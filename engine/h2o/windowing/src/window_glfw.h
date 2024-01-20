@@ -35,6 +35,7 @@ namespace h2o
         [[nodiscard]] void* handle() const override;
         void swap_buffers(f64 max_fps) override;
         void set_capture_mouse(bool capture) override;
+        [[nodiscard]] bool is_mouse_captured() const override;
         Event<WindowResizeEvent>& resize_event() override;
         Event<KeyChangedEvent>& key_changed_event() override;
         Event<CharEvent>& char_event() override;

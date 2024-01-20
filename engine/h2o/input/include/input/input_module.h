@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/bool_lock.h"
+#include "core/priority_value.h"
 #include "core/core_enums.h"
 #include "core/core_interfaces.h"
 #include "core/module.h"
@@ -12,6 +12,14 @@
 namespace h2o
 {
     class WindowingModule;
+
+    enum class MouseCapturePriority : u32
+    {
+        Camera = 0,
+        Game = 1,
+        Editor = 2,
+        UI = 3,
+    };
 
     class InputModule
         : public IModule
@@ -35,10 +43,9 @@ namespace h2o
         void register_axis(const std::string_view& name, MouseScrollDelta scroll_delta, f32 sensitivity = 1.0f, bool invert = false);
         [[nodiscard]] f32 get_axis(const std::string_view& name);
 
-        void prevent_mouse_capture(const std::string& reason);
-        void allow_mouse_capture(const std::string& reason);
-        void set_capture_mouse(bool capture);
-        [[nodiscard]] bool is_mouse_captured() const { return m_mouse_captured; }
+        void set_mouse_state(MouseCapturePriority priority, bool captured);
+        void clear_mouse_state(MouseCapturePriority priority);
+        [[nodiscard]] bool is_mouse_captured() const;
 
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
@@ -52,9 +59,8 @@ namespace h2o
         std::vector<KeyState> m_key_states;
         std::vector<KeyState> m_mouse_button_states;
         v2 m_mouse_pos{}, m_mouse_delta{}, m_scroll_delta{};
-        BoolLock m_mouse_capture_is_blocked{};
-        bool m_mouse_captured = false;
-        i32 m_mouse_move_frames_to_ignore = false;
+        PriorityValue<MouseCapturePriority, bool> m_mouse_capture_state{};
+        i32 m_mouse_move_frames_to_ignore = 0;
 
         // Input configuration
         struct KeyAxis { Key positive, negative; };

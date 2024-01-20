@@ -40,7 +40,7 @@ namespace h2o
         m_windowing_module->window().mouse_moved_event().add_listener(m_mouse_moved_event_handle,
             [this](const MouseMovedEvent& evt)
             {
-                if (m_mouse_captured)
+                if (is_mouse_captured())
                     m_mouse_delta = evt.new_position - m_mouse_pos;
 
                 // Hack to fix mouse jumping when spamming capture/release mouse
@@ -165,28 +165,30 @@ namespace h2o
         return 0.0f;
     }
 
-    void InputModule::prevent_mouse_capture(const std::string& reason)
+    void InputModule::set_mouse_state(MouseCapturePriority priority, bool captured)
     {
-        m_mouse_capture_is_blocked.lock(reason);
+        const auto was_captured = m_mouse_capture_state.get();
+        m_mouse_capture_state.push(priority, captured);
+
+        const auto is_captured = m_mouse_capture_state.get().value_or(false);
+
+        if (was_captured != is_captured)
+        {
+            m_windowing_module->window().set_capture_mouse(is_captured);
+
+            if (is_captured)
+                m_mouse_move_frames_to_ignore = 2;
+        }
     }
 
-    void InputModule::allow_mouse_capture(const std::string& reason)
+    void InputModule::clear_mouse_state(MouseCapturePriority priority)
     {
-        m_mouse_capture_is_blocked.unlock(reason);
+        m_mouse_capture_state.remove(priority);
     }
 
-    void InputModule::set_capture_mouse(bool capture)
+    bool InputModule::is_mouse_captured() const
     {
-        if (m_mouse_captured == capture)
-            return;
-
-        if (m_mouse_capture_is_blocked)
-            return;
-
-        m_mouse_captured = capture;
-        m_windowing_module->window().set_capture_mouse(capture);
-
-        m_mouse_move_frames_to_ignore = 2;
+        return m_windowing_module->window().is_mouse_captured();
     }
 
     KeyState InputModule::key_state(Key key) const

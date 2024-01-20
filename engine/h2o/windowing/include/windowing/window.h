@@ -95,6 +95,7 @@ namespace h2o
         virtual void swap_buffers(f64 max_fps) = 0;
 
         virtual void set_capture_mouse(bool capture) = 0;
+        [[nodiscard]] virtual bool is_mouse_captured() const = 0;
 
         [[nodiscard]] virtual Event<WindowResizeEvent>& resize_event() = 0;
         
