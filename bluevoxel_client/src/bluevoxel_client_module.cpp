@@ -99,7 +99,7 @@ namespace bluevoxel
     void BlueVoxelClientModule::update(f32 delta_time)
     {
         if (m_input_module->key_state(h2o::Key::Escape).pressed_this_frame)
-            m_input_module->set_capture_mouse(!m_input_module->is_mouse_captured());
+            m_input_module->set_mouse_state(h2o::MouseCapturePriority::Camera, !m_input_module->is_mouse_captured());
 
         ImGui::Begin("Connection");
 

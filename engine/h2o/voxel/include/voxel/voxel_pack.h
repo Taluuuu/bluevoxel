@@ -6,6 +6,7 @@
 #include "core/resources.h"
 
 #include <optional>
+#include <map>
 #include <string_view>
 #include <vector>
 
@@ -13,7 +14,7 @@ namespace h2o
 {
     using BlockModelList = std::vector<BlockModel>;
     using BlockTypeList = std::vector<std::optional<BlockType>>;
-    using TextureNameIdMap = std::unordered_map<std::string, u32>;
+    using TextureNameIdMap = std::map<std::string, u32>;
 
     class VoxelPack;
 

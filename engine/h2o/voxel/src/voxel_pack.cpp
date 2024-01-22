@@ -203,15 +203,17 @@ namespace h2o
         return true;
     }
 
-    static void process_triangle_vertices(
-        const std::vector<std::array<u32, 5>>& in_vertices,
-        u32 face_index,
-        u32 triangle_index,
-        std::vector<BlockVertex>& out_processed_vertices)
+    using UnprocessedVertex = std::array<u32, 5>;
+    using UnprocessedTriangle = std::array<UnprocessedVertex, 3>;
+    using UnprocessedFace = std::vector<UnprocessedTriangle>;
+
+    static BlockModel::Triangle process_triangle(const UnprocessedTriangle& unprocessed_triangle, u32 face_index)
     {
-        const auto& v0 = in_vertices[triangle_index * 3 + 0];
-        const auto& v1 = in_vertices[triangle_index * 3 + 1];
-        const auto& v2 = in_vertices[triangle_index * 3 + 2];
+        BlockModel::Triangle triangle{};
+
+        const auto& v0 = unprocessed_triangle[0];
+        const auto& v1 = unprocessed_triangle[1];
+        const auto& v2 = unprocessed_triangle[2];
 
         const v3i p0{v0[0], v0[1], v0[2]};
         const v3i p1{v1[0], v1[1], v1[2]};
@@ -233,21 +235,22 @@ namespace h2o
 
         for (i32 vertex_index = 0; vertex_index < 3; vertex_index++)
         {
-            const auto& vertex = in_vertices[triangle_index * 3 + vertex_index];
-            out_processed_vertices.push_back(
+            const auto& vertex = unprocessed_triangle[vertex_index];
+            triangle[vertex_index] =
                 BlockVertex
-                    {
-                        .x = vertex[0],
-                        .y = vertex[1],
-                        .z = vertex[2],
-                        .u = vertex[3],
-                        .v = vertex[4],
-                        .tex_idx = face_index,
-                        .n_pitch = packed_n_pitch,
-                        .n_yaw = packed_n_yaw,
-                    }
-            );
+                {
+                    .x = vertex[0],
+                    .y = vertex[1],
+                    .z = vertex[2],
+                    .u = vertex[3],
+                    .v = vertex[4],
+                    .tex_idx = face_index,
+                    .n_pitch = packed_n_pitch,
+                    .n_yaw = packed_n_yaw,
+                };
         }
+
+        return triangle;
     }
 
     static std::optional<BlockModel> load_block_model(const YAML::Node& block_model_yml)
@@ -259,19 +262,13 @@ namespace h2o
 
         for (const auto face_yml: block_model_yml["faces"])
         {
-            const auto vertices = face_yml["vertices"].as<std::vector<std::array<u32, 5>>>();
-            if (vertices.size() % 3 != 0)
-            {
-                log::warn("Number of vertices for faces in block model '{}' must be a multiple of 3.", model.name);
-                return std::nullopt;
-            }
+            const auto unprocessed_face = face_yml["triangles"].as<UnprocessedFace>();
 
-            std::vector<BlockVertex> face_vertices{};
-            face_vertices.reserve(vertices.size());
-
-            const size_t triangle_count = vertices.size() / 3;
-            for (size_t triangle_index = 0; triangle_index < triangle_count; triangle_index++)
-                process_triangle_vertices(vertices, face_index, triangle_index, face_vertices);
+            // Process and add triangles to this face
+            BlockModel::Face face{};
+            face.reserve(unprocessed_face.size());
+            for (const auto& unprocessed_triangle : unprocessed_face)
+                face.push_back(process_triangle(unprocessed_triangle, face_index));
 
             if (const auto occluded_by_yml = face_yml["occluded_by"])
             {
@@ -288,11 +285,11 @@ namespace h2o
                 const auto dir_idx = magic_enum::enum_index(*occluder);
                 assert(dir_idx);
 
-                model.occluded_faces_per_side[*dir_idx].emplace_back(std::move(face_vertices));
+                model.occluded_faces_per_side[*dir_idx].emplace_back(std::move(face));
             }
             else
             {
-                model.unoccluded_faces.emplace_back(std::move(face_vertices));
+                model.unoccluded_faces.emplace_back(std::move(face));
             }
 
             face_index++;
