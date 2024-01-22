@@ -3,6 +3,8 @@
 #include "block_editor_workspace.h"
 #include "core/engine.h"
 #include "input/input_module.h"
+#include "physics/math_helpers.h"
+#include "physics/ray_intersections.h"
 #include "rendering/camera.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
@@ -19,8 +21,10 @@ namespace bluevoxel
         : h2o::Tickable(&workspace)
         , m_gizmo(this)
         , m_workspace(&workspace)
+        , m_input_module(&g_engine->get_module_checked<h2o::InputModule>())
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
+        , m_window_module(&g_engine->get_module_checked<h2o::WindowingModule>())
     {
         set_tick_phases(h2o::TickPhase::Update);
     }
@@ -36,8 +40,61 @@ namespace bluevoxel
         if (!block_type)
             return;
 
+        const auto& window = m_window_module->window();
+        auto& renderer = m_rendering_module->renderer();
+        const auto& camera = renderer.camera();
+
         const auto model_id = block_type->model_id;
         h2o::BlockModel block_model = voxel_pack->block_models()[model_id];
+
+        if (m_input_module->mouse_button_state(h2o::MouseButton::Left).pressed_this_frame)
+        {
+            const v3 mouse_ray_dir = h2o::physics::screen_to_ray_direction(
+                m_input_module->mouse_position(),
+                window.window_size(),
+                renderer.view_matrix(),
+                renderer.proj_matrix());
+
+            const h2o::physics::Ray ray{camera.position(), mouse_ray_dir};
+
+            u32 side_index = 0;
+            f32 min_t = FLT_MAX;
+            for (const auto& side: block_model.occluded_faces_per_side)
+            {
+                u32 face_index = 0;
+                for (const auto& face: side)
+                {
+                    for (const auto& triangle: face)
+                    {
+                        const auto& p1 = triangle[0];
+                        const auto& p2 = triangle[1];
+                        const auto& p3 = triangle[2];
+
+                        h2o::physics::Triangle physics_triangle{
+                            .p1 = v3{p1.x, p1.y, p1.z} / v3{16},
+                            .p2 = v3{p2.x, p2.y, p2.z} / v3{16},
+                            .p3 = v3{p3.x, p3.y, p3.z} / v3{16},
+                        };
+
+                        if (const auto t = h2o::physics::intersect_triangle(ray, physics_triangle))
+                        {
+                            if (*t < min_t)
+                            {
+                                min_t = *t;
+                                m_selected_side_index = side_index;
+                                m_selected_face_index = face_index;
+
+                                m_gizmo.set_position((physics_triangle.p1 + physics_triangle.p2 + physics_triangle.p3) / 3.0f);
+                            }
+                        }
+                    }
+
+                    face_index++;
+                }
+
+                side_index++;
+            }
+        }
 
         bool should_refresh_model = false;
         u32 vertex_index = 0;

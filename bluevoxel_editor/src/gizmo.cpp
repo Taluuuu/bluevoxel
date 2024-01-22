@@ -20,6 +20,12 @@ namespace bluevoxel
         set_tick_phases(h2o::TickPhase::Update);
     }
 
+    void Gizmo::set_position(const v3& position)
+    {
+        m_position = position;
+        m_grab_offset = v3{};
+    }
+
     void Gizmo::update(f32 delta_time)
     {
         const auto& window = m_window_module->window();

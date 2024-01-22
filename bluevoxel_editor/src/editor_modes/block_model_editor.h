@@ -37,12 +37,16 @@ namespace bluevoxel
     private:
 
         Gizmo m_gizmo;
+        u32 m_selected_side_index = 0;
+        u32 m_selected_face_index = 0;
 
         BlockEditorWorkspace* const m_workspace = nullptr;
 
         // Module refs
+        h2o::InputModule*     const m_input_module     = nullptr;
         h2o::RenderingModule* const m_rendering_module = nullptr;
-        h2o::VoxelModule* const m_voxel_module = nullptr;
+        h2o::VoxelModule*     const m_voxel_module     = nullptr;
+        h2o::WindowingModule* const m_window_module    = nullptr;
 
     };
 }

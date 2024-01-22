@@ -19,7 +19,7 @@ namespace bluevoxel
         ~Gizmo() override = default;
 
         [[nodiscard]] const v3& position() const { return m_position; }
-        void set_position(const v3& position) { m_position = position; }
+        void set_position(const v3& position);
 
     public:
 
