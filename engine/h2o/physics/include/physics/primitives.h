@@ -27,4 +27,10 @@ namespace h2o::physics
     {
         v3 p1{}, p2{}, p3{};
     };
+
+    struct Sphere
+    {
+        v3 center{};
+        f32 radius{};
+    };
 }

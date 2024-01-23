@@ -80,6 +80,7 @@ namespace h2o::gfx
         const m4& proj_view_matrix() const override;
         void draw_line(const v3& origin, const v3& end, const v4& color) override;
         void draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color) override;
+        void draw_sphere(const v3& origin, f32 radius, const v4& color) override;
 
     private:
 
@@ -96,8 +97,9 @@ namespace h2o::gfx
 
         std::vector<LineData> m_lines_to_draw{};
 
-        // Cylinder drawing
         std::shared_ptr<gfx::IPipeline> m_colored_shape_pipeline = nullptr;
+
+        // Cylinder drawing
         std::shared_ptr<VertexArray> m_cylinder_vao = nullptr;
         std::shared_ptr<Buffer> m_cylinder_vbo = nullptr;
         std::shared_ptr<Buffer> m_cylinder_ebo = nullptr;
@@ -111,6 +113,20 @@ namespace h2o::gfx
         };
 
         std::vector<CylinderData> m_cylinders_to_draw{};
+
+        // Sphere drawing
+        std::shared_ptr<VertexArray> m_sphere_vao = nullptr;
+        std::shared_ptr<Buffer> m_sphere_vbo = nullptr;
+        u32 m_sphere_vertex_count = 0;
+
+        struct SphereData
+        {
+            v3 origin{};
+            f32 radius = 0.0f;
+            v4 color{};
+        };
+
+        std::vector<SphereData> m_spheres_to_draw{};
 
         Camera m_camera{};
         // Cached camera matrices

@@ -15,4 +15,6 @@ namespace h2o::physics
     [[nodiscard]] std::optional<f32> intersect_cylinder(const Ray& ray, const Cylinder& cylinder);
 
     [[nodiscard]] std::optional<f32> intersect_triangle(const Ray& ray, const Triangle& triangle);
+
+    [[nodiscard]] std::optional<f32> intersect_sphere(const Ray& ray, const Sphere& sphere);
 }

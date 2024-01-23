@@ -47,35 +47,39 @@ namespace bluevoxel
         const auto model_id = block_type->model_id;
         h2o::BlockModel block_model = voxel_pack->block_models()[model_id];
 
-        if (m_input_module->mouse_button_state(h2o::MouseButton::Left).pressed_this_frame)
-        {
-            const v3 mouse_ray_dir = h2o::physics::screen_to_ray_direction(
+        const v3 mouse_ray_dir = h2o::physics::screen_to_ray_direction(
                 m_input_module->mouse_position(),
                 window.window_size(),
                 renderer.view_matrix(),
                 renderer.proj_matrix());
 
-            const h2o::physics::Ray ray{camera.position(), mouse_ray_dir};
+        const h2o::physics::Ray ray{camera.position(), mouse_ray_dir};
 
-            u32 side_index = 0;
-            f32 min_t = FLT_MAX;
-            for (const auto& side: block_model.occluded_faces_per_side)
+        u32 side_index = 0;
+        f32 min_t = FLT_MAX;
+        for (const auto& side : block_model.occluded_faces_per_side)
+        {
+            u32 face_index = 0;
+            for (const auto& face : side)
             {
-                u32 face_index = 0;
-                for (const auto& face: side)
+                for (const auto& triangle : face)
                 {
-                    for (const auto& triangle: face)
+                    const auto& p1 = triangle[0];
+                    const auto& p2 = triangle[1];
+                    const auto& p3 = triangle[2];
+
+                    const h2o::physics::Triangle physics_triangle{
+                        .p1 = v3{ p1.x, p1.y, p1.z } / v3{ 16 },
+                        .p2 = v3{ p2.x, p2.y, p2.z } / v3{ 16 },
+                        .p3 = v3{ p3.x, p3.y, p3.z } / v3{ 16 },
+                    };
+
+                    renderer.draw_sphere(physics_triangle.p1, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
+                    renderer.draw_sphere(physics_triangle.p2, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
+                    renderer.draw_sphere(physics_triangle.p3, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
+
+                    if (m_input_module->mouse_button_state(h2o::MouseButton::Left).pressed_this_frame)
                     {
-                        const auto& p1 = triangle[0];
-                        const auto& p2 = triangle[1];
-                        const auto& p3 = triangle[2];
-
-                        h2o::physics::Triangle physics_triangle{
-                            .p1 = v3{p1.x, p1.y, p1.z} / v3{16},
-                            .p2 = v3{p2.x, p2.y, p2.z} / v3{16},
-                            .p3 = v3{p3.x, p3.y, p3.z} / v3{16},
-                        };
-
                         if (const auto t = h2o::physics::intersect_triangle(ray, physics_triangle))
                         {
                             if (*t < min_t)
@@ -84,16 +88,56 @@ namespace bluevoxel
                                 m_selected_side_index = side_index;
                                 m_selected_face_index = face_index;
 
-                                m_gizmo.set_position((physics_triangle.p1 + physics_triangle.p2 + physics_triangle.p3) / 3.0f);
+                                m_gizmo.set_position(
+                                    (physics_triangle.p1 + physics_triangle.p2 + physics_triangle.p3) / 3.0f);
+                            }
+                        }
+
+                        const h2o::physics::Sphere s1{ physics_triangle.p1, 0.05f };
+                        const h2o::physics::Sphere s2{ physics_triangle.p2, 0.05f };
+                        const h2o::physics::Sphere s3{ physics_triangle.p3, 0.05f };
+                        if (const auto t = h2o::physics::intersect_sphere(ray, s1))
+                        {
+                            if (*t < min_t)
+                            {
+                                min_t = *t;
+                                m_selected_side_index = side_index;
+                                m_selected_face_index = face_index;
+
+                                m_gizmo.set_position(s1.center);
+                            }
+                        }
+
+                        if (const auto t = h2o::physics::intersect_sphere(ray, s2))
+                        {
+                            if (*t < min_t)
+                            {
+                                min_t = *t;
+                                m_selected_side_index = side_index;
+                                m_selected_face_index = face_index;
+
+                                m_gizmo.set_position(s2.center);
+                            }
+                        }
+
+                        if (const auto t = h2o::physics::intersect_sphere(ray, s3))
+                        {
+                            if (*t < min_t)
+                            {
+                                min_t = *t;
+                                m_selected_side_index = side_index;
+                                m_selected_face_index = face_index;
+
+                                m_gizmo.set_position(s3.center);
                             }
                         }
                     }
-
-                    face_index++;
                 }
 
-                side_index++;
+                face_index++;
             }
+
+            side_index++;
         }
 
         bool should_refresh_model = false;

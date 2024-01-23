@@ -63,6 +63,7 @@ namespace h2o::gfx
         // Immediate drawing
         virtual void                          draw_line(const v3& origin, const v3& end, const v4& color) = 0;
         virtual void                          draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color) = 0;
+        virtual void                          draw_sphere(const v3& origin, f32 radius, const v4& color) = 0;
 
     };
 }

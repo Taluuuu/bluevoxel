@@ -10,6 +10,44 @@
 
 namespace h2o::gfx
 {
+    // https://stackoverflow.com/questions/41556821/opengl-sphere-vertices-and-uv-coordinates
+    static v3 sphere_point(f32 u, f32 v)
+    {
+        static constexpr f32 pi = glm::pi<f32>();
+
+        const f32 r = glm::sin(pi * v);
+        return v3{
+            r * glm::cos(2.0f * pi * u),
+            r * glm::sin(2.0f * pi * u),
+            glm::cos(pi * v)
+        };
+    }
+
+    // https://stackoverflow.com/questions/41556821/opengl-sphere-vertices-and-uv-coordinates
+    static std::vector<v3> build_sphere_vertices(v2i size)
+    {
+        std::vector<v3> vertices{};
+        for (u32 i = 0; i < size.x; i++)
+        {
+            for (u32 j = 0; j < size.y; j++)
+            {
+                const f32 u0 = f32(i)     / f32(size.x);
+                const f32 u1 = f32(i + 1) / f32(size.x);
+                const f32 v0 = f32(j)     / f32(size.y);
+                const f32 v1 = f32(j + 1) / f32(size.y);
+
+                vertices.push_back(sphere_point(u0, v0));
+                vertices.push_back(sphere_point(u1, v0));
+                vertices.push_back(sphere_point(u0, v1));
+                vertices.push_back(sphere_point(u0, v1));
+                vertices.push_back(sphere_point(u1, v0));
+                vertices.push_back(sphere_point(u1, v1));
+            }
+        }
+
+        return vertices;
+    };
+
     // Adapted from http://www.songho.ca/opengl/gl_cylinder.html
     static std::vector<v2> calc_unit_circle_vertices(i32 num_sectors)
     {
@@ -155,7 +193,7 @@ namespace h2o::gfx
         m_debug_lines_vao->setup_attribute_float(0, 0, AttributeType::F32, false, 3, 0);
         m_debug_lines_vao->setup_attribute_float(1, 0, AttributeType::F32, false, 4, 3 * sizeof(f32));
 
-        auto [cylinder_vertices, cylinder_indices] = build_cylinder_vertices(16);
+        const auto [cylinder_vertices, cylinder_indices] = build_cylinder_vertices(16);
         m_cylinder_vertex_count = cylinder_indices.size();
         m_cylinder_vbo = create_buffer_ptr();
         m_cylinder_vbo->update_data(cylinder_vertices.data(), cylinder_vertices.size() * sizeof(v3), BufferUsage::StaticDraw);
@@ -165,6 +203,14 @@ namespace h2o::gfx
         m_cylinder_vao->attach_index_buffer(m_cylinder_ebo);
         m_cylinder_vao->attach_vertex_buffer(m_cylinder_vbo, 0, 0, 3 * sizeof(f32));
         m_cylinder_vao->setup_attribute_float(0, 0, AttributeType::F32, false, 3, 0);
+
+        const auto sphere_vertices = build_sphere_vertices(v2i{ 12, 8 });
+        m_sphere_vertex_count = sphere_vertices.size();
+        m_sphere_vbo = create_buffer_ptr();
+        m_sphere_vbo->update_data(sphere_vertices.data(), sphere_vertices.size() * sizeof(v3), BufferUsage::StaticDraw);
+        m_sphere_vao = create_vertex_array_ptr();
+        m_sphere_vao->attach_vertex_buffer(m_sphere_vbo, 0, 0, 3 * sizeof(f32));
+        m_sphere_vao->setup_attribute_float(0, 0, AttributeType::F32, false, 3, 0);
 
         return true;
     }
@@ -224,6 +270,7 @@ namespace h2o::gfx
         draw_arrays(*m_debug_lines_vao, m_lines_to_draw.size() * 2, DrawMode::Lines);
 
         bind_pipeline(m_colored_shape_pipeline);
+        m_colored_shape_pipeline->set_uniform_mat4(0, m_proj_view_matrix);
         for (const auto& cylinder_data : m_cylinders_to_draw)
         {
             const v3 direction = glm::normalize(cylinder_data.end - cylinder_data.start);
@@ -233,14 +280,26 @@ namespace h2o::gfx
             const m4 scale = glm::scale(v3{cylinder_data.radius, length, cylinder_data.radius});
             m4 model = translation * rotation * scale;
 
-            m_colored_shape_pipeline->set_uniform_mat4(0, m_proj_view_matrix);
             m_colored_shape_pipeline->set_uniform_mat4(1, model);
             m_colored_shape_pipeline->set_uniform_vec4(2, cylinder_data.color);
             draw_elements(*m_cylinder_vao, m_cylinder_vertex_count, AttributeType::U32);
         }
 
+        for (const auto& sphere_data : m_spheres_to_draw)
+        {
+            const m4 translation = glm::translate(sphere_data.origin);
+            const m4 scale = glm::scale(v3{ sphere_data.radius });
+            m4 model = translation * scale;
+
+            m_colored_shape_pipeline->set_uniform_mat4(0, m_proj_view_matrix);
+            m_colored_shape_pipeline->set_uniform_mat4(1, model);
+            m_colored_shape_pipeline->set_uniform_vec4(2, sphere_data.color);
+            draw_arrays(*m_sphere_vao, m_sphere_vertex_count, DrawMode::Triangles);
+        }
+
         m_lines_to_draw.clear();
         m_cylinders_to_draw.clear();
+        m_spheres_to_draw.clear();
     }
 
     PipelineCreateData Renderer_Base::create_pipeline()
@@ -325,5 +384,10 @@ namespace h2o::gfx
     void Renderer_Base::draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color)
     {
         m_cylinders_to_draw.push_back({ origin, end, radius, color });
+    }
+
+    void Renderer_Base::draw_sphere(const v3& origin, f32 radius, const v4& color)
+    {
+        m_spheres_to_draw.push_back({ origin, radius, color });
     }
 }

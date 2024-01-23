@@ -127,4 +127,27 @@ namespace h2o::physics
         // At this stage we can compute t to find out where the intersection point is on the line.
         return inv_det * dot(edge2, s_cross_e1);
     }
+
+    // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
+    std::optional<f32> intersect_sphere(const Ray& ray, const Sphere& sphere)
+    {
+        const v3 L = ray.origin - sphere.center;
+        const f32 a = glm::dot(ray.direction, ray.direction);
+        const f32 b = 2.0f * glm::dot(ray.direction, L);
+        const f32 c = glm::dot(L, L) - sphere.radius * sphere.radius;
+
+        if (const auto roots = find_quadratic_roots(a, b, c))
+        {
+            const f32 t1 = roots->t1;
+            const f32 t2 = roots->t2;
+
+            if (t1 < t2 && t1 > 0.0f)
+                return t1;
+
+            if (t2 > 0.0f)
+                return t2;
+        }
+
+        return std::nullopt;
+    }
 }
