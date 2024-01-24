@@ -22,6 +22,7 @@ namespace h2o
 
         void set_capture_mouse(MouseCapturePriority priority, bool capture);
         [[nodiscard]] bool is_mouse_captured() const;
+        [[nodiscard]] std::optional<MouseCapturePriority> mouse_capture_priority() const;
 
     private:
 

@@ -60,6 +60,18 @@ namespace h2o
         }
     }
 
+    void Tickable::run_post_update(f32 delta_time)
+    {
+        if (is_enabled())
+        {
+            if (m_tick_phases & TickPhase::PostUpdate)
+                post_update(delta_time);
+
+            for (Tickable* child: m_children)
+                child->run_post_update(delta_time);
+        }
+    }
+
     void Tickable::run_network_update(f32 delta_time)
     {
         if (is_enabled())

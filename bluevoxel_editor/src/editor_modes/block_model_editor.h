@@ -3,6 +3,8 @@
 #include "core/tickable.h"
 #include "gizmo.h"
 
+#include <variant>
+
 namespace h2o
 {
     struct BlockModel;
@@ -37,16 +39,23 @@ namespace bluevoxel
     private:
 
         Gizmo m_gizmo;
-        u32 m_selected_side_index = 0;
-        u32 m_selected_face_index = 0;
+
+        struct FaceIndexSelection{ u32 side = 0; u32 face = 0; };
+        struct TriangleIndexSelection{ FaceIndexSelection face{}; u32 triangle = 0; };
+        struct VertexIndexSelection{ TriangleIndexSelection triangle{}; u32 vertex = 0; };
+        struct VertexPositionSelection{ v3i vertex_pos{}; };
+
+        std::variant<std::monostate,
+            FaceIndexSelection,
+            TriangleIndexSelection,
+            VertexIndexSelection,
+            VertexPositionSelection> m_selection{};
 
         BlockEditorWorkspace* const m_workspace = nullptr;
 
         // Module refs
-        h2o::InputModule*     const m_input_module     = nullptr;
         h2o::RenderingModule* const m_rendering_module = nullptr;
         h2o::VoxelModule*     const m_voxel_module     = nullptr;
-        h2o::WindowingModule* const m_window_module    = nullptr;
 
     };
 }

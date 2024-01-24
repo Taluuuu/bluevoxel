@@ -191,6 +191,11 @@ namespace h2o
         return m_windowing_module->window().is_mouse_captured();
     }
 
+    std::optional<MouseCapturePriority> InputModule::mouse_capture_priority() const
+    {
+        return m_mouse_capture_state.current_priority();
+    }
+
     KeyState InputModule::key_state(Key key) const
     {
         auto key_idx = magic_enum::enum_index(key);

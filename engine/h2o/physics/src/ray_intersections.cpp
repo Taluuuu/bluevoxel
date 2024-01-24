@@ -16,18 +16,6 @@ namespace h2o::physics
         return (t >= 0.0f) ? std::optional<f32>{ t } : std::nullopt;
     }
 
-    std::optional<f32> intersect_plane_two_directions(const Ray& ray, const Plane& plane)
-    {
-        if (const auto t = intersect_plane(ray, plane))
-            return t;
-
-        const Plane inverted_plane{ plane.point, -plane.normal };
-        if (const auto t = intersect_plane(ray, inverted_plane))
-            return t;
-
-        return std::nullopt;
-    }
-
     std::optional<f32> intersect_disk(const Ray& ray, const Disk& disk)
     {
         if (const auto t = intersect_plane(ray, Plane{ disk.center, disk.normal }))
@@ -149,5 +137,35 @@ namespace h2o::physics
         }
 
         return std::nullopt;
+    }
+
+    template<>
+    [[nodiscard]] std::optional<f32> intersect(const Ray& ray, const Plane& primitive)
+    {
+        return intersect_plane(ray, primitive);
+    }
+
+    template<>
+    [[nodiscard]] std::optional<f32> intersect(const Ray& ray, const Disk& primitive)
+    {
+        return intersect_disk(ray, primitive);
+    }
+
+    template<>
+    [[nodiscard]] std::optional<f32> intersect(const Ray& ray, const Cylinder& primitive)
+    {
+        return intersect_cylinder(ray, primitive);
+    }
+
+    template<>
+    [[nodiscard]] std::optional<f32> intersect(const Ray& ray, const Triangle& primitive)
+    {
+        return intersect_triangle(ray, primitive);
+    }
+
+    template<>
+    [[nodiscard]] std::optional<f32> intersect(const Ray& ray, const Sphere& primitive)
+    {
+        return intersect_sphere(ray, primitive);
     }
 }

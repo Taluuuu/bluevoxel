@@ -12,14 +12,15 @@ namespace h2o
     {
         enum Type : u32
         {
-            None = 0,
-            FrameStart = 1 << 0,
-            Update = 1 << 1,
-            NetworkUpdate = 1 << 2,
-            PreRender = 1 << 3,
-            Render = 1 << 4,
-            PostRender = 1 << 5,
-            FrameEnd = 1 << 6,
+            None          = 0,
+            FrameStart    = 1 << 0,
+            Update        = 1 << 1,
+            PostUpdate    = 1 << 2,
+            NetworkUpdate = 1 << 3,
+            PreRender     = 1 << 4,
+            Render        = 1 << 5,
+            PostRender    = 1 << 6,
+            FrameEnd      = 1 << 7,
         };
 
         inline TickPhase::Type operator|(TickPhase::Type lhs, TickPhase::Type rhs)
@@ -52,6 +53,7 @@ namespace h2o
 
         void run_frame_start(f32 delta_time);
         void run_update(f32 delta_time);
+        void run_post_update(f32 delta_time);
         void run_network_update(f32 delta_time);
         void run_pre_render();
         void run_render();
@@ -60,6 +62,7 @@ namespace h2o
 
         virtual void frame_start(f32 delta_time)    { assert(false); }
         virtual void update(f32 delta_time)         { assert(false); }
+        virtual void post_update(f32 delta_time)    { assert(false); }
         virtual void network_update(f32 delta_time) { assert(false); }
         virtual void pre_render()                   { assert(false); }
         virtual void render()                       { assert(false); }

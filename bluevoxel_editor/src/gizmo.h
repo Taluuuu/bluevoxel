@@ -11,11 +11,13 @@ namespace h2o
 
 namespace bluevoxel
 {
+    class SelectionManager;
+
     class Gizmo : public h2o::Tickable
     {
     public:
 
-        explicit Gizmo(h2o::Tickable* tickable);
+        Gizmo(h2o::Tickable* tickable, SelectionManager& selection_manager);
         ~Gizmo() override = default;
 
         [[nodiscard]] const v3& position() const { return m_position; }
@@ -25,13 +27,16 @@ namespace bluevoxel
 
         std::optional<f32> increment_size = std::nullopt;
 
+        struct Bounds{ v3 min{}, max{}; };
+        std::optional<Bounds> bounds = std::nullopt;
+
     protected:
 
         // h2o::Tickable interface
         void update(f32 delta_time) override;
 
         void draw_axis(v3i axis, bool is_hovered, bool is_selected) const;
-        [[nodiscard]] v3i find_hovered_axes(const v3& mouse_ray_dir, v3& out_grab_offset) const;
+        [[nodiscard]] v3 align_to_grid(const v3& position) const;
 
     protected:
 
@@ -45,7 +50,10 @@ namespace bluevoxel
 
         v3 m_position{};
         v3 m_grab_offset{};
+        v3i m_hovered_axes{};
         v3i m_selected_axes{};
+
+        SelectionManager* const m_selection_mgr = nullptr;
 
         // Module refs
         h2o::InputModule* const m_input_module = nullptr;

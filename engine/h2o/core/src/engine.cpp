@@ -72,6 +72,7 @@ namespace h2o
         }
 
         run_update(delta_time);
+        run_post_update(delta_time);
 
         run_pre_render();
         run_render();

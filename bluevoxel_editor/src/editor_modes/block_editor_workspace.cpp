@@ -21,8 +21,8 @@ namespace bluevoxel
 {
     BlockEditorWorkspace::BlockEditorWorkspace(h2o::Tickable* owner)
         : Tickable(owner)
+        , m_selection_manager(this)
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
-        , m_ui_module(&g_engine->get_module_checked<h2o::UIModule>())
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
     {
         m_scene = std::make_shared<h2o::Scene>("editor_scene", nullptr);

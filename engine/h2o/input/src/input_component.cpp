@@ -39,4 +39,9 @@ namespace h2o
     {
         return m_input_module->is_mouse_captured();
     }
+
+    std::optional<MouseCapturePriority> InputComponent::mouse_capture_priority() const
+    {
+        return m_input_module->mouse_capture_priority();
+    }
 }

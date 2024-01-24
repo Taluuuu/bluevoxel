@@ -19,13 +19,14 @@ namespace bluevoxel
 {
     BlockModelEditor::BlockModelEditor(BlockEditorWorkspace& workspace)
         : h2o::Tickable(&workspace)
-        , m_gizmo(this)
+        , m_gizmo(this, workspace.selection_mgr())
         , m_workspace(&workspace)
-        , m_input_module(&g_engine->get_module_checked<h2o::InputModule>())
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
-        , m_window_module(&g_engine->get_module_checked<h2o::WindowingModule>())
     {
+        m_gizmo.increment_size = 1.0f / 16;
+        m_gizmo.bounds = Gizmo::Bounds{ v3{ 0.0f }, v3{ 1.0f } };
+
         set_tick_phases(h2o::TickPhase::Update);
     }
 
@@ -40,28 +41,21 @@ namespace bluevoxel
         if (!block_type)
             return;
 
-        const auto& window = m_window_module->window();
+        m_gizmo.set_enabled(!holds_alternative<std::monostate>(m_selection));
+
         auto& renderer = m_rendering_module->renderer();
-        const auto& camera = renderer.camera();
+        auto& selection_mgr = m_workspace->selection_mgr();
 
         const auto model_id = block_type->model_id;
         h2o::BlockModel block_model = voxel_pack->block_models()[model_id];
 
-        const v3 mouse_ray_dir = h2o::physics::screen_to_ray_direction(
-                m_input_module->mouse_position(),
-                window.window_size(),
-                renderer.view_matrix(),
-                renderer.proj_matrix());
-
-        const h2o::physics::Ray ray{camera.position(), mouse_ray_dir};
-
         u32 side_index = 0;
-        f32 min_t = FLT_MAX;
         for (const auto& side : block_model.occluded_faces_per_side)
         {
             u32 face_index = 0;
             for (const auto& face : side)
             {
+                u32 triangle_index = 0;
                 for (const auto& triangle : face)
                 {
                     const auto& p1 = triangle[0];
@@ -74,64 +68,62 @@ namespace bluevoxel
                         .p3 = v3{ p3.x, p3.y, p3.z } / v3{ 16 },
                     };
 
+//                    selection_mgr.add(physics_triangle,
+//                        [this, physics_triangle, side_index, face_index, triangle_index]
+//                        (const HoverData& hover_data)
+//                        {
+//                            if (hover_data.click_state.pressed_this_frame)
+//                            {
+//                                m_gizmo.set_position(
+//                                    (physics_triangle.p1 + physics_triangle.p2 + physics_triangle.p3) / 3.0f);
+//                            }
+//                        }
+//                    );
+
                     renderer.draw_sphere(physics_triangle.p1, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
                     renderer.draw_sphere(physics_triangle.p2, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
                     renderer.draw_sphere(physics_triangle.p3, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
 
-                    if (m_input_module->mouse_button_state(h2o::MouseButton::Left).pressed_this_frame)
-                    {
-                        if (const auto t = h2o::physics::intersect_triangle(ray, physics_triangle))
+                    selection_mgr.add(phys::Sphere{ physics_triangle.p1, 0.05f },
+                        [this, vertex = p1]
+                            (const HoverData& hover_data)
                         {
-                            if (*t < min_t)
+                            if (hover_data.click_state.pressed_this_frame)
                             {
-                                min_t = *t;
-                                m_selected_side_index = side_index;
-                                m_selected_face_index = face_index;
-
-                                m_gizmo.set_position(
-                                    (physics_triangle.p1 + physics_triangle.p2 + physics_triangle.p3) / 3.0f);
+                                const v3i vertex_pos{ vertex.x, vertex.y, vertex.z };
+                                m_selection = VertexPositionSelection{ vertex_pos };
+                                m_gizmo.set_position(v3{ vertex_pos } / 16.0f);
                             }
                         }
+                    );
 
-                        const h2o::physics::Sphere s1{ physics_triangle.p1, 0.05f };
-                        const h2o::physics::Sphere s2{ physics_triangle.p2, 0.05f };
-                        const h2o::physics::Sphere s3{ physics_triangle.p3, 0.05f };
-                        if (const auto t = h2o::physics::intersect_sphere(ray, s1))
+                    selection_mgr.add(phys::Sphere{ physics_triangle.p2, 0.05f },
+                        [this, vertex = p2]
+                            (const HoverData& hover_data)
                         {
-                            if (*t < min_t)
+                            if (hover_data.click_state.pressed_this_frame)
                             {
-                                min_t = *t;
-                                m_selected_side_index = side_index;
-                                m_selected_face_index = face_index;
-
-                                m_gizmo.set_position(s1.center);
+                                const v3i vertex_pos{ vertex.x, vertex.y, vertex.z };
+                                m_selection = VertexPositionSelection{ vertex_pos };
+                                m_gizmo.set_position(v3{ vertex_pos } / 16.0f);
                             }
                         }
+                    );
 
-                        if (const auto t = h2o::physics::intersect_sphere(ray, s2))
+                    selection_mgr.add(phys::Sphere{ physics_triangle.p3, 0.05f },
+                        [this, vertex = p3]
+                            (const HoverData& hover_data)
                         {
-                            if (*t < min_t)
+                            if (hover_data.click_state.pressed_this_frame)
                             {
-                                min_t = *t;
-                                m_selected_side_index = side_index;
-                                m_selected_face_index = face_index;
-
-                                m_gizmo.set_position(s2.center);
+                                const v3i vertex_pos{ vertex.x, vertex.y, vertex.z };
+                                m_selection = VertexPositionSelection{ vertex_pos };
+                                m_gizmo.set_position(v3{ vertex_pos } / 16.0f);
                             }
                         }
+                    );
 
-                        if (const auto t = h2o::physics::intersect_sphere(ray, s3))
-                        {
-                            if (*t < min_t)
-                            {
-                                min_t = *t;
-                                m_selected_side_index = side_index;
-                                m_selected_face_index = face_index;
-
-                                m_gizmo.set_position(s3.center);
-                            }
-                        }
-                    }
+                    triangle_index++;
                 }
 
                 face_index++;
@@ -141,85 +133,35 @@ namespace bluevoxel
         }
 
         bool should_refresh_model = false;
-        u32 vertex_index = 0;
-        u32 triangle_index = 0;
 
-        auto edit_side = [&](const std::string& side_name, u32 side_index, std::vector<std::vector<h2o::BlockVertex>>& faces)
+        if (const auto selection = get_if<VertexPositionSelection>(&m_selection))
         {
-            if (ImGui::CollapsingHeader(side_name.c_str()))
+            const v3i new_vertex_position{ m_gizmo.position() * 16.0f };
+            for (auto& side: block_model.occluded_faces_per_side)
             {
-                if (ImGui::Button("Create Face"))
+                for (auto& face: side)
                 {
-                    create_face(side_index, block_model);
-                    should_refresh_model = true;
-                }
-
-                for (i32 face_index = 0; face_index < faces.size(); face_index++)
-                {
-                    if (ImGui::CollapsingHeader(fmt::format("Face {}##{}", face_index, side_index).c_str()))
+                    for (auto& triangle: face)
                     {
-                        if (ImGui::Button("Create Triangle"))
+                        for (auto& vertex: triangle)
                         {
-                            create_triangle(side_index, face_index, block_model);
-                            should_refresh_model = true;
-                        }
-
-                        if (ImGui::BeginTable(fmt::format("Triangle##{}", triangle_index++).c_str(), 5))
-                        {
-                            ImGui::TableHeadersRow();
-
-                            ImGui::TableSetColumnIndex(0);
-                            ImGui::Text("X");
-
-                            ImGui::TableNextColumn();
-                            ImGui::Text("Y");
-
-                            ImGui::TableNextColumn();
-                            ImGui::Text("Z");
-
-                            ImGui::TableNextColumn();
-                            ImGui::Text("U");
-
-                            ImGui::TableNextColumn();
-                            ImGui::Text("V");
-
-                            auto& face = faces[face_index];
-                            const u32 num_triangles = face.size() / 3;
-                            for (u32 i = 0; i < num_triangles; i++)
+                            const v3i vertex_pos{vertex.x, vertex.y, vertex.z};
+                            if (vertex_pos == selection->vertex_pos)
                             {
-                                ImGui::TableNextRow();
-                                should_refresh_model = should_refresh_model || edit_vertex(vertex_index++, face[3 * i + 0]);
-
-                                ImGui::TableNextRow();
-                                should_refresh_model = should_refresh_model || edit_vertex(vertex_index++, face[3 * i + 1]);
-
-                                ImGui::TableNextRow();
-                                should_refresh_model = should_refresh_model || edit_vertex(vertex_index++, face[3 * i + 2]);
+                                vertex.x = new_vertex_position.x;
+                                vertex.y = new_vertex_position.y;
+                                vertex.z = new_vertex_position.z;
+                                should_refresh_model = true;
                             }
-
-                            ImGui::EndTable();
                         }
                     }
                 }
             }
-        };
 
-        if (ImGui::Begin("Block Model Editor"))
-        {
-            ImGui::Text("Editing Model '%s'", block_model.name.c_str());
-
-            if (ImGui::CollapsingHeader("Faces"))
-            {
-//                edit_side("Occluded by X-", 0, block_model.occluded_faces_per_side[0]);
-//                edit_side("Occluded by X+", 1, block_model.occluded_faces_per_side[1]);
-//                edit_side("Occluded by Z-", 2, block_model.occluded_faces_per_side[2]);
-//                edit_side("Occluded by Z+", 3, block_model.occluded_faces_per_side[3]);
-//                edit_side("Occluded by Y-", 4, block_model.occluded_faces_per_side[4]);
-//                edit_side("Occluded by Y+", 5, block_model.occluded_faces_per_side[5]);
-//                edit_side("Unoccluded Faces", 6, block_model.unoccluded_faces);
-            }
+            selection->vertex_pos = new_vertex_position;
         }
-        ImGui::End();
+
+//        block_model.occluded_faces_per_side[m_selected_side_index][m_selected_face_index][m_selected_triangle_index]
 
         if (should_refresh_model)
             voxel_pack->edit_block_model(model_id, block_model);

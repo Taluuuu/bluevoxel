@@ -2,6 +2,7 @@
 
 #include "core/events.h"
 #include "core/tickable.h"
+#include "selection_manager.h"
 
 #include <memory>
 
@@ -30,6 +31,8 @@ namespace bluevoxel
         [[nodiscard]] u32 selected_block_id() const { return m_selected_block_id; }
         void select_block(u32 block_id);
 
+        [[nodiscard]] SelectionManager& selection_mgr() { return m_selection_manager; }
+
     protected:
 
         // h2o::Tickable interface
@@ -45,6 +48,8 @@ namespace bluevoxel
 
         u32 m_selected_block_id = 0;
 
+        SelectionManager m_selection_manager;
+
         // Editors
         std::shared_ptr<BlockTypeEditor> m_block_type_editor = nullptr;
         std::shared_ptr<BlockModelEditor> m_block_model_editor = nullptr;
@@ -55,7 +60,6 @@ namespace bluevoxel
 
         // Module refs
         h2o::RenderingModule* const m_rendering_module = nullptr;
-        h2o::UIModule* const m_ui_module = nullptr;
         h2o::VoxelModule* const m_voxel_module = nullptr;
 
         // Event handles

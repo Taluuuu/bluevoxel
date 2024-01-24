@@ -14,6 +14,7 @@ namespace h2o
         void remove(PriorityType priority);
 
         [[nodiscard]] std::optional<ValueType> get() const;
+        [[nodiscard]] std::optional<PriorityType> current_priority() const;
 
     private:
 
@@ -41,5 +42,15 @@ namespace h2o
             return std::nullopt;
 
         return max_key_it->second;
+    }
+
+    template<class PriorityType, class ValueType>
+    std::optional<PriorityType> PriorityValue<PriorityType, ValueType>::current_priority() const
+    {
+        const auto max_key_it = m_values.cbegin();
+        if (max_key_it == m_values.end())
+            return std::nullopt;
+
+        return max_key_it->first;
     }
 }

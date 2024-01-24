@@ -46,6 +46,7 @@ namespace h2o
         void set_mouse_state(MouseCapturePriority priority, bool captured);
         void clear_mouse_state(MouseCapturePriority priority);
         [[nodiscard]] bool is_mouse_captured() const;
+        [[nodiscard]] std::optional<MouseCapturePriority> mouse_capture_priority() const;
 
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;

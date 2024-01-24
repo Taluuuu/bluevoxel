@@ -11,6 +11,7 @@ add_executable(bluevoxel_editor
     src/editor_modes/block_type_editor.cpp
     src/gizmo.cpp
     src/main.cpp
+    src/selection_manager.cpp
 )
 
 target_link_libraries(bluevoxel_editor
