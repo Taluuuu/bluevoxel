@@ -40,8 +40,8 @@ namespace bluevoxel
 
     protected:
 
-        static constexpr f32 handle_length = 2.0f;
-        static constexpr f32 handle_radius = 0.05f;
+        static constexpr f32 handle_length = 0.25f;
+        static constexpr f32 handle_radius = 0.005f;
 
         static constexpr v4 hover_color{ 1.0f, 1.0f, 0.0f, 1.0f };
         static constexpr v4 held_color{ 1.0f, 1.0f, 1.0f, 1.0f };
@@ -58,7 +58,6 @@ namespace bluevoxel
         // Module refs
         h2o::InputModule* const m_input_module = nullptr;
         h2o::RenderingModule* const m_rendering_module = nullptr;
-        h2o::WindowingModule* const m_window_module = nullptr;
 
     };
 }

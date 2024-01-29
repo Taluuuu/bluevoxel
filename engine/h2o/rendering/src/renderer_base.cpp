@@ -48,6 +48,9 @@ namespace h2o::gfx
         return vertices;
     };
 
+    // TODO: Add cone function
+    // https://www.freemancw.com/2012/06/opengl-cone-function/
+
     // Adapted from http://www.songho.ca/opengl/gl_cylinder.html
     static std::vector<v2> calc_unit_circle_vertices(i32 num_sectors)
     {
@@ -82,6 +85,7 @@ namespace h2o::gfx
         const f32 height = 1.0f;
         const f32 radius = 1.0f;
 
+        // Tube
         for (i32 i = 0; i < 2; i++)
         {
             const f32 h = f32(i) * height;
@@ -96,6 +100,7 @@ namespace h2o::gfx
         i32 base_center_index = i32(vertices.size());
         i32 top_center_index = base_center_index + num_sectors + 1; // Include center vertex
 
+        // Faces
         for (i32 i = 0; i < 2; i++)
         {
             const f32 h = f32(i) * height;

@@ -16,7 +16,6 @@ namespace bluevoxel
         , m_selection_mgr(&selection_manager)
         , m_input_module(&g_engine->get_module_checked<h2o::InputModule>())
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
-        , m_window_module(&g_engine->get_module_checked<h2o::WindowingModule>())
     {
         set_tick_phases(h2o::TickPhase::Update);
     }
@@ -31,10 +30,15 @@ namespace bluevoxel
     {
         auto& renderer = m_rendering_module->renderer();
 
+        const f32 distance_with_camera = glm::length(renderer.camera().position() - m_position);
+        const f32 handle_radius_ = handle_radius * distance_with_camera;
+
         const auto add_to_selection_manager =
             [&](const v3i& axis)
             {
-                const phys::Cylinder cylinder{ m_position, m_position + v3(axis) * handle_length, handle_radius };
+                const v3 handle_end = m_position + v3(axis) * handle_length * distance_with_camera;
+
+                const phys::Cylinder cylinder{ m_position, handle_end, handle_radius_ };
                 m_selection_mgr->add(cylinder,
                     [this, axis](const HoverData& hover_data)
                     {
@@ -129,8 +133,13 @@ namespace bluevoxel
 
     void Gizmo::draw_axis(v3i axis, bool is_hovered, bool is_selected) const
     {
+        auto& renderer = m_rendering_module->renderer();
+
+        const f32 distance_with_camera = glm::length(renderer.camera().position() - m_position);
+
         const v3 handle_start = m_position;
-        const v3 handle_end = handle_start + v3(axis) * handle_length;
+        const v3 handle_end = handle_start + v3(axis) * handle_length * distance_with_camera;
+        const f32 handle_radius_ = handle_radius * distance_with_camera;
 
         v4 handle_color;
         if (is_selected)
@@ -146,8 +155,7 @@ namespace bluevoxel
             handle_color = v4{ axis.x, axis.y, axis.z, 1.0f };
         }
 
-        auto& renderer = m_rendering_module->renderer();
-        renderer.draw_cylinder(handle_start, handle_end, handle_radius, handle_color);
+        renderer.draw_cylinder(handle_start, handle_end, handle_radius_, handle_color);
     }
 
     v3 Gizmo::align_to_grid(const v3& position) const

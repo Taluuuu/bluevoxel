@@ -68,60 +68,28 @@ namespace bluevoxel
                         .p3 = v3{ p3.x, p3.y, p3.z } / v3{ 16 },
                     };
 
-//                    selection_mgr.add(physics_triangle,
-//                        [this, physics_triangle, side_index, face_index, triangle_index]
-//                        (const HoverData& hover_data)
-//                        {
-//                            if (hover_data.click_state.pressed_this_frame)
-//                            {
-//                                m_gizmo.set_position(
-//                                    (physics_triangle.p1 + physics_triangle.p2 + physics_triangle.p3) / 3.0f);
-//                            }
-//                        }
-//                    );
+                    for (u32 i = 0; i < 3; i++)
+                    {
+                        const auto& vertex = triangle[i];
+                        const v3i vertex_pos{ vertex.x, vertex.y, vertex.z };
+                        const v3& vertex_pos_world = physics_triangle[i];
 
-                    renderer.draw_sphere(physics_triangle.p1, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
-                    renderer.draw_sphere(physics_triangle.p2, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
-                    renderer.draw_sphere(physics_triangle.p3, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
+                        // Draw dot
+                        renderer.draw_sphere(vertex_pos_world, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
 
-                    selection_mgr.add(phys::Sphere{ physics_triangle.p1, 0.05f },
-                        [this, vertex = p1]
-                            (const HoverData& hover_data)
-                        {
-                            if (hover_data.click_state.pressed_this_frame)
+                        // Allow selecting dot
+                        selection_mgr.add(phys::Sphere{ vertex_pos_world, 0.05f },
+                            [this, vertex_pos, vertex_pos_world]
+                                (const HoverData& hover_data)
                             {
-                                const v3i vertex_pos{ vertex.x, vertex.y, vertex.z };
-                                m_selection = VertexPositionSelection{ vertex_pos };
-                                m_gizmo.set_position(v3{ vertex_pos } / 16.0f);
+                                if (hover_data.click_state.pressed_this_frame)
+                                {
+                                    m_selection = VertexPositionSelection{ vertex_pos };
+                                    m_gizmo.set_position(vertex_pos_world);
+                                }
                             }
-                        }
-                    );
-
-                    selection_mgr.add(phys::Sphere{ physics_triangle.p2, 0.05f },
-                        [this, vertex = p2]
-                            (const HoverData& hover_data)
-                        {
-                            if (hover_data.click_state.pressed_this_frame)
-                            {
-                                const v3i vertex_pos{ vertex.x, vertex.y, vertex.z };
-                                m_selection = VertexPositionSelection{ vertex_pos };
-                                m_gizmo.set_position(v3{ vertex_pos } / 16.0f);
-                            }
-                        }
-                    );
-
-                    selection_mgr.add(phys::Sphere{ physics_triangle.p3, 0.05f },
-                        [this, vertex = p3]
-                            (const HoverData& hover_data)
-                        {
-                            if (hover_data.click_state.pressed_this_frame)
-                            {
-                                const v3i vertex_pos{ vertex.x, vertex.y, vertex.z };
-                                m_selection = VertexPositionSelection{ vertex_pos };
-                                m_gizmo.set_position(v3{ vertex_pos } / 16.0f);
-                            }
-                        }
-                    );
+                        );
+                    }
 
                     triangle_index++;
                 }

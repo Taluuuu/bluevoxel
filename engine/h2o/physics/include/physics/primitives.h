@@ -26,6 +26,19 @@ namespace h2o::physics
     struct Triangle
     {
         v3 p1{}, p2{}, p3{};
+
+        constexpr const v3& operator[](size_t index) const
+        {
+            switch (index)
+            {
+            case 0: return p1;
+            case 1: return p2;
+            case 2: return p3;
+            default:
+                assert(false);
+                return p1;
+            }
+        }
     };
 
     struct Sphere
