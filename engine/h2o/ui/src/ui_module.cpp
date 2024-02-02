@@ -65,7 +65,7 @@ namespace h2o
 //        assert(m_ui_renderer);
 //        m_ui_renderer->frame_end();
 
-        if (ImGui::GetIO().WantCaptureMouse)
+        if (ImGui::GetIO().WantCaptureMouse && !m_input_module->is_mouse_captured())
         {
             m_input_module->set_mouse_state(h2o::MouseCapturePriority::UI, false);
         }

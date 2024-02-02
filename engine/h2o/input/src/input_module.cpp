@@ -165,12 +165,12 @@ namespace h2o
         return 0.0f;
     }
 
-    void InputModule::set_mouse_state(MouseCapturePriority priority, bool captured)
+    void InputModule::set_mouse_state(MouseCapturePriority priority, bool wants_capture)
     {
-        const auto was_captured = m_mouse_capture_state.get();
-        m_mouse_capture_state.push(priority, captured);
+        const bool was_captured = m_mouse_capture_state.get().value_or(false);
+        m_mouse_capture_state.push(priority, wants_capture);
 
-        const auto is_captured = m_mouse_capture_state.get().value_or(false);
+        const bool is_captured = m_mouse_capture_state.get().value_or(false);
 
         if (was_captured != is_captured)
         {

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/core_enums.h"
 #include "scene_rendering/camera_component.h"
 
 namespace h2o
@@ -20,7 +21,7 @@ namespace h2o
         f32 max_distance_with_actor = 10.0f;
         f32 scroll_zoom_factor = 0.1f;
 
-        bool hold_click_to_rotate = false;
+        std::optional<MouseButton> rotation_mouse_button{};
 
     protected:
 

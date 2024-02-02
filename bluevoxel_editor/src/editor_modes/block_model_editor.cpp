@@ -27,6 +27,16 @@ namespace bluevoxel
         m_gizmo.increment_size = 1.0f / 16;
         m_gizmo.bounds = Gizmo::Bounds{ v3{ 0.0f }, v3{ 1.0f } };
 
+        workspace.selection_mgr().on_clicked_nothing.add_listener(m_on_clicked_nothing_event_handle,
+            [this](const SelectionManager::OnClickedNothing&)
+            {
+                m_selected_side_index.reset();
+                m_selected_face_index.reset();
+                m_selected_triangle_index.reset();
+                m_selected_vertex_index.reset();
+            }
+        );
+
         set_tick_phases(h2o::TickPhase::Update);
     }
 
@@ -41,7 +51,7 @@ namespace bluevoxel
         if (!block_type)
             return;
 
-        m_gizmo.set_enabled(!holds_alternative<std::monostate>(m_selection));
+        m_gizmo.set_enabled(m_selected_face_index.has_value());
 
         auto& renderer = m_rendering_module->renderer();
         auto& selection_mgr = m_workspace->selection_mgr();
@@ -52,12 +62,18 @@ namespace bluevoxel
         u32 side_index = 0;
         for (const auto& side : block_model.occluded_faces_per_side)
         {
+            const bool is_side_selected = m_selected_side_index == side_index;
+
             u32 face_index = 0;
             for (const auto& face : side)
             {
+                const bool is_face_selected = is_side_selected && m_selected_face_index == face_index;
+
                 u32 triangle_index = 0;
                 for (const auto& triangle : face)
                 {
+                    const bool is_triangle_selected = is_face_selected && m_selected_triangle_index == triangle_index;
+
                     const auto& p1 = triangle[0];
                     const auto& p2 = triangle[1];
                     const auto& p3 = triangle[2];
@@ -68,27 +84,53 @@ namespace bluevoxel
                         .p3 = v3{ p3.x, p3.y, p3.z } / v3{ 16 },
                     };
 
-                    for (u32 i = 0; i < 3; i++)
-                    {
-                        const auto& vertex = triangle[i];
-                        const v3i vertex_pos{ vertex.x, vertex.y, vertex.z };
-                        const v3& vertex_pos_world = physics_triangle[i];
-
-                        // Draw dot
-                        renderer.draw_sphere(vertex_pos_world, 0.05f, v4{ 0.1f, 0.1f, 0.1f, 1.0f });
-
-                        // Allow selecting dot
-                        selection_mgr.add(phys::Sphere{ vertex_pos_world, 0.05f },
-                            [this, vertex_pos, vertex_pos_world]
-                                (const HoverData& hover_data)
+                    // Allow selecting triangle
+                    selection_mgr.add(physics_triangle,
+                        [this, side_index, face_index, triangle_index, physics_triangle]
+                        (const HoverData& hover_data)
+                        {
+                            if (hover_data.click_state.pressed_this_frame)
                             {
-                                if (hover_data.click_state.pressed_this_frame)
-                                {
-                                    m_selection = VertexPositionSelection{ vertex_pos };
-                                    m_gizmo.set_position(vertex_pos_world);
-                                }
+                                m_selected_side_index = side_index;
+                                m_selected_face_index = face_index;
+                                m_selected_triangle_index = triangle_index;
+                                m_selected_vertex_index.reset();
+
+                                m_gizmo.set_position(physics_triangle.calc_center());
                             }
-                        );
+                        }
+                    );
+
+                    if (is_triangle_selected)
+                    {
+                        for (u32 i = 0; i < 3; i++)
+                        {
+                            const bool is_vertex_selected = m_selected_vertex_index == i;
+
+                            const v3& vertex_pos_world = physics_triangle[i];
+
+                            // Draw dot
+                            renderer.draw_sphere(
+                                vertex_pos_world,
+                                vertex_radius, is_vertex_selected ? selected_vertex_color : unselected_vertex_color);
+
+                            // Allow selecting dot
+                            selection_mgr.add(phys::Sphere{vertex_pos_world, 0.05f},
+                                [this, side_index, face_index, triangle_index, i, vertex_pos_world]
+                                    (const HoverData& hover_data)
+                                {
+                                    if (hover_data.click_state.pressed_this_frame)
+                                    {
+                                        m_selected_side_index = side_index;
+                                        m_selected_face_index = face_index;
+                                        m_selected_triangle_index = triangle_index;
+                                        m_selected_vertex_index = i;
+
+                                        m_gizmo.set_position(vertex_pos_world);
+                                    }
+                                }
+                            );
+                        }
                     }
 
                     triangle_index++;
@@ -102,32 +144,34 @@ namespace bluevoxel
 
         bool should_refresh_model = false;
 
-        if (const auto selection = get_if<VertexPositionSelection>(&m_selection))
-        {
-            const v3i new_vertex_position{ m_gizmo.position() * 16.0f };
-            for (auto& side: block_model.occluded_faces_per_side)
-            {
-                for (auto& face: side)
-                {
-                    for (auto& triangle: face)
-                    {
-                        for (auto& vertex: triangle)
-                        {
-                            const v3i vertex_pos{vertex.x, vertex.y, vertex.z};
-                            if (vertex_pos == selection->vertex_pos)
-                            {
-                                vertex.x = new_vertex_position.x;
-                                vertex.y = new_vertex_position.y;
-                                vertex.z = new_vertex_position.z;
-                                should_refresh_model = true;
-                            }
-                        }
-                    }
-                }
-            }
 
-            selection->vertex_pos = new_vertex_position;
-        }
+
+//        if (const auto selection = get_if<VertexPositionSelection>(&m_selection))
+//        {
+//            const v3i new_vertex_position{ m_gizmo.position() * 16.0f };
+//            for (auto& side: block_model.occluded_faces_per_side)
+//            {
+//                for (auto& face: side)
+//                {
+//                    for (auto& triangle: face)
+//                    {
+//                        for (auto& vertex: triangle)
+//                        {
+//                            const v3i vertex_pos{vertex.x, vertex.y, vertex.z};
+//                            if (vertex_pos == selection->vertex_pos)
+//                            {
+//                                vertex.x = new_vertex_position.x;
+//                                vertex.y = new_vertex_position.y;
+//                                vertex.z = new_vertex_position.z;
+//                                should_refresh_model = true;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            selection->vertex_pos = new_vertex_position;
+//        }
 
 //        block_model.occluded_faces_per_side[m_selected_side_index][m_selected_face_index][m_selected_triangle_index]
 

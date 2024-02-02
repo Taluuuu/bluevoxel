@@ -39,6 +39,11 @@ namespace h2o::physics
                 return p1;
             }
         }
+
+        constexpr v3 calc_center() const
+        {
+            return (p1 + p2 + p3) / 3.0f;
+        }
     };
 
     struct Sphere

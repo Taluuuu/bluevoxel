@@ -32,7 +32,7 @@ namespace bluevoxel
         auto camera = m_scene->spawn_actor();
         camera->add_component<h2o::InputComponent>();
         auto tps_cam = camera->add_component<h2o::ThirdPersonCameraComponent>();
-        tps_cam->hold_click_to_rotate = true;
+        tps_cam->rotation_mouse_button = h2o::MouseButton::Right;
         camera->tag_actor(h2o::ActorTag::LocalPlayer);
         camera->transform.position = { 0.5f, 0.5f, 0.5f };
         camera->transform.rotation = { 0.0f, 0.0f, 90.0f };

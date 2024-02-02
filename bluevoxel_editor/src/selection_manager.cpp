@@ -100,7 +100,13 @@ namespace bluevoxel
         if (!m_input_module->is_mouse_captured() || click_state.pressed_this_frame)
         {
             if (closest_primitive_callback)
+            {
                 closest_primitive_callback({ click_state, min_t });
+            }
+            else if (click_state.pressed_this_frame)
+            {
+                on_clicked_nothing.broadcast({});
+            }
         }
     }
 }

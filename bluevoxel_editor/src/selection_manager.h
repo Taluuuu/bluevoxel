@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/tickable.h"
 #include "input/key_state.h"
 #include "physics/primitives.h"
@@ -50,6 +51,11 @@ namespace bluevoxel
         void add(const PrimitiveType& primitive, const SelectionCallback& callback);
 
         // TODO: Add some sort of add_persistent that does not require adding every frame
+
+    public:
+
+        struct OnClickedNothing{};
+        h2o::Event<OnClickedNothing> on_clicked_nothing{};
 
     protected:
 

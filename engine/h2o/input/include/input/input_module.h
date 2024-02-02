@@ -43,7 +43,7 @@ namespace h2o
         void register_axis(const std::string_view& name, MouseScrollDelta scroll_delta, f32 sensitivity = 1.0f, bool invert = false);
         [[nodiscard]] f32 get_axis(const std::string_view& name);
 
-        void set_mouse_state(MouseCapturePriority priority, bool captured);
+        void set_mouse_state(MouseCapturePriority priority, bool wants_capture);
         void clear_mouse_state(MouseCapturePriority priority);
         [[nodiscard]] bool is_mouse_captured() const;
         [[nodiscard]] std::optional<MouseCapturePriority> mouse_capture_priority() const;

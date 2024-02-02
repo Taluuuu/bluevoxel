@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/tickable.h"
 #include "gizmo.h"
 
@@ -26,6 +27,12 @@ namespace bluevoxel
         explicit BlockModelEditor(BlockEditorWorkspace& workspace);
         ~BlockModelEditor() override = default;
 
+    public:
+
+        static constexpr v4 unselected_vertex_color{ 0.1f, 0.1f, 0.1f, 1.0f };
+        static constexpr v4 selected_vertex_color{ 1.0f, 0.9f, 0.2f, 1.0f };
+        static constexpr f32 vertex_radius = 0.05f;
+
     protected:
 
         // h2o::Tickable interface
@@ -40,18 +47,15 @@ namespace bluevoxel
 
         Gizmo m_gizmo;
 
-        struct FaceIndexSelection{ u32 side = 0; u32 face = 0; };
-        struct TriangleIndexSelection{ FaceIndexSelection face{}; u32 triangle = 0; };
-        struct VertexIndexSelection{ TriangleIndexSelection triangle{}; u32 vertex = 0; };
-        struct VertexPositionSelection{ v3i vertex_pos{}; };
-
-        std::variant<std::monostate,
-            FaceIndexSelection,
-            TriangleIndexSelection,
-            VertexIndexSelection,
-            VertexPositionSelection> m_selection{};
+        std::optional<u32> m_selected_side_index{};
+        std::optional<u32> m_selected_face_index{};
+        std::optional<u32> m_selected_triangle_index{};
+        std::optional<u32> m_selected_vertex_index{};
 
         BlockEditorWorkspace* const m_workspace = nullptr;
+
+        // Event handles
+        h2o::EventHandle m_on_clicked_nothing_event_handle{};
 
         // Module refs
         h2o::RenderingModule* const m_rendering_module = nullptr;
