@@ -23,6 +23,7 @@ namespace bluevoxel
     void Gizmo::set_position(const v3& position)
     {
         m_position = align_to_grid(position);
+        m_movement_delta = v3{};
         m_grab_offset = v3{};
     }
 
@@ -30,13 +31,17 @@ namespace bluevoxel
     {
         auto& renderer = m_rendering_module->renderer();
 
-        const f32 distance_with_camera = glm::length(renderer.camera().position() - m_position);
+        const auto& camera = renderer.camera();
+        const v3 camera_pos = camera.position();
+        const v3 camera_front = camera.front();
+
+        const f32 distance_with_camera = glm::length(camera_pos - m_position);
         const f32 handle_radius_ = handle_radius * distance_with_camera;
 
         const auto add_to_selection_manager =
             [&](const v3i& axis)
             {
-                const v3 handle_end = m_position + v3(axis) * handle_length * distance_with_camera;
+                const v3 handle_end = m_position + v3(handle_direction(axis, camera_front)) * handle_length * distance_with_camera;
 
                 const phys::Cylinder cylinder{ m_position, handle_end, handle_radius_ };
                 m_selection_mgr->add(cylinder,
@@ -83,6 +88,7 @@ namespace bluevoxel
                 {
                     const v3 axis{ m_selected_axes };
 
+                    const v3 prev_position = m_position;
                     m_position += m_grab_offset;
 
                     // Find plane normal
@@ -104,6 +110,8 @@ namespace bluevoxel
 
                         m_position += glm::dot(delta, axis) * axis - m_grab_offset;
                         m_position = align_to_grid(m_position);
+
+                        m_movement_delta = m_position - prev_position;
                     }
 
                     break;
@@ -134,11 +142,13 @@ namespace bluevoxel
     void Gizmo::draw_axis(v3i axis, bool is_hovered, bool is_selected) const
     {
         auto& renderer = m_rendering_module->renderer();
+        const auto& camera = renderer.camera();
 
-        const f32 distance_with_camera = glm::length(renderer.camera().position() - m_position);
+        const f32 distance_with_camera = glm::length(camera.position() - m_position);
+        const v3i handle_dir = handle_direction(axis, camera.front());
 
         const v3 handle_start = m_position;
-        const v3 handle_end = handle_start + v3(axis) * handle_length * distance_with_camera;
+        const v3 handle_end = handle_start + v3{ handle_dir } * handle_length * distance_with_camera;
         const f32 handle_radius_ = handle_radius * distance_with_camera;
 
         v4 handle_color;
@@ -168,5 +178,10 @@ namespace bluevoxel
             return v3{ v3i{ clamped_position / *increment_size } } * *increment_size;
 
         return clamped_position;
+    }
+
+    v3i Gizmo::handle_direction(const v3i& axis, const v3& camera_front) const
+    {
+        return glm::dot(camera_front, v3{ axis }) < 0.0f ? axis : -axis;
     }
 }

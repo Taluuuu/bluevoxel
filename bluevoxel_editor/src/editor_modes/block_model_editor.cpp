@@ -84,6 +84,12 @@ namespace bluevoxel
                         .p3 = v3{ p3.x, p3.y, p3.z } / v3{ 16 },
                     };
 
+                    const v3& camera_front = renderer.camera().front();
+                    const v3 line_offset = camera_front * -0.005f;
+                    renderer.draw_line(line_offset + physics_triangle.p1, line_offset + physics_triangle.p2, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
+                    renderer.draw_line(line_offset + physics_triangle.p2, line_offset + physics_triangle.p3, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
+                    renderer.draw_line(line_offset + physics_triangle.p3, line_offset + physics_triangle.p1, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
+
                     // Allow selecting triangle
                     selection_mgr.add(physics_triangle,
                         [this, side_index, face_index, triangle_index, physics_triangle]
@@ -144,37 +150,39 @@ namespace bluevoxel
 
         bool should_refresh_model = false;
 
+        if (m_selected_side_index)
+        {
+            if (m_selected_face_index)
+            {
+                if (m_selected_triangle_index)
+                {
+                    auto& triangle = block_model.occluded_faces_per_side
+                        [*m_selected_side_index]
+                        [*m_selected_face_index]
+                        [*m_selected_triangle_index];
 
+                    // TODO: Forgor where the 16 is stored
+                    const v3i new_gizmo_pos{ m_gizmo.position() * 16.0f };
+                    const v3i gizmo_delta{ m_gizmo.movement_delta() * 16.0f };
 
-//        if (const auto selection = get_if<VertexPositionSelection>(&m_selection))
-//        {
-//            const v3i new_vertex_position{ m_gizmo.position() * 16.0f };
-//            for (auto& side: block_model.occluded_faces_per_side)
-//            {
-//                for (auto& face: side)
-//                {
-//                    for (auto& triangle: face)
-//                    {
-//                        for (auto& vertex: triangle)
-//                        {
-//                            const v3i vertex_pos{vertex.x, vertex.y, vertex.z};
-//                            if (vertex_pos == selection->vertex_pos)
-//                            {
-//                                vertex.x = new_vertex_position.x;
-//                                vertex.y = new_vertex_position.y;
-//                                vertex.z = new_vertex_position.z;
-//                                should_refresh_model = true;
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            selection->vertex_pos = new_vertex_position;
-//        }
+                    if (m_selected_vertex_index)
+                    {
+                        auto& vertex = triangle[*m_selected_vertex_index];
+                        vertex.set_position(new_gizmo_pos);
+                    }
+                    else
+                    {
+                        for (auto& vertex : triangle)
+                        {
+                            vertex.set_position(
+                                glm::clamp(vertex.position() + gizmo_delta, 0, 16));
+                        }
+                    }
 
-//        block_model.occluded_faces_per_side[m_selected_side_index][m_selected_face_index][m_selected_triangle_index]
-
+                    should_refresh_model = true;
+                }
+            }
+        }
         if (should_refresh_model)
             voxel_pack->edit_block_model(model_id, block_model);
     }
