@@ -30,10 +30,7 @@ namespace bluevoxel
         workspace.selection_mgr().on_clicked_nothing.add_listener(m_on_clicked_nothing_event_handle,
             [this](const SelectionManager::OnClickedNothing&)
             {
-                m_selected_side_index.reset();
-                m_selected_face_index.reset();
-                m_selected_triangle_index.reset();
-                m_selected_vertex_index.reset();
+                m_selected_vertices.clear();
             }
         );
 
@@ -51,7 +48,20 @@ namespace bluevoxel
         if (!block_type)
             return;
 
-        m_gizmo.set_enabled(m_selected_face_index.has_value());
+        if (ImGui::Begin("Block Model Editor"))
+        {
+            if (ImGui::CollapsingHeader("Selection Mode", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                if (ImGui::RadioButton("Triangle Vertex", true))
+                {
+
+                }
+                ImGui::RadioButton("Vertex Position", false);
+            }
+        }
+        ImGui::End();
+
+        m_gizmo.set_enabled(!m_selected_vertices.empty());
 
         auto& renderer = m_rendering_module->renderer();
         auto& selection_mgr = m_workspace->selection_mgr();
@@ -183,6 +193,7 @@ namespace bluevoxel
                 }
             }
         }
+
         if (should_refresh_model)
             voxel_pack->edit_block_model(model_id, block_model);
     }

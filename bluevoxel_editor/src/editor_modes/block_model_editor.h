@@ -47,10 +47,24 @@ namespace bluevoxel
 
         Gizmo m_gizmo;
 
-        std::optional<u32> m_selected_side_index{};
-        std::optional<u32> m_selected_face_index{};
-        std::optional<u32> m_selected_triangle_index{};
-        std::optional<u32> m_selected_vertex_index{};
+        struct VertexSelection
+        {
+            u32 side_index{};
+            u32 face_index{};
+            u32 triangle_index{};
+            u32 vertex_index{};
+        };
+
+        struct VertexPositionSelection
+        {
+            v3i vertex_position{};
+        };
+
+        std::variant<
+            std::vector<VertexSelection>,
+            std::vector<VertexPositionSelection>> m_selection{};
+
+        std::vector<VertexSelection> m_selected_vertices{};
 
         BlockEditorWorkspace* const m_workspace = nullptr;
 

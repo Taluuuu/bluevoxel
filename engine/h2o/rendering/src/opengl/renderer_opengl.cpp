@@ -1,6 +1,5 @@
 #include "renderer_opengl.h"
 
-#include "core/engine.h"
 #include "core/game_info.h"
 #include "core/log.h"
 #include "pipeline_opengl.h"

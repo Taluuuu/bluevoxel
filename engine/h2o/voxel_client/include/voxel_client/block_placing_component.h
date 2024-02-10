@@ -6,6 +6,7 @@ namespace h2o
 {
     class CameraComponent;
     class InputComponent;
+    class RenderingModule;
 
     // This module is a weird place to put this, but it will work fine for now
     class BlockPlacingComponent : public Component
@@ -21,6 +22,9 @@ namespace h2o
 
         WeakHandle<CameraComponent> m_camera = nullptr;
         WeakHandle<InputComponent> m_input = nullptr;
+
+        // Module refs
+        RenderingModule* const m_rendering_module = nullptr;
 
     };
 }
