@@ -2,6 +2,7 @@
 
 #include "core/types.h"
 
+#include <functional>
 #include <magic_enum.hpp>
 
 namespace h2o::voxel
@@ -19,6 +20,29 @@ namespace h2o::voxel
         };
 
         inline constexpr Type None = static_cast<Type>(0);
+        inline constexpr Type All = static_cast<Type>(XNeg | XPos | ZNeg | ZPos | YNeg | YPos);
+
+        constexpr void for_each(const std::function<void(Type)>& function)
+        {
+            for (Type dir : { XNeg, XPos, ZNeg, ZPos, YNeg, YPos })
+                function(dir);
+        }
+    }
+
+    enum class Axis
+    {
+        X, Y, Z
+    };
+
+    constexpr Direction::Type to_direction(Axis axis)
+    {
+        switch (axis)
+        {
+        case Axis::X: return Direction::XPos;
+        case Axis::Y: return Direction::YPos;
+        case Axis::Z: return Direction::ZPos;
+        default: return Direction::None;
+        }
     }
 
     constexpr v3i to_vec3(Direction::Type direction)

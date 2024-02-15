@@ -3,6 +3,7 @@
 #include "core/events.h"
 #include "core/tickable.h"
 #include "gizmo.h"
+#include "voxel/block_model.h"
 
 #include <variant>
 
@@ -43,28 +44,29 @@ namespace bluevoxel
         static void create_face(u32 side_index, h2o::BlockModel& block_model);
         static void create_triangle(u32 side_index, u32 face_index, h2o::BlockModel& block_model);
 
+        [[nodiscard]] bool is_vertex_selected(
+            u32 side_index, u32 face_index, u32 triangle_index, u32 vertex_index,
+            const h2o::BlockModel& block_model) const;
+
     private:
 
         Gizmo m_gizmo;
 
-        struct VertexSelection
-        {
-            u32 side_index{};
-            u32 face_index{};
-            u32 triangle_index{};
-            u32 vertex_index{};
-        };
+//        struct VertexIndexSelection
+//        {
+//            std::vector<h2o::BlockModel::VertexID> selected_vertex_indices{};
+//        };
+//
+//        struct VertexPositionSelection
+//        {
+//            std::vector<v3i> selected_vertex_positions{};
+//        };
+//
+//        std::variant<
+//            VertexIndexSelection,
+//            VertexPositionSelection> m_selection{};
 
-        struct VertexPositionSelection
-        {
-            v3i vertex_position{};
-        };
-
-        std::variant<
-            std::vector<VertexSelection>,
-            std::vector<VertexPositionSelection>> m_selection{};
-
-        std::vector<VertexSelection> m_selected_vertices{};
+//        std::vector<VertexIndexSelection> m_selected_vertices{};
 
         BlockEditorWorkspace* const m_workspace = nullptr;
 

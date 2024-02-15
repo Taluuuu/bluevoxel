@@ -30,13 +30,13 @@ namespace h2o
 
         m_vertices.clear();
 
-        const auto append_face =
+        const auto append_side =
             [&](const v3i& pos,
                 const BlockModel& model,
                 const std::vector<u32>& textures,
-                const BlockModel::Face& face)
+                const std::vector<BlockModel::Triangle>& side)
             {
-                for (const auto& triangle : face)
+                for (const auto& triangle : side)
                 {
                     for (BlockVertex vertex : triangle)
                     {
@@ -84,21 +84,17 @@ namespace h2o
             assert(texture_ids);
 
             u8 dir_index = 0;
-            magic_enum::enum_for_each<voxel::Direction::Type>(
+            voxel::Direction::for_each(
                 [&](voxel::Direction::Type dir)
                 {
                     if (get_adj_block_at(pos, dir) == Block::Air)
-                    {
-                        for (const auto& face : model->occluded_faces_per_side[dir_index])
-                            append_face(pos, *model, *texture_ids, face);
-                    }
+                        append_side(pos, *model, *texture_ids, model->occluded_triangles_per_side[dir_index]);
 
                     dir_index++;
                 }
             );
 
-            for (const auto& face : model->unoccluded_faces)
-                append_face(pos, *model, *texture_ids, face);
+            append_side(pos, *model, *texture_ids, model->unoccluded_triangles);
         }
     }
 }

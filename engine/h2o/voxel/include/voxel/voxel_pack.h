@@ -1,9 +1,10 @@
 #pragma once
 
-#include "block_model.h"
 #include "block_type.h"
 #include "core/events.h"
 #include "core/resources.h"
+#include "voxel/block_model.h"
+#include "voxel/uncooked_block_model.h"
 
 #include <optional>
 #include <map>
@@ -12,11 +13,13 @@
 
 namespace h2o
 {
+    class UncookedBlockModel;
+    class VoxelPack;
+
     using BlockModelList = std::vector<BlockModel>;
+    using UncookedBlockModelList = std::vector<UncookedBlockModel>;
     using BlockTypeList = std::vector<std::optional<BlockType>>;
     using TextureNameIdMap = std::map<std::string, u32>;
-
-    class VoxelPack;
 
     struct VoxelPackUpdatedEvent { const VoxelPack& voxel_pack; };
 
@@ -32,19 +35,20 @@ namespace h2o
         [[nodiscard]] const TextureNameIdMap& texture_ids()  const { return m_texture_ids;  }
 
         [[nodiscard]] const fs::path& path()     const { return m_path;     }
-        [[nodiscard]] bool            is_dirty() const { return m_is_dirty; }
 
         void edit_block_type(BlockID block_id, BlockType& edited_block_type);
         BlockID create_block_type(const std::string& name);
         void delete_block_type(BlockID block_id);
 
-        void edit_block_model(u32 model_id, BlockModel& edited_block_model);
+        void edit_block_model(u32 model_id, const UncookedBlockModel& edited_block_model);
 
         // Apply local changes
         void save() const;
 
         // IResource interface
         bool load(const fs::path& path) override;
+
+//        [[nodiscard]] static BlockModel::Triangle process_triangle(const UnprocessedTriangle& unprocessed_triangle, u32 face_index);
 
     public:
 
@@ -57,19 +61,19 @@ namespace h2o
     protected:
 
         static TextureNameIdMap generate_texture_ids(const fs::path& path);
-        static std::optional<BlockModelList> load_block_models(const fs::path& path);
+        static std::optional<UncookedBlockModelList> load_block_models(const fs::path& path);
         static std::optional<BlockTypeList> load_block_types(
-            const fs::path& path, const BlockModelList& block_models, const TextureNameIdMap& texture_id_map);
+            const fs::path& path, const UncookedBlockModelList& block_models, const TextureNameIdMap& texture_id_map);
 
     private:
 
-        BlockTypeList m_block_types{};
+        UncookedBlockModelList m_uncooked_block_models{};
         BlockModelList m_block_models{};
+
+        BlockTypeList m_block_types{};
         TextureNameIdMap m_texture_ids{};
 
         fs::path m_path{};
-
-        bool m_is_dirty = false;
 
     };
 }

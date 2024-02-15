@@ -13,6 +13,8 @@ namespace h2o::voxel_constants
 
     constexpr i32 max_generation_stage = 4096;
 
+    constexpr i32 max_coord_value_per_block = 16;
+
     // Pretty sure these values are 1-bit inefficient, but they will work for now.
     // Might revisit later.
     constexpr i32 num_normal_pitch_bits = 4;

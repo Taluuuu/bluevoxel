@@ -5,6 +5,7 @@
 #include "voxel/voxel_constants.h"
 
 #include <array>
+#include <functional>
 #include <magic_enum.hpp>
 #include <string>
 #include <vector>
@@ -30,18 +31,6 @@ namespace h2o
         u32 n_yaw : voxel_constants::num_normal_yaw_bits;
         u32 : 0; // 7-bit
 
-        [[nodiscard]] constexpr v3i position() const
-        {
-            return { x, y, z };
-        }
-
-        void set_position(const v3i& in_position)
-        {
-            x = in_position.x;
-            y = in_position.y;
-            z = in_position.z;
-        }
-
         [[nodiscard]] constexpr std::array<u32, 3> to_array() const
         {
             return
@@ -55,22 +44,14 @@ namespace h2o
 
     struct BlockModel
     {
+        // TODO: Remove this...
         std::string name{};
         u32 id = 0;
 
         using Triangle = std::array<BlockVertex, 3>;
-        using Face = std::vector<Triangle>;
 
-        std::array<std::vector<Face>, 6> occluded_faces_per_side{};
-        std::vector<Face> unoccluded_faces{};
+        std::array<std::vector<Triangle>, 6> occluded_triangles_per_side{};
+        std::vector<Triangle> unoccluded_triangles{};
 
-        [[nodiscard]] u32 calculate_face_count() const
-        {
-            u32 face_count = unoccluded_faces.size();
-            for (const auto& side : occluded_faces_per_side)
-                face_count += side.size();
-
-            return face_count;
-        }
     };
 }

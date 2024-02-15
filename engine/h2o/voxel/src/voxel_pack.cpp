@@ -15,13 +15,12 @@ namespace h2o
         assert(edited_block_type.model_id < m_block_models.size());
 
         // TODO: Test this with 0 textures
-        const u32 face_count = m_block_models[edited_block_type.model_id].calculate_face_count();
-        edited_block_type.texture_ids.resize(face_count, 0);
+        const auto& block_model = m_uncooked_block_models[edited_block_type.model_id];
+        edited_block_type.texture_ids.resize(block_model.face_count(), 0);
 
         m_block_types[block_id] = edited_block_type;
 
         on_voxel_pack_updated.broadcast({ *this });
-        m_is_dirty = true;
     }
 
     BlockID VoxelPack::create_block_type(const std::string& name)
@@ -39,7 +38,6 @@ namespace h2o
         }
 
         on_voxel_pack_updated.broadcast({ *this });
-        m_is_dirty = true;
 
         return block_id;
     }
@@ -59,28 +57,24 @@ namespace h2o
         m_block_types.resize(i + 1);
 
         on_voxel_pack_updated.broadcast({ *this });
-        m_is_dirty = true;
     }
 
-    void VoxelPack::edit_block_model(u32 model_id, BlockModel& edited_block_model)
+    void VoxelPack::edit_block_model(u32 model_id, const UncookedBlockModel& edited_block_model)
     {
         // Do some validations here
         assert(model_id < m_block_models.size());
         assert(edited_block_model.id < m_block_models.size());
 
-        const u32 face_count = edited_block_model.calculate_face_count();
+        const u32 face_count = edited_block_model.face_count();
         for (auto& block_type : m_block_types)
         {
             if (block_type && block_type->model_id == model_id)
-            {
                 block_type->texture_ids.resize(face_count, 0);
-            }
         }
 
-        m_block_models[model_id] = edited_block_model;
+        m_block_models[model_id] = edited_block_model.build();
 
         on_voxel_pack_updated.broadcast({ *this });
-        m_is_dirty = true;
     }
 
     void VoxelPack::save() const
@@ -180,119 +174,42 @@ namespace h2o
             return false;
         }
 
-        const auto block_models = load_block_models(block_models_path);
-        if (!block_models)
+        const auto uncooked_block_models = load_block_models(block_models_path);
+        if (!uncooked_block_models)
         {
             log::error("Failed to import block models.");
             return false;
         }
 
         const auto texture_ids = generate_texture_ids(textures_path);
-        const auto block_types = load_block_types(block_types_path, *block_models, texture_ids);
+        const auto block_types = load_block_types(block_types_path, *uncooked_block_models, texture_ids);
         if (!block_types)
         {
             log::error("Failed to import block types.");
             return false;
         }
 
+        m_uncooked_block_models = *uncooked_block_models;
+        m_block_models.clear();
+        for (const auto& uncooked_model : m_uncooked_block_models)
+            m_block_models.push_back(uncooked_model.build());
+
         m_path = path;
-        m_block_models = *block_models;
         m_block_types = *block_types;
         m_texture_ids = texture_ids;
 
         return true;
     }
 
-    using UnprocessedVertex = std::array<u32, 5>;
-    using UnprocessedTriangle = std::array<UnprocessedVertex, 3>;
-    using UnprocessedFace = std::vector<UnprocessedTriangle>;
-
-    static BlockModel::Triangle process_triangle(const UnprocessedTriangle& unprocessed_triangle, u32 face_index)
+    static std::optional<UncookedBlockModel> load_block_model(const YAML::Node& block_model_yml, u32 model_id)
     {
-        BlockModel::Triangle triangle{};
-
-        const auto& v0 = unprocessed_triangle[0];
-        const auto& v1 = unprocessed_triangle[1];
-        const auto& v2 = unprocessed_triangle[2];
-
-        const v3i p0{v0[0], v0[1], v0[2]};
-        const v3i p1{v1[0], v1[1], v1[2]};
-        const v3i p2{v2[0], v2[1], v2[2]};
-
-        // Pack normal vector
-        const v3 p0_to_p1 = p1 - p0;
-        const v3 p0_to_p2 = p2 - p0;
-        const v3 normal = glm::normalize(glm::cross(p0_to_p1, p0_to_p2));
-        const f32 n_pitch = std::asin(normal.y);
-        const f32 n_yaw = std::atan2(normal.x, normal.z);
-
-        // Remap from 0 to 1 to integer values depending on their number of bits
-        const f32 normalized_pitch = (n_pitch + glm::half_pi<f32>()) / glm::pi<f32>();
-        const f32 normalized_yaw = (n_yaw + glm::pi<f32>()) / glm::two_pi<f32>();
-
-        const u32 packed_n_pitch = std::lround(normalized_pitch * voxel_constants::packed_pitch_max_value);
-        const u32 packed_n_yaw = std::lround(normalized_yaw * voxel_constants::packed_yaw_max_value);
-
-        for (i32 vertex_index = 0; vertex_index < 3; vertex_index++)
-        {
-            const auto& vertex = unprocessed_triangle[vertex_index];
-            triangle[vertex_index] =
-                BlockVertex
-                {
-                    .x = vertex[0],
-                    .y = vertex[1],
-                    .z = vertex[2],
-                    .u = vertex[3],
-                    .v = vertex[4],
-                    .tex_idx = face_index,
-                    .n_pitch = packed_n_pitch,
-                    .n_yaw = packed_n_yaw,
-                };
-        }
-
-        return triangle;
-    }
-
-    static std::optional<BlockModel> load_block_model(const YAML::Node& block_model_yml)
-    {
-        u32 face_index = 0;
-
-        BlockModel model{};
-        model.name = block_model_yml["name"].as<std::string>();
+        const auto model_name = block_model_yml["name"].as<std::string>();
+        UncookedBlockModel model{ model_name, model_id };
 
         for (const auto face_yml: block_model_yml["faces"])
         {
-            const auto unprocessed_face = face_yml["triangles"].as<UnprocessedFace>();
-
-            // Process and add triangles to this face
-            BlockModel::Face face{};
-            face.reserve(unprocessed_face.size());
-            for (const auto& unprocessed_triangle : unprocessed_face)
-                face.push_back(process_triangle(unprocessed_triangle, face_index));
-
-            if (const auto occluded_by_yml = face_yml["occluded_by"])
-            {
-                // This face can be occluded
-                const auto occluder_name = occluded_by_yml.as<std::string>();
-                const auto occluder = magic_enum::enum_cast<voxel::Direction::Type>(occluder_name);
-
-                if (!occluder)
-                {
-                    log::error("Failed to import block model '{}'; invalid occluder name: '{}'", model.name, occluder_name);
-                    continue;
-                }
-
-                const auto dir_idx = magic_enum::enum_index(*occluder);
-                assert(dir_idx);
-
-                model.occluded_faces_per_side[*dir_idx].emplace_back(std::move(face));
-            }
-            else
-            {
-                model.unoccluded_faces.emplace_back(std::move(face));
-            }
-
-            face_index++;
+            const auto unprocessed_face = face_yml["triangles"].as<UncookedBlockModel::Face>();
+            model.add_face(unprocessed_face);
         }
 
         return model;
@@ -311,11 +228,11 @@ namespace h2o
         return result;
     }
 
-    std::optional<BlockModelList> VoxelPack::load_block_models(const fs::path& path)
+    std::optional<UncookedBlockModelList> VoxelPack::load_block_models(const fs::path& path)
     {
-        BlockModelList result{};
+        UncookedBlockModelList result{};
 
-        result.emplace_back(BlockModel{ "none", 0, {}, {} });
+        result.emplace_back("none", 0);
 
         try
         {
@@ -323,7 +240,7 @@ namespace h2o
             const auto block_models_yml = root_yml["block_models"];
             for (const auto block_model_yml: block_models_yml)
             {
-                auto model = load_block_model(block_model_yml);
+                const auto model = load_block_model(block_model_yml, result.size());
                 if (!model)
                 {
                     log::warn("Failed to import block model. Ignoring.");
@@ -332,18 +249,15 @@ namespace h2o
 
                 // Check if result already contains a model with the same name
                 const auto it = std::find_if(result.begin(), result.end(),
-                    [&](const BlockModel& other)
-                    {
-                        return model->name == other.name;
-                    }
+                    [&](const UncookedBlockModel& other)
+                    { return model->name() == other.name(); }
                 );
                 if (it != result.end())
                 {
-                    log::warn("Multiple block models found with name: '{}'. Ignoring second.", model->name);
+                    log::warn("Multiple block models found with name: '{}'. Ignoring second.", model->name());
                     continue;
                 }
 
-                model->id = result.size();
                 result.push_back(*model);
             }
         }
@@ -357,7 +271,7 @@ namespace h2o
     }
 
     std::optional<BlockTypeList> VoxelPack::load_block_types(
-        const fs::path& path, const BlockModelList& block_models, const TextureNameIdMap& texture_id_map)
+        const fs::path& path, const UncookedBlockModelList& block_models, const TextureNameIdMap& texture_id_map)
     {
         auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
@@ -394,9 +308,7 @@ namespace h2o
                 const auto model_name = block_type_yml["model"].as<std::string>();
                 const auto model_it = std::find_if(block_models.begin(), block_models.end(),
                     [&](const auto& item)
-                    {
-                        return item.name == model_name;
-                    }
+                    { return item.name() == model_name; }
                 );
                 if (model_it == block_models.end())
                 {
@@ -407,7 +319,7 @@ namespace h2o
                 // Find texture ids
                 const auto texture_names = block_type_yml["textures"].as<std::vector<std::string>>();
 
-                u32 face_count = model_it->calculate_face_count();
+                u32 face_count = model_it->face_count();
                 if (face_count != texture_names.size())
                 {
                     log::warn("Mismatch between number of faces in model and number of textures for block type '{}'. Skipping.", name);
@@ -437,7 +349,7 @@ namespace h2o
                         .name = name,
                         .block_id = id,
                         .texture_ids = texture_ids,
-                        .model_id = model_it->id,
+                        .model_id = model_it->id(),
                         .preset_id = *preset_id,
                     };
             }

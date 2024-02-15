@@ -18,6 +18,7 @@ add_library(h2o_voxel
     src/chunk_manager.cpp
     src/chunk_manager_base.cpp
     src/chunk_region.cpp
+    src/uncooked_block_model.cpp
     src/voxel_bounds.cpp
     src/voxel_module.cpp
     src/voxel_pack.cpp
