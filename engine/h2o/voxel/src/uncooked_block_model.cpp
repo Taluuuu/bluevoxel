@@ -5,10 +5,6 @@
 
 namespace h2o
 {
-    UncookedBlockModel::UncookedBlockModel(const std::string& name, u32 id)
-        : m_name(name), m_id(id)
-    {}
-
     static BlockModel::Triangle process_triangle(const UncookedBlockModel::Triangle& unprocessed_triangle, u32 face_index)
     {
         BlockModel::Triangle triangle{};
@@ -17,9 +13,9 @@ namespace h2o
         const auto& v1 = unprocessed_triangle[1];
         const auto& v2 = unprocessed_triangle[2];
 
-        const v3i p0{ v0[0], v0[1], v0[2] };
-        const v3i p1{ v1[0], v1[1], v1[2] };
-        const v3i p2{ v2[0], v2[1], v2[2] };
+        const v3i& p0 = v0.position;
+        const v3i& p1 = v1.position;
+        const v3i& p2 = v2.position;
 
         // Pack normal vector
         const v3 p0_to_p1 = p1 - p0;
@@ -41,11 +37,11 @@ namespace h2o
             triangle[vertex_index] =
                 BlockVertex
                 {
-                    .x = vertex[0],
-                    .y = vertex[1],
-                    .z = vertex[2],
-                    .u = vertex[3],
-                    .v = vertex[4],
+                    .x = u32(vertex.position.x), // TODO: Make sure the values are in an ok range
+                    .y = u32(vertex.position.y),
+                    .z = u32(vertex.position.z),
+                    .u = u32(vertex.uv.x),
+                    .v = u32(vertex.uv.y),
                     .tex_idx = face_index,
                     .n_pitch = packed_n_pitch,
                     .n_yaw = packed_n_yaw,
@@ -77,14 +73,14 @@ namespace h2o
 
                     for (const auto& vertex : triangle)
                     {
-                        if (vertex[axis_index] > 0)
+                        if (vertex.position[axis_index] > 0)
                         {
                             // Triangle can't be occluded by neighboring block at inv_dir
                             triangle_occluding_directions = static_cast<voxel::Direction::Type>(
                                 triangle_occluding_directions & ~inv_dir);
                         }
 
-                        if (vertex[axis_index] < voxel_constants::max_coord_value_per_block)
+                        if (vertex.position[axis_index] < voxel_constants::max_coord_value_per_block)
                         {
                             // Triangle can't be occluded by neighboring block at dir
                             triangle_occluding_directions = static_cast<voxel::Direction::Type>(
@@ -124,5 +120,161 @@ namespace h2o
     void UncookedBlockModel::add_face(const UncookedBlockModel::Face& face)
     {
         m_faces.push_back(face);
+    }
+
+    void UncookedBlockModel::for_each_face(const std::function<void(FaceHandle, const Face&)>& function) const
+    {
+        u32 face_index = 0;
+        for (const auto& face : m_faces)
+        {
+            function(FaceHandle{ face_index }, face);
+            face_index++;
+        }
+    }
+
+    void UncookedBlockModel::for_each_triangle(const std::function<void(const TriangleHandle&, const Triangle&)>& function) const
+    {
+        u32 face_index = 0;
+        for (const auto& face : m_faces)
+        {
+            u32 triangle_index = 0;
+            for (const auto& triangle : face)
+            {
+                function(TriangleHandle{ face_index, triangle_index }, triangle);
+                triangle_index++;
+            }
+
+            face_index++;
+        }
+    }
+
+    void UncookedBlockModel::for_each_vertex(const std::function<void(const VertexHandle&, const Vertex&)>& function) const
+    {
+        u32 face_index = 0;
+        for (const auto& face : m_faces)
+        {
+            u32 triangle_index = 0;
+            for (const auto& triangle : face)
+            {
+                for (u32 i = 0; i < 3; i++)
+                    function(VertexHandle{ face_index, triangle_index, i }, triangle[i]);
+
+                triangle_index++;
+            }
+
+            face_index++;
+        }
+    }
+
+    const UncookedBlockModel::Face* UncookedBlockModel::get_face(FaceHandle face_handle) const
+    {
+        if (face_handle.face_index < m_faces.size())
+            return &m_faces[face_handle.face_index];
+
+        return nullptr;
+    }
+
+    UncookedBlockModel::Face* UncookedBlockModel::get_face(FaceHandle face_handle)
+    {
+        if (face_handle.face_index < m_faces.size())
+            return &m_faces[face_handle.face_index];
+
+        return nullptr;
+    }
+
+    const UncookedBlockModel::Triangle* UncookedBlockModel::get_triangle(const TriangleHandle& triangle_handle) const
+    {
+        const auto [face_index, triangle_index] = triangle_handle;
+        if (const auto face = get_face(FaceHandle{ face_index }))
+        {
+            if (triangle_index < face->size())
+                return &(*face)[triangle_index];
+        }
+
+        return nullptr;
+    }
+
+    UncookedBlockModel::Triangle* UncookedBlockModel::get_triangle(const TriangleHandle& triangle_handle)
+    {
+        const auto [face_index, triangle_index] = triangle_handle;
+        if (const auto face = get_face(FaceHandle{ face_index }))
+        {
+            if (triangle_index < face->size())
+                return &(*face)[triangle_index];
+        }
+
+        return nullptr;
+    }
+
+    const UncookedBlockModel::Vertex* UncookedBlockModel::get_vertex(const VertexHandle& vertex_handle) const
+    {
+        const auto [face_index, triangle_index, vertex_index] = vertex_handle;
+        if (const auto triangle = get_triangle(TriangleHandle{ face_index, triangle_index }))
+        {
+            if (vertex_index < triangle->size())
+                return &(*triangle)[vertex_index];
+        }
+
+        return nullptr;
+    }
+
+    UncookedBlockModel::Vertex* UncookedBlockModel::get_vertex(const VertexHandle& vertex_handle)
+    {
+        const auto [face_index, triangle_index, vertex_index] = vertex_handle;
+        if (auto triangle = get_triangle(TriangleHandle{ face_index, triangle_index }))
+        {
+            if (vertex_index < triangle->size())
+                return &(*triangle)[vertex_index];
+        }
+
+        return nullptr;
+    }
+}
+
+namespace YAML
+{
+    Node convert<UncookedBlockModel>::encode(const UncookedBlockModel& rhs)
+    {
+        // TODO :))
+        return Node{};
+    }
+
+    bool convert<UncookedBlockModel>::decode(const Node& node, UncookedBlockModel& model)
+    {
+        const auto model_name = node["name"].as<std::string>();
+        model = UncookedBlockModel{};
+        model.name = model_name;
+
+        for (const auto face_node: node["faces"])
+        {
+            const auto unprocessed_face = face_node["triangles"].as<UncookedBlockModel::Face>();
+            model.add_face(unprocessed_face);
+        }
+
+        return true;
+    }
+
+    Node convert<UncookedBlockModel::Vertex>::encode(const UncookedBlockModel::Vertex& vertex)
+    {
+        Node node{};
+        node.push_back(vertex.position.x);
+        node.push_back(vertex.position.y);
+        node.push_back(vertex.position.z);
+
+        return node;
+    }
+
+    bool convert<UncookedBlockModel::Vertex>::decode(const Node& node, UncookedBlockModel::Vertex& rhs)
+    {
+        if (!node.IsSequence() || node.size() != 5)
+            return false;
+
+        rhs.position.x = node[0].as<i32>();
+        rhs.position.y = node[1].as<i32>();
+        rhs.position.z = node[2].as<i32>();
+        rhs.uv.x = node[3].as<i32>();
+        rhs.uv.y = node[4].as<i32>();
+
+        return true;
     }
 }

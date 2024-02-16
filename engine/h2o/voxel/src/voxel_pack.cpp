@@ -72,6 +72,7 @@ namespace h2o
                 block_type->texture_ids.resize(face_count, 0);
         }
 
+        m_uncooked_block_models[model_id] = edited_block_model;
         m_block_models[model_id] = edited_block_model.build();
 
         on_voxel_pack_updated.broadcast({ *this });
@@ -201,20 +202,6 @@ namespace h2o
         return true;
     }
 
-    static std::optional<UncookedBlockModel> load_block_model(const YAML::Node& block_model_yml, u32 model_id)
-    {
-        const auto model_name = block_model_yml["name"].as<std::string>();
-        UncookedBlockModel model{ model_name, model_id };
-
-        for (const auto face_yml: block_model_yml["faces"])
-        {
-            const auto unprocessed_face = face_yml["triangles"].as<UncookedBlockModel::Face>();
-            model.add_face(unprocessed_face);
-        }
-
-        return model;
-    }
-
     TextureNameIdMap VoxelPack::generate_texture_ids(const fs::path& path)
     {
         TextureNameIdMap result{};
@@ -232,7 +219,10 @@ namespace h2o
     {
         UncookedBlockModelList result{};
 
-        result.emplace_back("none", 0);
+        UncookedBlockModel null_model{};
+        null_model.name = "none";
+        null_model.id = 0;
+        result.push_back(null_model);
 
         try
         {
@@ -240,25 +230,21 @@ namespace h2o
             const auto block_models_yml = root_yml["block_models"];
             for (const auto block_model_yml: block_models_yml)
             {
-                const auto model = load_block_model(block_model_yml, result.size());
-                if (!model)
-                {
-                    log::warn("Failed to import block model. Ignoring.");
-                    continue;
-                }
+                auto model = block_model_yml.as<UncookedBlockModel>();
+                model.id = result.size();
 
                 // Check if result already contains a model with the same name
                 const auto it = std::find_if(result.begin(), result.end(),
                     [&](const UncookedBlockModel& other)
-                    { return model->name() == other.name(); }
+                    { return model.name == other.name; }
                 );
                 if (it != result.end())
                 {
-                    log::warn("Multiple block models found with name: '{}'. Ignoring second.", model->name());
+                    log::warn("Multiple block models found with name: '{}'. Ignoring second.", model.name);
                     continue;
                 }
 
-                result.push_back(*model);
+                result.push_back(model);
             }
         }
         catch (const std::exception& e)
@@ -308,7 +294,7 @@ namespace h2o
                 const auto model_name = block_type_yml["model"].as<std::string>();
                 const auto model_it = std::find_if(block_models.begin(), block_models.end(),
                     [&](const auto& item)
-                    { return item.name() == model_name; }
+                    { return item.name == model_name; }
                 );
                 if (model_it == block_models.end())
                 {
@@ -349,7 +335,7 @@ namespace h2o
                         .name = name,
                         .block_id = id,
                         .texture_ids = texture_ids,
-                        .model_id = model_it->id(),
+                        .model_id = model_it->id,
                         .preset_id = *preset_id,
                     };
             }

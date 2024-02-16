@@ -51,6 +51,9 @@ namespace h2o
 
     void Server::stop()
     {
+        if (!m_is_active)
+            return;
+
         for (const u32 client_id : m_client_ids)
             m_interface->CloseConnection(client_id, 0, "Server is shutting down.", true);
 

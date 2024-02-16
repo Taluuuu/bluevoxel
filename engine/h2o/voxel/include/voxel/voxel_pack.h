@@ -48,8 +48,6 @@ namespace h2o
         // IResource interface
         bool load(const fs::path& path) override;
 
-//        [[nodiscard]] static BlockModel::Triangle process_triangle(const UnprocessedTriangle& unprocessed_triangle, u32 face_index);
-
     public:
 
         static constexpr std::string_view block_types_file_name  { "block_types.yml"  };

@@ -29,13 +29,13 @@ target_link_libraries(h2o_voxel
     PUBLIC
         FastNoise
         bitsery
+        yaml-cpp
 
     PRIVATE
         h2o_core
         h2o_scene
 
         magic_enum
-        yaml-cpp
 )
 
 target_include_directories(h2o_voxel
@@ -43,11 +43,11 @@ target_include_directories(h2o_voxel
         include/
         FastNoise
         bitsery
+        yaml-cpp
 
     PRIVATE
         h2o_core
         h2o_scene
 
         magic_enum
-        yaml-cpp
 )
