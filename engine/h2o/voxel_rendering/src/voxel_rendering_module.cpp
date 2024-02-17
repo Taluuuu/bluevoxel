@@ -78,7 +78,7 @@ namespace h2o
         if (const auto& block_type = block_types[id])
         {
             out_texture_ids = &block_type->texture_ids;
-            return &voxel_pack->block_models()[block_type->model_id];
+            return voxel_pack->get_block_model(block_type->model_id);
         }
 
         return nullptr;

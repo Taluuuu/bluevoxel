@@ -59,23 +59,48 @@ namespace h2o
         on_voxel_pack_updated.broadcast({ *this });
     }
 
-    void VoxelPack::edit_block_model(u32 model_id, const UncookedBlockModel& edited_block_model)
+    const UncookedBlockModel* VoxelPack::get_uncooked_block_model(u32 model_id) const
     {
-        // Do some validations here
-        assert(model_id < m_block_models.size());
-        assert(edited_block_model.id < m_block_models.size());
+        if (model_id < m_uncooked_block_models.size())
+            return &m_uncooked_block_models[model_id];
 
-        const u32 face_count = edited_block_model.face_count();
-        for (auto& block_type : m_block_types)
+        return nullptr;
+    }
+
+    UncookedBlockModel* VoxelPack::get_uncooked_block_model(u32 model_id)
+    {
+        if (model_id < m_uncooked_block_models.size())
+            return &m_uncooked_block_models[model_id];
+
+        return nullptr;
+    }
+
+    void VoxelPack::build_block_model(u32 model_id)
+    {
+        assert(m_uncooked_block_models.size() == m_block_models.size());
+
+        if (model_id < m_uncooked_block_models.size())
         {
-            if (block_type && block_type->model_id == model_id)
-                block_type->texture_ids.resize(face_count, 0);
+            auto& uncooked_model = m_uncooked_block_models[model_id];
+
+            m_block_models[model_id] = uncooked_model.build();
+
+            on_voxel_pack_updated.broadcast({*this});
         }
+    }
 
-        m_uncooked_block_models[model_id] = edited_block_model;
-        m_block_models[model_id] = edited_block_model.build();
+    void VoxelPack::for_each_uncooked_block_model(const std::function<void(const UncookedBlockModel&)>& function) const
+    {
+        for (const auto& model : m_uncooked_block_models)
+            function(model);
+    }
 
-        on_voxel_pack_updated.broadcast({ *this });
+    const BlockModel* VoxelPack::get_block_model(u32 model_id) const
+    {
+        if (model_id < m_block_models.size())
+            return &m_block_models[model_id];
+
+        return nullptr;
     }
 
     void VoxelPack::save() const

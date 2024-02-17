@@ -74,22 +74,24 @@ namespace bluevoxel
                     ImGui::OpenPopup("Name Selected Block");
                 }
 
-                if (ImGui::Combo("Block Preset", (i32*) (&edited_block_type->preset_id),
+                if (ImGui::Combo("Block Preset", (i32*)(&edited_block_type->preset_id),
                     m_block_preset_names_c_str.data(), m_block_preset_names_c_str.size()))
                     voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
 
-                if (ImGui::Combo("Block Model", (i32*) (&edited_block_type->model_id), m_block_model_names_c_str.data(),
+                if (ImGui::Combo("Block Model", (i32*)(&edited_block_type->model_id), m_block_model_names_c_str.data(),
                     m_block_model_names_c_str.size()))
                     voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
 
                 if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen))
                 {
-                    const auto& model = voxel_pack->block_models()[edited_block_type->model_id];
-                    for (u32 i = 0; i < model.calculate_face_count(); i++)
+                    if (const auto model = voxel_pack->get_uncooked_block_model(edited_block_type->model_id))
                     {
-                        if (ImGui::Combo(fmt::format("Face {}", i).c_str(), (i32*) (&edited_block_type->texture_ids[i]),
-                            m_texture_names_c_str.data(), m_texture_names_c_str.size()))
-                            voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
+                        for (u32 i = 0; i < model->face_count(); i++)
+                        {
+                            if (ImGui::Combo(fmt::format("Face {}", i).c_str(), (i32*) (&edited_block_type->texture_ids[i]),
+                                m_texture_names_c_str.data(), m_texture_names_c_str.size()))
+                                voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
+                        }
                     }
                 }
             }
@@ -182,11 +184,12 @@ namespace bluevoxel
 
         if (const auto& voxel_pack = m_voxel_module->voxel_pack())
         {
-            const auto& block_models = voxel_pack->block_models();
-
-            m_block_model_names_c_str.reserve(block_models.size());
-            for (const auto& block_model: block_models)
-                m_block_model_names_c_str.push_back(block_model.name.c_str());
+            voxel_pack->for_each_uncooked_block_model(
+                [&](const h2o::UncookedBlockModel& block_model)
+                {
+                    m_block_model_names_c_str.push_back(block_model.name.c_str());
+                }
+            );
         }
     }
 }

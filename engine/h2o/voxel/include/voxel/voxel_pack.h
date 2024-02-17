@@ -6,6 +6,7 @@
 #include "voxel/block_model.h"
 #include "voxel/uncooked_block_model.h"
 
+#include <functional>
 #include <optional>
 #include <map>
 #include <string_view>
@@ -30,17 +31,26 @@ namespace h2o
         VoxelPack() = default;
         ~VoxelPack() override = default;
 
-        [[nodiscard]] const BlockModelList&   block_models() const { return m_block_models; }
         [[nodiscard]] const BlockTypeList&    block_types()  const { return m_block_types;  }
         [[nodiscard]] const TextureNameIdMap& texture_ids()  const { return m_texture_ids;  }
 
         [[nodiscard]] const fs::path& path()     const { return m_path;     }
 
+        // Block types
         void edit_block_type(BlockID block_id, BlockType& edited_block_type);
         BlockID create_block_type(const std::string& name);
         void delete_block_type(BlockID block_id);
 
-        void edit_block_model(u32 model_id, const UncookedBlockModel& edited_block_model);
+        // Uncooked block models
+        [[nodiscard]] const UncookedBlockModel* get_uncooked_block_model(u32 model_id) const;
+        [[nodiscard]] UncookedBlockModel* get_uncooked_block_model(u32 model_id);
+        void build_block_model(u32 model_id);
+        void for_each_uncooked_block_model(const std::function<void(const UncookedBlockModel&)>& function) const;
+
+        // Block models
+        // Only needs a getter; the only time we should access this is for rendering, as uncooked
+        // block models are much easier to work with.
+        [[nodiscard]] const BlockModel* get_block_model(u32 model_id) const;
 
         // Apply local changes
         void save() const;
@@ -65,6 +75,7 @@ namespace h2o
 
     private:
 
+        // There should always be a block model for every uncooked block model
         UncookedBlockModelList m_uncooked_block_models{};
         BlockModelList m_block_models{};
 

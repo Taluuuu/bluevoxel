@@ -132,6 +132,16 @@ namespace h2o
         }
     }
 
+    void UncookedBlockModel::for_each_face(const std::function<void(FaceHandle, Face&)>& function)
+    {
+        u32 face_index = 0;
+        for (auto& face : m_faces)
+        {
+            function(FaceHandle{ face_index }, face);
+            face_index++;
+        }
+    }
+
     void UncookedBlockModel::for_each_triangle(const std::function<void(const TriangleHandle&, const Triangle&)>& function) const
     {
         u32 face_index = 0;
@@ -148,6 +158,22 @@ namespace h2o
         }
     }
 
+    void UncookedBlockModel::for_each_triangle(const std::function<void(const TriangleHandle&, Triangle&)>& function)
+    {
+        u32 face_index = 0;
+        for (auto& face : m_faces)
+        {
+            u32 triangle_index = 0;
+            for (auto& triangle : face)
+            {
+                function(TriangleHandle{ face_index, triangle_index }, triangle);
+                triangle_index++;
+            }
+
+            face_index++;
+        }
+    }
+
     void UncookedBlockModel::for_each_vertex(const std::function<void(const VertexHandle&, const Vertex&)>& function) const
     {
         u32 face_index = 0;
@@ -155,6 +181,24 @@ namespace h2o
         {
             u32 triangle_index = 0;
             for (const auto& triangle : face)
+            {
+                for (u32 i = 0; i < 3; i++)
+                    function(VertexHandle{ face_index, triangle_index, i }, triangle[i]);
+
+                triangle_index++;
+            }
+
+            face_index++;
+        }
+    }
+
+    void UncookedBlockModel::for_each_vertex(const std::function<void(const VertexHandle&, Vertex&)>& function)
+    {
+        u32 face_index = 0;
+        for (auto& face : m_faces)
+        {
+            u32 triangle_index = 0;
+            for (auto& triangle : face)
             {
                 for (u32 i = 0; i < 3; i++)
                     function(VertexHandle{ face_index, triangle_index, i }, triangle[i]);
@@ -184,8 +228,8 @@ namespace h2o
 
     const UncookedBlockModel::Triangle* UncookedBlockModel::get_triangle(const TriangleHandle& triangle_handle) const
     {
-        const auto [face_index, triangle_index] = triangle_handle;
-        if (const auto face = get_face(FaceHandle{ face_index }))
+        const auto [face_handle, triangle_index] = triangle_handle;
+        if (const auto face = get_face(face_handle))
         {
             if (triangle_index < face->size())
                 return &(*face)[triangle_index];
@@ -196,8 +240,8 @@ namespace h2o
 
     UncookedBlockModel::Triangle* UncookedBlockModel::get_triangle(const TriangleHandle& triangle_handle)
     {
-        const auto [face_index, triangle_index] = triangle_handle;
-        if (const auto face = get_face(FaceHandle{ face_index }))
+        const auto [face_handle, triangle_index] = triangle_handle;
+        if (const auto face = get_face(face_handle))
         {
             if (triangle_index < face->size())
                 return &(*face)[triangle_index];
@@ -208,8 +252,8 @@ namespace h2o
 
     const UncookedBlockModel::Vertex* UncookedBlockModel::get_vertex(const VertexHandle& vertex_handle) const
     {
-        const auto [face_index, triangle_index, vertex_index] = vertex_handle;
-        if (const auto triangle = get_triangle(TriangleHandle{ face_index, triangle_index }))
+        const auto [triangle_handle, vertex_index] = vertex_handle;
+        if (const auto triangle = get_triangle(triangle_handle))
         {
             if (vertex_index < triangle->size())
                 return &(*triangle)[vertex_index];
@@ -220,8 +264,8 @@ namespace h2o
 
     UncookedBlockModel::Vertex* UncookedBlockModel::get_vertex(const VertexHandle& vertex_handle)
     {
-        const auto [face_index, triangle_index, vertex_index] = vertex_handle;
-        if (auto triangle = get_triangle(TriangleHandle{ face_index, triangle_index }))
+        const auto [triangle_handle, vertex_index] = vertex_handle;
+        if (auto triangle = get_triangle(triangle_handle))
         {
             if (vertex_index < triangle->size())
                 return &(*triangle)[vertex_index];

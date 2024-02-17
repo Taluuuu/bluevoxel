@@ -92,7 +92,6 @@ namespace bluevoxel
                     m_position += m_grab_offset;
 
                     // Find plane normal
-                    const auto& camera = renderer.camera();
                     const v3 handled_location = m_position;
                     const v3 gizmo_to_cam = glm::normalize(camera.position() - handled_location);
                     const v3 temp = glm::cross(gizmo_to_cam, axis);

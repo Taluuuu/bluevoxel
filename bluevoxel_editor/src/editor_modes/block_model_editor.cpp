@@ -2,8 +2,8 @@
 
 #include "block_editor_workspace.h"
 #include "core/engine.h"
+#include "core/utils.h"
 #include "input/input_module.h"
-#include "physics/math_helpers.h"
 #include "physics/ray_intersections.h"
 #include "rendering/camera.h"
 #include "rendering/renderer.h"
@@ -17,10 +17,16 @@
 
 namespace bluevoxel
 {
+    using TriangleHandle = h2o::UncookedBlockModel::TriangleHandle;
+    using Triangle = h2o::UncookedBlockModel::Triangle;
+    using VertexHandle = h2o::UncookedBlockModel::VertexHandle;
+    using Vertex = h2o::UncookedBlockModel::Vertex;
+
     BlockModelEditor::BlockModelEditor(BlockEditorWorkspace& workspace)
         : h2o::Tickable(&workspace)
         , m_gizmo(this, workspace.selection_mgr())
         , m_workspace(&workspace)
+        , m_input_module(&g_engine->get_module_checked<h2o::InputModule>())
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
     {
@@ -30,7 +36,15 @@ namespace bluevoxel
         workspace.selection_mgr().on_clicked_nothing.add_listener(m_on_clicked_nothing_event_handle,
             [this](const SelectionManager::OnClickedNothing&)
             {
-//                m_selected_vertices.clear();
+                if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
+                {
+                    vertex_selection->triangle_handle = std::nullopt;
+                    vertex_selection->vertex_indices = {};
+                }
+                else if (auto vertex_position_selection = get_if<VertexPositionSelection>(&m_selection))
+                {
+                    vertex_position_selection->clear();
+                }
             }
         );
 
@@ -48,145 +62,201 @@ namespace bluevoxel
         if (!block_type)
             return;
 
-//        if (ImGui::Begin("Block Model Editor"))
-//        {
-//            if (ImGui::CollapsingHeader("Selection Mode", ImGuiTreeNodeFlags_DefaultOpen))
-//            {
-//                if (ImGui::RadioButton("Triangle Vertex", holds_alternative<VertexIndexSelection>(m_selection)))
-//                    m_selection.emplace<VertexIndexSelection>();
-//
-//                if (ImGui::RadioButton("Vertex Position", holds_alternative<VertexPositionSelection>(m_selection)))
-//                    m_selection.emplace<VertexPositionSelection>();
-//            }
-//        }
-//        ImGui::End();
+        const auto model_id = block_type->model_id;
+        auto block_model = voxel_pack->get_uncooked_block_model(model_id);
+        if (!block_model)
+            return;
 
-//        m_gizmo.set_enabled(!m_selected_vertices.empty());
+        if (ImGui::Begin("Block Model Editor"))
+        {
+            if (ImGui::CollapsingHeader("Selection Mode", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                if (ImGui::RadioButton("Triangle Vertex", holds_alternative<VertexSelection>(m_selection)))
+                    m_selection.emplace<VertexSelection>();
+
+                if (ImGui::RadioButton("Vertex Position", holds_alternative<VertexPositionSelection>(m_selection)))
+                    m_selection.emplace<VertexPositionSelection>();
+            }
+        }
+        ImGui::End();
 
         auto& renderer = m_rendering_module->renderer();
         auto& selection_mgr = m_workspace->selection_mgr();
 
-        const auto model_id = block_type->model_id;
-        h2o::BlockModel block_model = voxel_pack->block_models()[model_id];
-        
-        u32 side_index = 0;
-        for (const auto& side : block_model.occluded_triangles_per_side)
-        {
-            u32 face_index = 0;
-            for (const auto& face : side)
-            {
-                u32 triangle_index = 0;
-                for (const auto& triangle : face)
-                {
-                    const auto& p1 = triangle[0];
-                    const auto& p2 = triangle[1];
-                    const auto& p3 = triangle[2];
+        const auto& camera = renderer.camera();
+        const v3 camera_pos = camera.position();
+        const v3 camera_front = camera.front();
 
-                    const h2o::physics::Triangle physics_triangle{
-                        .p1 = v3{ p1.x, p1.y, p1.z } / v3{ h2o::voxel_constants::max_coord_value_per_block },
-                        .p2 = v3{ p2.x, p2.y, p2.z } / v3{ h2o::voxel_constants::max_coord_value_per_block },
-                        .p3 = v3{ p3.x, p3.y, p3.z } / v3{ h2o::voxel_constants::max_coord_value_per_block },
+        const v3i new_gizmo_pos{ m_gizmo.position() * f32(h2o::voxel_constants::max_coord_value_per_block) };
+        const v3i gizmo_delta{ m_gizmo.movement_delta() * f32(h2o::voxel_constants::max_coord_value_per_block) };
+
+        // Draw edges
+        draw_model_edges(*block_model, renderer);
+
+        if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
+        {
+            const auto& [selected_triangle_handle, vertex_indices] = *vertex_selection;
+            m_gizmo.set_enabled(!vertex_indices.empty());
+
+            // Allow selecting triangle
+            block_model->for_each_triangle(
+                [&](const TriangleHandle& triangle_handle, Triangle& triangle)
+                {
+                    const phys::Triangle physics_triangle{
+                        triangle[0].world_pos(), triangle[1].world_pos(), triangle[2].world_pos(),
                     };
 
-                    const v3& camera_front = renderer.camera().front();
-                    const v3 line_offset = camera_front * -0.005f;
-                    renderer.draw_line(line_offset + physics_triangle.p1, line_offset + physics_triangle.p2, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
-                    renderer.draw_line(line_offset + physics_triangle.p2, line_offset + physics_triangle.p3, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
-                    renderer.draw_line(line_offset + physics_triangle.p3, line_offset + physics_triangle.p1, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
+                    selection_mgr.add(physics_triangle,
+                        [this, triangle_handle](const HoverData& hover_data)
+                        {
+                            if (!hover_data.click_state.pressed_this_frame)
+                                return;
 
-//                    // Allow selecting triangle
-//                    selection_mgr.add(physics_triangle,
-//                        [this, side_index, face_index, triangle_index, physics_triangle]
-//                        (const HoverData& hover_data)
-//                        {
-//                            if (hover_data.click_state.pressed_this_frame)
-//                            {
-//                                m_selected_side_index = side_index;
-//                                m_selected_face_index = face_index;
-//                                m_selected_triangle_index = triangle_index;
-//                                m_selected_vertex_index.reset();
-//
-//                                m_gizmo.set_position(physics_triangle.calc_center());
-//                            }
-//                        }
-//                    );
+                            if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
+                            {
+                                vertex_selection->triangle_handle = triangle_handle;
+                                vertex_selection->vertex_indices = {};
+                            }
+                        }
+                    );
+                }
+            );
 
-                    for (u32 i = 0; i < 3; i++)
+            if (selected_triangle_handle)
+            {
+                for (u32 i = 0; i < 3; i++)
+                {
+                    const bool is_selected = vertex_indices.contains(i);
+
+                    const VertexHandle vertex_handle{ *selected_triangle_handle, i };
+                    if (auto vertex = block_model->get_vertex(vertex_handle))
                     {
-                        const bool is_selected = is_vertex_selected(side_index, face_index, triangle_index, i, block_model);
+                        const v3 vertex_world_pos = vertex->world_pos();
 
-                        const v3& vertex_pos_world = physics_triangle[i];
+                        const f32 distance_with_camera = glm::length(camera_pos - vertex_world_pos);
+                        const f32 vertex_radius_ = vertex_radius * distance_with_camera;
 
-                        // Draw dot
+                        // Draw vertex
                         renderer.draw_sphere(
-                            vertex_pos_world,
-                            vertex_radius, is_selected ? selected_vertex_color : unselected_vertex_color);
+                            vertex_world_pos,
+                            vertex_radius_,
+                            is_selected ? selected_vertex_color : unselected_vertex_color);
 
-                        // Allow selecting dot
-                        selection_mgr.add(phys::Sphere{ vertex_pos_world, 0.05f },
-                            [this, side_index, face_index, triangle_index, triangle, i, vertex_pos_world]
-                                (const HoverData& hover_data)
+                        // Allow selecting vertex
+                        selection_mgr.add(phys::Sphere{ vertex_world_pos, vertex_radius_ },
+                            [this, i, vertex_world_pos](const HoverData& hover_data)
                             {
                                 if (!hover_data.click_state.pressed_this_frame)
                                     return;
 
-                                if (auto* pos_selection = std::get_if<VertexPositionSelection>(&m_selection))
+                                if (auto* vertex_selection = std::get_if<VertexSelection>(&m_selection))
                                 {
-                                    const auto& vertex = triangle[i];
-                                    pos_selection->selected_vertex_positions.emplace_back(vertex.x, vertex.y, vertex.z);
-                                    m_gizmo.set_position(vertex_pos_world);
+                                    if (m_input_module->key_state(h2o::Key::LeftShift).held)
+                                    {
+                                        vertex_selection->vertex_indices.insert(i);
+                                        m_gizmo.set_position(vertex_world_pos);
+                                    }
+                                    else
+                                    {
+                                        vertex_selection->vertex_indices = { i };
+                                        m_gizmo.set_position(vertex_world_pos);
+                                    }
                                 }
                             }
                         );
+
+                        if (is_selected)
+                        {
+                            vertex->position = glm::clamp(
+                                vertex->position + gizmo_delta,
+                                0,
+                                h2o::voxel_constants::max_coord_value_per_block);
+                        }
                     }
-
-                    triangle_index++;
                 }
-
-                face_index++;
             }
+        }
+        else if (auto vertex_position_selection = get_if<VertexPositionSelection>(&m_selection))
+        {
+            auto& selected_positions = *vertex_position_selection;
+            m_gizmo.set_enabled(!selected_positions.empty());
 
-            side_index++;
+            block_model->for_each_vertex(
+                [&](const VertexHandle& vertex_handle, Vertex& vertex)
+                {
+                    const bool is_selected = selected_positions.contains(vertex.position);
+
+                    const v3 vertex_world_pos = vertex.world_pos();
+
+                    const f32 distance_with_camera = glm::length(camera_pos - vertex_world_pos);
+                    const f32 vertex_radius_ = vertex_radius * distance_with_camera;
+
+                    // Draw vertex
+                    renderer.draw_sphere(
+                        vertex_world_pos,
+                        vertex_radius_,
+                        is_selected ? selected_vertex_color : unselected_vertex_color);
+
+                    // Allow selecting vertex
+                    selection_mgr.add(phys::Sphere{ vertex_world_pos, vertex_radius_ },
+                        [this, vertex_world_pos, vertex](const HoverData& hover_data)
+                        {
+                            if (!hover_data.click_state.pressed_this_frame)
+                                return;
+
+                            if (auto* selected_positions = std::get_if<VertexPositionSelection>(&m_selection))
+                            {
+                                if (m_input_module->key_state(h2o::Key::LeftShift).held)
+                                {
+                                    selected_positions->insert(vertex.position);
+                                    m_gizmo.set_position(vertex_world_pos);
+                                }
+                                else
+                                {
+                                    *selected_positions = { vertex.position };
+                                    m_gizmo.set_position(vertex_world_pos);
+                                }
+                            }
+                        }
+                    );
+
+                    if (is_selected)
+                    {
+                        vertex.position = glm::clamp(
+                            vertex.position + gizmo_delta,
+                            0,
+                            h2o::voxel_constants::max_coord_value_per_block);
+                    }
+                }
+            );
+
+            if (gizmo_delta != v3i{})
+            {
+                // Translate all selected positions
+                std::vector<v3i> positions_before_translate{};
+                positions_before_translate.reserve(selected_positions.size());
+
+                for (const v3i& selected_position : selected_positions)
+                    positions_before_translate.push_back(selected_position);
+
+                selected_positions.clear();
+                for (const v3i& position : positions_before_translate)
+                {
+                    selected_positions.insert(
+                        glm::clamp(
+                            position + gizmo_delta,
+                            0,
+                            h2o::voxel_constants::max_coord_value_per_block));
+                }
+            }
+        }
+        else
+        {
+            m_gizmo.set_enabled(false);
         }
 
-        bool should_refresh_model = false;
-
-//        if (m_selected_side_index)
-//        {
-//            if (m_selected_face_index)
-//            {
-//                if (m_selected_triangle_index)
-//                {
-//                    auto& triangle = block_model.occluded_faces_per_side
-//                        [*m_selected_side_index]
-//                        [*m_selected_face_index]
-//                        [*m_selected_triangle_index];
-//
-//                    // TODO: Forgor where the 16 is stored
-//                    const v3i new_gizmo_pos{ m_gizmo.position() * 16.0f };
-//                    const v3i gizmo_delta{ m_gizmo.movement_delta() * 16.0f };
-//
-//                    if (m_selected_vertex_index)
-//                    {
-//                        auto& vertex = triangle[*m_selected_vertex_index];
-//                        vertex.set_position(new_gizmo_pos);
-//                    }
-//                    else
-//                    {
-//                        for (auto& vertex : triangle)
-//                        {
-//                            vertex.set_position(
-//                                glm::clamp(vertex.position() + gizmo_delta, 0, 16));
-//                        }
-//                    }
-//
-//                    should_refresh_model = true;
-//                }
-//            }
-//        }
-
-        if (should_refresh_model)
-            voxel_pack->edit_block_model(model_id, block_model);
+        if (gizmo_delta != v3i{})
+            voxel_pack->build_block_model(model_id);
     }
 
     bool BlockModelEditor::edit_vertex(u32 vertex_index, h2o::BlockVertex& vertex)
@@ -242,43 +312,41 @@ namespace bluevoxel
 
     void BlockModelEditor::create_triangle(u32 side_index, u32 face_index, h2o::BlockModel& block_model)
     {
-        if (side_index < 6)
-        {
-            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
-            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
-            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
-        }
-        else
-        {
-            block_model.unoccluded_triangles[face_index].push_back({});
-            block_model.unoccluded_triangles[face_index].push_back({});
-            block_model.unoccluded_triangles[face_index].push_back({});
-        }
+//        if (side_index < 6)
+//        {
+//            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
+//            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
+//            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
+//        }
+//        else
+//        {
+//            block_model.unoccluded_triangles[face_index].push_back({});
+//            block_model.unoccluded_triangles[face_index].push_back({});
+//            block_model.unoccluded_triangles[face_index].push_back({});
+//        }
     }
 
-    bool BlockModelEditor::is_vertex_selected(
-        u32 side_index,
-        u32 face_index,
-        u32 triangle_index,
-        u32 vertex_index,
-        const h2o::BlockModel& block_model) const
+    void BlockModelEditor::draw_model_edges(const h2o::UncookedBlockModel& block_model, h2o::gfx::IRenderer& renderer) const
     {
-//        if (const auto* index_selection = std::get_if<VertexIndexSelection>(&m_selection))
-//        {
-//            const auto& indices = index_selection->selected_vertex_indices;
-//            const VertexIndexSelection::VertexID index{ side_index, face_index, triangle_index, vertex_index };
-//
-//            return std::find(indices.begin(), indices.end(), index) != indices.end();
-//        }
-//        else if (const auto* pos_selection = std::get_if<VertexPositionSelection>(&m_selection))
-//        {
-//            const auto& positions = pos_selection->selected_vertex_positions;
-//            const auto& vertex = block_model.occluded_faces_per_side[side_index][face_index][triangle_index][vertex_index];
-//            const v3i pos{ vertex.x, vertex.y, vertex.z };
-//
-//            return std::find(positions.begin(), positions.end(), pos) != positions.end();
-//        }
+        block_model.for_each_triangle(
+            [&](const TriangleHandle& triangle_handle, const Triangle& triangle)
+            {
+                const v3i p1 = triangle[0].position;
+                const v3i p2 = triangle[1].position;
+                const v3i p3 = triangle[2].position;
 
-        return false;
+                const h2o::physics::Triangle physics_triangle{
+                    v3{ p1 } / v3{ h2o::voxel_constants::max_coord_value_per_block },
+                    v3{ p2 } / v3{ h2o::voxel_constants::max_coord_value_per_block },
+                    v3{ p3 } / v3{ h2o::voxel_constants::max_coord_value_per_block },
+                };
+
+                const v3& camera_front = renderer.camera().front();
+                const v3 line_offset = camera_front * -0.005f;
+                renderer.draw_line(line_offset + physics_triangle.p1, line_offset + physics_triangle.p2, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
+                renderer.draw_line(line_offset + physics_triangle.p2, line_offset + physics_triangle.p3, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
+                renderer.draw_line(line_offset + physics_triangle.p3, line_offset + physics_triangle.p1, v4{ 0.0f, 0.0f, 0.0f, 1.0f });
+            }
+        );
     }
 }
