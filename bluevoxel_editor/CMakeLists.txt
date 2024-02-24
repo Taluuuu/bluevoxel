@@ -9,6 +9,7 @@ add_executable(bluevoxel_editor
     src/editor_modes/block_editor_workspace.cpp
     src/editor_modes/block_model_editor.cpp
     src/editor_modes/block_type_editor.cpp
+    src/editor_modes/uv_editor.cpp
     src/gizmo.cpp
     src/main.cpp
     src/selection_manager.cpp

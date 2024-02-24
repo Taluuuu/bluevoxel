@@ -10,7 +10,6 @@
 namespace h2o
 {
     class RenderingModule;
-    class UIModule;
     class VoxelModule;
 }
 
@@ -52,7 +51,6 @@ namespace bluevoxel
 
         // Module refs
         h2o::RenderingModule* const m_rendering_module = nullptr;
-        h2o::UIModule* const m_ui_module = nullptr;
         h2o::VoxelModule* const m_voxel_module = nullptr;
 
     };

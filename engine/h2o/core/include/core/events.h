@@ -84,8 +84,8 @@ namespace h2o
         Event(Event&&) = delete;
         ~Event()
         {
-            while (!m_listeners.empty())
-                remove_listener_impl(m_listeners.front().handle_id);
+            for (u32 i = 0; i < m_listeners.size(); i++)
+                remove_listener_impl(m_listeners[i].handle_id);
         }
 
         void broadcast(const T& event) const

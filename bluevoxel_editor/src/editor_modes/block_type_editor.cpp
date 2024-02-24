@@ -6,15 +6,11 @@
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
-#include "ui/ui_module.h"
-#include "ui/ui_renderer.h"
+#include "ui/imgui.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
-#include "voxel_rendering/voxel_rendering_module.h"
 
 #include <fmt/core.h>
-#include <imgui.h>
-#include <misc/cpp/imgui_stdlib.h>
 
 namespace bluevoxel
 {
@@ -22,7 +18,6 @@ namespace bluevoxel
         : h2o::Tickable(&workspace)
         , m_workspace(&workspace)
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
-        , m_ui_module(&g_engine->get_module_checked<h2o::UIModule>())
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
     {
         // This should be updatable on-demand

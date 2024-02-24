@@ -308,8 +308,8 @@ namespace h2o::gfx
 
     void Renderer_OpenGL::update_texture_data(u32 texture_id, const TextureFormat& format, const void* data)
     {
-        glTextureParameteri(texture_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTextureParameteri(texture_id, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTextureParameteri(texture_id, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTextureParameteri(texture_id, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
         glTextureParameteri(texture_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTextureParameteri(texture_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 

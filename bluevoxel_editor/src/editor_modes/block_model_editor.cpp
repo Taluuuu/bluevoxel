@@ -8,12 +8,14 @@
 #include "rendering/camera.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
+#include "rendering/texture.h"
+#include "rendering/texture_array.h"
+#include "ui/imgui.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
+#include "voxel_rendering/voxel_rendering_module.h"
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
-
-#include <imgui.h>
 
 namespace bluevoxel
 {
@@ -36,14 +38,14 @@ namespace bluevoxel
         workspace.selection_mgr().on_clicked_nothing.add_listener(m_on_clicked_nothing_event_handle,
             [this](const SelectionManager::OnClickedNothing&)
             {
-                if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
+                if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
                 {
-                    vertex_selection->triangle_handle = std::nullopt;
-                    vertex_selection->vertex_indices = {};
+                    triangle_selection->triangle_handle = std::nullopt;
+                    triangle_selection->vertex_indices = {};
                 }
-                else if (auto vertex_position_selection = get_if<VertexPositionSelection>(&m_selection))
+                else if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
                 {
-                    vertex_position_selection->clear();
+                    vertex_selection->clear();
                 }
             }
         );
@@ -67,15 +69,31 @@ namespace bluevoxel
         if (!block_model)
             return;
 
+        bool should_refresh_model = false;
+
         if (ImGui::Begin("Block Model Editor"))
         {
             if (ImGui::CollapsingHeader("Selection Mode", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                if (ImGui::RadioButton("Triangle Vertex", holds_alternative<VertexSelection>(m_selection)))
+                if (ImGui::RadioButton("Triangle", holds_alternative<TriangleSelection>(m_selection)))
+                    m_selection.emplace<TriangleSelection>();
+
+                if (ImGui::RadioButton("Vertex", holds_alternative<VertexSelection>(m_selection)))
                     m_selection.emplace<VertexSelection>();
 
-                if (ImGui::RadioButton("Vertex Position", holds_alternative<VertexPositionSelection>(m_selection)))
-                    m_selection.emplace<VertexPositionSelection>();
+                if (const auto triangle_selection = std::get_if<TriangleSelection>(&m_selection))
+                {
+                    should_refresh_model = should_refresh_model ||
+                        m_uv_editor.update(
+                            *block_model,
+                            *voxel_pack,
+                            *block_type,
+                            *triangle_selection);
+                }
+                else
+                {
+                    ImGui::Text("UV editor is only available in triangle selection mode.");
+                }
             }
         }
         ImGui::End();
@@ -93,9 +111,9 @@ namespace bluevoxel
         // Draw edges
         draw_model_edges(*block_model, renderer);
 
-        if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
+        if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
         {
-            const auto& [selected_triangle_handle, vertex_indices] = *vertex_selection;
+            const auto& [selected_triangle_handle, vertex_indices] = *triangle_selection;
             m_gizmo.set_enabled(!vertex_indices.empty());
 
             // Allow selecting triangle
@@ -112,10 +130,10 @@ namespace bluevoxel
                             if (!hover_data.click_state.pressed_this_frame)
                                 return;
 
-                            if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
+                            if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
                             {
-                                vertex_selection->triangle_handle = triangle_handle;
-                                vertex_selection->vertex_indices = {};
+                                triangle_selection->triangle_handle = triangle_handle;
+                                triangle_selection->vertex_indices = {};
                             }
                         }
                     );
@@ -149,16 +167,16 @@ namespace bluevoxel
                                 if (!hover_data.click_state.pressed_this_frame)
                                     return;
 
-                                if (auto* vertex_selection = std::get_if<VertexSelection>(&m_selection))
+                                if (auto* triangle_selection = std::get_if<TriangleSelection>(&m_selection))
                                 {
                                     if (m_input_module->key_state(h2o::Key::LeftShift).held)
                                     {
-                                        vertex_selection->vertex_indices.insert(i);
+                                        triangle_selection->vertex_indices.insert(i);
                                         m_gizmo.set_position(vertex_world_pos);
                                     }
                                     else
                                     {
-                                        vertex_selection->vertex_indices = { i };
+                                        triangle_selection->vertex_indices = { i };
                                         m_gizmo.set_position(vertex_world_pos);
                                     }
                                 }
@@ -176,9 +194,9 @@ namespace bluevoxel
                 }
             }
         }
-        else if (auto vertex_position_selection = get_if<VertexPositionSelection>(&m_selection))
+        else if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
         {
-            auto& selected_positions = *vertex_position_selection;
+            auto& selected_positions = *vertex_selection;
             m_gizmo.set_enabled(!selected_positions.empty());
 
             block_model->for_each_vertex(
@@ -204,7 +222,7 @@ namespace bluevoxel
                             if (!hover_data.click_state.pressed_this_frame)
                                 return;
 
-                            if (auto* selected_positions = std::get_if<VertexPositionSelection>(&m_selection))
+                            if (auto* selected_positions = std::get_if<VertexSelection>(&m_selection))
                             {
                                 if (m_input_module->key_state(h2o::Key::LeftShift).held)
                                 {
@@ -255,7 +273,9 @@ namespace bluevoxel
             m_gizmo.set_enabled(false);
         }
 
-        if (gizmo_delta != v3i{})
+        should_refresh_model = should_refresh_model || gizmo_delta != v3i{};
+
+        if (should_refresh_model)
             voxel_pack->build_block_model(model_id);
     }
 

@@ -8,6 +8,7 @@
 #include "rendering/camera.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
+#include "ui/ui_module.h"
 #include "windowing/windowing_module.h"
 
 namespace bluevoxel
@@ -88,6 +89,9 @@ namespace bluevoxel
 
     void SelectionManager::post_update(f32 delta_time)
     {
+        if (h2o::UIModule::is_interacting_with_ui())
+            return;
+
         f32 min_t = FLT_MAX;
         SelectionCallback closest_primitive_callback{};
 

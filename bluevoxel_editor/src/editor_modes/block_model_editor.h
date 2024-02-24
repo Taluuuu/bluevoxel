@@ -1,10 +1,11 @@
 #pragma once
 
+#include "block_model_selections.h"
 #include "core/events.h"
 #include "core/tickable.h"
 #include "gizmo.h"
+#include "uv_editor.h"
 #include "voxel/block_model.h"
-#include "voxel/uncooked_block_model.h"
 
 #include <glm/gtx/hash.hpp>
 #include <unordered_set>
@@ -58,14 +59,9 @@ namespace bluevoxel
 
         Gizmo m_gizmo;
 
-        using VertexPositionSelection = std::unordered_set<v3i>;
-        struct VertexSelection
-        {
-            std::optional<h2o::UncookedBlockModel::TriangleHandle> triangle_handle{};
-            std::unordered_set<u32> vertex_indices{};
-        };
+        SelectionTypes m_selection{};
 
-        std::variant<VertexSelection, VertexPositionSelection> m_selection{};
+        UVEditor m_uv_editor{};
 
         BlockEditorWorkspace* const m_workspace = nullptr;
 
