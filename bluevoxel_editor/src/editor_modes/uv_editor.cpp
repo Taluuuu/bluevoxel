@@ -53,7 +53,7 @@ namespace bluevoxel
         if (!tex)
             return false;
 
-        const v2 tex_pos = ImGui::GetCursorScreenPos();
+        const v2 tex_pos = v2{ ImGui::GetCursorScreenPos() } + texture_offset;
         const v2 tex_size { m_texture_size };
         const v2 mouse_pos = ImGui::GetMousePos();
 
@@ -87,7 +87,7 @@ namespace bluevoxel
             }
         }
 
-        ImGui::InvisibleButton("UV Editor Canvas", tex_size, ImGuiButtonFlags_MouseButtonLeft);
+        ImGui::InvisibleButton("UV Editor Canvas", tex_size + 2.0f * texture_offset, ImGuiButtonFlags_MouseButtonLeft);
         if (ImGui::IsItemActive())
         {
             // Did we just start holding left click ?
@@ -138,8 +138,11 @@ namespace bluevoxel
         {
             const v2 point_pos = uv_positions[i];
 
+            const ImColor point_color = selection.vertex_indices.contains(i) ?
+                IM_COL32(255, 255, 0, 255) : IM_COL32(0, 0, 0, 255);
+
             draw_list->AddCircleFilled(point_pos, point_radius, IM_COL32(255, 255, 255, 255));
-            draw_list->AddCircleFilled(point_pos, point_radius * 0.75f, IM_COL32(0, 0, 0, 255));
+            draw_list->AddCircleFilled(point_pos, point_radius * 0.75f, point_color);
         }
 
         return uv_has_changed;

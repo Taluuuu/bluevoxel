@@ -31,6 +31,7 @@ namespace bluevoxel
     private:
 
         static constexpr f32 point_radius = 10.0f;
+        static constexpr v2 texture_offset{ 15.0f, 15.0f };
 
         f32 m_texture_size = 300.0f;
 

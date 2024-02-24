@@ -144,7 +144,8 @@ namespace h2o::gfx
             [](const WindowResizeEvent& event)
             {
                 glViewport(0, 0, static_cast<i32>(event.new_size.x), static_cast<i32>(event.new_size.y));
-            });
+            }
+        );
 
         // Init ImGui
         ImGui::CreateContext();

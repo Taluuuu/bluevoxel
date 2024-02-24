@@ -12,6 +12,7 @@ namespace h2o::gfx
     public:
 
         Renderer_OpenGL() = default;
+        ~Renderer_OpenGL() override = default;
 
         // IRenderer interface
         void set_clear_color(const v4& color) override;
