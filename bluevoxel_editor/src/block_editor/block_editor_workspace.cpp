@@ -1,8 +1,8 @@
 #include "block_editor_workspace.h"
 
-#include "block_model_editor.h"
+#include "block_editor/block_model_editor/block_model_editor.h"
 #include "block_renderer.h"
-#include "block_type_editor.h"
+#include "block_editor/block_type_editor/block_type_editor.h"
 #include "core/engine.h"
 #include "game_framework/components/third_person_camera_component.h"
 #include "input/input_component.h"

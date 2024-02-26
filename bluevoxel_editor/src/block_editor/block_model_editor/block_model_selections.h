@@ -10,11 +10,12 @@
 namespace bluevoxel
 {
     using VertexSelection = std::unordered_set<v3i>;
+    using FaceSelection = std::optional<h2o::UncookedBlockModel::FaceHandle>;
     struct TriangleSelection
     {
         std::optional<h2o::UncookedBlockModel::TriangleHandle> triangle_handle{};
         std::unordered_set<u32> vertex_indices{};
     };
 
-    using SelectionTypes = std::variant<TriangleSelection, VertexSelection>;
+    using SelectionTypes = std::variant<FaceSelection, TriangleSelection, VertexSelection>;
 }

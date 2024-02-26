@@ -1,8 +1,8 @@
 #pragma once
 
+#include "block_editor/block_editor_workspace.h"
 #include "core/module.h"
 #include "core/tickable.h"
-#include "editor_modes/block_editor_workspace.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_bounds.h"
 

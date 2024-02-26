@@ -1,6 +1,6 @@
 #include "block_model_editor.h"
 
-#include "block_editor_workspace.h"
+#include "block_editor/block_editor_workspace.h"
 #include "core/engine.h"
 #include "core/utils.h"
 #include "input/input_module.h"
@@ -38,7 +38,11 @@ namespace bluevoxel
         workspace.selection_mgr().on_clicked_nothing.add_listener(m_on_clicked_nothing_event_handle,
             [this](const SelectionManager::OnClickedNothing&)
             {
-                if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
+                if (auto face_selection = get_if<FaceSelection>(&m_selection))
+                {
+                    *face_selection = std::nullopt;
+                }
+                else if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
                 {
                     triangle_selection->triangle_handle = std::nullopt;
                     triangle_selection->vertex_indices = {};
@@ -75,11 +79,15 @@ namespace bluevoxel
         {
             if (ImGui::CollapsingHeader("Selection Mode", ImGuiTreeNodeFlags_DefaultOpen))
             {
+                if (ImGui::RadioButton("Face", holds_alternative<FaceSelection>(m_selection)))
+                    m_selection.emplace<FaceSelection>();
+
                 if (ImGui::RadioButton("Triangle", holds_alternative<TriangleSelection>(m_selection)))
                     m_selection.emplace<TriangleSelection>();
 
                 if (ImGui::RadioButton("Vertex", holds_alternative<VertexSelection>(m_selection)))
                     m_selection.emplace<VertexSelection>();
+
 
                 if (const auto triangle_selection = std::get_if<TriangleSelection>(&m_selection))
                 {
@@ -111,7 +119,35 @@ namespace bluevoxel
         // Draw edges
         draw_model_edges(*block_model, renderer);
 
-        if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
+        if (auto face_selection = get_if<FaceSelection>(&m_selection))
+        {
+            // Allow selecting faces
+            block_model->for_each_triangle(
+                [&](const TriangleHandle& triangle_handle, Triangle& triangle)
+                {
+                    const phys::Triangle physics_triangle{
+                        triangle[0].world_pos(), triangle[1].world_pos(), triangle[2].world_pos(),
+                    };
+
+                    selection_mgr.add(physics_triangle,
+                        [this, triangle_handle](const HoverData& hover_data)
+                        {
+                            if (!hover_data.click_state.pressed_this_frame)
+                                return;
+
+                            if (auto face_selection = get_if<FaceSelection>(&m_selection))
+                                *face_selection = triangle_handle.face_handle;
+                        }
+                    );
+                }
+            );
+
+            if (*face_selection)
+            {
+                h2o::log::info("SELECTED");
+            }
+        }
+        else if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
         {
             const auto& [selected_triangle_handle, vertex_indices] = *triangle_selection;
             m_gizmo.set_enabled(!vertex_indices.empty());
@@ -279,86 +315,19 @@ namespace bluevoxel
             voxel_pack->build_block_model(model_id);
     }
 
-    bool BlockModelEditor::edit_vertex(u32 vertex_index, h2o::BlockVertex& vertex)
-    {
-        v3u p{ vertex.x, vertex.y, vertex.z };
-        v2u uv{ vertex.u, vertex.v };
-
-        ImGui::TableSetColumnIndex(0);
-        ImGui::PushItemWidth(-FLT_MIN);
-        bool was_vertex_edited =
-            ImGui::SliderInt(fmt::format("##hidden_{}_x", vertex_index).c_str(), (i32*)(&p.x), 0, 16);
-
-        ImGui::TableNextColumn();
-        ImGui::PushItemWidth(-FLT_MIN);
-        was_vertex_edited = was_vertex_edited ||
-            ImGui::SliderInt(fmt::format("##hidden_{}_y", vertex_index).c_str(), (i32*)(&p.y), 0, 16);
-
-        ImGui::TableNextColumn();
-        ImGui::PushItemWidth(-FLT_MIN);
-        was_vertex_edited = was_vertex_edited ||
-            ImGui::SliderInt(fmt::format("##hidden_{}_z", vertex_index).c_str(), (i32*)(&p.z), 0, 16);
-
-        ImGui::TableNextColumn();
-        ImGui::PushItemWidth(-FLT_MIN);
-        was_vertex_edited = was_vertex_edited ||
-            ImGui::SliderInt(fmt::format("##hidden_{}_u", vertex_index).c_str(), (i32*)(&uv.x), 0, 16);
-
-        ImGui::TableNextColumn();
-        ImGui::PushItemWidth(-FLT_MIN);
-        was_vertex_edited = was_vertex_edited ||
-            ImGui::SliderInt(fmt::format("##hidden_{}_v", vertex_index).c_str(), (i32*)(&uv.y), 0, 16);
-
-        vertex.x = p.x;
-        vertex.y = p.y;
-        vertex.z = p.z;
-        vertex.u = uv.x;
-        vertex.v = uv.y;
-
-        return was_vertex_edited;
-    }
-
-    void BlockModelEditor::create_face(u32 side_index, h2o::BlockModel& block_model)
-    {
-        if (side_index < 6)
-        {
-            block_model.occluded_triangles_per_side[side_index].push_back({});
-        }
-        else
-        {
-            block_model.unoccluded_triangles.push_back({});
-        }
-    }
-
-    void BlockModelEditor::create_triangle(u32 side_index, u32 face_index, h2o::BlockModel& block_model)
-    {
-//        if (side_index < 6)
-//        {
-//            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
-//            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
-//            block_model.occluded_triangles_per_side[side_index][face_index].push_back({});
-//        }
-//        else
-//        {
-//            block_model.unoccluded_triangles[face_index].push_back({});
-//            block_model.unoccluded_triangles[face_index].push_back({});
-//            block_model.unoccluded_triangles[face_index].push_back({});
-//        }
-    }
-
     void BlockModelEditor::draw_model_edges(const h2o::UncookedBlockModel& block_model, h2o::gfx::IRenderer& renderer) const
     {
         block_model.for_each_triangle(
             [&](const TriangleHandle& triangle_handle, const Triangle& triangle)
             {
-                const v3i p1 = triangle[0].position;
-                const v3i p2 = triangle[1].position;
-                const v3i p3 = triangle[2].position;
+                const v3 p1 { triangle[0].position };
+                const v3 p2 { triangle[1].position };
+                const v3 p3 { triangle[2].position };
 
                 const h2o::physics::Triangle physics_triangle{
-                    v3{ p1 } / v3{ h2o::voxel_constants::max_coord_value_per_block },
-                    v3{ p2 } / v3{ h2o::voxel_constants::max_coord_value_per_block },
-                    v3{ p3 } / v3{ h2o::voxel_constants::max_coord_value_per_block },
+                    p1 / v3{ h2o::voxel_constants::max_coord_value_per_block },
+                    p2 / v3{ h2o::voxel_constants::max_coord_value_per_block },
+                    p3 / v3{ h2o::voxel_constants::max_coord_value_per_block },
                 };
 
                 const v3& camera_front = renderer.camera().front();

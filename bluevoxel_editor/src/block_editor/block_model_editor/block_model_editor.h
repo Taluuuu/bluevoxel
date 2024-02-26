@@ -7,7 +7,7 @@
 #include "uv_editor.h"
 #include "voxel/block_model.h"
 
-#include <glm/gtx/hash.hpp>
+#include "glm/gtx/hash.hpp"
 #include <unordered_set>
 #include <variant>
 
@@ -47,11 +47,6 @@ namespace bluevoxel
 
         // h2o::Tickable interface
         void update(f32 delta_time) override;
-
-        static bool edit_vertex(u32 vertex_index, h2o::BlockVertex& vertex);
-
-        static void create_face(u32 side_index, h2o::BlockModel& block_model);
-        static void create_triangle(u32 side_index, u32 face_index, h2o::BlockModel& block_model);
 
         void draw_model_edges(const h2o::UncookedBlockModel& block_model, h2o::gfx::IRenderer& renderer) const;
 

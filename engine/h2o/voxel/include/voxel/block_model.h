@@ -46,7 +46,6 @@ namespace h2o
     {
         // TODO: Remove this...
         std::string name{};
-        u32 id = 0;
 
         using Triangle = std::array<BlockVertex, 3>;
 

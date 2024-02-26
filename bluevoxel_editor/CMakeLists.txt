@@ -4,12 +4,12 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_executable(bluevoxel_editor
+    src/block_editor/block_editor_workspace.cpp
+    src/block_editor/block_model_editor/block_model_editor.cpp
+    src/block_editor/block_model_editor/uv_editor.cpp
+    src/block_editor/block_type_editor/block_type_editor.cpp
     src/block_renderer.cpp
     src/bluevoxel_editor_module.cpp
-    src/editor_modes/block_editor_workspace.cpp
-    src/editor_modes/block_model_editor.cpp
-    src/editor_modes/block_type_editor.cpp
-    src/editor_modes/uv_editor.cpp
     src/gizmo.cpp
     src/main.cpp
     src/selection_manager.cpp

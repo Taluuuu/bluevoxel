@@ -1,6 +1,6 @@
 #include "block_type_editor.h"
 
-#include "block_editor_workspace.h"
+#include "block_editor/block_editor_workspace.h"
 #include "core/engine.h"
 #include "input/input_component.h"
 #include "rendering/renderer.h"
@@ -10,7 +10,7 @@
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
 
-#include <fmt/core.h>
+#include "fmt/core.h"
 
 namespace bluevoxel
 {
