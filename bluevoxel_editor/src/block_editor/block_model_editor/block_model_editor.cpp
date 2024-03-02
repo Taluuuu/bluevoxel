@@ -1,6 +1,7 @@
 #include "block_model_editor.h"
 
 #include "block_editor/block_editor_workspace.h"
+#include "block_model_editor_constants.h"
 #include "core/engine.h"
 #include "core/utils.h"
 #include "input/input_module.h"
@@ -42,19 +43,16 @@ namespace bluevoxel
                 {
                     *face_selection = std::nullopt;
                 }
-                else if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
-                {
-                    triangle_selection->triangle_handle = std::nullopt;
-                    triangle_selection->vertex_indices = {};
-                }
-                else if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
-                {
-                    vertex_selection->clear();
-                }
             }
         );
 
         set_tick_phases(h2o::TickPhase::Update);
+    }
+
+    BlockEditorWorkspace& BlockModelEditor::workspace() const
+    {
+        assert(m_workspace);
+        return *m_workspace;
     }
 
     void BlockModelEditor::update(f32 delta_time)
@@ -82,26 +80,26 @@ namespace bluevoxel
                 if (ImGui::RadioButton("Face", holds_alternative<FaceSelection>(m_selection)))
                     m_selection.emplace<FaceSelection>();
 
-                if (ImGui::RadioButton("Triangle", holds_alternative<TriangleSelection>(m_selection)))
-                    m_selection.emplace<TriangleSelection>();
+//                if (ImGui::RadioButton("Triangle", holds_alternative<TriangleSelection>(m_selection)))
+//                    m_selection.emplace<TriangleSelection>();
 
-                if (ImGui::RadioButton("Vertex", holds_alternative<VertexSelection>(m_selection)))
-                    m_selection.emplace<VertexSelection>();
+//                if (ImGui::RadioButton("Vertex", holds_alternative<VertexSelection>(m_selection)))
+//                    m_selection.emplace<VertexSelection>();
 
 
-                if (const auto triangle_selection = std::get_if<TriangleSelection>(&m_selection))
-                {
-                    should_refresh_model = should_refresh_model ||
-                        m_uv_editor.update(
-                            *block_model,
-                            *voxel_pack,
-                            *block_type,
-                            *triangle_selection);
-                }
-                else
-                {
-                    ImGui::Text("UV editor is only available in triangle selection mode.");
-                }
+//                if (const auto triangle_selection = std::get_if<TriangleSelection>(&m_selection))
+//                {
+//                    should_refresh_model = should_refresh_model ||
+//                        m_uv_editor.update(
+//                            *block_model,
+//                            *voxel_pack,
+//                            *block_type,
+//                            *triangle_selection);
+//                }
+//                else
+//                {
+//                    ImGui::Text("UV editor is only available in triangle selection mode.");
+//                }
             }
         }
         ImGui::End();
@@ -144,164 +142,7 @@ namespace bluevoxel
 
             if (*face_selection)
             {
-                h2o::log::info("SELECTED");
-            }
-        }
-        else if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
-        {
-            const auto& [selected_triangle_handle, vertex_indices] = *triangle_selection;
-            m_gizmo.set_enabled(!vertex_indices.empty());
-
-            // Allow selecting triangle
-            block_model->for_each_triangle(
-                [&](const TriangleHandle& triangle_handle, Triangle& triangle)
-                {
-                    const phys::Triangle physics_triangle{
-                        triangle[0].world_pos(), triangle[1].world_pos(), triangle[2].world_pos(),
-                    };
-
-                    selection_mgr.add(physics_triangle,
-                        [this, triangle_handle](const HoverData& hover_data)
-                        {
-                            if (!hover_data.click_state.pressed_this_frame)
-                                return;
-
-                            if (auto triangle_selection = get_if<TriangleSelection>(&m_selection))
-                            {
-                                triangle_selection->triangle_handle = triangle_handle;
-                                triangle_selection->vertex_indices = {};
-                            }
-                        }
-                    );
-                }
-            );
-
-            if (selected_triangle_handle)
-            {
-                for (u32 i = 0; i < 3; i++)
-                {
-                    const bool is_selected = vertex_indices.contains(i);
-
-                    const VertexHandle vertex_handle{ *selected_triangle_handle, i };
-                    if (auto vertex = block_model->get_vertex(vertex_handle))
-                    {
-                        const v3 vertex_world_pos = vertex->world_pos();
-
-                        const f32 distance_with_camera = glm::length(camera_pos - vertex_world_pos);
-                        const f32 vertex_radius_ = vertex_radius * distance_with_camera;
-
-                        // Draw vertex
-                        renderer.draw_sphere(
-                            vertex_world_pos,
-                            vertex_radius_,
-                            is_selected ? selected_vertex_color : unselected_vertex_color);
-
-                        // Allow selecting vertex
-                        selection_mgr.add(phys::Sphere{ vertex_world_pos, vertex_radius_ },
-                            [this, i, vertex_world_pos](const HoverData& hover_data)
-                            {
-                                if (!hover_data.click_state.pressed_this_frame)
-                                    return;
-
-                                if (auto* triangle_selection = std::get_if<TriangleSelection>(&m_selection))
-                                {
-                                    if (m_input_module->key_state(h2o::Key::LeftShift).held)
-                                    {
-                                        triangle_selection->vertex_indices.insert(i);
-                                        m_gizmo.set_position(vertex_world_pos);
-                                    }
-                                    else
-                                    {
-                                        triangle_selection->vertex_indices = { i };
-                                        m_gizmo.set_position(vertex_world_pos);
-                                    }
-                                }
-                            }
-                        );
-
-                        if (is_selected)
-                        {
-                            vertex->position = glm::clamp(
-                                vertex->position + gizmo_delta,
-                                0,
-                                h2o::voxel_constants::max_coord_value_per_block);
-                        }
-                    }
-                }
-            }
-        }
-        else if (auto vertex_selection = get_if<VertexSelection>(&m_selection))
-        {
-            auto& selected_positions = *vertex_selection;
-            m_gizmo.set_enabled(!selected_positions.empty());
-
-            block_model->for_each_vertex(
-                [&](const VertexHandle& vertex_handle, Vertex& vertex)
-                {
-                    const bool is_selected = selected_positions.contains(vertex.position);
-
-                    const v3 vertex_world_pos = vertex.world_pos();
-
-                    const f32 distance_with_camera = glm::length(camera_pos - vertex_world_pos);
-                    const f32 vertex_radius_ = vertex_radius * distance_with_camera;
-
-                    // Draw vertex
-                    renderer.draw_sphere(
-                        vertex_world_pos,
-                        vertex_radius_,
-                        is_selected ? selected_vertex_color : unselected_vertex_color);
-
-                    // Allow selecting vertex
-                    selection_mgr.add(phys::Sphere{ vertex_world_pos, vertex_radius_ },
-                        [this, vertex_world_pos, vertex](const HoverData& hover_data)
-                        {
-                            if (!hover_data.click_state.pressed_this_frame)
-                                return;
-
-                            if (auto* selected_positions = std::get_if<VertexSelection>(&m_selection))
-                            {
-                                if (m_input_module->key_state(h2o::Key::LeftShift).held)
-                                {
-                                    selected_positions->insert(vertex.position);
-                                    m_gizmo.set_position(vertex_world_pos);
-                                }
-                                else
-                                {
-                                    *selected_positions = { vertex.position };
-                                    m_gizmo.set_position(vertex_world_pos);
-                                }
-                            }
-                        }
-                    );
-
-                    if (is_selected)
-                    {
-                        vertex.position = glm::clamp(
-                            vertex.position + gizmo_delta,
-                            0,
-                            h2o::voxel_constants::max_coord_value_per_block);
-                    }
-                }
-            );
-
-            if (gizmo_delta != v3i{})
-            {
-                // Translate all selected positions
-                std::vector<v3i> positions_before_translate{};
-                positions_before_translate.reserve(selected_positions.size());
-
-                for (const v3i& selected_position : selected_positions)
-                    positions_before_translate.push_back(selected_position);
-
-                selected_positions.clear();
-                for (const v3i& position : positions_before_translate)
-                {
-                    selected_positions.insert(
-                        glm::clamp(
-                            position + gizmo_delta,
-                            0,
-                            h2o::voxel_constants::max_coord_value_per_block));
-                }
+//                h2o::log::info("SELECTED");
             }
         }
         else
