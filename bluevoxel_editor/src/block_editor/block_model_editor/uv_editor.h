@@ -25,7 +25,9 @@ namespace bluevoxel
         bool update(
             h2o::UncookedBlockModel& block_model,
             const h2o::VoxelPack& voxel_pack,
-            const h2o::BlockType& block_type);
+            const h2o::BlockType& block_type,
+            const h2o::UncookedBlockModel::TriangleHandle& triangle_handle,
+            const std::unordered_set<u32>& vertex_indices);
 
     private:
 

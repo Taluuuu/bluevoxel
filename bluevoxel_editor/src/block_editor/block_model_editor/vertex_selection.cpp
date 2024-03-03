@@ -27,6 +27,9 @@ namespace bluevoxel
                 m_selections.clear();
             }
         );
+
+        m_gizmo.increment_size = 1.0f / h2o::voxel_constants::max_coord_value_per_block;
+        m_gizmo.bounds = Gizmo::Bounds{ v3{ 0.0f }, v3{ 1.0f } };
     }
 
     bool VertexSelection::update(
@@ -37,7 +40,7 @@ namespace bluevoxel
         auto& selection_mgr = m_model_editor->workspace().selection_mgr();
 
         m_gizmo.set_enabled(!m_selections.empty());
-        const v3i gizmo_delta = m_gizmo.movement_delta();
+        const v3i gizmo_delta{ m_gizmo.movement_delta() * f32(h2o::voxel_constants::max_coord_value_per_block) };
 
         auto& renderer = m_rendering_module->renderer();
         const auto& camera = renderer.camera();

@@ -3,6 +3,7 @@
 #include "block_model_selection.h"
 #include "gizmo.h"
 #include "selection_manager.h"
+#include "uv_editor.h"
 #include "voxel/uncooked_block_model.h"
 
 #include <glm/gtx/hash.hpp>
@@ -38,6 +39,7 @@ namespace bluevoxel
             std::unordered_set<u32> vertex_indices{};
         } m_selection{};
 
+        UVEditor m_uv_editor{};
         Gizmo m_gizmo;
 
         BlockModelEditor* const m_model_editor = nullptr;

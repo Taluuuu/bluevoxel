@@ -30,6 +30,9 @@ namespace bluevoxel
                 m_selection.vertex_indices = {};
             }
         );
+
+        m_gizmo.increment_size = 1.0f / h2o::voxel_constants::max_coord_value_per_block;
+        m_gizmo.bounds = Gizmo::Bounds{ v3{ 0.0f }, v3{ 1.0f } };
     }
 
     bool TriangleSelection::update(
@@ -40,7 +43,7 @@ namespace bluevoxel
         auto& selection_mgr = m_model_editor->workspace().selection_mgr();
 
         m_gizmo.set_enabled(!m_selection.vertex_indices.empty());
-        const v3i gizmo_delta = m_gizmo.movement_delta();
+        const v3i gizmo_delta{ m_gizmo.movement_delta() * f32(h2o::voxel_constants::max_coord_value_per_block) };
 
         auto& renderer = m_rendering_module->renderer();
         const auto& camera = renderer.camera();
@@ -115,6 +118,19 @@ namespace bluevoxel
                             h2o::voxel_constants::max_coord_value_per_block);
                     }
                 }
+            }
+        }
+
+        if (m_selection.triangle_handle)
+        {
+            if (m_uv_editor.update(
+                block_model,
+                voxel_pack,
+                block_type,
+                *m_selection.triangle_handle,
+                m_selection.vertex_indices))
+            {
+                return true;
             }
         }
 

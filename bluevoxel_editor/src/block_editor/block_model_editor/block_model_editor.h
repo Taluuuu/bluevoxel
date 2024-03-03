@@ -4,10 +4,9 @@
 #include "core/events.h"
 #include "core/tickable.h"
 #include "gizmo.h"
-#include "uv_editor.h"
 #include "voxel/block_model.h"
 
-#include "glm/gtx/hash.hpp"
+#include <glm/gtx/hash.hpp>
 #include <unordered_set>
 #include <variant>
 
@@ -21,7 +20,6 @@ namespace h2o
         class IRenderer;
     }
 
-    class InputModule;
     class RenderingModule;
     class VoxelModule;
 }
@@ -29,6 +27,7 @@ namespace h2o
 namespace bluevoxel
 {
     class BlockEditorWorkspace;
+    class IBlockModelSelection;
 
     class BlockModelEditor : public h2o::Tickable
     {
@@ -39,10 +38,6 @@ namespace bluevoxel
 
         [[nodiscard]] BlockEditorWorkspace& workspace() const;
 
-    public:
-
-
-
     protected:
 
         // h2o::Tickable interface
@@ -52,11 +47,7 @@ namespace bluevoxel
 
     private:
 
-        Gizmo m_gizmo;
-
-        SelectionTypes m_selection{};
-
-        UVEditor m_uv_editor{};
+        std::shared_ptr<IBlockModelSelection> m_selection{};
 
         BlockEditorWorkspace* const m_workspace = nullptr;
 
@@ -64,7 +55,6 @@ namespace bluevoxel
         h2o::EventHandle m_on_clicked_nothing_event_handle{};
 
         // Module refs
-        h2o::InputModule*     const m_input_module     = nullptr;
         h2o::RenderingModule* const m_rendering_module = nullptr;
         h2o::VoxelModule*     const m_voxel_module     = nullptr;
 
