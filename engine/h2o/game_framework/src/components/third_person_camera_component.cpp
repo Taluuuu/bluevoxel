@@ -21,23 +21,26 @@ namespace h2o
         if (!m_input)
             return;
 
-        // Camera scroll
-        distance_with_actor -= distance_with_actor * scroll_zoom_factor * m_input->get_axis("cam_zoom");
-        distance_with_actor = glm::clamp(distance_with_actor, min_distance_with_actor, max_distance_with_actor);
+        // Don't rotate camera if a higher priority mouse capture is active
+        bool can_control = false;
+        if (const auto mouse_capture_priority = m_input->mouse_capture_priority())
+            can_control = *mouse_capture_priority <= MouseCapturePriority::Camera;
 
-        bool wants_control = true;
-        if (rotation_mouse_button)
-            wants_control = m_input->mouse_button_state(*rotation_mouse_button).held;
-
-        m_input->set_capture_mouse(MouseCapturePriority::Camera, wants_control);
-
-        if (wants_control)
+        if (can_control)
         {
-            // Don't rotate camera if a higher priority mouse capture is active
-            bool can_control = false;
-            if (const auto mouse_capture_priority = m_input->mouse_capture_priority())
-                can_control = *mouse_capture_priority <= MouseCapturePriority::Camera;
+            // Camera scroll
+            distance_with_actor -= distance_with_actor * scroll_zoom_factor * m_input->get_axis("cam_zoom");
+            distance_with_actor = glm::clamp(distance_with_actor, min_distance_with_actor, max_distance_with_actor);
+        }
 
+        bool wants_rotate = true;
+        if (rotation_mouse_button)
+            wants_rotate = m_input->mouse_button_state(*rotation_mouse_button).held;
+
+        m_input->set_capture_mouse(MouseCapturePriority::Camera, wants_rotate);
+
+        if (wants_rotate)
+        {
             if (can_control)
             {
                 // Camera rotation
