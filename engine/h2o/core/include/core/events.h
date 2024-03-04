@@ -15,6 +15,8 @@ namespace h2o
     {
     public:
 
+        virtual ~EventBase() = default;
+
         virtual void remove_listener(const EventHandle& event_handle) = 0;
 
     };
@@ -82,7 +84,7 @@ namespace h2o
         Event() = default;
         Event(const Event&) = delete;
         Event(Event&&) = delete;
-        ~Event()
+        ~Event() override
         {
             for (u32 i = 0; i < m_listeners.size(); i++)
                 remove_listener_impl(m_listeners[i].handle_id);

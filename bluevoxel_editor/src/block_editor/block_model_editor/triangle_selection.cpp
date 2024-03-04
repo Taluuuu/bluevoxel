@@ -8,10 +8,13 @@
 #include "rendering/camera.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
+#include "ui/imgui.h"
 #include "voxel/uncooked_block_model.h"
 
 namespace bluevoxel
 {
+    using FaceHandle = h2o::UncookedBlockModel::FaceHandle;
+    using Face = h2o::UncookedBlockModel::Face;
     using TriangleHandle = h2o::UncookedBlockModel::TriangleHandle;
     using Triangle = h2o::UncookedBlockModel::Triangle;
     using VertexHandle = h2o::UncookedBlockModel::VertexHandle;
@@ -70,6 +73,30 @@ namespace bluevoxel
             }
         );
 
+        // Triangle selector UI
+        block_model.for_each_face(
+            [&](const FaceHandle& face_handle, const Face& face)
+            {
+                ImGui::BeginChild(fmt::format("Face {}", face_handle.face_index).c_str(), { 0, 75 }, true);
+
+                if (ImGui::BeginTable(fmt::format("Face {} Triangles", face_handle.face_index).c_str(), 1))
+                {
+                    ImGui::TableNextRow();
+
+                    u32 triangle_index = 0;
+                    for (const auto& triangle : face)
+                    {
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Triangle %i", triangle_index++);
+                    }
+
+                    ImGui::EndTable();
+                }
+
+                ImGui::EndChild();
+            }
+        );
+
         if (m_selection.triangle_handle)
         {
             for (u32 i = 0; i < 3; i++)
@@ -119,10 +146,8 @@ namespace bluevoxel
                     }
                 }
             }
-        }
 
-        if (m_selection.triangle_handle)
-        {
+            // UV Editor
             if (m_uv_editor.update(
                 block_model,
                 voxel_pack,

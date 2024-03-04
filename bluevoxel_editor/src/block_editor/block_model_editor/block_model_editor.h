@@ -3,8 +3,6 @@
 #include "block_model_selections.h"
 #include "core/events.h"
 #include "core/tickable.h"
-#include "gizmo.h"
-#include "voxel/block_model.h"
 
 #include <glm/gtx/hash.hpp>
 #include <unordered_set>
@@ -15,13 +13,13 @@ namespace h2o
     struct BlockModel;
     struct BlockVertex;
 
+    class RenderingModule;
+    class VoxelModule;
+
     namespace gfx
     {
         class IRenderer;
     }
-
-    class RenderingModule;
-    class VoxelModule;
 }
 
 namespace bluevoxel
