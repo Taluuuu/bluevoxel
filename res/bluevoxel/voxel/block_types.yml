@@ -43,3 +43,24 @@ block_types:
       - stone_block.png
       - stone_block.png
       - stone_block.png
+  - name: barrel
+    preset: normal
+    id: 5
+    model: barrel
+    textures:
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png
+      - burnt_sugarlight.png

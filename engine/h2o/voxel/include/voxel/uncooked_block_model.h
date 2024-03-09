@@ -15,7 +15,7 @@ namespace h2o
 
         UncookedBlockModel() = default;
 
-        [[nodiscard]] h2o::BlockModel build() const;
+        [[nodiscard]] BlockModel build() const;
 
         [[nodiscard]] u32 face_count() const { return m_faces.size(); }
 
@@ -63,6 +63,10 @@ namespace h2o
         };
 
         void add_face(const Face& face);
+        void add_triangle(FaceHandle face_handle, const Triangle& triangle);
+
+        void delete_face(FaceHandle face_handle);
+        void delete_triangle(const TriangleHandle& triangle_handle);
 
         void for_each_face(const std::function<void(FaceHandle, const Face&)>& function) const;
         void for_each_face(const std::function<void(FaceHandle, Face&)>& function);

@@ -73,9 +73,23 @@ namespace bluevoxel
                     m_block_preset_names_c_str.data(), m_block_preset_names_c_str.size()))
                     voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
 
+                ImGui::Columns(2, nullptr, false);
+
+                ImGui::SetColumnWidth(0, ImGui::GetWindowWidth() * 0.8f);
+
                 if (ImGui::Combo("Block Model", (i32*)(&edited_block_type->model_id), m_block_model_names_c_str.data(),
                     m_block_model_names_c_str.size()))
                     voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
+
+                ImGui::NextColumn();
+
+                if (ImGui::Button("+"))
+                {
+                    m_new_block_model_name_edit = "new_model";
+                    ImGui::OpenPopup("Name New Model");
+                }
+
+                ImGui::Columns();
 
                 if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen))
                 {
@@ -83,7 +97,7 @@ namespace bluevoxel
                     {
                         for (u32 i = 0; i < model->face_count(); i++)
                         {
-                            if (ImGui::Combo(fmt::format("Face {}", i).c_str(), (i32*) (&edited_block_type->texture_ids[i]),
+                            if (ImGui::Combo(fmt::format("Face {}", i).c_str(), (i32*)(&edited_block_type->texture_ids[i]),
                                 m_texture_names_c_str.data(), m_texture_names_c_str.size()))
                                 voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
                         }
@@ -104,6 +118,24 @@ namespace bluevoxel
                     edited_block_type->name = m_selected_block_name_edit;
                     voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
 
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button("Cancel"))
+                    ImGui::CloseCurrentPopup();
+
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::BeginPopupModal("Name New Model"))
+            {
+                ImGui::InputText("New Name", &m_new_block_model_name_edit);
+
+                if (ImGui::Button("Confirm"))
+                {
+                    voxel_pack->create_block_model(m_new_block_model_name_edit);
                     ImGui::CloseCurrentPopup();
                 }
 

@@ -85,7 +85,7 @@ namespace h2o
 
             m_block_models[model_id] = uncooked_model.build();
 
-            on_voxel_pack_updated.broadcast({*this});
+            on_voxel_pack_updated.broadcast({ *this });
         }
     }
 
@@ -93,6 +93,55 @@ namespace h2o
     {
         for (const auto& model : m_uncooked_block_models)
             function(model);
+    }
+
+    u32 VoxelPack::create_block_model(const std::string& name)
+    {
+        const u32 model_id = m_uncooked_block_models.size();
+        auto& new_model = m_uncooked_block_models.emplace_back();
+        new_model.name = name;
+        new_model.id = model_id;
+
+        m_block_models.emplace_back(new_model.build());
+        on_voxel_pack_updated.broadcast({ *this });
+
+        return model_id;
+    }
+
+    void VoxelPack::add_face_to_model(u32 model_id, const UncookedBlockModel::Face& face)
+    {
+        if (model_id < m_uncooked_block_models.size())
+        {
+            m_uncooked_block_models[model_id].add_face(face);
+
+            for (auto& block_type : m_block_types)
+            {
+                if (block_type && block_type->model_id == model_id)
+                    block_type->texture_ids.push_back(0);
+            }
+
+            on_voxel_pack_updated.broadcast({ *this });
+        }
+    }
+
+    void VoxelPack::remove_face_from_model(u32 model_id, UncookedBlockModel::FaceHandle face_handle)
+    {
+        if (model_id < m_uncooked_block_models.size())
+        {
+            auto& block_model = m_uncooked_block_models[model_id];
+            block_model.delete_face(face_handle);
+            m_block_models[model_id] = block_model.build();
+
+            for (auto& block_type : m_block_types)
+            {
+                if (!block_type || block_type->model_id != model_id)
+                    continue;
+
+                block_type->texture_ids.erase(block_type->texture_ids.cbegin() + face_handle.face_index);
+            }
+
+            on_voxel_pack_updated.broadcast({ *this });
+        }
     }
 
     const BlockModel* VoxelPack::get_block_model(u32 model_id) const
@@ -107,69 +156,8 @@ namespace h2o
     {
         try
         {
-            YAML::Emitter yaml{};
-
-            yaml << YAML::BeginMap;
-
-                yaml << YAML::Key << "block_types";
-                yaml << YAML::Value;
-
-                yaml << YAML::BeginSeq;
-
-                    for (const auto& block_type : m_block_types)
-                    {
-                        if (!block_type || block_type->block_id == 0)
-                            continue;
-
-                        yaml << YAML::BeginMap;
-
-                            yaml << YAML::Key << "name";
-                            yaml << YAML::Value << block_type->name;
-
-                            auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
-                            if (const auto preset_name = voxel_module.find_block_preset_name(block_type->preset_id))
-                            {
-                                yaml << YAML::Key << "preset";
-                                yaml << YAML::Value << *preset_name;
-                            }
-
-                            yaml << YAML::Key << "id";
-                            yaml << YAML::Value << block_type->block_id;
-
-                            yaml << YAML::Key << "model";
-                            yaml << YAML::Value << m_block_models[block_type->model_id].name;
-
-                            yaml << YAML::Key << "textures";
-                            yaml << YAML::Value;
-
-                            yaml << YAML::BeginSeq;
-
-                                for (u32 texture_id : block_type->texture_ids)
-                                {
-                                    // Find texture name with id texture_id
-                                    const auto it = std::find_if(m_texture_ids.begin(), m_texture_ids.end(),
-                                        [&](const auto& item)
-                                        { return item.second == texture_id; }
-                                    );
-
-                                    if (it != m_texture_ids.end())
-                                        yaml << it->first;
-                                }
-
-                            yaml << YAML::EndSeq;
-
-                        yaml << YAML::EndMap;
-                    }
-
-                yaml << YAML::EndSeq;
-
-            yaml << YAML::EndMap;
-
-            const auto block_types_path = m_path / block_types_file_name;
-            std::ofstream file(block_types_path.string());
-            file << yaml.c_str();
-
-            log::info("Saved block types to file at '{}'", absolute(block_types_path).string());
+            save_block_types();
+            save_block_models();
         }
         catch(const std::exception& e)
         {
@@ -372,5 +360,151 @@ namespace h2o
         }
 
         return result;
+    }
+
+    void VoxelPack::save_block_types() const
+    {
+        YAML::Emitter yaml{};
+
+        yaml << YAML::BeginMap;
+
+        yaml << YAML::Key << "block_types";
+        yaml << YAML::Value;
+
+        yaml << YAML::BeginSeq;
+
+        for (const auto& block_type : m_block_types)
+        {
+            if (!block_type || block_type->block_id == 0)
+                continue;
+
+            yaml << YAML::BeginMap;
+
+            yaml << YAML::Key << "name";
+            yaml << YAML::Value << block_type->name;
+
+            auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
+            if (const auto preset_name = voxel_module.find_block_preset_name(block_type->preset_id))
+            {
+                yaml << YAML::Key << "preset";
+                yaml << YAML::Value << *preset_name;
+            }
+
+            yaml << YAML::Key << "id";
+            yaml << YAML::Value << block_type->block_id;
+
+            yaml << YAML::Key << "model";
+            yaml << YAML::Value << m_block_models[block_type->model_id].name;
+
+            yaml << YAML::Key << "textures";
+            yaml << YAML::Value;
+
+            yaml << YAML::BeginSeq;
+
+            for (u32 texture_id : block_type->texture_ids)
+            {
+                // Find texture name with id texture_id
+                const auto it = std::find_if(m_texture_ids.begin(), m_texture_ids.end(),
+                    [&](const auto& item)
+                    { return item.second == texture_id; }
+                );
+
+                if (it != m_texture_ids.end())
+                    yaml << it->first;
+            }
+
+            yaml << YAML::EndSeq;
+
+            yaml << YAML::EndMap;
+        }
+
+        yaml << YAML::EndSeq;
+
+        yaml << YAML::EndMap;
+
+        const auto block_types_path = m_path / block_types_file_name;
+        std::ofstream file(block_types_path.string());
+        file << yaml.c_str();
+
+        log::info("Saved block types to file at '{}'", absolute(block_types_path).string());
+
+    }
+
+    void VoxelPack::save_block_models() const
+    {
+        YAML::Emitter yaml{};
+
+        yaml << YAML::BeginMap;
+
+        yaml << YAML::Key << "block_models";
+        yaml << YAML::Value;
+
+        yaml << YAML::BeginSeq;
+
+        for (const auto& block_model : m_uncooked_block_models)
+        {
+            if (!block_model.id)
+                continue;
+
+            yaml << YAML::BeginMap;
+
+            yaml << YAML::Key << "name";
+            yaml << YAML::Value << block_model.name;
+
+            yaml << YAML::Key << "faces";
+            yaml << YAML::Value;
+
+            yaml << YAML::BeginSeq;
+
+            block_model.for_each_face(
+                [&](UncookedBlockModel::FaceHandle face_handle, const UncookedBlockModel::Face& face)
+                {
+                    yaml << YAML::BeginMap;
+
+                    yaml << YAML::Key << "triangles";
+                    yaml << YAML::Value;
+
+                    yaml << YAML::BeginSeq;
+
+                    for (const auto& triangle : face)
+                    {
+                        yaml << YAML::Flow << YAML::BeginSeq;
+
+                        for (const auto& vertex : triangle.vertices)
+                        {
+                            yaml << YAML::Flow << YAML::BeginSeq;
+
+                            yaml << vertex.position.x;
+                            yaml << vertex.position.y;
+                            yaml << vertex.position.z;
+                            yaml << vertex.uv.x;
+                            yaml << vertex.uv.y;
+
+                            yaml << YAML::EndSeq;
+                        }
+
+                        yaml << YAML::EndSeq;
+                    }
+
+                    yaml << YAML::EndSeq;
+
+                    yaml << YAML::EndMap;
+                }
+            );
+
+            yaml << YAML::EndSeq;
+
+            yaml << YAML::EndMap;
+        }
+
+        yaml << YAML::EndSeq;
+
+        yaml << YAML::EndMap;
+
+        const auto block_models_path = m_path / block_models_file_name;
+        std::ofstream file(block_models_path.string());
+        file << yaml.c_str();
+
+        log::info("Saved block models to file at '{}'", absolute(block_models_path).string());
     }
 }

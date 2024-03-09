@@ -46,6 +46,9 @@ namespace h2o
         [[nodiscard]] UncookedBlockModel* get_uncooked_block_model(u32 model_id);
         void build_block_model(u32 model_id);
         void for_each_uncooked_block_model(const std::function<void(const UncookedBlockModel&)>& function) const;
+        u32 create_block_model(const std::string& name);
+        void add_face_to_model(u32 model_id, const UncookedBlockModel::Face& face);
+        void remove_face_from_model(u32 model_id, UncookedBlockModel::FaceHandle face_handle);
 
         // Block models
         // Only needs a getter; the only time we should access this is for rendering, as uncooked
@@ -72,6 +75,9 @@ namespace h2o
         static std::optional<UncookedBlockModelList> load_block_models(const fs::path& path);
         static std::optional<BlockTypeList> load_block_types(
             const fs::path& path, const UncookedBlockModelList& block_models, const TextureNameIdMap& texture_id_map);
+
+        void save_block_types() const;
+        void save_block_models() const;
 
     private:
 

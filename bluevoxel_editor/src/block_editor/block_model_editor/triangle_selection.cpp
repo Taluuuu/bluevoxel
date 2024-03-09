@@ -10,6 +10,8 @@
 #include "rendering/rendering_module.h"
 #include "ui/imgui.h"
 #include "voxel/uncooked_block_model.h"
+#include "voxel/voxel_module.h"
+#include "voxel/voxel_pack.h"
 
 namespace bluevoxel
 {
@@ -180,6 +182,12 @@ namespace bluevoxel
             should_rebuild_model = true;
         }
 
+        if (ImGui::Button("Create Face"))
+        {
+            if (const auto& voxel_pack = g_engine->get_module_checked<h2o::VoxelModule>().voxel_pack())
+                voxel_pack->add_face_to_model(block_model.id, {});
+        }
+
         block_model.for_each_face(
             [&](const FaceHandle& face_handle, Face& face)
             {
@@ -193,7 +201,13 @@ namespace bluevoxel
 
                 if (ImGui::Button(fmt::format("Create Triangle###create_{}", face_handle.face_index).c_str()))
                 {
-                    // TODO...
+                    block_model.add_triangle(face_handle, Triangle{
+                        {
+                            Vertex{ { 16, 0,  8 }, { 16, 16 } },
+                            Vertex{ { 16, 16, 8 }, { 16, 0  } },
+                            Vertex{ { 0,  16, 8 }, { 0,  0  } },
+                        }, false });
+
                     should_rebuild_model = true;
                 }
 
@@ -201,7 +215,9 @@ namespace bluevoxel
 
                 if (ImGui::Button(fmt::format("Delete Face###delete_face_{}", face_handle.face_index).c_str()))
                 {
-                    // TODO...
+                    if (const auto& voxel_pack = g_engine->get_module_checked<h2o::VoxelModule>().voxel_pack())
+                        voxel_pack->remove_face_from_model(block_model.id, face_handle);
+
                     should_rebuild_model = true;
                 }
 
@@ -233,7 +249,7 @@ namespace bluevoxel
                         ImGui::TableNextColumn();
                         if (ImGui::Button(fmt::format("Delete###delete_triangle_{}", triangle_index).c_str()))
                         {
-                            // TODO...
+                            block_model.delete_triangle(triangle_handle);
                             should_rebuild_model = true;
                         }
 

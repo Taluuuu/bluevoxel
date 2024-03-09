@@ -51,9 +51,10 @@ namespace h2o
         return triangle;
     }
 
-    h2o::BlockModel UncookedBlockModel::build() const
+    BlockModel UncookedBlockModel::build() const
     {
-        h2o::BlockModel result{};
+        BlockModel result{};
+        result.name = name;
 
         u32 face_index = 0;
         for (const auto& face : m_faces)
@@ -123,6 +124,27 @@ namespace h2o
     void UncookedBlockModel::add_face(const UncookedBlockModel::Face& face)
     {
         m_faces.push_back(face);
+    }
+
+    void UncookedBlockModel::add_triangle(UncookedBlockModel::FaceHandle face_handle, const UncookedBlockModel::Triangle& triangle)
+    {
+        if (auto face = get_face(face_handle))
+            face->push_back(triangle);
+    }
+
+    void UncookedBlockModel::delete_face(UncookedBlockModel::FaceHandle face_handle)
+    {
+        if (face_handle.face_index < m_faces.size())
+            m_faces.erase(m_faces.cbegin() + face_handle.face_index);
+    }
+
+    void UncookedBlockModel::delete_triangle(const UncookedBlockModel::TriangleHandle& triangle_handle)
+    {
+        if (auto face = get_face(triangle_handle.face_handle))
+        {
+            if (triangle_handle.triangle_index < face->size())
+                face->erase(face->cbegin() + triangle_handle.triangle_index);
+        }
     }
 
     void UncookedBlockModel::for_each_face(const std::function<void(FaceHandle, const Face&)>& function) const
