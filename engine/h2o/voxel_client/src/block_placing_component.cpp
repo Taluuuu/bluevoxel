@@ -83,7 +83,7 @@ namespace h2o
 
             if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
             {
-                chunk_mgr.set_block_at(before_hit_voxel.pos, Block { 2 }, true);
+                chunk_mgr.set_block_at(before_hit_voxel.pos, Block { 5 }, true);
             }
         }
     }
