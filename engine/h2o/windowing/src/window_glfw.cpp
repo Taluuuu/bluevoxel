@@ -49,6 +49,9 @@ namespace h2o
         glfwSetMouseButtonCallback(m_handle, mouse_button_callback);
         glfwSetCursorPosCallback(m_handle, mouse_moved_callback);
         glfwSetScrollCallback(m_handle, mouse_scroll_callback);
+
+        if (glfwRawMouseMotionSupported())
+            glfwSetInputMode(m_handle, GLFW_RAW_MOUSE_MOTION, GL_TRUE);
     }
 
     Window_GLFW::Window_GLFW(Window_GLFW&& other) noexcept

@@ -28,7 +28,12 @@ namespace h2o
             { return v3{ position } / f32(h2o::voxel_constants::max_coord_value_per_block); }
         };
 
-        using Triangle = std::array<Vertex, 3>;
+        struct Triangle
+        {
+            std::array<Vertex, 3> vertices{};
+            bool is_hidden = false;
+        };
+
         using Face = std::vector<Triangle>;
 
         struct FaceHandle
@@ -101,5 +106,12 @@ namespace YAML
     {
         static Node encode(const UncookedBlockModel::Vertex& rhs);
         static bool decode(const Node& node, UncookedBlockModel::Vertex& rhs);
+    };
+
+    template<>
+    struct convert<UncookedBlockModel::Triangle>
+    {
+        static Node encode(const UncookedBlockModel::Triangle& rhs);
+        static bool decode(const Node& node, UncookedBlockModel::Triangle& rhs);
     };
 }

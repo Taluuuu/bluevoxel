@@ -61,7 +61,6 @@ namespace h2o
         std::vector<KeyState> m_mouse_button_states;
         v2 m_mouse_pos{}, m_mouse_delta{}, m_scroll_delta{};
         PriorityValue<MouseCapturePriority, bool> m_mouse_capture_state{};
-        i32 m_mouse_move_frames_to_ignore = 0;
 
         // Input configuration
         struct KeyAxis { Key positive, negative; };

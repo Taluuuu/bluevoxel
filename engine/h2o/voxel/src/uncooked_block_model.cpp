@@ -9,9 +9,9 @@ namespace h2o
     {
         BlockModel::Triangle triangle{};
 
-        const auto& v0 = unprocessed_triangle[0];
-        const auto& v1 = unprocessed_triangle[1];
-        const auto& v2 = unprocessed_triangle[2];
+        const auto& v0 = unprocessed_triangle.vertices[0];
+        const auto& v1 = unprocessed_triangle.vertices[1];
+        const auto& v2 = unprocessed_triangle.vertices[2];
 
         const v3i& p0 = v0.position;
         const v3i& p1 = v1.position;
@@ -33,7 +33,7 @@ namespace h2o
 
         for (i32 vertex_index = 0; vertex_index < 3; vertex_index++)
         {
-            const auto& vertex = unprocessed_triangle[vertex_index];
+            const auto& vertex = unprocessed_triangle.vertices[vertex_index];
             triangle[vertex_index] =
                 BlockVertex
                 {
@@ -60,6 +60,9 @@ namespace h2o
         {
             for (const auto& triangle : face)
             {
+                if (triangle.is_hidden)
+                    continue;
+
                 using namespace h2o;
 
                 voxel::Direction::Type triangle_occluding_directions = voxel::Direction::All;
@@ -71,7 +74,7 @@ namespace h2o
                     const auto dir = voxel::to_direction(axis);
                     const auto inv_dir = voxel::invert(dir);
 
-                    for (const auto& vertex : triangle)
+                    for (const auto& vertex : triangle.vertices)
                     {
                         if (vertex.position[axis_index] > 0)
                         {
@@ -183,7 +186,7 @@ namespace h2o
             for (const auto& triangle : face)
             {
                 for (u32 i = 0; i < 3; i++)
-                    function(VertexHandle{ face_index, triangle_index, i }, triangle[i]);
+                    function(VertexHandle{ face_index, triangle_index, i }, triangle.vertices[i]);
 
                 triangle_index++;
             }
@@ -201,7 +204,7 @@ namespace h2o
             for (auto& triangle : face)
             {
                 for (u32 i = 0; i < 3; i++)
-                    function(VertexHandle{ face_index, triangle_index, i }, triangle[i]);
+                    function(VertexHandle{ face_index, triangle_index, i }, triangle.vertices[i]);
 
                 triangle_index++;
             }
@@ -255,8 +258,8 @@ namespace h2o
         const auto [triangle_handle, vertex_index] = vertex_handle;
         if (const auto triangle = get_triangle(triangle_handle))
         {
-            if (vertex_index < triangle->size())
-                return &(*triangle)[vertex_index];
+            if (vertex_index < triangle->vertices.size())
+                return &triangle->vertices[vertex_index];
         }
 
         return nullptr;
@@ -267,8 +270,8 @@ namespace h2o
         const auto [triangle_handle, vertex_index] = vertex_handle;
         if (auto triangle = get_triangle(triangle_handle))
         {
-            if (vertex_index < triangle->size())
-                return &(*triangle)[vertex_index];
+            if (vertex_index < triangle->vertices.size())
+                return &triangle->vertices[vertex_index];
         }
 
         return nullptr;
@@ -318,6 +321,25 @@ namespace YAML
         rhs.position.z = node[2].as<i32>();
         rhs.uv.x = node[3].as<i32>();
         rhs.uv.y = node[4].as<i32>();
+
+        return true;
+    }
+
+    Node convert<UncookedBlockModel::Triangle>::encode(const UncookedBlockModel::Triangle& rhs)
+    {
+        // TODO :))
+        return Node{};
+    }
+
+    bool convert<UncookedBlockModel::Triangle>::decode(const Node& node, UncookedBlockModel::Triangle& rhs)
+    {
+        if (!node.IsSequence() || node.size() != 3)
+            return false;
+
+        rhs.vertices[0] = node[0].as<UncookedBlockModel::Vertex>();
+        rhs.vertices[1] = node[1].as<UncookedBlockModel::Vertex>();
+        rhs.vertices[2] = node[2].as<UncookedBlockModel::Vertex>();
+        rhs.is_hidden = false;
 
         return true;
     }

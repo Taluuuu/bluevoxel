@@ -78,7 +78,7 @@ namespace bluevoxel
         {
             for (u32 i = 0; i < 3; i++)
             {
-                const auto& vertex = (*triangle)[i];
+                const auto& vertex = triangle->vertices[i];
                 uv_positions[i] = to_window_pos(vertex.uv);
             }
         }
@@ -109,7 +109,7 @@ namespace bluevoxel
                 const v2i new_uv = to_uv(mouse_pos);
                 if (auto triangle = block_model.get_triangle(triangle_handle))
                 {
-                    (*triangle)[*m_selected_vertex_index].uv = new_uv;
+                    triangle->vertices[*m_selected_vertex_index].uv = new_uv;
                     uv_has_changed = true;
                 }
             }

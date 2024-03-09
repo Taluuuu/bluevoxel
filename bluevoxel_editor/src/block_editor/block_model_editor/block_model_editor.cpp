@@ -83,9 +83,12 @@ namespace bluevoxel
         block_model.for_each_triangle(
             [&](const TriangleHandle& triangle_handle, const Triangle& triangle)
             {
-                const v3 p1 { triangle[0].position };
-                const v3 p2 { triangle[1].position };
-                const v3 p3 { triangle[2].position };
+                if (triangle.is_hidden)
+                    return;
+
+                const v3 p1 { triangle.vertices[0].position };
+                const v3 p2 { triangle.vertices[1].position };
+                const v3 p3 { triangle.vertices[2].position };
 
                 const h2o::physics::Triangle physics_triangle{
                     p1 / v3{ h2o::voxel_constants::max_coord_value_per_block },

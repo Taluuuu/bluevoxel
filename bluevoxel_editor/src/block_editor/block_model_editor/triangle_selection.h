@@ -33,6 +33,14 @@ namespace bluevoxel
 
     private:
 
+        void make_triangles_selectable(
+            SelectionManager& selection_mgr,
+            const h2o::UncookedBlockModel& block_model);
+
+        bool draw_triangle_ui(h2o::UncookedBlockModel& block_model);
+
+    private:
+
         struct
         {
             std::optional<h2o::UncookedBlockModel::TriangleHandle> triangle_handle{};

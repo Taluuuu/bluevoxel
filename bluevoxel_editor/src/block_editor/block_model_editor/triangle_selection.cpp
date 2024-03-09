@@ -43,8 +43,6 @@ namespace bluevoxel
         const h2o::BlockType& block_type,
         const h2o::VoxelPack& voxel_pack)
     {
-        auto& selection_mgr = m_model_editor->workspace().selection_mgr();
-
         m_gizmo.set_enabled(!m_selection.vertex_indices.empty());
         const v3i gizmo_delta{ m_gizmo.movement_delta() * f32(h2o::voxel_constants::max_coord_value_per_block) };
 
@@ -52,50 +50,10 @@ namespace bluevoxel
         const auto& camera = renderer.camera();
         const v3 camera_pos = camera.position();
 
-        // Allow selecting triangle
-        block_model.for_each_triangle(
-            [&](const TriangleHandle& triangle_handle, Triangle& triangle)
-            {
-                const phys::Triangle physics_triangle{
-                    triangle[0].world_pos(), triangle[1].world_pos(), triangle[2].world_pos(),
-                };
+        auto& selection_mgr = m_model_editor->workspace().selection_mgr();
+        make_triangles_selectable(selection_mgr, block_model);
 
-                selection_mgr.add(physics_triangle,
-                    [this, triangle_handle](const HoverData& hover_data)
-                    {
-                        if (!hover_data.click_state.pressed_this_frame)
-                            return;
-
-                        m_selection.triangle_handle = triangle_handle;
-                        m_selection.vertex_indices = {};
-                    }
-                );
-            }
-        );
-
-        // Triangle selector UI
-        block_model.for_each_face(
-            [&](const FaceHandle& face_handle, const Face& face)
-            {
-                ImGui::BeginChild(fmt::format("Face {}", face_handle.face_index).c_str(), { 0, 75 }, true);
-
-                if (ImGui::BeginTable(fmt::format("Face {} Triangles", face_handle.face_index).c_str(), 1))
-                {
-                    ImGui::TableNextRow();
-
-                    u32 triangle_index = 0;
-                    for (const auto& triangle : face)
-                    {
-                        ImGui::TableNextColumn();
-                        ImGui::Text("Triangle %i", triangle_index++);
-                    }
-
-                    ImGui::EndTable();
-                }
-
-                ImGui::EndChild();
-            }
-        );
+        bool should_rebuild_model = draw_triangle_ui(block_model);
 
         if (m_selection.triangle_handle)
         {
@@ -103,7 +61,7 @@ namespace bluevoxel
             {
                 const bool is_selected = m_selection.vertex_indices.contains(i);
 
-                const VertexHandle vertex_handle{ *m_selection.triangle_handle, i };
+                const VertexHandle vertex_handle{*m_selection.triangle_handle, i};
                 if (auto vertex = block_model.get_vertex(vertex_handle))
                 {
                     const v3 vertex_world_pos = vertex->world_pos();
@@ -115,10 +73,11 @@ namespace bluevoxel
                     renderer.draw_sphere(
                         vertex_world_pos,
                         vertex_radius_,
-                        is_selected ? model_editor_constants::selected_vertex_color : model_editor_constants::unselected_vertex_color);
+                        is_selected ? model_editor_constants::selected_vertex_color
+                            : model_editor_constants::unselected_vertex_color);
 
                     // Allow selecting vertex
-                    selection_mgr.add(phys::Sphere{ vertex_world_pos, vertex_radius_ },
+                    selection_mgr.add(phys::Sphere{vertex_world_pos, vertex_radius_},
                         [this, i, vertex_world_pos](const HoverData& hover_data)
                         {
                             if (!hover_data.click_state.pressed_this_frame)
@@ -131,7 +90,7 @@ namespace bluevoxel
                             }
                             else
                             {
-                                m_selection.vertex_indices = { i };
+                                m_selection.vertex_indices = {i};
                                 m_gizmo.set_position(vertex_world_pos);
                             }
                         }
@@ -147,7 +106,6 @@ namespace bluevoxel
                 }
             }
 
-            // UV Editor
             if (m_uv_editor.update(
                 block_model,
                 voxel_pack,
@@ -159,6 +117,136 @@ namespace bluevoxel
             }
         }
 
-        return gizmo_delta != v3i{};
+        return should_rebuild_model || gizmo_delta != v3i{};
+    }
+
+    void TriangleSelection::make_triangles_selectable(
+        SelectionManager& selection_mgr,
+        const h2o::UncookedBlockModel& block_model)
+    {
+        block_model.for_each_triangle(
+            [&](const TriangleHandle& triangle_handle, const Triangle& triangle)
+            {
+                if (triangle.is_hidden)
+                    return;
+
+                const phys::Triangle physics_triangle{
+                    triangle.vertices[0].world_pos(),
+                    triangle.vertices[1].world_pos(),
+                    triangle.vertices[2].world_pos(),
+                };
+
+                selection_mgr.add(physics_triangle,
+                    [this, triangle_handle](const HoverData& hover_data)
+                    {
+                        if (!hover_data.click_state.pressed_this_frame)
+                            return;
+
+                        m_selection.triangle_handle = triangle_handle;
+                        m_selection.vertex_indices = {};
+                    }
+                );
+            }
+        );
+    }
+
+    static void set_all_triangles_hidden(h2o::UncookedBlockModel& block_model, bool hidden)
+    {
+        block_model.for_each_triangle(
+            [&](const TriangleHandle& triangle_handle, Triangle& triangle)
+            {
+                triangle.is_hidden = hidden;
+            }
+        );
+    }
+
+    bool TriangleSelection::draw_triangle_ui(h2o::UncookedBlockModel& block_model)
+    {
+        if (!ImGui::CollapsingHeader("Model Faces", ImGuiTreeNodeFlags_DefaultOpen))
+            return false;
+
+        bool should_rebuild_model = false;
+        if (ImGui::Button("Hide all Triangles"))
+        {
+            set_all_triangles_hidden(block_model, true);
+            should_rebuild_model = true;
+        }
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Show all Triangles"))
+        {
+            set_all_triangles_hidden(block_model, false);
+            should_rebuild_model = true;
+        }
+
+        block_model.for_each_face(
+            [&](const FaceHandle& face_handle, Face& face)
+            {
+                ImGui::BeginChild(
+                    fmt::format("Face {}", face_handle.face_index).c_str(),
+                    { 0, 100 }, true);
+
+                ImGui::Text("Face %i", face_handle.face_index);
+
+                ImGui::SameLine();
+
+                if (ImGui::Button(fmt::format("Create Triangle###create_{}", face_handle.face_index).c_str()))
+                {
+                    // TODO...
+                    should_rebuild_model = true;
+                }
+
+                ImGui::SameLine();
+
+                if (ImGui::Button(fmt::format("Delete Face###delete_face_{}", face_handle.face_index).c_str()))
+                {
+                    // TODO...
+                    should_rebuild_model = true;
+                }
+
+                if (ImGui::BeginTable(fmt::format("Face {} Triangles", face_handle.face_index).c_str(), 4, ImGuiTableFlags_Borders))
+                {
+                    ImGui::TableNextRow();
+
+                    u32 triangle_index = 0;
+                    for (auto& triangle : face)
+                    {
+                        const TriangleHandle triangle_handle{ face_handle, triangle_index };
+
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Triangle %i", triangle_index);
+
+                        ImGui::TableNextColumn();
+                        ImGui::BeginDisabled(triangle_handle == m_selection.triangle_handle);
+                        if (ImGui::Button(fmt::format("Pick###pick_{}", triangle_index).c_str()))
+                        {
+                            m_selection.triangle_handle = triangle_handle;
+                            m_selection.vertex_indices = {};
+                        }
+                        ImGui::EndDisabled();
+
+                        ImGui::TableNextColumn();
+                        if (ImGui::Checkbox(fmt::format("Hidden###hidden_{}", triangle_index).c_str(), &triangle.is_hidden))
+                            should_rebuild_model = true;
+
+                        ImGui::TableNextColumn();
+                        if (ImGui::Button(fmt::format("Delete###delete_triangle_{}", triangle_index).c_str()))
+                        {
+                            // TODO...
+                            should_rebuild_model = true;
+                        }
+
+                        triangle_index++;
+                    }
+
+                    ImGui::EndTable();
+                }
+
+                ImGui::EndChild();
+            }
+        );
+
+        return should_rebuild_model;
     }
 }

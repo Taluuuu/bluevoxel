@@ -43,15 +43,6 @@ namespace h2o
                 if (is_mouse_captured())
                     m_mouse_delta = evt.new_position - m_mouse_pos;
 
-                // Hack to fix mouse jumping when spamming capture/release mouse
-                // while moving the mouse. Somehow sometimes a high delta is
-                // calculated by GLFW over two frames. This fixes it.
-                if (m_mouse_move_frames_to_ignore > 0)
-                {
-                    m_mouse_delta = {};
-                    m_mouse_move_frames_to_ignore--;
-                }
-
                 m_mouse_pos = evt.new_position;
             });
 
@@ -173,12 +164,7 @@ namespace h2o
         const bool is_captured = m_mouse_capture_state.get().value_or(false);
 
         if (was_captured != is_captured)
-        {
             m_windowing_module->window().set_capture_mouse(is_captured);
-
-            if (is_captured)
-                m_mouse_move_frames_to_ignore = 2;
-        }
     }
 
     void InputModule::clear_mouse_state(MouseCapturePriority priority)
