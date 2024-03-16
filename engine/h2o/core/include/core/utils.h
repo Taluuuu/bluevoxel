@@ -19,5 +19,5 @@ namespace h2o::utils
 
     template<class T>
     bool contains(const std::vector<T>& vec, const T& val)
-    { return std::find(vec.begin(), vec.end(), val) != vec.end(); }
+    { return std::ranges::find(vec.begin(), vec.end(), val) != vec.end(); }
 }

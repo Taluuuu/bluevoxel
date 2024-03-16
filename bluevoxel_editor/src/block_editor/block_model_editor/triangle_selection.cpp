@@ -221,13 +221,13 @@ namespace bluevoxel
                     should_rebuild_model = true;
                 }
 
-                if (ImGui::BeginTable(fmt::format("Face {} Triangles", face_handle.face_index).c_str(), 4, ImGuiTableFlags_Borders))
+                if (ImGui::BeginTable(fmt::format("Face {} Triangles", face_handle.face_index).c_str(), 5, ImGuiTableFlags_Borders))
                 {
                     ImGui::TableNextRow();
 
-                    u32 triangle_index = 0;
-                    for (auto& triangle : face)
+                    for (u32 triangle_index = 0; triangle_index < face.size(); triangle_index++)
                     {
+                        auto& triangle = face[triangle_index];
                         const TriangleHandle triangle_handle{ face_handle, triangle_index };
 
                         ImGui::TableNextColumn();
@@ -253,7 +253,51 @@ namespace bluevoxel
                             should_rebuild_model = true;
                         }
 
-                        triangle_index++;
+                        ImGui::TableNextColumn();
+                        if (ImGui::Button(fmt::format("Up###move_up{}", triangle_index).c_str()))
+                        {
+                            const Triangle triangle_cpy = triangle;
+                            if (triangle_index == 0)
+                            {
+                                if (face_handle.face_index > 0)
+                                {
+                                    block_model.add_triangle({ face_handle.face_index - 1 }, triangle_cpy);
+                                    block_model.delete_triangle(triangle_handle);
+                                    should_rebuild_model = true;
+                                }
+                            }
+                            else
+                            {
+                                block_model.delete_triangle(triangle_handle);
+                                face.insert(face.cbegin() + triangle_index - 1, triangle_cpy);
+                                should_rebuild_model = true;
+                            }
+                        }
+
+                        ImGui::SameLine();
+
+                        if (ImGui::Button(fmt::format("Down###move_down{}", triangle_index).c_str()))
+                        {
+                            const Triangle triangle_cpy = triangle;
+                            if (triangle_index == face.size() - 1)
+                            {
+                                if (face_handle.face_index < block_model.face_count() - 1)
+                                {
+                                    if (auto face_ = block_model.get_face({ face_handle.face_index + 1 }))
+                                    {
+                                        block_model.delete_triangle(triangle_handle);
+                                        face_->insert(face_->cbegin(), triangle_cpy);
+                                        should_rebuild_model = true;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                block_model.delete_triangle(triangle_handle);
+                                face.insert(face.cbegin() + triangle_index + 1, triangle_cpy);
+                                should_rebuild_model = true;
+                            }
+                        }
                     }
 
                     ImGui::EndTable();
