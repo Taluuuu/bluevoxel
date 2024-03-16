@@ -15,6 +15,7 @@
 #include "voxel/voxel_pack.h"
 #include "voxel_rendering/chunk_mesh_pool.h"
 #include "voxel_rendering/voxel_rendering_module.h"
+#include "world_gen_editor/world_gen_editor_workspace.h"
 
 #include <imgui.h>
 
@@ -27,7 +28,6 @@ namespace bluevoxel
     bool BlueVoxelEditorModule::init(h2o::Engine& engine)
     {
         m_voxel_module = &engine.get_module_checked<h2o::VoxelModule>();
-        m_ui_module    = &engine.get_module_checked<h2o::UIModule>();
         m_input_module = &engine.get_module_checked<h2o::InputModule>();
 
         auto& renderer = engine.get_module_checked<h2o::RenderingModule>().renderer();
@@ -73,6 +73,9 @@ namespace bluevoxel
 
             if (ImGui::Button("Block Editor"))
                 m_editor_mode.emplace<BlockEditorWorkspace>(this);
+
+            if (ImGui::Button("World Gen Editor"))
+                m_editor_mode.emplace<WorldGenEditorWorkspace>(this);
 
             ImGui::End();
         }

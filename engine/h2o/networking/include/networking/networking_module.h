@@ -11,8 +11,6 @@ namespace h2o
 {
     class NetPeer;
 
-    struct PeerCreatedEvent { NetPeer& peer; };
-
     class NetworkingModule : public IModule
     {
     public:

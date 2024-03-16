@@ -5,6 +5,7 @@
 #include "core/tickable.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_bounds.h"
+#include "world_gen_editor/world_gen_editor_workspace.h"
 
 #include <memory>
 #include <variant>
@@ -12,7 +13,6 @@
 namespace h2o
 {
     class InputModule;
-    class UIModule;
     class VoxelModule;
 }
 
@@ -40,10 +40,9 @@ namespace bluevoxel
 
     private:
 
-        std::variant<nullptr_t, BlockEditorWorkspace> m_editor_mode{};
+        std::variant<nullptr_t, BlockEditorWorkspace, WorldGenEditorWorkspace> m_editor_mode{};
 
         h2o::InputModule* m_input_module = nullptr;
-        h2o::UIModule*    m_ui_module    = nullptr;
         h2o::VoxelModule* m_voxel_module = nullptr;
 
     };

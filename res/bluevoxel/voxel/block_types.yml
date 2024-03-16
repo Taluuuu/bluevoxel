@@ -3,7 +3,6 @@ block_types:
     preset: normal
     id: 1
     model: cube
-    is_transparent: false
     textures:
       - grass_block_side.png
       - grass_block_side.png
@@ -15,7 +14,6 @@ block_types:
     preset: normal
     id: 2
     model: cube
-    is_transparent: false
     textures:
       - dirt_block.png
       - dirt_block.png
@@ -27,7 +25,6 @@ block_types:
     preset: normal
     id: 3
     model: cube
-    is_transparent: false
     textures:
       - stone_block.png
       - stone_block.png
@@ -39,7 +36,6 @@ block_types:
     preset: crop
     id: 4
     model: cube
-    is_transparent: false
     textures:
       - stone_block.png
       - stone_block.png
@@ -51,23 +47,7 @@ block_types:
     preset: normal
     id: 5
     model: barrel
-    is_transparent: true
     textures:
       - wood_planks_block.png
-      - wood_planks_block.png
-      - wood_planks_block.png
-      - wood_planks_block.png
       - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - wood_planks_block.png
       - wood_planks_block.png

@@ -21,7 +21,7 @@ namespace h2o
         Server(const Server&) = delete;
         ~Server() override;
 
-        bool start(u16 port);
+        bool start(u16 port, bool allow_only_localhost = false);
 
         // NetPeer interface
         [[nodiscard]] const std::set<PeerID>& peers() const override { return m_client_ids; }
@@ -48,6 +48,8 @@ namespace h2o
         std::unordered_map<MsgID, Event<ReceivedMessageEvent>> m_message_received_events{};
 
         bool m_is_active = false;
+
+        bool m_allow_only_localhost = false;
 
     };
 }

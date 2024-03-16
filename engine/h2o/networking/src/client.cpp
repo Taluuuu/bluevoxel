@@ -101,7 +101,7 @@ namespace h2o
         switch (info.m_info.m_eState)
         {
         case k_ESteamNetworkingConnectionState_None:
-            // NOTE: We will get callbacks here when we destroy connections. You can ignore these.
+            stop();
             break;
 
         case k_ESteamNetworkingConnectionState_ClosedByPeer:

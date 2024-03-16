@@ -3,6 +3,7 @@
 #include "core/engine.h"
 #include "game_framework/game_framework_module.h"
 #include "input/input_module.h"
+#include "networking/networking_module.h"
 #include "rendering/rendering_module.h"
 #include "scene/scene_module.h"
 #include "ui/ui_module.h"
@@ -18,6 +19,7 @@ int main()
         .add_module<h2o::WindowingModule>()
         .add_module<h2o::RenderingModule>()
         .add_module<h2o::UIModule>()
+        .add_module<h2o::NetworkingModule>()
         .add_module<h2o::InputModule>()
         .add_module<h2o::SceneModule>()
         .add_module<h2o::VoxelModule>()

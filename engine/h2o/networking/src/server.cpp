@@ -14,8 +14,10 @@ namespace h2o
         stop();
     }
 
-    bool Server::start(u16 port)
+    bool Server::start(u16 port, bool allow_only_localhost)
     {
+        m_allow_only_localhost = allow_only_localhost;
+
         create_interface();
 
         // Create listen socket
@@ -130,6 +132,13 @@ namespace h2o
         case k_ESteamNetworkingConnectionState_Connecting:
         {
             log::info("Connection request from {}.", info.m_info.m_szConnectionDescription);
+
+            if (m_allow_only_localhost && !info.m_info.m_addrRemote.IsLocalHost())
+            {
+                m_interface->CloseConnection(info.m_hConn, 0, nullptr, false);
+                log::info("Can't accept connection. Localhost only is enabled, and the client is not local.");
+                break;
+            }
 
             if (m_interface->AcceptConnection(info.m_hConn) != k_EResultOK)
             {
