@@ -15,6 +15,9 @@
 
 namespace h2o::net_msg
 {
+    // TODO: These should not be in the public interface, they should only be
+    //       used inside the networked voxel transport.
+
     struct ChunkFetchRequest
     {
         std::vector<v2i> requested_chunks{};

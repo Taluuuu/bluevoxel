@@ -5,29 +5,31 @@
 #include "networking/message_ids.h"
 #include "networking/server.h"
 #include "voxel/voxel_net_messages.h"
+#include "voxel/voxel_transport.h"
 #include "voxel/voxel_utils.h"
 
 namespace h2o
 {
-    ChunkServer::ChunkServer(const SceneSystemInitializer& system_initializer, Server& server)
+    ChunkServer::ChunkServer(
+        const SceneSystemInitializer& system_initializer,
+        const std::shared_ptr<IVoxelTransport>& voxel_transport)
         : SceneSystem(system_initializer)
-        , m_server(&server)
+        , m_voxel_transport(voxel_transport)
         , m_world_generator(m_chunk_mgr)
     {
-        // Bind messages
-        server.handle_message<net_msg::ChunkFetchRequest>(m_received_chunk_request_handle,
-            [&](PeerID client_id, const net_msg::ChunkFetchRequest& chunk_fetch_request)
+        assert(voxel_transport);
+
+        voxel_transport->on_chunk_column_requested().add_listener(m_received_chunk_request_handle,
+            [this](const auto& event)
             {
-                log::info("Received {} chunk fetch requests.", chunk_fetch_request.requested_chunks.size());
-                on_received_chunk_fetch_requests(client_id, chunk_fetch_request);
+                on_received_chunk_fetch_requests(event);
             }
         );
 
-        server.handle_message<net_msg::BlockPlaceRequest>(m_received_block_place_request_handle,
-            [&](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
+        voxel_transport->on_block_place().add_listener(m_block_place_handle,
+            [this](const auto& event)
             {
-                log::info("Received block place request.");
-                on_received_block_place_request(client_id, block_place_request);
+                on_received_block_place_request(event);
             }
         );
 
@@ -41,12 +43,12 @@ namespace h2o
 
     void ChunkServer::on_received_chunk_fetch_requests(
         PeerID client_id,
-        const net_msg::ChunkFetchRequest& chunk_fetch_request)
+        const std::vector<v2i>& requested_chunks)
     {
-        for (v2i requested_chunk : chunk_fetch_request.requested_chunks)
+        for (v2i requested_chunk : requested_chunks)
         {
             m_world_generator.request_chunk_column(requested_chunk,
-                [&, client_id](const ChunkColumn& chunk_column)
+                [this, client_id](const ChunkColumn& chunk_column)
                 {
                     send_chunk_column(chunk_column, { client_id });
                 }
