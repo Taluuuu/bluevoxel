@@ -73,7 +73,7 @@ namespace h2o
 
         void update();
 
-        void init_new_modules();
+        bool init_modules();
 
     private:
 

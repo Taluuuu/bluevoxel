@@ -40,9 +40,10 @@ namespace h2o
         // Fixes output in debug in CLion
         setvbuf(stdout, nullptr, _IONBF, 0);
 
-        m_thread_pool.start();
+        if (!init_modules())
+            return;
 
-        init_new_modules();
+        m_thread_pool.start();
 
         while (!should_close)
             update();
@@ -84,7 +85,7 @@ namespace h2o
             m_window_module->swap_buffers(144.0);
     }
 
-    void Engine::init_new_modules()
+    bool Engine::init_modules()
     {
         while (true)
         {
@@ -135,15 +136,16 @@ namespace h2o
             else
             {
                 log::error("Failed to initialize module '{}'", it->second->module_name());
-
-                // Don't try loading the module in subsequent runs
-                m_modules_to_init.erase(it->first);
+                return false;
             }
         }
 
         for (const auto& module : m_modules_to_init)
         {
             log::warn("Could not initialize all dependencies for module: '{}'", module.second->module_name());
+            return false;
         }
+
+        return true;
     }
 }

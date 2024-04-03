@@ -21,7 +21,7 @@
 namespace h2o
 {
     class ChunkGenerator_Base;
-    class IVoxelTransport;
+    class Server;
 
     class ChunkServer : public SceneSystem
     {
@@ -29,7 +29,7 @@ namespace h2o
 
         explicit ChunkServer(
             const SceneSystemInitializer& system_initializer,
-            const std::shared_ptr<IVoxelTransport>& voxel_transport);
+            Server& server);
         ~ChunkServer() override = default;
 
         [[nodiscard]] IChunkManager& chunk_mgr() { return m_chunk_mgr; }
@@ -40,7 +40,9 @@ namespace h2o
     protected:
 
         // Networking
-        void on_received_chunk_fetch_requests(const IVoxelTransport::);
+        void on_received_chunk_fetch_requests(
+            PeerID client_id,
+            const net_msg::ChunkFetchRequest& chunk_fetch_request);
 
         void on_received_block_place_request(
             PeerID request_sender,
@@ -50,10 +52,10 @@ namespace h2o
 
     private:
 
-        // Voxel transport
-        std::shared_ptr<IVoxelTransport> m_voxel_transport{};
+        // Networking
+        Server* const m_server = nullptr;
         EventHandle m_received_chunk_request_handle{};
-        EventHandle m_block_place_handle{};
+        EventHandle m_received_block_place_request_handle{};
 
         // Storage
         ChunkManager_Server m_chunk_mgr{};

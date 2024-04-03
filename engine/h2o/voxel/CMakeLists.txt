@@ -23,7 +23,6 @@ add_library(h2o_voxel
     src/voxel_module.cpp
     src/voxel_pack.cpp
     src/voxel_ray.cpp
-    src/voxel_transport_local.cpp
 )
 
 target_link_libraries(h2o_voxel

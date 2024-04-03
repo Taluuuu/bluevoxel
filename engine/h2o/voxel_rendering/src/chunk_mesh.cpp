@@ -54,16 +54,16 @@ namespace h2o
                 }
             };
 
-        const auto get_adj_block_at =
-            [&](const v3i& block_pos, voxel::Direction::Type direction) -> Block
+        const auto is_transparent =
+            [&](const v3i& block_pos, voxel::Direction::Type direction) -> bool
             {
                 const v3i offset = voxel::to_vec3(direction);
                 const v3i adj_pos = block_pos + offset;
 
                 if (const auto block = chunk_region.get_block_at(adj_pos, m_chunk_pos))
-                    return *block;
+                    return voxel_rendering_module.is_transparent(block->id);
 
-                return Block::Air;
+                return true;
             };
 
         for (i32 y = 0; y < voxel_constants::chunk_size; y++)
@@ -87,7 +87,7 @@ namespace h2o
             voxel::Direction::for_each(
                 [&](voxel::Direction::Type dir)
                 {
-                    if (get_adj_block_at(pos, dir) == Block::Air)
+                    if (is_transparent(pos, dir))
                         append_side(pos, *model, *texture_ids, model->occluded_triangles_per_side[dir_index]);
 
                     dir_index++;

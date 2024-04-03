@@ -5,31 +5,29 @@
 #include "networking/message_ids.h"
 #include "networking/server.h"
 #include "voxel/voxel_net_messages.h"
-#include "voxel/voxel_transport.h"
 #include "voxel/voxel_utils.h"
 
 namespace h2o
 {
-    ChunkServer::ChunkServer(
-        const SceneSystemInitializer& system_initializer,
-        const std::shared_ptr<IVoxelTransport>& voxel_transport)
+    ChunkServer::ChunkServer(const SceneSystemInitializer& system_initializer, Server& server)
         : SceneSystem(system_initializer)
-        , m_voxel_transport(voxel_transport)
+        , m_server(&server)
         , m_world_generator(m_chunk_mgr)
     {
-        assert(voxel_transport);
-
-        voxel_transport->on_chunk_column_requested().add_listener(m_received_chunk_request_handle,
-            [this](const auto& event)
+        // Bind messages
+        server.handle_message<net_msg::ChunkFetchRequest>(m_received_chunk_request_handle,
+            [&](PeerID client_id, const net_msg::ChunkFetchRequest& chunk_fetch_request)
             {
-                on_received_chunk_fetch_requests(event);
+                log::info("Received {} chunk fetch requests.", chunk_fetch_request.requested_chunks.size());
+                on_received_chunk_fetch_requests(client_id, chunk_fetch_request);
             }
         );
 
-        voxel_transport->on_block_place().add_listener(m_block_place_handle,
-            [this](const auto& event)
+        server.handle_message<net_msg::BlockPlaceRequest>(m_received_block_place_request_handle,
+            [&](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
-                on_received_block_place_request(event);
+                log::info("Received block place request.");
+                on_received_block_place_request(client_id, block_place_request);
             }
         );
 
@@ -43,12 +41,12 @@ namespace h2o
 
     void ChunkServer::on_received_chunk_fetch_requests(
         PeerID client_id,
-        const std::vector<v2i>& requested_chunks)
+        const net_msg::ChunkFetchRequest& chunk_fetch_request)
     {
-        for (v2i requested_chunk : requested_chunks)
+        for (v2i requested_chunk : chunk_fetch_request.requested_chunks)
         {
             m_world_generator.request_chunk_column(requested_chunk,
-                [this, client_id](const ChunkColumn& chunk_column)
+                [&, client_id](const ChunkColumn& chunk_column)
                 {
                     send_chunk_column(chunk_column, { client_id });
                 }
@@ -85,10 +83,10 @@ namespace h2o
         {
             m_server->send_message(client,
                 net_msg::ChunkFetchResult
-                {
-                    compressed_chunks,
-                    chunk_col.chunk_column_pos()
-                }
+                    {
+                        compressed_chunks,
+                        chunk_col.chunk_column_pos()
+                    }
             );
         }
     }

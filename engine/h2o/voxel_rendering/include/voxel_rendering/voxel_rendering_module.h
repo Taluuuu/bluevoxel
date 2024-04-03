@@ -35,16 +35,11 @@ namespace h2o
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
         [[nodiscard]] const BlockModel* get_model(BlockID id, const std::vector<u32>*& out_texture_ids) const;
+        [[nodiscard]] bool is_transparent(BlockID id) const;
 
         // Return value is always valid or an assert fails
         [[nodiscard]] const std::shared_ptr<gfx::IPipeline>& pipeline() const;
         [[nodiscard]] const std::shared_ptr<gfx::TextureArray>& block_textures() const;
-
-    private:
-
-        [[nodiscard]] std::optional<u32> get_model_index(const std::string& name) const;
-        [[nodiscard]] bool block_model_exists(const std::string& name) const;
-        void add_block_model(const std::string& name, BlockModel&& block_model);
 
     private:
 

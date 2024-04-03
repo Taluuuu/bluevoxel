@@ -84,6 +84,18 @@ namespace h2o
         return nullptr;
     }
 
+    bool VoxelRenderingModule::is_transparent(BlockID id) const
+    {
+        if (const auto& voxel_pack = m_voxel_module->voxel_pack())
+        {
+            // TODO: This is bad, id is not checked
+            if (const auto& block_type = voxel_pack->block_types()[id])
+                return block_type->is_transparent;
+        }
+
+        return true;
+    }
+
     const std::shared_ptr<gfx::IPipeline>& VoxelRenderingModule::pipeline() const
     {
         // The pipeline should be valid here, otherwise the init would have failed.

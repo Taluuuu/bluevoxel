@@ -16,5 +16,7 @@ namespace h2o
         std::vector<u32> texture_ids{};
         u32 model_id = 0;
         u32 preset_id = 0;
+
+        bool is_transparent = false;
     };
 }

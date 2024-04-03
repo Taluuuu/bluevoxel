@@ -190,18 +190,12 @@ namespace h2o
 
         const auto uncooked_block_models = load_block_models(block_models_path);
         if (!uncooked_block_models)
-        {
-            log::error("Failed to import block models.");
             return false;
-        }
 
         const auto texture_ids = generate_texture_ids(textures_path);
         const auto block_types = load_block_types(block_types_path, *uncooked_block_models, texture_ids);
         if (!block_types)
-        {
-            log::error("Failed to import block types.");
             return false;
-        }
 
         m_uncooked_block_models = *uncooked_block_models;
         m_block_models.clear();
@@ -275,7 +269,7 @@ namespace h2o
         auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
         BlockTypeList result{};
-        result.emplace_back(BlockType{ "air", 0, {}, 0, 0 });
+        result.emplace_back(BlockType{ "air", 0, {}, 0, 0, true });
 
         try
         {
@@ -315,6 +309,8 @@ namespace h2o
                     continue;
                 }
 
+                const bool is_transparent = block_type_yml["is_transparent"].as<bool>();
+
                 // Find texture ids
                 const auto texture_names = block_type_yml["textures"].as<std::vector<std::string>>();
 
@@ -350,6 +346,7 @@ namespace h2o
                         .texture_ids = texture_ids,
                         .model_id = model_it->id,
                         .preset_id = *preset_id,
+                        .is_transparent = is_transparent,
                     };
             }
         }
