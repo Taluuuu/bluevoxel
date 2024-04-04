@@ -9,7 +9,6 @@
 #include <steam/steamnetworkingsockets.h>
 #include <steam/isteamnetworkingutils.h>
 #include <unordered_map>
-#include <set>
 
 namespace h2o
 {
@@ -24,11 +23,11 @@ namespace h2o
         bool start(u16 port, bool allow_only_localhost = false);
 
         // NetPeer interface
-        [[nodiscard]] const std::set<PeerID>& peers() const override { return m_client_ids; }
+        [[nodiscard]] const std::unordered_set<PeerID>& peers() const override { return m_client_ids; }
         void stop() final;
     protected:
-        void send_message_raw(PeerID client_id, void* data, u32 size) const override;
-        [[nodiscard]] i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
+        void send_message_internal(PeerID client_id, const void* data, size_t size) override;
+        [[nodiscard]] i32 poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
         [[nodiscard]] bool can_send_messages() const override;
         void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) override;
 
@@ -43,9 +42,7 @@ namespace h2o
         HSteamListenSocket m_listen_socket{};
         HSteamNetPollGroup m_poll_group{};
 
-        std::set<PeerID> m_client_ids{};
-
-        std::unordered_map<MsgID, Event<ReceivedMessageEvent>> m_message_received_events{};
+        std::unordered_set<PeerID> m_client_ids{};
 
         bool m_is_active = false;
 

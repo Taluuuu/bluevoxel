@@ -47,9 +47,9 @@ namespace h2o
         return true;
     }
 
-    const std::set<PeerID>& Client::peers() const
+    const std::unordered_set<PeerID>& Client::peers() const
     {
-        static std::set<PeerID> client_peer { 0 };
+        static const std::unordered_set<PeerID> client_peer { 0 };
         return client_peer;
     }
 
@@ -70,7 +70,7 @@ namespace h2o
         NetPeer::stop();
     }
 
-    void Client::send_message_raw(PeerID client_id, void* data, u32 size) const
+    void Client::send_message_internal(PeerID client_id, const void* data, size_t size)
     {
         m_interface->SendMessageToConnection(
             m_connection,

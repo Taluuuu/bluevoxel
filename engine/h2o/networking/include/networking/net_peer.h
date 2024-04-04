@@ -8,16 +8,15 @@
 
 #include <set>
 #include <steam/isteamnetworkingsockets.h>
+#include <unordered_set>
 
 namespace h2o
 {
-    class NetPeer : public Tickable
+    class INetPeer
     {
     public:
 
-        explicit NetPeer(Tickable* owner);
-        NetPeer(const NetPeer&) = delete;
-        ~NetPeer() override = default;
+        virtual ~INetPeer() = default;
 
         /**
          * Send a message to this peer's connection
@@ -40,7 +39,27 @@ namespace h2o
             EventHandle& event_handle,
             const MsgReceivedEventCallback<MsgType>& callback);
 
-        [[nodiscard]] virtual const std::set<PeerID>& peers() const = 0;
+        [[nodiscard]] virtual const std::unordered_set<PeerID>& peers() const = 0;
+
+    protected:
+
+        using ReceivedMessageLambda = std::function<void(const ReceivedMessageEvent& event)>;
+
+        virtual void send_message_internal(PeerID client_id, const void* data, size_t size) = 0;
+        virtual void handle_message_internal(MsgID msg_id, EventHandle& event_handle, const ReceivedMessageLambda& event_lambda) = 0;
+
+    };
+
+    // TODO: Rename this NetPeer_Online and create a NetPeer_Offline
+    class NetPeer
+        : public Tickable
+        , public INetPeer
+    {
+    public:
+
+        explicit NetPeer(Tickable* owner);
+        NetPeer(const NetPeer&) = delete;
+        ~NetPeer() override = default;
 
         /**
          * Disconnect a client or close a server
@@ -58,8 +77,7 @@ namespace h2o
         void start_polling_messages();
 
         // Override these :)
-        virtual void send_message_raw(PeerID client_id, void* data, u32 size) const = 0;
-        [[nodiscard]] virtual i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) = 0;
+        [[nodiscard]] virtual i32 poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) = 0;
         [[nodiscard]] virtual bool can_send_messages() const = 0;
         virtual void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) = 0;
 
@@ -67,14 +85,19 @@ namespace h2o
 
         static void connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info);
 
-    private:
+    protected:
 
-        void poll_incoming_messages();
-        void poll_connection_state_changes();
+        // INetPeer interface
+        void handle_message_internal(MsgID msg_id, EventHandle& event_handle, const ReceivedMessageLambda& event_lambda) override;
 
     protected:
 
         ISteamNetworkingSockets* m_interface = nullptr;
+
+    private:
+
+        void poll_incoming_messages();
+        void poll_connection_state_changes();
 
     private:
 
@@ -85,7 +108,7 @@ namespace h2o
     };
 
     template<class MsgType>
-    void NetPeer::send_message(PeerID peer_id, const MsgType& msg)
+    void INetPeer::send_message(PeerID peer_id, const MsgType& msg)
     {
         assert(can_send_messages());
 
@@ -99,16 +122,14 @@ namespace h2o
         buffer.insert(buffer.cbegin(), sizeof(id), 0);
         memcpy(buffer.data(), &id, sizeof(id));
 
-        send_message_raw(peer_id, buffer.data(), buffer.size());
+        send_message_internal(peer_id, buffer.data(), buffer.size());
     }
 
     template<class MsgType>
-    void NetPeer::handle_message(
+    void INetPeer::handle_message(
         EventHandle& event_handle,
         const MsgReceivedEventCallback<MsgType>& callback)
     {
-        const MsgID id = MsgType::message_id;
-
         const auto event_lambda =
             [callback](const ReceivedMessageEvent& event)
             {
@@ -119,6 +140,6 @@ namespace h2o
                 callback(event.client_id, deserialized_msg);
             };
 
-        m_message_received_events[id].add_listener(event_handle, event_lambda);
+        handle_message_internal(MsgType::message_id, event_handle, event_lambda);
     }
 }

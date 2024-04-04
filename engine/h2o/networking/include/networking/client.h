@@ -37,10 +37,10 @@ namespace h2o
         Event<ConnectionEvent> on_disconnected_from_server{};
 
         // NetPeer interface
-        [[nodiscard]] const std::set<PeerID>& peers() const override;
+        [[nodiscard]] const std::unordered_set<PeerID>& peers() const override;
         void stop() final;
     protected:
-        void send_message_raw(PeerID client_id, void* data, u32 size) const override;
+        void send_message_internal(PeerID client_id, const void* data, size_t size) override;
         [[nodiscard]] i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
         [[nodiscard]] bool can_send_messages() const override;
         void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) override;

@@ -47,6 +47,14 @@ namespace h2o
         s_callback_instance->on_connection_status_changed(*info);
     }
 
+    void NetPeer::handle_message_internal(
+        MsgID msg_id, EventHandle& event_handle,
+        const INetPeer::ReceivedMessageLambda& event_lambda)
+    {
+        assert(msg_id < m_message_received_events.size());
+        m_message_received_events[msg_id].add_listener(event_handle, event_lambda);
+    }
+
     void NetPeer::poll_incoming_messages()
     {
         while (true)

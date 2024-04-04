@@ -72,7 +72,7 @@ namespace h2o
         NetPeer::stop();
     }
 
-    void Server::send_message_raw(PeerID client_id, void* data, u32 size) const
+    void Server::send_message_internal(PeerID client_id, const void* data, size_t size)
     {
         if (m_client_ids.contains(client_id))
         {
