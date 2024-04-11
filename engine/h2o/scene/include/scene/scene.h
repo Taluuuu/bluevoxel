@@ -12,14 +12,14 @@
 namespace h2o
 {
     class Engine;
-    class NetPeer;
+    class INetPeer;
     class SceneSystem;
 
     class Scene : public Tickable
     {
     public:
 
-        Scene(const std::string& scene_name, NetPeer* net_peer);
+        Scene(const std::string& scene_name, INetPeer* net_peer);
         Scene(const Scene&) = delete;
 
         // A scene currently registers itself to the SceneModule by its memory address,
@@ -73,7 +73,7 @@ namespace h2o
 
         std::string m_scene_name{};
 
-        NetPeer* m_net_peer = nullptr;
+        INetPeer* m_net_peer = nullptr;
         EventHandle m_on_object_destroyed_handle{};
 
     };

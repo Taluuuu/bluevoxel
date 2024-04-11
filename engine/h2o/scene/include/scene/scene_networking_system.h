@@ -10,7 +10,7 @@
 namespace h2o
 {
     class Actor;
-    class Client;
+    class INetPeer;
 
     class SceneNetworkingSystem : public SceneSystem
     {
@@ -18,7 +18,7 @@ namespace h2o
 
         explicit SceneNetworkingSystem(
             const SceneSystemInitializer& system_initializer,
-            Client& client);
+            INetPeer& client);
         ~SceneNetworkingSystem() override = default;
 
         // Tickable interface
@@ -32,7 +32,7 @@ namespace h2o
 
         std::vector< WeakHandle<Actor> > m_replicated_actors{};
 
-        Client* m_client = nullptr;
+        INetPeer* m_client = nullptr;
 
         EventHandle m_on_received_transform_update_handle{};
 

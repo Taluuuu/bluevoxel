@@ -66,6 +66,12 @@ namespace h2o
 
     void WorldGenerator::generate_chunk(ChunkColumn& chunk_column)
     {
+        if (!m_chunk_generator)
+        {
+            log::warn("No chunk generator set when trying to generate chunk.");
+            return;
+        }
+
         while (!chunk_column.is_generated())
             m_chunk_generator->run_generation_step(chunk_column);
 

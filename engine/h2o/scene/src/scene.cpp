@@ -7,7 +7,7 @@
 
 namespace h2o
 {
-    Scene::Scene(const std::string& scene_name, NetPeer* net_peer)
+    Scene::Scene(const std::string& scene_name, INetPeer* net_peer)
         : Tickable(g_engine)
         , m_scene_name(scene_name)
         , m_net_peer(net_peer)

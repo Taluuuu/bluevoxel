@@ -3,7 +3,6 @@
 #include "voxel_rendering/chunk_mesh_pool.h"
 #include "chunk_manager_client.h"
 #include "core/distance_queue.h"
-#include "networking/client.h"
 #include "scene/scene_system.h"
 #include "voxel/chunk_container_interface.h"
 #include "voxel/chunk_manager_interface.h"
@@ -19,6 +18,7 @@
 namespace h2o
 {
     class ChunkColumn;
+    class INetPeer;
     class RenderingModule;
     class VoxelRenderingModule;
     class VoxelModule;
@@ -29,7 +29,7 @@ namespace h2o
 
         explicit ChunkClient(
             const SceneSystemInitializer& system_initializer,
-            Client& client);
+            INetPeer& client);
         ~ChunkClient() override = default;
 
         [[nodiscard]] ChunkManager_Client& chunk_mgr() { return m_chunk_mgr; }
@@ -72,7 +72,7 @@ namespace h2o
         VoxelBounds m_voxel_bounds;
         v2i m_previous_player_chunk_col_pos{};
 
-        Client*               m_client                 = nullptr;
+        INetPeer*             m_client                 = nullptr;
         RenderingModule*      m_rendering_module       = nullptr;
         VoxelRenderingModule* m_voxel_rendering_module = nullptr;
 

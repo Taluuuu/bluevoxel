@@ -3,7 +3,7 @@
 #include "core/events.h"
 #include "networking_types.h"
 #include "networking_utils.h"
-#include "net_peer.h"
+#include "net_peer_online.h"
 
 #include <map>
 #include <steam/steamnetworkingsockets.h>
@@ -12,7 +12,7 @@
 
 namespace h2o
 {
-    class Server : public NetPeer
+    class Server : public NetPeer_Online
     {
     public:
 
@@ -24,6 +24,7 @@ namespace h2o
 
         // NetPeer interface
         [[nodiscard]] const std::unordered_set<PeerID>& peers() const override { return m_client_ids; }
+        [[nodiscard]] bool is_connected() const override { return m_is_active; }
         void stop() final;
     protected:
         void send_message_internal(PeerID client_id, const void* data, size_t size) override;

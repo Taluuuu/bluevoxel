@@ -21,7 +21,7 @@
 namespace h2o
 {
     class ChunkGenerator_Base;
-    class Server;
+    class INetPeer;
 
     class ChunkServer : public SceneSystem
     {
@@ -29,7 +29,7 @@ namespace h2o
 
         explicit ChunkServer(
             const SceneSystemInitializer& system_initializer,
-            Server& server);
+            INetPeer& server);
         ~ChunkServer() override = default;
 
         [[nodiscard]] IChunkManager& chunk_mgr() { return m_chunk_mgr; }
@@ -53,7 +53,7 @@ namespace h2o
     private:
 
         // Networking
-        Server* const m_server = nullptr;
+        INetPeer* const m_server = nullptr;
         EventHandle m_received_chunk_request_handle{};
         EventHandle m_received_block_place_request_handle{};
 

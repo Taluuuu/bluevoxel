@@ -1,6 +1,7 @@
 #include "voxel_client/chunk_client.h"
 
 #include "core/engine.h"
+#include "networking/net_peer.h"
 #include "rendering/camera.h"
 #include "rendering/pipeline.h"
 #include "rendering/renderer.h"
@@ -19,7 +20,7 @@ namespace h2o
 {
     ChunkClient::ChunkClient(
         const SceneSystemInitializer& system_initializer,
-        Client& client)
+        INetPeer& client)
         : SceneSystem(system_initializer)
         , m_client(&client)
         , m_chunk_mgr(client)

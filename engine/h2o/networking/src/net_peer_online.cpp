@@ -1,45 +1,44 @@
-#include "networking/net_peer.h"
+#include "networking/net_peer_online.h"
 
-#include "core/engine.h"
-#include "networking/networking_module.h"
+#include "core/log.h"
 
 namespace h2o
 {
-    NetPeer* NetPeer::s_callback_instance = nullptr;
+    NetPeer_Online* NetPeer_Online::s_callback_instance = nullptr;
 
-    NetPeer::NetPeer(Tickable* owner)
+    NetPeer_Online::NetPeer_Online(Tickable* owner)
         : Tickable(owner)
     {}
 
-    void NetPeer::stop()
+    void NetPeer_Online::stop()
     {
         set_tick_phases({});
     }
 
-    void NetPeer::update(f32 delta_time)
+    void NetPeer_Online::update(f32 delta_time)
     {
         poll_incoming_messages();
         poll_connection_state_changes();
     }
 
-    void NetPeer::create_interface()
+    void NetPeer_Online::create_interface()
     {
         if (!m_interface)
             m_interface = SteamNetworkingSockets();
     }
 
-    void NetPeer::start_polling_messages()
+    void NetPeer_Online::start_polling_messages()
     {
         set_tick_phases(TickPhase::Update);
     }
 
-    Event<ReceivedMessageEvent>* NetPeer::get_msg_event(MsgID id)
+    Event<ReceivedMessageEvent>* NetPeer_Online::get_msg_event(MsgID id)
     {
         const auto it = m_message_received_events.find(id);
         return it == m_message_received_events.end() ? nullptr : &it->second;
     }
 
-    void NetPeer::connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info)
+    void NetPeer_Online::connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info)
     {
         assert(s_callback_instance);
         assert(info);
@@ -47,15 +46,14 @@ namespace h2o
         s_callback_instance->on_connection_status_changed(*info);
     }
 
-    void NetPeer::handle_message_internal(
+    void NetPeer_Online::handle_message_internal(
         MsgID msg_id, EventHandle& event_handle,
         const INetPeer::ReceivedMessageLambda& event_lambda)
     {
-        assert(msg_id < m_message_received_events.size());
         m_message_received_events[msg_id].add_listener(event_handle, event_lambda);
     }
 
-    void NetPeer::poll_incoming_messages()
+    void NetPeer_Online::poll_incoming_messages()
     {
         while (true)
         {
@@ -101,7 +99,7 @@ namespace h2o
         }
     }
 
-    void NetPeer::poll_connection_state_changes()
+    void NetPeer_Online::poll_connection_state_changes()
     {
         s_callback_instance = this;
         m_interface->RunCallbacks();

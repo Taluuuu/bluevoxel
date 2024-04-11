@@ -1,7 +1,14 @@
 #pragma once
 
-#include "networking/server.h"
-#include "networking/client.h"
+#include "networking/net_peer_local.h"
+
+#include <memory>
+
+namespace h2o
+{
+    class InputModule;
+    class Scene;
+}
 
 namespace bluevoxel
 {
@@ -19,13 +26,11 @@ namespace bluevoxel
 
     private:
 
-        static constexpr f32 time_before_connecting = 1.0f;
-        f32 m_time_since_start = 0.0f;
+        h2o::NetPeer_Local m_local_net_peer{};
 
-        h2o::Server m_server;
-        h2o::Client m_client;
+        std::shared_ptr<h2o::Scene> m_scene = nullptr;
 
-        bool test = false;
+        h2o::InputModule* const m_input_module = nullptr;
 
     };
 }

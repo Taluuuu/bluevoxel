@@ -6,7 +6,7 @@
 namespace h2o
 {
     Server::Server(Tickable* owner)
-        : NetPeer(owner)
+        : NetPeer_Online(owner)
     {}
 
     Server::~Server()
@@ -69,7 +69,7 @@ namespace h2o
 
         m_is_active = false;
 
-        NetPeer::stop();
+        NetPeer_Online::stop();
     }
 
     void Server::send_message_internal(PeerID client_id, const void* data, size_t size)

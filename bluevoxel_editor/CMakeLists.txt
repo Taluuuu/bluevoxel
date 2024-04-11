@@ -30,6 +30,8 @@ target_link_libraries(bluevoxel_editor
         h2o_scene_rendering
         h2o_ui
         h2o_voxel
+        h2o_voxel_client
+        h2o_voxel_server
         h2o_voxel_rendering
         h2o_windowing
 )
@@ -49,6 +51,7 @@ target_include_directories(bluevoxel_editor
         h2o_ui
         h2o_voxel
         h2o_voxel_client
+        h2o_voxel_server
         h2o_voxel_rendering
         h2o_windowing
 )

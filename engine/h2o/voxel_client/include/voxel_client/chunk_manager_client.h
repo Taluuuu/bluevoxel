@@ -6,13 +6,13 @@
 
 namespace h2o
 {
-    class Client;
+    class INetPeer;
 
     class ChunkManager_Client : public ChunkManager_Base
     {
     public:
 
-        explicit ChunkManager_Client(Client& client);
+        explicit ChunkManager_Client(INetPeer& client);
         ~ChunkManager_Client() override = default;
 
         bool set_block_at(const v3i& block_pos, Block block, bool replicate);
@@ -23,7 +23,7 @@ namespace h2o
 
     private:
 
-        Client* m_client = nullptr;
+        INetPeer* m_client = nullptr;
 
     };
 }

@@ -7,7 +7,7 @@
 
 namespace h2o
 {
-    SceneNetworkingSystem::SceneNetworkingSystem(const SceneSystemInitializer& system_initializer, Client& client)
+    SceneNetworkingSystem::SceneNetworkingSystem(const SceneSystemInitializer& system_initializer, INetPeer& client)
         : SceneSystem(system_initializer)
         , m_client(&client)
     {

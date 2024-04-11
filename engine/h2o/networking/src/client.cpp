@@ -6,7 +6,7 @@
 namespace h2o
 {
     Client::Client(Tickable* owner)
-        : NetPeer(owner)
+        : NetPeer_Online(owner)
     {}
 
     Client::~Client()
@@ -67,7 +67,7 @@ namespace h2o
 
         set_tick_phases({});
 
-        NetPeer::stop();
+        NetPeer_Online::stop();
     }
 
     void Client::send_message_internal(PeerID client_id, const void* data, size_t size)

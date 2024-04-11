@@ -9,7 +9,7 @@
 
 namespace h2o
 {
-    ChunkServer::ChunkServer(const SceneSystemInitializer& system_initializer, Server& server)
+    ChunkServer::ChunkServer(const SceneSystemInitializer& system_initializer, INetPeer& server)
         : SceneSystem(system_initializer)
         , m_server(&server)
         , m_world_generator(m_chunk_mgr)

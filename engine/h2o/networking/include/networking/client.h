@@ -3,7 +3,7 @@
 #include "core/events.h"
 #include "networking_types.h"
 #include "networking_utils.h"
-#include "net_peer.h"
+#include "net_peer_online.h"
 
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/bitsery.h>
@@ -17,7 +17,7 @@ namespace h2o
 {
     class NetworkingModule;
 
-    class Client : public NetPeer
+    class Client : public NetPeer_Online
     {
     public:
 
@@ -28,9 +28,6 @@ namespace h2o
         bool connect(const std::string& hostname, u16 port);
 
         [[nodiscard]] ConnectionState connection_state() const { return m_connection_state; }
-        [[nodiscard]] bool is_connected() const { return m_connection_state == ConnectionState::Connected; }
-
-    public:
 
         struct ConnectionEvent{};
         Event<ConnectionEvent> on_connected_to_server{};
@@ -38,6 +35,7 @@ namespace h2o
 
         // NetPeer interface
         [[nodiscard]] const std::unordered_set<PeerID>& peers() const override;
+        [[nodiscard]] bool is_connected() const override { return m_connection_state == ConnectionState::Connected; }
         void stop() final;
     protected:
         void send_message_internal(PeerID client_id, const void* data, size_t size) override;
