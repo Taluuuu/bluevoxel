@@ -8,6 +8,17 @@
 
 namespace h2o
 {
+    const BlockType* VoxelPack::get_block_type(BlockID block_id) const
+    {
+        if (block_id < m_block_types.size())
+        {
+            if (const auto& block_type = m_block_types[block_id])
+                return &(*block_type);
+        }
+
+        return nullptr;
+    }
+
     void VoxelPack::edit_block_type(BlockID block_id, BlockType& edited_block_type)
     {
         // Do some validations here

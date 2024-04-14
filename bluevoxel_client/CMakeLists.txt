@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_executable(bluevoxel_client
     src/bluevoxel_client_module.cpp
+    src/bluevoxel_inventory_ui.cpp
     src/main.cpp
 )
 
@@ -13,6 +14,7 @@ target_link_libraries(bluevoxel_client
         h2o_core
         h2o_game_framework
         h2o_input
+        h2o_inventory
         h2o_networking
         h2o_rendering
         h2o_scene
@@ -29,6 +31,7 @@ target_include_directories(bluevoxel_client
         h2o_core
         h2o_game_framework
         h2o_input
+        h2o_inventory
         h2o_networking
         h2o_rendering
         h2o_scene

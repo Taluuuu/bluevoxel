@@ -81,7 +81,7 @@ namespace h2o
     requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
     WeakHandle<T> Actor::get_component()
     {
-        // No clue how slow this is but it is the only way I could find at 2:12 AM to allow gettings
+        // No clue how slow this is but it is the only way I could find at 2:12 AM to allow getting
         // a child component and not a component of just type T. I left the old implementation under
         // for future reference.
         for (const auto& [_, component] : m_components)

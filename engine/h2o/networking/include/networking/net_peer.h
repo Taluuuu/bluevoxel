@@ -50,7 +50,7 @@ namespace h2o
     template<class MsgType>
     void INetPeer::send_message(PeerID peer_id, const MsgType& msg)
     {
-        assert(can_send_messages());
+        assert(is_connected());
 
         // Prefix the message
         std::vector<u8> buffer{};

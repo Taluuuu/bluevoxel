@@ -3,6 +3,7 @@
 #include "core/engine.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "input/input_module.h"
+#include "inventory/inventory_component.h"
 #include "rendering/mesh.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
@@ -74,8 +75,6 @@ namespace bluevoxel
                 m_scene = nullptr;
             }
         );
-
-        m_ui_module = &engine.get_module_checked<h2o::UIModule>();
 
         return true;
     }
@@ -155,6 +154,16 @@ namespace bluevoxel
 
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
+
+        const auto inventory_comp = player->add_component<h2o::InventoryComponent<h2o::Block>>(h2o::Inventory<h2o::Block>{ 5, std::nullopt });
+        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 1 }, .count = 1});
+        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 2 }, .count = 1});
+        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 3 }, .count = 1});
+        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 4 }, .count = 1});
+        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 5 }, .count = 1});
+        m_inventory_ui.emplace(this);
+        m_inventory_ui->open(inventory_comp->inventory());
+
         player->add_component<h2o::BlockPlacingComponent>();
         player->set_replicate_transform(true);
         player->transform.position = { 0.0f, 200.0f, 0.0f };

@@ -37,6 +37,7 @@ namespace h2o
         [[nodiscard]] const fs::path& path()     const { return m_path;     }
 
         // Block types
+        [[nodiscard]] const BlockType* get_block_type(BlockID block_id) const;
         void edit_block_type(BlockID block_id, BlockType& edited_block_type);
         BlockID create_block_type(const std::string& name);
         void delete_block_type(BlockID block_id);
