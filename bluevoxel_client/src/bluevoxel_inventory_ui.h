@@ -8,6 +8,7 @@
 namespace h2o
 {
     class VoxelModule;
+    class VoxelRenderingModule;
 }
 
 namespace bluevoxel
@@ -27,6 +28,7 @@ namespace bluevoxel
     private:
 
         h2o::VoxelModule* const m_voxel_module = nullptr;
+        h2o::VoxelRenderingModule* const m_voxel_rendering_module = nullptr;
 
     };
 }

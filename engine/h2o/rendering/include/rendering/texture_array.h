@@ -24,11 +24,11 @@ namespace h2o::gfx
         void set_texture(u32 index, const std::shared_ptr<Texture>& texture);
         void bind(u32 texture_slot);
 
+        [[nodiscard]] const auto& textures() const { return m_textures; }
         [[nodiscard]] u32 id() const { return m_id; }
         [[nodiscard]] u32 size() const { return m_textures.size(); }
 
     private:
-
 
         std::optional<TextureFormat> m_format{};
         std::vector< std::shared_ptr<Texture> > m_textures{};
