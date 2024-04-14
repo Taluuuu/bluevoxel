@@ -17,7 +17,7 @@ namespace h2o
         ~InventoryUI() override = default;
 
         // TODO: Use a shared_ptr to make sure the inventory does not get deallocated
-        void open(const Inventory<ItemType>& inventory);
+        void open(Inventory<ItemType>& inventory);
         void close();
 
     public:
@@ -27,6 +27,7 @@ namespace h2o
 
     protected:
 
+        // Tickable interface
         void update(f32 delta_time) override;
 
         [[nodiscard]] virtual std::optional<u32> fetch_item_texture_id(const ItemType& item) const = 0;
@@ -34,12 +35,14 @@ namespace h2o
 
     private:
 
-        const Inventory<ItemType>* m_inventory = nullptr;
+        std::optional< ItemStack<ItemType> > m_selected_stack = std::nullopt;
+
+        Inventory<ItemType>* m_inventory = nullptr;
 
     };
 
     template<class ItemType>
-    void InventoryUI<ItemType>::open(const Inventory<ItemType>& inventory)
+    void InventoryUI<ItemType>::open(Inventory<ItemType>& inventory)
     {
         m_inventory = &inventory;
     }
@@ -63,11 +66,24 @@ namespace h2o
         if (!m_inventory)
             return;
 
+        const v2 mouse_pos = ImGui::GetMousePos();
+        auto foreground_draw_list = ImGui::GetForegroundDrawList();
+        if (m_selected_stack)
+        {
+            if (const auto tex_id = fetch_item_texture_id(m_selected_stack->item))
+            {
+                foreground_draw_list->AddImage(
+                    (void*)(u64)(*tex_id),
+                    mouse_pos - v2{ item_texture_size } / 2.0f,
+                    mouse_pos + v2{ item_texture_size } / 2.0f);
+            }
+        }
+
         if (ImGui::Begin("Inventory"))
         {
             const v2 window_size = ImGui::GetWindowSize();
 
-            const auto& item_stacks = m_inventory->item_stacks();
+            auto& item_stacks = m_inventory->item_stacks();
             const i32 num_columns = window_size.x / (item_texture_size + item_texture_spacing);
             if (num_columns > 0)
             {
@@ -76,45 +92,56 @@ namespace h2o
                 const v2 grid_pos = ImGui::GetCursorScreenPos();
                 auto draw_list = ImGui::GetWindowDrawList();
                 for (u32 i = 0; i < num_columns; i++)
+                for (u32 j = 0; j < num_rows; j++)
                 {
-                    for (u32 j = 0; j < num_rows; j++)
+                    u32 stack_index = i + num_columns * j;
+                    if (stack_index >= item_stacks.size())
+                        break;
+
+                    const v2 tex_offset{
+                        i * (item_texture_size + item_texture_spacing),
+                        j * (item_texture_size + item_texture_spacing) };
+
+                    const v2 item_pos = grid_pos + tex_offset;
+
+                    ImGui::SetCursorScreenPos(item_pos);
+
+                    if (ImGui::InvisibleButton(
+                        fmt::format("Item({};{})", i, j).c_str(),
+                        v2{ item_texture_size, item_texture_size },
+                        ImGuiButtonFlags_MouseButtonLeft))
                     {
-                        u32 stack_index = i + num_columns * j;
-                        if (stack_index >= item_stacks.size())
-                            break;
+                        // Item slot is clicked
+                        const auto item_stack = m_selected_stack;
+                        m_selected_stack = m_inventory->remove_stack(stack_index);
 
-                        if (const auto& item_stack = item_stacks[stack_index])
-                        {
-                            if (const auto tex_id = fetch_item_texture_id(item_stack->item))
-                            {
-                                // Draw texture
-                                const v2 tex_offset{
-                                    i * (item_texture_size + item_texture_spacing),
-                                    j * (item_texture_size + item_texture_spacing) };
-
-                                const v2 item_pos = grid_pos + tex_offset;
-
-                                ImGui::SetCursorScreenPos(item_pos);
-                                ImGui::InvisibleButton(
-                                    fmt::format("Item({};{})", i, j).c_str(),
-                                    v2{ item_texture_size, item_texture_size },
-                                    ImGuiButtonFlags_MouseButtonLeft);
-
-                                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                                    ImGui::SetTooltip("%s", fetch_item_name(item_stack->item).c_str());
-
-                                draw_list->AddImage(
-                                    (void*)(u64)(*tex_id),
-                                    item_pos, item_pos + v2{ item_texture_size });
-
-                                draw_list->AddText(item_pos, ImColor(1.0f, 1.0f, 1.0f, 1.0f), fmt::format("x{}", item_stack->count).c_str());
-
-                                continue;
-                            }
-                        }
-
-                        // Blank space...
+                        if (item_stack)
+                            m_inventory->set_item_stack(stack_index, *item_stack);
                     }
+
+                    if (const auto& item_stack = item_stacks[stack_index])
+                    {
+                        if (const auto tex_id = fetch_item_texture_id(item_stack->item))
+                        {
+                            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                                ImGui::SetTooltip("%s", fetch_item_name(item_stack->item).c_str());
+
+                            draw_list->AddImage(
+                                (void*)(u64)(*tex_id),
+                                item_pos, item_pos + v2{ item_texture_size });
+
+                            draw_list->AddText(
+                                item_pos,
+                                ImColor(1.0f, 1.0f, 1.0f, 1.0f),
+                                fmt::format("x{}", item_stack->count).c_str());
+                        }
+                    }
+
+                    // Blank space...
+                    draw_list->AddRect(
+                        grid_pos + tex_offset,
+                        grid_pos + tex_offset + v2{ item_texture_size },
+                        ImColor(0.5f, 0.7f, 1.0f, 1.0f), 0.0f, 0, 2.0f);
                 }
             }
         }

@@ -156,11 +156,11 @@ namespace bluevoxel
         player->tag_actor(h2o::ActorTag::LocalPlayer);
 
         const auto inventory_comp = player->add_component<h2o::InventoryComponent<h2o::Block>>(h2o::Inventory<h2o::Block>{ 5, std::nullopt });
-        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 1 }, .count = 1});
-        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 2 }, .count = 1});
-        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 3 }, .count = 1});
-        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 4 }, .count = 1});
-        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 5 }, .count = 1});
+        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 1 }, .count = 69 });
+        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 2 }, .count = 1 });
+//        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 3 }, .count = 1});
+//        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 4 }, .count = 1});
+//        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 5 }, .count = 1});
         m_inventory_ui.emplace(this);
         m_inventory_ui->open(inventory_comp->inventory());
 

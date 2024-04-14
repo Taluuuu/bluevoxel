@@ -24,6 +24,8 @@ namespace h2o
 
         // Add the item stack to the inventory; returns the number of items that could not be stored.
         u32 add_item_stack(const ItemStack<ItemType>& item_stack);
+        bool set_item_stack(u32 stack_index, const ItemStack<ItemType>& item_stack);
+        std::optional< ItemStack<ItemType> > remove_stack(u32 stack_index);
 
         [[nodiscard]] u32 compute_num_items() const;
         [[nodiscard]] const std::vector< std::optional< ItemStack<ItemType> > >& item_stacks() const { return m_item_stacks; }
@@ -91,6 +93,33 @@ namespace h2o
 
         assert(*m_num_item_slots == m_item_stacks.size());
         return item_stack.count;
+    }
+
+    template<class ItemType>
+    bool Inventory<ItemType>::set_item_stack(
+        u32 stack_index,
+        const ItemStack<ItemType>& item_stack)
+    {
+        if (stack_index >= m_item_stacks.size())
+            return false;
+
+        if (m_item_stacks[stack_index])
+            return false; // There is already an item stack there
+
+        m_item_stacks[stack_index] = item_stack;
+        return true;
+    }
+
+    template<class ItemType>
+    std::optional< ItemStack<ItemType> > Inventory<ItemType>::remove_stack(u32 stack_index)
+    {
+        if (stack_index >= m_item_stacks.size())
+            return std::nullopt;
+
+        auto item_stack = m_item_stacks[stack_index];
+        m_item_stacks[stack_index] = std::nullopt;
+
+        return item_stack;
     }
 
     template<class ItemType>
