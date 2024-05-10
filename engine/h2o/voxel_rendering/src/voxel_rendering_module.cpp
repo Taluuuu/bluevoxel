@@ -32,8 +32,8 @@ namespace h2o
         // Create rendering pipeline
         m_pipeline = m_rendering_module->renderer()
             .create_pipeline()
-            .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/chunk.vert")
-            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/chunk.frag")
+            .add_shader(gfx::ShaderStage::Vertex,   "engine/shaders/chunk.vert")
+            .add_shader(gfx::ShaderStage::Fragment, "engine/shaders/chunk.frag")
             .with_feature(gfx::PipelineFeature::CullFace)
             .with_feature(gfx::PipelineFeature::DepthTest)
             .compile();

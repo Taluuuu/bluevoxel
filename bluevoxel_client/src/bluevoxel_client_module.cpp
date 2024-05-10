@@ -36,7 +36,7 @@ namespace bluevoxel
     {
         auto voxel_pack = engine
             .resource_mgr()
-            .fetch<h2o::VoxelPack>("../Resources/bluevoxel/voxel/");
+            .fetch<h2o::VoxelPack>("bluevoxel/voxel/");
 
         if (!voxel_pack)
             return false;
@@ -180,9 +180,9 @@ namespace bluevoxel
         {
             auto mesh_renderer = remote_player->add_component<h2o::MeshRendererComponent>();
             mesh_renderer->set_mesh(
-                g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("../Resources/bluevoxel/models/robot.fbx"));
+                g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("bluevoxel/models/robot.fbx"));
             mesh_renderer->set_texture(
-                g_engine->resource_mgr().fetch<h2o::gfx::Texture>("../Resources/bluevoxel/textures/robot.png"));
+                g_engine->resource_mgr().fetch<h2o::gfx::Texture>("bluevoxel/textures/robot.png"));
         }
     }
 }

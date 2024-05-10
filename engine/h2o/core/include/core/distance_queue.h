@@ -2,6 +2,7 @@
 
 #include "core/types.h"
 
+#include <algorithm>
 #include <functional>
 #include <optional>
 #include <vector>

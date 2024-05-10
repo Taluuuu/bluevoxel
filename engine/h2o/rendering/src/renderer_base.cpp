@@ -175,18 +175,18 @@ namespace h2o::gfx
     {
         // Setup immediate drawing
         m_colored_line_pipeline = create_pipeline()
-            .with_feature(gfx::PipelineFeature::DepthTest)
-            .add_shader(gfx::ShaderStage::Vertex, "../Resources/engine/shaders/colored_line.vert")
-            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/colored_line.frag")
+            .with_feature(PipelineFeature::DepthTest)
+            .add_shader(ShaderStage::Vertex, "engine/shaders/colored_line.vert")
+            .add_shader(ShaderStage::Fragment, "engine/shaders/colored_line.frag")
             .compile();
 
         if (!m_colored_line_pipeline)
             return false;
 
         m_colored_shape_pipeline = create_pipeline()
-            .with_feature(gfx::PipelineFeature::DepthTest)
-            .add_shader(gfx::ShaderStage::Vertex, "../Resources/engine/shaders/colored_shape.vert")
-            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/colored_shape.frag")
+            .with_feature(PipelineFeature::DepthTest)
+            .add_shader(ShaderStage::Vertex, "engine/shaders/colored_shape.vert")
+            .add_shader(ShaderStage::Fragment, "engine/shaders/colored_shape.frag")
             .compile();
 
         if (!m_colored_shape_pipeline)

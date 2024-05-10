@@ -1,6 +1,8 @@
 #include "pipeline_opengl.h"
 
+#include "core/engine.h"
 #include "core/log.h"
+#include "core/text_file.h"
 #include "core/utils.h"
 
 #include <cassert>
@@ -12,8 +14,8 @@ namespace h2o::gfx
         const std::string& path, GLuint type)
     {
         // Load file
-        auto code = utils::read_file(path);
-        if (!code.has_value())
+        const auto file = g_engine->resource_mgr().fetch<TextFile>(path);
+        if (!file)
         {
             log::error("Failed to load shader source file: {}", path);
             return 0;
@@ -21,7 +23,7 @@ namespace h2o::gfx
 
         // Create and compile shader
         GLuint shader = glCreateShader(type);
-        const GLchar* code_c_str = code->data();
+        const GLchar* code_c_str = file->text().data();
         glShaderSource(shader, 1, &code_c_str, nullptr);
         glCompileShader(shader);
 

@@ -4,8 +4,10 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_core
+    src/app_config.cpp
     src/engine.cpp
     src/resources.cpp
+    src/text_file.cpp
     src/thread_pool.cpp
     src/tickable.cpp
     src/utils.cpp
@@ -17,6 +19,9 @@ target_link_libraries(h2o_core
         fmt
         magic_enum
         oup
+
+    PRIVATE
+        yaml-cpp
 )
 
 target_include_directories(h2o_core
@@ -27,4 +32,7 @@ target_include_directories(h2o_core
         fmt
         magic_enum
         oup
+
+    PRIVATE
+        yaml-cpp
 )

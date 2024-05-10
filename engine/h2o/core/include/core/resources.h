@@ -49,6 +49,8 @@ namespace h2o
 
     private:
 
+        static constexpr std::string base_resource_path = "../Resources/";
+
         using ResourceHandle = std::shared_ptr<IResource>;
         std::unordered_map<fs::path, ResourceHandle> m_resources;
 
@@ -76,7 +78,7 @@ namespace h2o
     std::shared_ptr<T> ResourceManager::reload(const std::string& path)
     {
         auto res = std::make_shared<T>();
-        if (!res || !res->load(path))
+        if (!res || !res->load(fs::path(base_resource_path) / path))
         {
             log::warn("Failed to load resource at path: '{}'", path);
             return nullptr;

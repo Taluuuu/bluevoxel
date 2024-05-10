@@ -36,7 +36,7 @@ namespace bluevoxel
         // TODO: Voxel pack picker in this class ?
         auto voxel_pack = engine
             .resource_mgr()
-            .fetch<h2o::VoxelPack>("../Resources/bluevoxel/voxel/");
+            .fetch<h2o::VoxelPack>("bluevoxel/voxel/");
 
         if (!voxel_pack)
             return false;

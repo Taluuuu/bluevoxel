@@ -38,8 +38,8 @@ namespace h2o
         // TODO: Move this to the system's init function
         m_pipeline = (*m_renderer)
             .create_pipeline()
-            .add_shader(gfx::ShaderStage::Vertex,   "../Resources/engine/shaders/triangle.vert")
-            .add_shader(gfx::ShaderStage::Fragment, "../Resources/engine/shaders/triangle.frag")
+            .add_shader(gfx::ShaderStage::Vertex,   "engine/shaders/triangle.vert")
+            .add_shader(gfx::ShaderStage::Fragment, "engine/shaders/triangle.frag")
             .with_feature(gfx::PipelineFeature::CullFace)
             .with_feature(gfx::PipelineFeature::DepthTest)
             .compile();

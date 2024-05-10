@@ -1,5 +1,6 @@
 #include "voxel_client/chunk_client.h"
 
+
 #include "core/engine.h"
 #include "networking/net_peer.h"
 #include "rendering/camera.h"
@@ -15,6 +16,7 @@
 #include "voxel_rendering/voxel_rendering_module.h"
 
 #include <glm/gtx/norm.hpp>
+#include <magic_enum_utility.hpp>
 
 namespace h2o
 {

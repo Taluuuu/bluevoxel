@@ -1,5 +1,6 @@
 #include "rendering/pipeline.h"
 
+#include "core/text_file.h"
 #include "rendering/renderer_base.h"
 
 #include <magic_enum.hpp>

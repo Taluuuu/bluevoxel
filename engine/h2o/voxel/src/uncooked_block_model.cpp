@@ -3,6 +3,8 @@
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_pack.h"
 
+#include <magic_enum_all.hpp>
+
 namespace h2o
 {
     static BlockModel::Triangle process_triangle(const UncookedBlockModel::Triangle& unprocessed_triangle, u32 face_index)

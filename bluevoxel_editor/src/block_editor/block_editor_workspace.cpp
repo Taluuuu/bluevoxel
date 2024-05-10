@@ -142,7 +142,7 @@ namespace bluevoxel
 
     void BlockEditorWorkspace::reload_voxel_pack()
     {
-        if (auto voxel_pack = g_engine->resource_mgr().reload<h2o::VoxelPack>("../Resources/bluevoxel/voxel/"))
+        if (auto voxel_pack = g_engine->resource_mgr().reload<h2o::VoxelPack>("bluevoxel/voxel/"))
             m_voxel_module->set_voxel_pack(voxel_pack);
     }
 }
