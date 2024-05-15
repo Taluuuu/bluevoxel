@@ -1,5 +1,6 @@
 #pragma once
 
+#include "app_config.h"
 #include "game_info.h"
 #include "resources.h"
 #include "thread_pool.h"
@@ -8,7 +9,6 @@
 #include <memory>
 #include <typeindex>
 #include <unordered_map>
-#include <vector>
 #include <stack>
 
 namespace h2o
@@ -56,6 +56,7 @@ namespace h2o
         [[nodiscard]] T& get_module_checked() const;
 
         [[nodiscard]] const GameInfo& game_info() const { return m_game_info; }
+        [[nodiscard]] const AppConfig& app_config() const { return m_app_config; }
         [[nodiscard]] ResourceManager& resource_mgr() { return m_resource_mgr; }
         [[nodiscard]] ThreadPool& thread_pool() { return m_thread_pool; }
 
@@ -78,6 +79,7 @@ namespace h2o
     private:
 
         GameInfo m_game_info{};
+        AppConfig m_app_config{};
 
         // Modules to initialize
         std::unordered_map<std::type_index, std::unique_ptr<IModule>> m_modules_to_init;

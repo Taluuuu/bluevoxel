@@ -3,7 +3,7 @@
 #include "core/log.h"
 
 #include <optional>
-#include <yaml-cpp/node/node.h>
+#include <yaml-cpp/yaml.h>
 
 namespace h2o
 {
@@ -11,31 +11,30 @@ namespace h2o
     {
     public:
 
-        static std::optional<AppConfig> load();
+        AppConfig();
 
         template<typename T>
         std::optional<T> get(const std::string& name) const;
 
         static constexpr std::string config_file_name = "app_config.yml";
 
-    protected:
-
-        explicit AppConfig(const YAML::Node& config_root);
-
     private:
 
-        YAML::Node m_config_root{};
+        std::optional<YAML::Node> m_config_root{};
 
     };
 
     template <typename T>
     std::optional<T> AppConfig::get(const std::string& name) const
     {
+        if (!m_config_root)
+            return std::nullopt;
+
         try
         {
-            return m_config_root[name].as<T>();
+            return (*m_config_root)[name].as<T>();
         }
-        catch(const std::exception& e)
+        catch (const std::exception& e)
         {
             log::warn("Failed to read {} in config file: {}", name, e.what());
             return std::nullopt;

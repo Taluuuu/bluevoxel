@@ -1,24 +1,16 @@
 #include "core/app_config.h"
 
-#include <yaml-cpp/node/parse.h>
-
 namespace h2o
 {
-    std::optional<AppConfig> AppConfig::load()
+    AppConfig::AppConfig()
     {
         try
         {
-            const auto config_root = YAML::LoadFile(config_file_name);
-            return AppConfig(config_root);
+            m_config_root = YAML::LoadFile(config_file_name);
         }
         catch (const std::exception& e)
         {
-            log::error("Failed to load app config file: {}", e.what());
-            return std::nullopt;
+            log::warn("Did not find app config file: {}", e.what());
         }
     }
-
-    AppConfig::AppConfig(const YAML::Node& config_root)
-        : m_config_root(config_root)
-    {}
 }
