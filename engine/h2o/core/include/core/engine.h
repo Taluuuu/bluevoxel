@@ -56,7 +56,7 @@ namespace h2o
         [[nodiscard]] T& get_module_checked() const;
 
         [[nodiscard]] const GameInfo& game_info() const { return m_game_info; }
-        [[nodiscard]] const AppConfig& app_config() const { return m_app_config; }
+        [[nodiscard]] AppConfig& app_config() { return m_app_config; }
         [[nodiscard]] ResourceManager& resource_mgr() { return m_resource_mgr; }
         [[nodiscard]] ThreadPool& thread_pool() { return m_thread_pool; }
 

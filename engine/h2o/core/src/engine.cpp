@@ -45,6 +45,8 @@ namespace h2o
 
         m_thread_pool.start();
 
+        m_app_config.load_file();
+
         while (!should_close)
             update();
 

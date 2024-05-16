@@ -4,11 +4,6 @@ project(bluevoxel)
 
 function(ADD_BLUEVOXEL_EXECUTABLE SUBFOLDER)
     add_subdirectory(${SUBFOLDER})
-
-    set(APP_CONFIG_DIR ${CMAKE_CURRENT_LIST_DIR}/${SUBFOLDER}/app_config.yml)
-    if (EXISTS ${APP_CONFIG_DIR})
-        file(COPY ${APP_CONFIG_DIR} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/${SUBFOLDER})
-    endif ()
 endfunction()
 
 add_subdirectory(engine)

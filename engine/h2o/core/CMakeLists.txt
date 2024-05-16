@@ -19,6 +19,8 @@ target_link_libraries(h2o_core
         fmt
         magic_enum
         oup
+
+    PRIVATE
         yaml-cpp
 )
 
@@ -30,5 +32,7 @@ target_include_directories(h2o_core
         fmt
         magic_enum
         oup
+
+    PRIVATE
         yaml-cpp
 )

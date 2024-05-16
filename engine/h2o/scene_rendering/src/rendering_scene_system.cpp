@@ -12,6 +12,8 @@
 #include "windowing/windowing_module.h"
 #include "windowing/window.h"
 
+#include <algorithm>
+
 namespace h2o
 {
     RenderingSystem::RenderingSystem(const SceneSystemInitializer& system_initializer)

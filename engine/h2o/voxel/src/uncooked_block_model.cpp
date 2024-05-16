@@ -316,7 +316,7 @@ namespace YAML
         model = UncookedBlockModel{};
         model.name = model_name;
 
-    for (const auto face_node: node["faces"])
+        for (const auto face_node: node["faces"])
         {
             const auto unprocessed_face = face_node["triangles"].as<UncookedBlockModel::Face>();
             model.add_face(unprocessed_face);

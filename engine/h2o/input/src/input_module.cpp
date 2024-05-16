@@ -12,6 +12,8 @@ namespace h2o
 {
     bool InputModule::init(Engine& engine)
     {
+        engine.app_config().register_entry("mouse_sensitivity", 1.0f);
+
         m_key_states.resize(magic_enum::enum_count<Key>(), {});
         m_mouse_button_states.resize(magic_enum::enum_count<MouseButton>(), {});
 
@@ -141,7 +143,7 @@ namespace h2o
             return val
                 * (mouse_axis->invert ? -1.0f : 1.0f)
                 * mouse_axis->sensitivity
-                * g_engine->app_config().get<f32>("mouse_sensitivity").value_or(1.0);
+                * g_engine->app_config().get<f32>("mouse_sensitivity");
         }
 
         if (auto scroll_axis = get_if<MouseScrollAxis>(&axis))
