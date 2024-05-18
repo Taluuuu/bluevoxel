@@ -13,11 +13,7 @@
 
 #include <imgui.h>
 #include <backends/imgui_impl_opengl3.h>
-#if H2O_USE_GLFW
-#   include <backends/imgui_impl_glfw.h>
-#else
-#   error "Only GLFW backend is supported for ImGUI at the moment."
-#endif
+#include <backends/imgui_impl_glfw.h>
 
 namespace h2o::gfx
 {
@@ -177,9 +173,7 @@ namespace h2o::gfx
 
         ImGui_ImplOpenGL3_NewFrame();
 
-#if H2O_USE_GLFW
         ImGui_ImplGlfw_NewFrame();
-#endif
 
         ImGui::NewFrame();
 
@@ -190,9 +184,7 @@ namespace h2o::gfx
     {
         ImGui::Render();
 
-#if H2O_USE_OPENGL
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-#endif
 
         Renderer_Base::end_frame();
     }

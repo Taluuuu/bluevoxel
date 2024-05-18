@@ -1,21 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(H2O_USE_GLFW True)
-set(H2O_USE_OPENGL True)
-set(H2O_USE_VULKAN False)
-
-if(H2O_USE_GLFW)
-    add_definitions(-DH2O_USE_GLFW)
-endif()
-
-if(H2O_USE_OPENGL)
-    add_definitions(-DH2O_USE_OPENGL)
-endif()
-
-if(H2O_USE_VULKAN)
-    add_definitions(-DH2O_USE_VULKAN)
-endif()
-
 # glfw
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -64,8 +48,8 @@ find_package(assimp REQUIRED)
 add_subdirectory(lib/FastNoise2)
 
 # ImGui
-set(IMGUI_USE_OPENGL ${H2O_USE_OPENGL})
-set(IMGUI_USE_GLFW ${H2O_USE_GLFW})
+set(IMGUI_USE_OPENGL True)
+set(IMGUI_USE_GLFW True)
 add_subdirectory(lib/imgui)
 
 # Engine libraries

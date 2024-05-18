@@ -1,17 +1,10 @@
 #include "rendering/rendering_module.h"
 
 #include "core/engine.h"
+#include "opengl/renderer_opengl.h"
 #include "rendering/pipeline.h"
 #include "windowing/window.h"
 #include "windowing/windowing_module.h"
-
-#if H2O_USE_VULKAN
-#include "vulkan/renderer_vulkan.h"
-#endif
-
-#if H2O_USE_OPENGL
-#include "opengl/renderer_opengl.h"
-#endif
 
 namespace h2o
 {
@@ -27,11 +20,7 @@ namespace h2o
         assert(windowing_module != nullptr);
         auto& window = windowing_module->window();
 
-#if H2O_USE_VULKAN
-        m_renderer = std::make_unique<Renderer_Vulkan>();
-#elif H2O_USE_OPENGL
         m_renderer = std::make_shared<gfx::Renderer_OpenGL>();
-#endif
 
         return m_renderer->init(window, engine.game_info());
     }

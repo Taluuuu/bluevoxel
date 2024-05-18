@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-
 add_library(h2o_voxel
     src/block.cpp
     src/chunk_container_interface.cpp
@@ -23,6 +20,12 @@ add_library(h2o_voxel
     src/voxel_module.cpp
     src/voxel_pack.cpp
     src/voxel_ray.cpp
+)
+
+set_target_properties(h2o_voxel
+    PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED True
 )
 
 target_link_libraries(h2o_voxel
