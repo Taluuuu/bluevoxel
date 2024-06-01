@@ -10,8 +10,7 @@ namespace h2o
     class ChunkMeshPool;
     class ChunkRegion;
     class VoxelBounds;
-
-    class VoxelRenderingModule;
+    class VoxelModule;
 
     namespace gfx
     {
@@ -45,7 +44,7 @@ namespace bluevoxel
         std::shared_ptr<h2o::VoxelBounds> m_voxel_bounds = nullptr;
         std::shared_ptr<h2o::ChunkMeshPool> m_chunk_mesh_pool = nullptr;
 
-        h2o::VoxelRenderingModule* const m_voxel_rendering_module = nullptr;
+        h2o::VoxelModule* const m_voxel_rendering_module = nullptr;
 
     };
 }

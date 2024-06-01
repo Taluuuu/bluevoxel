@@ -9,7 +9,6 @@
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_server/chunk_server.h"
-#include "voxel_server/voxel_server_module.h"
 
 #include <vector>
 
@@ -112,11 +111,11 @@ namespace bluevoxel
         m_server.stop();
     }
 
-    std::vector<std::type_index> bluevoxel::BlueVoxelServerModule::dependencies() const
+    std::vector<std::type_index> BlueVoxelServerModule::dependencies() const
     {
         return {
             typeid(h2o::NetworkingModule),
-            typeid(h2o::VoxelServerModule)
+            typeid(h2o::VoxelModule)
         };
     }
 }

@@ -89,6 +89,24 @@ namespace h2o
 
     bool Engine::init_modules()
     {
+        const auto init_module = [&](const std::type_index& module_type, IModule& module) -> bool
+        {
+            if (module.init(*this))
+            {
+                // Take ownership of the module ptr
+                m_module_stack.emplace(&module);
+                m_initialized_modules[module_type] = &module;
+
+                // Remove from modules to init
+                m_modules_to_init.erase(module_type);
+
+                return true;
+            }
+
+            log::error("Failed to initialize module '{}'", module.module_name());
+            return false;
+        };
+
         while (true)
         {
             // Find next module to init
@@ -100,9 +118,16 @@ namespace h2o
                         if (!m_initialized_modules.contains(module_dep))
                             return false;
                     }
+
+                    for (const auto& module_dep : module.second->optional_dependencies())
+                    {
+                        if (!m_initialized_modules.contains(module_dep))
+                            return false;
+                    }
                     
                     return true;
-                });
+                }
+            );
 
             if (it == m_modules_to_init.end())
             {
@@ -110,42 +135,56 @@ namespace h2o
                 break;
             }
 
-            if (it->second->init(*this))
-            {
-                // Release the unique_ptr
-                auto module = it->second.release();
-
-                // Take ownership of the module ptr
-                m_module_stack.push(std::unique_ptr<IModule>(module));
-                m_initialized_modules[it->first] = module;
-
-                // Remove from modules to init
-                m_modules_to_init.erase(it);
-
-                // Query interfaces...
-                // TODO: These should go, modules should do stuff by themselves.
-                if (auto window_module = dynamic_cast<IWindowModule*>(module))
-                {
-                    assert(!m_window_module);
-                    m_window_module = window_module;
-                }
-                if (auto input_module = dynamic_cast<IInputModule*>(module))
-                {
-                    assert(!m_input_module);
-                    m_input_module = input_module;
-                }
-            }
-            else
-            {
-                log::error("Failed to initialize module '{}'", it->second->module_name());
+            if (!init_module(it->first, *it->second.release()))
                 return false;
+        }
+
+        while (true)
+        {
+            // Find next module to init
+            auto it = std::find_if(m_modules_to_init.begin(), m_modules_to_init.end(),
+                [this](const auto& module)
+                {
+                    for (const auto& module_dep : module.second->dependencies())
+                    {
+                        if (!m_initialized_modules.contains(module_dep))
+                            return false;
+                    }
+
+                    return true;
+                }
+            );
+
+            if (it == m_modules_to_init.end())
+            {
+                // No more modules can be initialized
+                break;
             }
+
+            if (!init_module(it->first, *it->second.release()))
+                return false;
         }
 
         for (const auto& module : m_modules_to_init)
         {
             log::warn("Could not initialize all dependencies for module: '{}'", module.second->module_name());
             return false;
+        }
+
+        for (const auto& [_, module] : m_initialized_modules)
+        {
+            // Query interfaces...
+            // TODO: These should go, modules should do stuff by themselves.
+            if (auto window_module = dynamic_cast<IWindowModule*>(module))
+            {
+                assert(!m_window_module);
+                m_window_module = window_module;
+            }
+            if (auto input_module = dynamic_cast<IInputModule*>(module))
+            {
+                assert(!m_input_module);
+                m_input_module = input_module;
+            }
         }
 
         return true;

@@ -1,31 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
 
-add_library(h2o_voxel
-    src/block.cpp
-    src/chunk_container_interface.cpp
-    src/block_presets/block_preset_base.cpp
-    src/block_presets/block_preset_crop.cpp
-    src/chunk.cpp
-    src/chunk_column.cpp
-    src/chunk_generation_queue.cpp
-    src/chunk_generators/chunk_generator_base.cpp
-    src/chunk_generators/chunk_generator_flat.cpp
-    src/chunk_generators/chunk_generator_sphere.cpp
-    src/chunk_generators/chunk_generator_terrain.cpp
-    src/chunk_manager.cpp
-    src/chunk_manager_base.cpp
-    src/chunk_region.cpp
-    src/uncooked_block_model.cpp
-    src/voxel_bounds.cpp
-    src/voxel_module.cpp
-    src/voxel_pack.cpp
-    src/voxel_ray.cpp
+file(GLOB_RECURSE VOXEL_SOURCES "src/*.cpp")
+
+add_library(h2o_voxel STATIC
+    ${VOXEL_SOURCES}
 )
 
 set_target_properties(h2o_voxel
     PROPERTIES
         CXX_STANDARD 20
-        CXX_STANDARD_REQUIRED True
+        CXX_STANDARD_REQUIRED TRUE
 )
 
 target_link_libraries(h2o_voxel
@@ -36,7 +20,11 @@ target_link_libraries(h2o_voxel
 
     PRIVATE
         h2o_core
+        h2o_input
+        h2o_networking
+        h2o_rendering
         h2o_scene
+        h2o_scene_rendering
 
         magic_enum
 )
@@ -44,13 +32,18 @@ target_link_libraries(h2o_voxel
 target_include_directories(h2o_voxel
     PUBLIC
         include/
+
         FastNoise
         bitsery
         yaml-cpp
 
     PRIVATE
         h2o_core
+        h2o_input
+        h2o_networking
+        h2o_rendering
         h2o_scene
+        h2o_scene_rendering
 
         magic_enum
 )

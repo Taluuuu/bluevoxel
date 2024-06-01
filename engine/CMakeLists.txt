@@ -6,16 +6,19 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 add_subdirectory(lib/glfw)
 
-# glm
-add_subdirectory(lib/glm)
-
-# Vulkan
-find_package(Vulkan REQUIRED)
-set(VULKAN_PATH ${Vulkan_INCLUDE_DIRS})
-STRING(REGEX REPLACE "/Include" "" VULKAN_PATH ${VULKAN_PATH})
-
 # OpenGL
 add_subdirectory(lib/glad)
+
+# ImGui
+set(IMGUI_USE_OPENGL True)
+set(IMGUI_USE_GLFW True)
+add_subdirectory(lib/imgui)
+
+# GameNetworkingSockets
+find_package(GameNetworkingSockets REQUIRED)
+
+# glm
+add_subdirectory(lib/glm)
 
 # magic_enum
 add_subdirectory(lib/magic_enum)
@@ -35,9 +38,6 @@ add_subdirectory(lib/stb)
 # yaml-cpp
 add_subdirectory(lib/yaml-cpp)
 
-# GameNetworkingSockets
-find_package(GameNetworkingSockets REQUIRED)
-
 # bitsery
 add_subdirectory(lib/bitsery)
 
@@ -46,11 +46,6 @@ find_package(assimp REQUIRED)
 
 # FastNoise2
 add_subdirectory(lib/FastNoise2)
-
-# ImGui
-set(IMGUI_USE_OPENGL True)
-set(IMGUI_USE_GLFW True)
-add_subdirectory(lib/imgui)
 
 # Engine libraries
 add_subdirectory(h2o/core)
@@ -62,9 +57,6 @@ add_subdirectory(h2o/scene)
 add_subdirectory(h2o/scene_rendering)
 add_subdirectory(h2o/game_framework)
 add_subdirectory(h2o/voxel)
-add_subdirectory(h2o/voxel_rendering)
-add_subdirectory(h2o/voxel_client)
-add_subdirectory(h2o/voxel_server)
 add_subdirectory(h2o/networking)
 add_subdirectory(h2o/physics)
 add_subdirectory(h2o/inventory)

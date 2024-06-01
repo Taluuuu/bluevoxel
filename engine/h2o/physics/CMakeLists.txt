@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-add_library(h2o_physics
+add_library(h2o_physics STATIC
     src/math_helpers.cpp
     src/physics_module.cpp
     src/ray_intersections.cpp

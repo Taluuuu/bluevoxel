@@ -1,28 +1,24 @@
 #include "voxel_rendering/chunk_mesh.h"
 
-#include "core/log.h"
 #include "rendering/buffer.h"
-#include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
-#include "rendering/vertex_array.h"
 #include "voxel/chunk.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/direction.h"
-#include "voxel_rendering/voxel_rendering_module.h"
 #include "voxel/block_model.h"
+#include "voxel/voxel_module.h"
 
 #include <array>
-#include <magic_enum.hpp>
 
 namespace h2o
 {
-    ChunkMesh::ChunkMesh(const ChunkRegion& chunk_region, const VoxelRenderingModule& voxel_rendering_module)
+    ChunkMesh::ChunkMesh(const ChunkRegion& chunk_region, const VoxelModule& voxel_module)
     {
-        build_mesh(chunk_region, voxel_rendering_module);
+        build_mesh(chunk_region, voxel_module);
     }
 
-    void ChunkMesh::build_mesh(const ChunkRegion& chunk_region, const VoxelRenderingModule& voxel_rendering_module)
+    void ChunkMesh::build_mesh(const ChunkRegion& chunk_region, const VoxelModule& voxel_module)
     {
         m_chunk_pos = chunk_region.center_chunk_pos();
         const Chunk* chunk = chunk_region.get_chunk_at(m_chunk_pos);
@@ -32,7 +28,6 @@ namespace h2o
 
         const auto append_side =
             [&](const v3i& pos,
-                const BlockModel& model,
                 const std::vector<u32>& textures,
                 const std::vector<BlockModel::Triangle>& side)
             {
@@ -61,7 +56,7 @@ namespace h2o
                 const v3i adj_pos = block_pos + offset;
 
                 if (const auto block = chunk_region.get_block_at(adj_pos, m_chunk_pos))
-                    return voxel_rendering_module.is_transparent(block->id);
+                    return voxel_module.is_transparent(block->id);
 
                 return true;
             };
@@ -77,7 +72,7 @@ namespace h2o
                 continue;
 
             const std::vector<u32>* texture_ids = nullptr;
-            const auto* model = voxel_rendering_module.get_model(block.id, texture_ids);
+            const auto* model = voxel_module.get_model(block.id, texture_ids);
             if (!model)
                 continue;
 
@@ -88,13 +83,13 @@ namespace h2o
                 [&](voxel::Direction::Type dir)
                 {
                     if (is_transparent(pos, dir))
-                        append_side(pos, *model, *texture_ids, model->occluded_triangles_per_side[dir_index]);
+                        append_side(pos, *texture_ids, model->occluded_triangles_per_side[dir_index]);
 
                     dir_index++;
                 }
             );
 
-            append_side(pos, *model, *texture_ids, model->unoccluded_triangles);
+            append_side(pos, *texture_ids, model->unoccluded_triangles);
         }
     }
 }

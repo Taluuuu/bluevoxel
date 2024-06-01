@@ -7,13 +7,13 @@
 #include "voxel/chunk.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_bounds.h"
+#include "voxel/voxel_module.h"
 #include "voxel_rendering/chunk_mesh_pool.h"
-#include "voxel_rendering/voxel_rendering_module.h"
 
 namespace bluevoxel
 {
     BlockRenderer::BlockRenderer()
-        : m_voxel_rendering_module(&g_engine->get_module_checked<h2o::VoxelRenderingModule>())
+        : m_voxel_rendering_module(&g_engine->get_module_checked<h2o::VoxelModule>())
     {
         auto& voxel_module = g_engine->get_module_checked<h2o::VoxelModule>();
 

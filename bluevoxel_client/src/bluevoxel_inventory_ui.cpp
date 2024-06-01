@@ -5,14 +5,12 @@
 #include "rendering/texture_array.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
-#include "voxel_rendering/voxel_rendering_module.h"
 
 namespace bluevoxel
 {
     BluevoxelInventoryUI::BluevoxelInventoryUI(h2o::Tickable* owner)
         : InventoryUI(owner)
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
-        , m_voxel_rendering_module(&g_engine->get_module_checked<h2o::VoxelRenderingModule>())
     {}
 
     std::optional<u32> BluevoxelInventoryUI::fetch_item_texture_id(const h2o::Block& item) const
@@ -35,7 +33,7 @@ namespace bluevoxel
             return std::nullopt;
 
         const u32 texture_id = texture_ids[face_index];
-        const auto& texture_array = m_voxel_rendering_module->block_textures();
+        const auto& texture_array = m_voxel_module->block_textures();
         if (!texture_array)
             return std::nullopt;
 

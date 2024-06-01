@@ -20,7 +20,6 @@ namespace h2o
     class ChunkColumn;
     class INetPeer;
     class RenderingModule;
-    class VoxelRenderingModule;
     class VoxelModule;
 
     class ChunkClient : public SceneSystem
@@ -72,9 +71,9 @@ namespace h2o
         VoxelBounds m_voxel_bounds;
         v2i m_previous_player_chunk_col_pos{};
 
-        INetPeer*             m_client                 = nullptr;
-        RenderingModule*      m_rendering_module       = nullptr;
-        VoxelRenderingModule* m_voxel_rendering_module = nullptr;
+        INetPeer*        m_client           = nullptr;
+        RenderingModule* m_rendering_module = nullptr;
+        VoxelModule*     m_voxel_module     = nullptr;
 
     };
 }

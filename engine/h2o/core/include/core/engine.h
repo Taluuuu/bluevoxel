@@ -84,7 +84,7 @@ namespace h2o
         // Modules to initialize
         std::unordered_map<std::type_index, std::unique_ptr<IModule>> m_modules_to_init;
 
-        // Initialized modules
+        // Initialized modules - the pointers are owned by the module stack
         std::unordered_map<std::type_index, IModule*> m_initialized_modules;
         std::stack<std::unique_ptr<IModule>> m_module_stack;
 

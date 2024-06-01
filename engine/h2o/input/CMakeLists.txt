@@ -7,7 +7,7 @@ set(INPUT_SOURCES
     src/input_module.cpp
     src/input_component.cpp)
 
-add_library(h2o_input ${INPUT_SOURCES})
+add_library(h2o_input STATIC ${INPUT_SOURCES})
 
 target_link_libraries(h2o_input
     PRIVATE

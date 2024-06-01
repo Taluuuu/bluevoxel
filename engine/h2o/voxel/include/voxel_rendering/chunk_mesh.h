@@ -1,17 +1,14 @@
 #pragma once
 
 #include "core/types.h"
-#include "rendering/vertex_array.h"
 
-#include <memory>
-#include <mutex>
 #include <vector>
 
 namespace h2o
 {
     class ChunkRegion;
     class RenderingModule;
-    class VoxelRenderingModule;
+    class VoxelModule;
 
     namespace gfx
     {
@@ -25,7 +22,7 @@ namespace h2o
 
         ChunkMesh(
             const ChunkRegion& chunk_region,
-            const VoxelRenderingModule& voxel_rendering_module);
+            const VoxelModule& voxel_module);
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
         [[nodiscard]] const std::vector<u32>& vertices() const { return m_vertices; }
@@ -35,7 +32,7 @@ namespace h2o
 
         void build_mesh(
             const ChunkRegion& chunk_region,
-            const VoxelRenderingModule& voxel_rendering_module);
+            const VoxelModule& voxel_rendering_module);
 
     private:
 

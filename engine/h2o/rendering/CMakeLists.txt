@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-add_library(h2o_rendering
+add_library(h2o_rendering STATIC
     src/buffer.cpp
     src/camera.cpp
     src/mesh.cpp
@@ -27,7 +27,6 @@ target_link_libraries(h2o_rendering
         h2o_windowing
 
         assimp::assimp
-        ${Vulkan_LIBRARIES}
         glfw
         stb
         glad
@@ -44,7 +43,6 @@ target_include_directories(h2o_rendering
         h2o_windowing
 
         assimp::assimp
-        ${VULKAN_PATH}/Include/
         glfw
         stb
         glad

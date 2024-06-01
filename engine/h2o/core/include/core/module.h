@@ -42,11 +42,14 @@ namespace h2o
         [[nodiscard]] virtual std::string_view module_name() const = 0;
 
         /**
-         * @brief Get a list of dependencies before this module can be initialized
+         * @brief Get a list of dependencies that need to be initialized before this module can be initialized
          * 
          * @return A vector of module types
          */
-        [[nodiscard]] virtual std::vector<std::type_index> dependencies() const = 0;
+        [[nodiscard]] virtual std::vector<std::type_index> dependencies() const
+        { return {}; }
 
+        [[nodiscard]] virtual std::vector<std::type_index> optional_dependencies() const
+        { return {}; }
     };
 }

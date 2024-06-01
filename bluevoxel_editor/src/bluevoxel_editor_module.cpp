@@ -6,15 +6,10 @@
 #include "rendering/pipeline.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
-#include "rendering/texture_array.h"
-#include "scene/scene.h"
 #include "ui/ui_module.h"
-#include "ui/ui_renderer.h"
-#include "voxel/chunk.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_rendering/chunk_mesh_pool.h"
-#include "voxel_rendering/voxel_rendering_module.h"
 #include "world_gen_editor/world_gen_editor_workspace.h"
 
 #include <imgui.h>
@@ -62,7 +57,7 @@ namespace bluevoxel
             typeid(h2o::UIModule),
             typeid(h2o::GameFrameworkModule),
             typeid(h2o::VoxelModule),
-            typeid(h2o::VoxelRenderingModule) };
+        };
     }
 
     void BlueVoxelEditorModule::update(f32 delta_time)

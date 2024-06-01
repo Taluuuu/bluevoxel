@@ -1,22 +1,21 @@
 #pragma once
 
 #include "core/types.h"
+#include "rendering/vertex_array.h"
 #include "voxel_rendering/chunk_mesh.h"
 
 #include <functional>
-#include "glm/gtx/hash.hpp"
+#include <glm/gtx/hash.hpp>
 #include <mutex>
-#include <optional>
 #include <queue>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 namespace h2o
 {
     class RenderingModule;
-    class VoxelRenderingModule;
     class VoxelBounds;
+    class VoxelModule;
 
     struct ChunkMeshData
     {
@@ -53,8 +52,8 @@ namespace h2o
         std::queue<ChunkMesh> m_built_chunk_meshes{};
         mutable std::mutex m_built_chunk_meshes_mutex;
 
-        VoxelRenderingModule* const m_voxel_rendering_module = nullptr;
-        RenderingModule*      const m_rendering_module = nullptr;
+        VoxelModule*     const m_voxel_module = nullptr;
+        RenderingModule* const m_rendering_module = nullptr;
 
     };
 }

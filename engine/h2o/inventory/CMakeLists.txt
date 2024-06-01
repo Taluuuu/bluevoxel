@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(INVENTORY_SOURCES
     src/inventory_module.cpp)
 
-add_library(h2o_inventory ${INVENTORY_SOURCES})
+add_library(h2o_inventory STATIC ${INVENTORY_SOURCES})
 
 target_link_libraries(h2o_inventory
     PRIVATE

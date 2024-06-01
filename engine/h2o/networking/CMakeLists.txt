@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-add_library(h2o_networking
+add_library(h2o_networking STATIC
     src/client.cpp
     src/net_peer_local.cpp
     src/net_peer_online.cpp

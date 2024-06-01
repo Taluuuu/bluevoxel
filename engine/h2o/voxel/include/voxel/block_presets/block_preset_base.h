@@ -15,6 +15,8 @@ namespace h2o
     {
     public:
 
+        virtual ~BlockPreset_Base() = default;
+
         [[nodiscard]] virtual BlockPresetFlags preset_flags() const { return BlockPresetFlags{}; }
         virtual void tick(Block& block, Chunk& chunk, const v3i& local_block_pos) const;
 

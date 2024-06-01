@@ -20,7 +20,6 @@
 #include "voxel/voxel_pack.h"
 #include "voxel_client/chunk_client.h"
 #include "voxel_client/block_placing_component.h"
-#include "voxel_client/voxel_client_module.h"
 
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -87,11 +86,11 @@ namespace bluevoxel
     std::vector<std::type_index> BlueVoxelClientModule::dependencies() const
     {
         return {
-            typeid(h2o::VoxelClientModule),
             typeid(h2o::SceneModule),
             typeid(h2o::SceneRenderingModule),
             typeid(h2o::RenderingModule),
-            typeid(h2o::UIModule)
+            typeid(h2o::UIModule),
+            typeid(h2o::VoxelModule),
         };
     }
 

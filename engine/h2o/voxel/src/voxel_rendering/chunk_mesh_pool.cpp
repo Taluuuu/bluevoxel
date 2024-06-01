@@ -5,12 +5,12 @@
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "voxel/voxel_bounds.h"
-#include "voxel_rendering/voxel_rendering_module.h"
+#include "voxel/voxel_module.h"
 
 namespace h2o
 {
     ChunkMeshPool::ChunkMeshPool()
-        : m_voxel_rendering_module(&g_engine->get_module_checked<VoxelRenderingModule>())
+        : m_voxel_module(&g_engine->get_module_checked<VoxelModule>())
         , m_rendering_module(&g_engine->get_module_checked<RenderingModule>())
     {}
 
@@ -43,8 +43,8 @@ namespace h2o
 
     void ChunkMeshPool::build_chunk_mesh(const ChunkRegion& chunk_region)
     {
-        assert(m_voxel_rendering_module);
-        ChunkMesh chunk_mesh(chunk_region, *m_voxel_rendering_module);
+        assert(m_voxel_module);
+        ChunkMesh chunk_mesh(chunk_region, *m_voxel_module);
 
         std::lock_guard lock { m_built_chunk_meshes_mutex };
         m_built_chunk_meshes.push(std::move(chunk_mesh));

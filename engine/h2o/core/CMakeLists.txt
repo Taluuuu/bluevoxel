@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-add_library(h2o_core
+add_library(h2o_core STATIC
     src/app_config.cpp
     src/engine.cpp
     src/resources.cpp

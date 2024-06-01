@@ -8,7 +8,6 @@
 #include "scene/scene_module.h"
 #include "ui/ui_module.h"
 #include "voxel/voxel_module.h"
-#include "voxel_rendering/voxel_rendering_module.h"
 #include "windowing/windowing_module.h"
 
 int main()
@@ -23,7 +22,6 @@ int main()
         .add_module<h2o::InputModule>()
         .add_module<h2o::SceneModule>()
         .add_module<h2o::VoxelModule>()
-        .add_module<h2o::VoxelRenderingModule>()
         .add_module<h2o::GameFrameworkModule>()
         .add_module<bluevoxel::BlueVoxelEditorModule>()
         .run();

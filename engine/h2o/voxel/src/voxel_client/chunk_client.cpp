@@ -1,6 +1,5 @@
 #include "voxel_client/chunk_client.h"
 
-
 #include "core/engine.h"
 #include "networking/net_peer.h"
 #include "rendering/camera.h"
@@ -11,9 +10,9 @@
 #include "scene/scene.h"
 #include "scene_rendering/rendering_scene_system.h"
 #include "voxel/chunk_region.h"
+#include "voxel/voxel_module.h"
 #include "voxel/voxel_net_messages.h"
 #include "voxel/voxel_utils.h"
-#include "voxel_rendering/voxel_rendering_module.h"
 
 #include <glm/gtx/norm.hpp>
 #include <magic_enum_utility.hpp>
@@ -30,8 +29,8 @@ namespace h2o
     {
         set_tick_phases(TickPhase::Update | TickPhase::Render);
 
-        m_rendering_module       = &g_engine->get_module_checked<RenderingModule>();
-        m_voxel_rendering_module = &g_engine->get_module_checked<VoxelRenderingModule>();
+        m_rendering_module = &g_engine->get_module_checked<RenderingModule>();
+        m_voxel_module     = &g_engine->get_module_checked<VoxelModule>();
         m_refresh_chunk_requests = true;
 
         m_client->handle_message<net_msg::ChunkFetchResult>(m_on_fetched_chunk_handle,
@@ -136,8 +135,8 @@ namespace h2o
         if (!render_system)
             return;
 
-        const auto& pipeline = m_voxel_rendering_module->pipeline();
-        const auto& block_textures = m_voxel_rendering_module->block_textures();
+        const auto& pipeline = m_voxel_module->pipeline();
+        const auto& block_textures = m_voxel_module->block_textures();
 
         auto& renderer = m_rendering_module->renderer();
         renderer.bind_pipeline(pipeline);
