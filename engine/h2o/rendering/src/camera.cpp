@@ -33,9 +33,9 @@ namespace h2o::gfx
         const f32 yaw   = m_rotation.y;
 
         return glm::normalize(v3{
-            glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch)),
-            glm::sin(glm::radians(pitch)),
-            glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch))
+            glm::cos(yaw) * glm::cos(pitch),
+            glm::sin(pitch),
+            glm::sin(yaw) * glm::cos(pitch)
         });
     }
 

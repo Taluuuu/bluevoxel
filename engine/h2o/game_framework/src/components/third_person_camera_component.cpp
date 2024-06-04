@@ -49,7 +49,8 @@ namespace h2o
                     m_input->get_axis("cam_y"), 0.0f};
 
                 owner()->transform.rotation += cam_input;
-                owner()->transform.rotation.x = glm::clamp(owner()->transform.rotation.x, -89.0f, 89.0f);
+                owner()->transform.rotation.x = glm::clamp(owner()->transform.rotation.x,
+                    -glm::half_pi<f32>() + 0.01f, glm::half_pi<f32>() - 0.01f);
             }
         }
     }
@@ -63,9 +64,9 @@ namespace h2o
         // TODO: Add this function to transform class or somewhere it can be accessed
         //       easily, such as in the camera class.
         const v3 front = glm::normalize(v3(
-            glm::cos(glm::radians(yaw)) * glm::cos(glm::radians(pitch)),
-            glm::sin(glm::radians(pitch)),
-            glm::sin(glm::radians(yaw)) * glm::cos(glm::radians(pitch))
+            glm::cos(yaw) * glm::cos(pitch),
+            glm::sin(pitch),
+            glm::sin(yaw) * glm::cos(pitch)
         ));
 
         return transform.position - front * distance_with_actor;

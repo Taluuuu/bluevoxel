@@ -30,6 +30,7 @@ namespace h2o
             m_input->get_axis("cam_y"), 0.0f };
 
         owner()->transform.rotation += cam_input;
-        owner()->transform.rotation.x = glm::clamp(owner()->transform.rotation.x, -89.0f, 89.0f);
+        owner()->transform.rotation.x = glm::clamp(owner()->transform.rotation.x,
+            -glm::half_pi<f32>() + 0.01f, glm::half_pi<f32>() - 0.01f);
     }
 }

@@ -133,7 +133,7 @@ namespace h2o
 
         if (auto mouse_axis = get_if<MouseDeltaAxis>(&axis))
         {
-            float val = 0.0f;
+            f32 val = 0.0f;
             switch (mouse_axis->delta)
             {
             case MouseMoveDelta::X: val = mouse_delta().x; break;

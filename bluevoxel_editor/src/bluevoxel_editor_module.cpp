@@ -42,8 +42,8 @@ namespace bluevoxel
         m_input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
         m_input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
         m_input_module->register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
-        m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.2f, true);
-        m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.2f, false);
+        m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.001f, true);
+        m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.001f, false);
         m_input_module->register_axis("cam_zoom", h2o::MouseScrollDelta::Y, 1.0f, false);
 
         set_tick_phases(h2o::TickPhase::Update);
