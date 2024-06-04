@@ -14,9 +14,7 @@
 #include "scene/scene_net_messages.h"
 #include "scene_rendering/mesh_renderer_component.h"
 #include "scene_rendering/rendering_scene_system.h"
-#include "scene_rendering/scene_rendering_module.h"
 #include "ui/ui_module.h"
-#include "ui/ui_renderer.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_client/chunk_client.h"
 #include "voxel_client/block_placing_component.h"
@@ -87,7 +85,6 @@ namespace bluevoxel
     {
         return {
             typeid(h2o::SceneModule),
-            typeid(h2o::SceneRenderingModule),
             typeid(h2o::RenderingModule),
             typeid(h2o::UIModule),
             typeid(h2o::VoxelModule),

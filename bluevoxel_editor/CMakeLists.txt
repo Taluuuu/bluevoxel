@@ -27,7 +27,6 @@ target_link_libraries(bluevoxel_editor
         h2o_physics
         h2o_rendering
         h2o_scene
-        h2o_scene_rendering
         h2o_ui
         h2o_voxel
         h2o_windowing
@@ -44,7 +43,6 @@ target_include_directories(bluevoxel_editor
         h2o_rendering
         h2o_physics
         h2o_scene
-        h2o_scene_rendering
         h2o_ui
         h2o_voxel
         h2o_windowing

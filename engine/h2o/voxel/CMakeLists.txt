@@ -24,7 +24,6 @@ target_link_libraries(h2o_voxel
         h2o_networking
         h2o_rendering
         h2o_scene
-        h2o_scene_rendering
 
         magic_enum
 )
@@ -43,7 +42,6 @@ target_include_directories(h2o_voxel
         h2o_networking
         h2o_rendering
         h2o_scene
-        h2o_scene_rendering
 
         magic_enum
 )

@@ -25,7 +25,6 @@ namespace h2o
         bool init(Engine& engine) override;
         void cleanup() override;
         [[nodiscard]] std::string_view module_name() const override { return "h2o_windowing"; }
-        [[nodiscard]] std::vector<std::type_index> dependencies() const override { return {}; }
 
         // IWindowModule interface
         [[nodiscard]] f64 delta_time() const override;

@@ -1,10 +1,5 @@
 #include "scene/scene_module.h"
 
-#include <algorithm>
-
-#include "core/engine.h"
-#include "scene/scene.h"
-
 namespace h2o
 {
     void SceneModule::register_scene(Scene& scene)

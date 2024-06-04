@@ -15,7 +15,6 @@ namespace h2o
 
         // IModule interface
         [[nodiscard]] std::string_view module_name() const override { return "h2o_scene"; }
-        [[nodiscard]] std::vector<std::type_index> dependencies() const override { return {}; }
 
         void register_scene(Scene& scene);
         void unregister_scene(Scene& scene);
