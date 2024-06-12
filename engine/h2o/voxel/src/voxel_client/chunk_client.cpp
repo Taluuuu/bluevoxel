@@ -9,6 +9,7 @@
 #include "rendering/texture_array.h"
 #include "scene/scene.h"
 #include "scene_rendering/rendering_scene_system.h"
+#include "voxel/compressed_chunk.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_net_messages.h"
@@ -49,15 +50,13 @@ namespace h2o
                     [this, compressed_chunks, chunk_pos]()
                     {
                         m_chunk_mgr.fetch_or_create_chunk_column(chunk_pos, true,
-                            [&](ChunkColumn& chunk_column, bool was_just_created)
+                            [&](ChunkColumn& chunk_column)
                             {
                                 // Decompress chunks
                                 for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
                                 {
                                     auto& chunk = chunk_column[i];
-                                    chunk.decompress(compressed_chunks[i]);
-
-                                    if (!chunk.is_empty())
+                                    if (compressed_chunks[i].decompress(chunk) && !chunk.is_empty())
                                         m_chunk_meshing_queue.enqueue(chunk.chunk_pos());
                                 }
 
@@ -217,7 +216,7 @@ namespace h2o
                 );
 
                 m_chunk_mgr.fetch_chunk_region(region_chunk_positions,
-                    [&](const ChunkRegion& chunk_region)
+                    [&](const ChunkRegion_OLD& chunk_region)
                     {
                         // TODO: Could chunk->is_empty() here cause a problem when destroying the last block of a chunk ?
                         if (const Chunk* chunk = chunk_region.get_chunk_at(chunk_pos); chunk && !chunk->is_empty())

@@ -13,12 +13,12 @@
 
 namespace h2o
 {
-    ChunkMesh::ChunkMesh(const ChunkRegion& chunk_region, const VoxelModule& voxel_module)
+    ChunkMesh::ChunkMesh(const ChunkRegion_OLD& chunk_region, const VoxelModule& voxel_module)
     {
         build_mesh(chunk_region, voxel_module);
     }
 
-    void ChunkMesh::build_mesh(const ChunkRegion& chunk_region, const VoxelModule& voxel_module)
+    void ChunkMesh::build_mesh(const ChunkRegion_OLD& chunk_region, const VoxelModule& voxel_module)
     {
         m_chunk_pos = chunk_region.center_chunk_pos();
         const Chunk* chunk = chunk_region.get_chunk_at(m_chunk_pos);

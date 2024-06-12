@@ -16,34 +16,6 @@ namespace h2o
 {
     class VoxelModule;
 
-    struct CompressedChunk
-    {
-        struct BlockCountPair
-        {
-            Block block = Block::Air;
-
-            static_assert(voxel_constants::chunk_volume <= 32768);
-            u16 count = 0;
-        };
-
-        std::vector<BlockCountPair> blocks;
-        v3i chunk_pos;
-
-        template<typename S>
-        void serialize(S& s)
-        {
-            s.container(blocks, voxel_constants::chunk_volume,
-                [](S& s, BlockCountPair& block_count_pair)
-                {
-                    s(block_count_pair.block);
-                    s(block_count_pair.count);
-                }
-            );
-
-            s(chunk_pos);
-        }
-    };
-
     class Chunk
     {
     public:
@@ -66,14 +38,13 @@ namespace h2o
                 local_pos.z >= 0 && local_pos.z < voxel_constants::chunk_size;
         }
 
-        [[nodiscard]] CompressedChunk compress() const;
-        void decompress(const CompressedChunk& compressed_chunk);
-
         [[nodiscard]] std::shared_mutex& mutex() const { return m_mutex; }
 
-    private:
-
+        // Indexed access
+        [[nodiscard]] Block get_block_at(size_t index) const;
         void set_block_at(size_t index, Block block);
+
+    private:
 
         [[nodiscard]] bool is_initialized() const { return !m_blocks.empty(); }
 

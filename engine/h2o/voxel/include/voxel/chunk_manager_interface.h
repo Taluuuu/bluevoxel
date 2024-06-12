@@ -6,7 +6,7 @@
 namespace h2o
 {
     class ChunkColumn;
-    class ChunkRegion;
+    class ChunkRegion_OLD;
 
     class IChunkManager : public IChunkContainer
     {
@@ -36,12 +36,12 @@ namespace h2o
          * @param function A lambda taking a chunk column reference and a bool that is true if
          *                 the chunk column was just created
          */
-        virtual void fetch_or_create_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn&, bool)>& function) = 0;
+        virtual void fetch_or_create_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn&)>& function) = 0;
 
-        virtual void fetch_chunk_region(const std::vector<v3i>& chunk_positions, const std::function<void(const ChunkRegion&)>& function) = 0;
+        virtual void fetch_chunk_region(const std::vector<v3i>& chunk_positions, const std::function<void(const ChunkRegion_OLD&)>& function) = 0;
         // min, max are inclusive
-        virtual void fetch_chunk_region(v3i min, v3i max, const std::function<void(ChunkRegion&)>& function) = 0;
-        void fetch_chunk_region(v2i min, v2i max, const std::function<void(ChunkRegion&)>& function);
+        virtual void fetch_chunk_region(v3i min, v3i max, const std::function<void(ChunkRegion_OLD&)>& function) = 0;
+        void fetch_chunk_region(v2i min, v2i max, const std::function<void(ChunkRegion_OLD&)>& function);
 
         /**
          * Erase all chunk columns that are more than range chunks away from a position

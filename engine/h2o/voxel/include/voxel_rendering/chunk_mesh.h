@@ -6,7 +6,7 @@
 
 namespace h2o
 {
-    class ChunkRegion;
+    class ChunkRegion_OLD;
     class RenderingModule;
     class VoxelModule;
 
@@ -21,7 +21,7 @@ namespace h2o
     public:
 
         ChunkMesh(
-            const ChunkRegion& chunk_region,
+            const ChunkRegion_OLD& chunk_region,
             const VoxelModule& voxel_module);
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
@@ -31,7 +31,7 @@ namespace h2o
     private:
 
         void build_mesh(
-            const ChunkRegion& chunk_region,
+            const ChunkRegion_OLD& chunk_region,
             const VoxelModule& voxel_rendering_module);
 
     private:

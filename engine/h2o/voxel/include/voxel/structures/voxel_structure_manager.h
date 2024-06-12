@@ -1,0 +1,28 @@
+#pragma once
+
+#include "core/types.h"
+
+#include <string>
+#include <unordered_map>
+
+#include "voxel_structure.h"
+
+namespace h2o
+{
+    class VoxelStructureManager
+    {
+    public:
+
+        VoxelStructureManager() = default;
+
+        [[nodiscard]] std::optional<u32> get_structure_id(const std::string& name) const;
+        // Returns null if none could be found
+        [[nodiscard]] const VoxelStructure* get_structure(u32 structure_id) const;
+
+    private:
+
+        std::unordered_map<std::string, u32> m_structure_ids{};
+        std::vector<VoxelStructure> m_structures{};
+
+    };
+}

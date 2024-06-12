@@ -18,7 +18,7 @@ namespace bluevoxel
         auto& voxel_module = g_engine->get_module_checked<h2o::VoxelModule>();
 
         m_chunk = std::make_shared<h2o::Chunk>(v3i{ 0, 0, 0 }, voxel_module);
-        m_chunk_region = std::make_shared<h2o::ChunkRegion>(v3i{ 0, 0, 0 }, v3i{ 1, 1, 1 });
+        m_chunk_region = std::make_shared<h2o::ChunkRegion_OLD>(v3i{ 0, 0, 0 }, v3i{ 1, 1, 1 });
         m_voxel_bounds = std::make_shared<h2o::VoxelBounds>(v2i{ 0, 0 }, 0);
         m_chunk_mesh_pool = std::make_shared<h2o::ChunkMeshPool>();
 

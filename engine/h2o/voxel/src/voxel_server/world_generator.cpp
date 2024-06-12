@@ -50,7 +50,7 @@ namespace h2o
             [&, chunk_column_pos]
             {
                 m_chunk_mgr->fetch_or_create_chunk_column(chunk_column_pos, true,
-                    [&](ChunkColumn& chunk_column, bool _)
+                    [&](ChunkColumn& chunk_column)
                     {
                         generate_chunk(chunk_column);
                     }

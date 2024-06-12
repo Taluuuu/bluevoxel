@@ -1,5 +1,6 @@
 #pragma once
 
+#include "compressed_chunk.h"
 #include "networking/message_ids.h"
 #include "voxel/chunk_column.h"
 

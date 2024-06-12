@@ -58,10 +58,10 @@ namespace h2o
         function(nullptr);
     }
 
-    void ChunkManager_Base::fetch_or_create_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn&, bool)>& function)
+    void ChunkManager_Base::fetch_or_create_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn&)>& function)
     {
         bool was_just_created = false;
-        auto chunk_column = find_or_create_chunk_column(chunk_column_pos, was_just_created);
+        auto chunk_column = find_or_create_chunk_column(chunk_column_pos);
         assert(chunk_column);
 
         std::lock_guard chunk_column_lock { chunk_column->mutex() };
@@ -72,7 +72,7 @@ namespace h2o
                 chunk.mutex().lock();
         }
 
-        function(*chunk_column, was_just_created);
+        function(*chunk_column);
 
         if (lock_chunks)
         {
@@ -83,7 +83,7 @@ namespace h2o
 
     void ChunkManager_Base::fetch_chunk_region(
         const std::vector<v3i>& chunk_positions,
-        const std::function<void(const ChunkRegion&)>& function)
+        const std::function<void(const ChunkRegion_OLD&)>& function)
     {
         assert(!chunk_positions.empty());
         v3i min { INT32_MAX, INT32_MAX, INT32_MAX };
@@ -102,7 +102,7 @@ namespace h2o
             max.z = chunk_pos.z > max.z ? chunk_pos.z : max.z;
         }
 
-        ChunkRegion chunk_region(min, max - min + v3i{ 1, 1, 1 });
+        ChunkRegion_OLD chunk_region(min, max - min + v3i{ 1, 1, 1 });
 
         // Make sure chunk columns don't get deallocated.
         std::vector< std::shared_ptr<ChunkColumn> > chunk_columns;
@@ -126,11 +126,11 @@ namespace h2o
 
     void ChunkManager_Base::fetch_chunk_region(
         v3i min, v3i max,
-        const std::function<void(ChunkRegion&)>& function)
+        const std::function<void(ChunkRegion_OLD&)>& function)
     {
         assert(min.x <= max.x && min.y <= max.y && min.z <= max.z);
 
-        ChunkRegion chunk_region(min, max - min + v3i{ 1, 1, 1 });
+        ChunkRegion_OLD chunk_region(min, max - min + v3i{ 1, 1, 1 });
 
         // Make sure chunk columns don't get deallocated.
         std::vector< std::shared_ptr<ChunkColumn> > chunk_columns {
@@ -208,17 +208,8 @@ namespace h2o
 
     std::shared_ptr<ChunkColumn> ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos)
     {
-        bool _;
-        return find_or_create_chunk_column(chunk_column_pos, _);
-    }
-
-    std::shared_ptr<ChunkColumn> ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos, bool& out_was_just_created)
-    {
         if (auto chunk_column = find_chunk_column(chunk_column_pos))
-        {
-            out_was_just_created = false;
             return chunk_column;
-        }
 
         std::unique_lock lock { m_loaded_chunks_mutex };
 
@@ -226,7 +217,6 @@ namespace h2o
         if (success)
             it->second = create_chunk_column(chunk_column_pos);
 
-        out_was_just_created = success;
         return it->second;
     }
 }

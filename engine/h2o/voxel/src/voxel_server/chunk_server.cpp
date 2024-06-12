@@ -77,7 +77,7 @@ namespace h2o
         compressed_chunks.reserve(voxel_constants::vertical_chunk_count);
 
         for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
-            compressed_chunks.push_back(chunk_col[i].compress());
+            compressed_chunks.emplace_back(chunk_col[i]);
 
         for (PeerID client: client_ids)
         {

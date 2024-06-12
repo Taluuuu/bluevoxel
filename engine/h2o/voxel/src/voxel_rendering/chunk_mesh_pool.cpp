@@ -41,7 +41,7 @@ namespace h2o
         }
     }
 
-    void ChunkMeshPool::build_chunk_mesh(const ChunkRegion& chunk_region)
+    void ChunkMeshPool::build_chunk_mesh(const ChunkRegion_OLD& chunk_region)
     {
         assert(m_voxel_module);
         ChunkMesh chunk_mesh(chunk_region, *m_voxel_module);

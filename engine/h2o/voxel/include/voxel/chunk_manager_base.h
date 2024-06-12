@@ -19,9 +19,9 @@ namespace h2o
         // IChunkManager interface
         void fetch_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn*)>& function) override;
         void fetch_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(const ChunkColumn*)>& function) const override;
-        void fetch_or_create_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn&, bool)>& function) override;
-        void fetch_chunk_region(const std::vector<v3i>& chunk_positions, const std::function<void(const ChunkRegion&)>& function) override;
-        void fetch_chunk_region(v3i min, v3i max, const std::function<void(ChunkRegion&)>& function) override;
+        void fetch_or_create_chunk_column(v2i chunk_column_pos, bool lock_chunks, const std::function<void(ChunkColumn&)>& function) override;
+        void fetch_chunk_region(const std::vector<v3i>& chunk_positions, const std::function<void(const ChunkRegion_OLD&)>& function) override;
+        void fetch_chunk_region(v3i min, v3i max, const std::function<void(ChunkRegion_OLD&)>& function) override;
         void erase_far_chunks(const std::vector<v2i>& positions, i32 range) override;
         [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos) const override;
 
@@ -30,7 +30,6 @@ namespace h2o
         [[nodiscard]] std::shared_ptr<ChunkColumn> create_chunk_column(v2i chunk_column_pos) const;
         [[nodiscard]] std::shared_ptr<ChunkColumn> find_chunk_column(v2i chunk_column_pos) const;
         [[nodiscard]] std::shared_ptr<ChunkColumn> find_or_create_chunk_column(v2i chunk_column_pos);
-        [[nodiscard]] std::shared_ptr<ChunkColumn> find_or_create_chunk_column(v2i chunk_column_pos, bool& out_was_just_created);
 
     private:
 

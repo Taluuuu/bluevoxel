@@ -4,7 +4,7 @@
 
 namespace h2o
 {
-    void IChunkManager::fetch_chunk_region(v2i min, v2i max, const std::function<void(ChunkRegion&)>& function)
+    void IChunkManager::fetch_chunk_region(v2i min, v2i max, const std::function<void(ChunkRegion_OLD&)>& function)
     {
         fetch_chunk_region(
             v3i{ min.x, 0, min.y },

@@ -47,77 +47,20 @@ namespace h2o
 
     void Chunk::tick()
     {
-        for (const u32 block_idx : m_blocks_to_tick)
-        {
-            Block& block = m_blocks[block_idx];
-//            if (const auto block_preset = m_voxel_module->get_block_preset(block.id))
-//            {
-//                block_preset->tick(
-//                    block, *this, to_local_block_pos(i32(block_idx)));
-//            }
-        }
+        // for (const u32 block_idx : m_blocks_to_tick)
+        // {
+        //     Block& block = m_blocks[block_idx];
+        //     if (const auto block_preset = m_voxel_module->get_block_preset(block.id))
+        //     {
+        //         block_preset->tick(
+        //         block, *this, to_local_block_pos(i32(block_idx)));
+        //     }
+        // }
     }
 
-    CompressedChunk Chunk::compress() const
+    Block Chunk::get_block_at(size_t index) const
     {
-        assert(!m_blocks.empty());
-
-        CompressedChunk result{};
-        result.chunk_pos = chunk_pos();
-
-        CompressedChunk::BlockCountPair current_pair { m_blocks[0], 0 };
-
-        for (size_t i = 1; i < voxel_constants::chunk_volume; i++)
-        {
-            if (current_pair.block == m_blocks[i])
-            {
-                current_pair.count++;
-            }
-            else
-            {
-                result.blocks.push_back(current_pair);
-                current_pair = { m_blocks[i], 0 };
-            }
-        }
-
-        result.blocks.push_back(current_pair);
-
-        return result;
-    }
-
-    void Chunk::decompress(const CompressedChunk& compressed_chunk)
-    {
-        assert(!m_blocks.empty());
-        size_t compressed_idx = 0;
-
-        auto get_next_block_count_pair =
-            [&compressed_idx, &compressed_chunk]() -> const CompressedChunk::BlockCountPair*
-            {
-                if (compressed_idx < compressed_chunk.blocks.size())
-                    return &compressed_chunk.blocks[compressed_idx++];
-
-                return nullptr;
-            };
-
-        std::pair<Block, u32> current_pair { Block::Air, 0 };
-
-        for (size_t i = 0; i < voxel_constants::chunk_volume; i++)
-        {
-            while (current_pair.second == 0)
-            {
-                auto block_count_pair = get_next_block_count_pair();
-
-                if (!block_count_pair)
-                    return; // Failure
-
-                current_pair = {
-                    block_count_pair->block,
-                    block_count_pair->count + 1 };
-            }
-
-            set_block_at(i, current_pair.first);
-            current_pair.second--;
-        }
+        return m_blocks[index];
     }
 
     void Chunk::set_block_at(size_t index, Block block)
@@ -131,6 +74,7 @@ namespace h2o
 
         if (block != Block::Air)
             m_is_empty = false;
+        // m_is_empty = m_is_empty || (block != Block::Air);
 
 //        if (m_voxel_module->get_block_preset_data(block.id).value_or(BlockPresetFlags{}).should_tick)
 //        {

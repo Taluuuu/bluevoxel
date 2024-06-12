@@ -1,4 +1,4 @@
-#include "voxel/voxel_structure.h"
+#include "voxel/structures/voxel_structure.h"
 
 #include "core/log.h"
 #include "voxel/voxel_constants.h"

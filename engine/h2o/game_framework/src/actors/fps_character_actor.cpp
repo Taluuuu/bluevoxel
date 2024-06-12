@@ -27,7 +27,7 @@ namespace h2o
         if (glm::length2(move_input) > 0.1f)
             move_input = glm::normalize(move_input);
 
-        const f32 rot_y = glm::radians(transform.rotation.y);
+        const f32 rot_y = transform.rotation.y;
         v3 move_input_rotated {
             move_input.x * glm::cos(rot_y) - move_input.y * glm::sin(rot_y),
             m_input->get_axis("fly"),

@@ -10,12 +10,22 @@ namespace h2o
 {
     class Chunk;
 
-    // Useless on its own, meant to be created by a chunk manager.
     class ChunkRegion
     {
     public:
 
-        ChunkRegion(const v3i& min, const v3i& size);
+        ChunkRegion();
+
+    private:
+
+    };
+
+    // Useless on its own, meant to be created by a chunk manager.
+    class ChunkRegion_OLD
+    {
+    public:
+
+        ChunkRegion_OLD(const v3i& min, const v3i& size);
 
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, const v3i& relative_to_chunk_pos = { 0, 0, 0 }) const;
         bool set_block_at(const v3i& block_pos, Block block, const v3i& relative_to_chunk_pos = { 0, 0, 0 });

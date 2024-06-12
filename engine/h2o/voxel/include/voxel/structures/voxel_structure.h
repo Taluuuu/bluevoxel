@@ -1,6 +1,6 @@
 #pragma once
 
-#include "block.h"
+#include "voxel/block.h"
 
 #include <optional>
 #include <vector>
