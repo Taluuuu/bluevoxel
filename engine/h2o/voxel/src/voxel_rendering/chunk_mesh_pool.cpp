@@ -1,9 +1,12 @@
 #include "voxel_rendering/chunk_mesh_pool.h"
 
+#include <voxel/chunk.h>
+
 #include "core/engine.h"
 #include "rendering/buffer.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
+#include "voxel/chunk_view.h"
 #include "voxel/voxel_bounds.h"
 #include "voxel/voxel_module.h"
 
@@ -41,13 +44,20 @@ namespace h2o
         }
     }
 
-    void ChunkMeshPool::build_chunk_mesh(const ChunkRegion_OLD& chunk_region)
+    void ChunkMeshPool::build_chunk_mesh(const ChunkView<v3i{3}>& chunk_view)
     {
         assert(m_voxel_module);
-        ChunkMesh chunk_mesh(chunk_region, *m_voxel_module);
 
-        std::lock_guard lock { m_built_chunk_meshes_mutex };
-        m_built_chunk_meshes.push(std::move(chunk_mesh));
+        // TODO: Could chunk->is_empty() here cause a problem when destroying the last block of a chunk ?
+        const Chunk* chunk = chunk_view.get_chunk_at(v3i{ 0 }, ViewRelativeTo::ViewCenter);
+        if (chunk && !chunk->is_empty())
+        {
+            // This builds the mesh, but is not that explicit. Could be reworked.
+            ChunkMesh chunk_mesh(chunk_view, *m_voxel_module);
+
+            std::lock_guard lock { m_built_chunk_meshes_mutex };
+            m_built_chunk_meshes.push(std::move(chunk_mesh));
+        }
     }
 
     ChunkMeshData* ChunkMeshPool::get_or_reserve_chunk_mesh(const v3i& chunk_pos, const VoxelBounds& voxel_bounds)

@@ -11,6 +11,8 @@ namespace h2o::voxel_constants
     constexpr i32 vertical_chunk_count = 8;
     constexpr i32 vertical_block_count = vertical_chunk_count * chunk_size;
 
+    constexpr i32 chunk_region_size = 4;
+
     constexpr i32 max_generation_stage = 4096;
 
     constexpr i32 max_coord_value_per_block = 16;

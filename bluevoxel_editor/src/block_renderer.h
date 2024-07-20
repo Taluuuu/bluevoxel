@@ -1,6 +1,6 @@
 #pragma once
 
-#include "voxel/block.h"
+#include "voxel/chunk_view.h"
 
 #include <memory>
 
@@ -8,7 +8,6 @@ namespace h2o
 {
     class Chunk;
     class ChunkMeshPool;
-    class ChunkRegion_OLD;
     class VoxelBounds;
     class VoxelModule;
 
@@ -40,7 +39,7 @@ namespace bluevoxel
     private:
 
         std::shared_ptr<h2o::Chunk> m_chunk = nullptr;
-        std::shared_ptr<h2o::ChunkRegion_OLD> m_chunk_region = nullptr;
+        std::shared_ptr<h2o::ChunkView<v3u{3}>> m_chunk_view = nullptr;
         std::shared_ptr<h2o::VoxelBounds> m_voxel_bounds = nullptr;
         std::shared_ptr<h2o::ChunkMeshPool> m_chunk_mesh_pool = nullptr;
 

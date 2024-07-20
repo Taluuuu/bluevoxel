@@ -17,6 +17,7 @@
 
 #include <glm/gtx/norm.hpp>
 #include <magic_enum_utility.hpp>
+#include <voxel/chunk_view.h>
 
 namespace h2o
 {
@@ -24,9 +25,9 @@ namespace h2o
         const SceneSystemInitializer& system_initializer,
         INetPeer& client)
         : SceneSystem(system_initializer)
-        , m_client(&client)
         , m_chunk_mgr(client)
         , m_voxel_bounds(v2i{}, 16)
+        , m_client(&client)
     {
         set_tick_phases(TickPhase::Update | TickPhase::Render);
 
@@ -49,20 +50,16 @@ namespace h2o
                 g_engine->thread_pool().queue_job(10000.0f,
                     [this, compressed_chunks, chunk_pos]()
                     {
-                        m_chunk_mgr.fetch_or_create_chunk_column(chunk_pos, true,
-                            [&](ChunkColumn& chunk_column)
-                            {
-                                // Decompress chunks
-                                for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
-                                {
-                                    auto& chunk = chunk_column[i];
-                                    if (compressed_chunks[i].decompress(chunk) && !chunk.is_empty())
-                                        m_chunk_meshing_queue.enqueue(chunk.chunk_pos());
-                                }
-
-                                chunk_column.finish_generation();
-                            }
-                        );
+                        for (const auto& compressed_chunk : compressed_chunks)
+                        {
+                            // m_chunk_mgr.fetch_or_create_chunk(compressed_chunk.chunk_pos(),
+                            //     [&](Chunk& chunk)
+                            //     {
+                            //         compressed_chunk.decompress(chunk);
+                            //         m_chunk_meshing_queue.enqueue(chunk.chunk_pos());
+                            //     }
+                            // );
+                        }
                     }
                 );
             }
@@ -112,20 +109,20 @@ namespace h2o
         m_chunk_mesh_pool.update_meshes(m_voxel_bounds);
 
         m_chunk_meshing_queue.set_player_actor(player);
-        while (auto chunk_pos = m_chunk_meshing_queue.dequeue_first(
-            [&](const v3i& chunk_pos) -> bool
-            {
-                const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
-
-                return
-                    m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
-                    m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
-                    m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
-                    m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
-            }))
-        {
-            rebuild_chunk_mesh(*chunk_pos);
-        }
+        // while (auto chunk_pos = m_chunk_meshing_queue.dequeue_first(
+        //     [&](const v3i& chunk_pos) -> bool
+        //     {
+        //         const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
+        //
+        //         return
+        //             m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
+        //             m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
+        //             m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
+        //             m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
+        //     }))
+        // {
+        //     rebuild_chunk_mesh(*chunk_pos);
+        // }
     }
 
     void ChunkClient::render()
@@ -168,13 +165,13 @@ namespace h2o
             {
                 // TODO: Add a for each chunk column in range function to the chunk mgr
                 //       to avoid locking the mutex every time
-                m_chunk_mgr.fetch_chunk_column(chunk_column_pos, false,
-                    [&](const ChunkColumn* chunk_column)
-                    {
-                        if (!chunk_column)
-                            chunk_fetch_request.requested_chunks.push_back(chunk_column_pos);
-                    }
-                );
+                // m_chunk_mgr.fetch_chunk_column(chunk_column_pos, false,
+                //     [&](const ChunkColumn* chunk_column)
+                //     {
+                //         if (!chunk_column)
+                //             chunk_fetch_request.requested_chunks.push_back(chunk_column_pos);
+                //     }
+                // );
             }
         );
 
@@ -184,7 +181,7 @@ namespace h2o
 
     void ChunkClient::trim_far_chunks()
     {
-        m_chunk_mgr.erase_far_chunks({ m_previous_player_chunk_col_pos }, m_voxel_bounds.bounds_distance());
+        // m_chunk_mgr.erase_far_chunks({ m_previous_player_chunk_col_pos }, m_voxel_bounds.bounds_distance());
     }
 
     void ChunkClient::rebuild_chunk_mesh(const v3i& chunk_pos)
@@ -215,12 +212,10 @@ namespace h2o
                     }
                 );
 
-                m_chunk_mgr.fetch_chunk_region(region_chunk_positions,
-                    [&](const ChunkRegion_OLD& chunk_region)
+                m_chunk_mgr.view<v3u{3}>(chunk_pos - v3i{ 1 },
+                    [&](const auto& chunk_view)
                     {
-                        // TODO: Could chunk->is_empty() here cause a problem when destroying the last block of a chunk ?
-                        if (const Chunk* chunk = chunk_region.get_chunk_at(chunk_pos); chunk && !chunk->is_empty())
-                            m_chunk_mesh_pool.build_chunk_mesh(chunk_region);
+                        m_chunk_mesh_pool.build_chunk_mesh(chunk_view);
                     }
                 );
             }

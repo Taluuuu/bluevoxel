@@ -56,3 +56,25 @@ block_types:
       - wood_planks_block.png
       - stone_block.png
       - wood_planks_block.png
+  - name: log
+    preset: normal
+    id: 6
+    is_transparent: false
+    textures:
+      - wood_log_block_side.png
+      - wood_log_block_side.png
+      - wood_log_block_top.png
+      - wood_log_block_top.png
+      - wood_log_block_side.png
+      - wood_log_block_side.png
+  - name: leaves
+    preset: normal
+    id: 7
+    is_transparent: true
+    textures:
+      - leaves_block.png
+      - leaves_block.png
+      - leaves_block.png
+      - leaves_block.png
+      - leaves_block.png
+      - leaves_block.png

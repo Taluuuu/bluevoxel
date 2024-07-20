@@ -20,8 +20,9 @@ namespace h2o
     {
     public:
 
-        Chunk(const v3i& chunk_pos, const VoxelModule& voxel_module);
+        Chunk() = default;
 
+        void init(const v3i& chunk_pos, const VoxelModule& voxel_module);
         void tick();
 
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
@@ -38,8 +39,6 @@ namespace h2o
                 local_pos.z >= 0 && local_pos.z < voxel_constants::chunk_size;
         }
 
-        [[nodiscard]] std::shared_mutex& mutex() const { return m_mutex; }
-
         // Indexed access
         [[nodiscard]] Block get_block_at(size_t index) const;
         void set_block_at(size_t index, Block block);
@@ -50,18 +49,14 @@ namespace h2o
 
     private:
 
-        friend class ChunkColumn;
-
         std::vector<Block> m_blocks{};
 
         // Stores the indices of blocks to tick
         std::unordered_set<u32> m_blocks_to_tick{};
 
-        const v3i m_chunk_pos{};
+        v3i m_chunk_pos{};
 
-        mutable std::shared_mutex m_mutex;
-
-        const VoxelModule* const m_voxel_module = nullptr;
+        const VoxelModule* m_voxel_module = nullptr;
 
         bool m_is_empty = true;
 

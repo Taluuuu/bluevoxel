@@ -5,7 +5,7 @@
 #include "rendering/renderer.h"
 #include "rendering/texture_array.h"
 #include "voxel/chunk.h"
-#include "voxel/chunk_region.h"
+#include "voxel/chunk_view.h"
 #include "voxel/voxel_bounds.h"
 #include "voxel/voxel_module.h"
 #include "voxel_rendering/chunk_mesh_pool.h"
@@ -17,12 +17,15 @@ namespace bluevoxel
     {
         auto& voxel_module = g_engine->get_module_checked<h2o::VoxelModule>();
 
-        m_chunk = std::make_shared<h2o::Chunk>(v3i{ 0, 0, 0 }, voxel_module);
-        m_chunk_region = std::make_shared<h2o::ChunkRegion_OLD>(v3i{ 0, 0, 0 }, v3i{ 1, 1, 1 });
+        m_chunk = std::make_shared<h2o::Chunk>();
+        m_chunk->init(v3i{ 0, 0, 0 }, voxel_module);
+
+        m_chunk_view = std::make_shared<h2o::ChunkView>(v3i{ 0, 0, 0 }, v3i{ 1, 1, 1 });
         m_voxel_bounds = std::make_shared<h2o::VoxelBounds>(v2i{ 0, 0 }, 0);
         m_chunk_mesh_pool = std::make_shared<h2o::ChunkMeshPool>();
 
-        m_chunk_region->add_chunk(*m_chunk);
+        // TODO: Use a chunk manager here and remove public access to add_chunk
+        m_chunk_view->add_chunk(*m_chunk);
     }
 
     void BlockRenderer::set_block(h2o::Block block)
@@ -34,7 +37,7 @@ namespace bluevoxel
 
     void BlockRenderer::refresh()
     {
-        m_chunk_mesh_pool->build_chunk_mesh(*m_chunk_region);
+        m_chunk_mesh_pool->build_chunk_mesh(*m_chunk_view);
         m_chunk_mesh_pool->update_meshes(*m_voxel_bounds);
     }
 

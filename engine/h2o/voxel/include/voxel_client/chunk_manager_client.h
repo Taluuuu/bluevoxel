@@ -13,9 +13,9 @@ namespace h2o
     public:
 
         explicit ChunkManager_Client(INetPeer& client);
-        ~ChunkManager_Client() override = default;
 
-        bool set_block_at(const v3i& block_pos, Block block, bool replicate);
+        // ChunkManager_Base interface
+        bool set_block_at(const v3i& block_pos, Block block, bool replicate) override;
 
     public:
 

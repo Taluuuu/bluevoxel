@@ -59,4 +59,12 @@ namespace h2o::voxel_utils
     {
         return chunk_pos * voxel_constants::chunk_size;
     }
+
+    constexpr void for_v3i(const v3i& min_val, const v3i& max_val, const std::function<void(const v3i&)>& body)
+    {
+        for (v3i iter = min_val; iter.x < max_val.x; iter.x++)
+        for (;                   iter.y < max_val.y; iter.y++)
+        for (;                   iter.z < max_val.z; iter.z++)
+            body(iter);
+    }
 }

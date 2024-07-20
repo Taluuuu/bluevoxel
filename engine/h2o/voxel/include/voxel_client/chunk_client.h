@@ -17,7 +17,7 @@
 
 namespace h2o
 {
-    class ChunkColumn;
+    // class ChunkColumn;
     class INetPeer;
     class RenderingModule;
     class VoxelModule;

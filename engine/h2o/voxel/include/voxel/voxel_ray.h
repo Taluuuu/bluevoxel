@@ -1,11 +1,11 @@
 #pragma once
 
-#include "chunk_container_interface.h"
-#include "core/handle_types.h"
+#include "block.h"
 
 namespace h2o
 {
     class Chunk;
+    class ChunkManager_Base;
 
     struct VoxelFetchResult
     {
@@ -32,7 +32,7 @@ namespace h2o
         VoxelRay(
             const v3& origin,
             const v3& end,
-            IChunkContainer& block_container);
+            const ChunkManager_Base& chunk_manager);
 
         [[nodiscard]] operator bool() const { return has_hit(); }
         [[nodiscard]] bool has_hit()  const { return m_has_hit; }

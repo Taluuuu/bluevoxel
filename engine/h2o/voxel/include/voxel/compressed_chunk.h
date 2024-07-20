@@ -15,6 +15,7 @@ namespace h2o
         explicit CompressedChunk(const Chunk& chunk);
 
         bool decompress(Chunk& dest) const;
+        [[nodiscard]] v3i chunk_pos() const { return m_chunk_pos; }
 
         template<typename S>
         void serialize(S& s)

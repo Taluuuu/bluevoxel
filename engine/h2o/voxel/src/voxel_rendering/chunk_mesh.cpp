@@ -3,7 +3,6 @@
 #include "rendering/buffer.h"
 #include "rendering/rendering_module.h"
 #include "voxel/chunk.h"
-#include "voxel/chunk_region.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/direction.h"
 #include "voxel/block_model.h"
@@ -13,15 +12,15 @@
 
 namespace h2o
 {
-    ChunkMesh::ChunkMesh(const ChunkRegion_OLD& chunk_region, const VoxelModule& voxel_module)
+    ChunkMesh::ChunkMesh(const ChunkView<v3i{3}>& chunk_view, const VoxelModule& voxel_module)
     {
-        build_mesh(chunk_region, voxel_module);
+        build_mesh(chunk_view, voxel_module);
     }
 
-    void ChunkMesh::build_mesh(const ChunkRegion_OLD& chunk_region, const VoxelModule& voxel_module)
+    void ChunkMesh::build_mesh(const ChunkView<v3i{3}>& chunk_view, const VoxelModule& voxel_module)
     {
-        m_chunk_pos = chunk_region.center_chunk_pos();
-        const Chunk* chunk = chunk_region.get_chunk_at(m_chunk_pos);
+        m_chunk_pos = chunk_view.center_chunk_pos();
+        const Chunk* chunk = chunk_view.get_chunk_at(m_chunk_pos);
         assert(chunk);
 
         m_vertices.clear();
@@ -55,7 +54,7 @@ namespace h2o
                 const v3i offset = voxel::to_vec3(direction);
                 const v3i adj_pos = block_pos + offset;
 
-                if (const auto block = chunk_region.get_block_at(adj_pos, m_chunk_pos))
+                if (const auto block = chunk_view.get_block_at(adj_pos, ViewRelativeTo::ViewCenter))
                     return voxel_module.is_transparent(block->id);
 
                 return true;

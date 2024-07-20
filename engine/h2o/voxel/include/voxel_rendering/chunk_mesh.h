@@ -1,12 +1,12 @@
 #pragma once
 
 #include "core/types.h"
+#include "voxel/chunk_view.h"
 
 #include <vector>
 
 namespace h2o
 {
-    class ChunkRegion_OLD;
     class RenderingModule;
     class VoxelModule;
 
@@ -21,7 +21,7 @@ namespace h2o
     public:
 
         ChunkMesh(
-            const ChunkRegion_OLD& chunk_region,
+            const ChunkView<v3i{3}>& chunk_view,
             const VoxelModule& voxel_module);
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
@@ -31,7 +31,7 @@ namespace h2o
     private:
 
         void build_mesh(
-            const ChunkRegion_OLD& chunk_region,
+            const ChunkView<v3i{3}>& chunk_view,
             const VoxelModule& voxel_rendering_module);
 
     private:

@@ -1,57 +1,27 @@
 #pragma once
 
-#include "core/types.h"
-#include "voxel/block.h"
-
-#include <optional>
 #include <vector>
+
+#include "structures/voxel_structure_manager.h"
 
 namespace h2o
 {
     class Chunk;
+    class VoxelStructure;
 
     class ChunkRegion
     {
     public:
 
-        ChunkRegion();
+        explicit ChunkRegion(v3i position);
+
+        // Places the bit of contained structures that fits in this chunk
+        void place_structure(Chunk& chunk) const;
 
     private:
 
-    };
-
-    // Useless on its own, meant to be created by a chunk manager.
-    class ChunkRegion_OLD
-    {
-    public:
-
-        ChunkRegion_OLD(const v3i& min, const v3i& size);
-
-        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, const v3i& relative_to_chunk_pos = { 0, 0, 0 }) const;
-        bool set_block_at(const v3i& block_pos, Block block, const v3i& relative_to_chunk_pos = { 0, 0, 0 });
-
-        [[nodiscard]] Chunk* get_chunk_at(const v3i& relative_chunk_pos, const v3i& relative_to = { 0, 0, 0 });
-        [[nodiscard]] const Chunk* get_chunk_at(const v3i& relative_chunk_pos, const v3i& relative_to = { 0, 0, 0 }) const;
-
-        [[nodiscard]] v3i center_chunk_pos() const;
-
-        // Not meant to be accessed by users...
-        void add_chunk(Chunk& chunk);
-        void lock_chunks(bool exclusive);
-        void unlock_chunks(bool exclusive);
-
-    private:
-
-        [[nodiscard]] bool in_range(const v3i& local_chunk_pos) const;
-        [[nodiscard]] size_t to_index(const v3i& local_chunk_pos) const;
-
-    private:
-
-        // 3D vector of chunk pointers
-        std::vector<Chunk*> m_chunks{};
-
-        v3i m_min{};
-        v3i m_size{};
+        std::vector<VoxelStructureInstance> m_structures{};
+        v3i m_position{};
 
     };
 }

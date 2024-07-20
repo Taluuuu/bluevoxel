@@ -4,11 +4,20 @@
 
 namespace h2o
 {
+    class INetPeer;
+
     class ChunkManager_Server : public ChunkManager_Base
     {
     public:
 
-        ~ChunkManager_Server() override = default;
+        explicit ChunkManager_Server(INetPeer& server);
+
+        // ChunkManager_Base interface
+        bool set_block_at(const v3i& block_pos, Block block, bool replicate) override;
+
+    private:
+
+        INetPeer* m_server = nullptr;
 
     };
 }

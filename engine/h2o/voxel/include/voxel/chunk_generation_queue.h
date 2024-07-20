@@ -8,18 +8,18 @@
 
 namespace h2o
 {
-    class ChunkColumn;
+    // class ChunkColumn;
 
-    using ChunkFetchCallback = std::function<void(const WeakHandle<ChunkColumn>&)>;
+    // using ChunkFetchCallback = std::function<void(const WeakHandle<ChunkColumn>&)>;
 
-    struct ChunkLoadRequest
-    {
-        v2i chunk_pos;
-        ChunkFetchCallback fetch_callback;
-
-        bool operator==(const auto& other) const
-        { return chunk_pos == other.chunk_pos; }
-    };
+    // struct ChunkLoadRequest
+    // {
+    //     v2i chunk_pos;
+    //     ChunkFetchCallback fetch_callback;
+    //
+    //     bool operator==(const auto& other) const
+    //     { return chunk_pos == other.chunk_pos; }
+    // };
 
     class ChunkGenerationQueue
     {
@@ -31,7 +31,7 @@ namespace h2o
 
     private:
 
-        std::vector< DistanceQueue<ChunkLoadRequest> > m_chunk_gen_requests;
+        // std::vector< DistanceQueue<ChunkLoadRequest> > m_chunk_gen_requests;
 
     };
 }

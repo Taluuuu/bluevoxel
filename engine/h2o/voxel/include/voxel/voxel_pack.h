@@ -3,6 +3,7 @@
 #include "block_type.h"
 #include "core/events.h"
 #include "core/resources.h"
+#include "structures/voxel_structure_manager.h"
 #include "voxel/block_model.h"
 #include "voxel/uncooked_block_model.h"
 
@@ -56,6 +57,9 @@ namespace h2o
         // block models are much easier to work with.
         [[nodiscard]] const BlockModel* get_block_model(u32 model_id) const;
 
+        VoxelStructureManager& structure_manager() { return m_structure_manager; }
+        const VoxelStructureManager& structure_manager() const { return m_structure_manager; }
+
         // Apply local changes
         void save() const;
 
@@ -88,6 +92,8 @@ namespace h2o
 
         BlockTypeList m_block_types{};
         TextureNameIdMap m_texture_ids{};
+
+        VoxelStructureManager m_structure_manager{};
 
         fs::path m_path{};
 

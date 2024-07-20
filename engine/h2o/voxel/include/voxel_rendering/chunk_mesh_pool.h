@@ -37,7 +37,7 @@ namespace h2o
         void update_meshes(const VoxelBounds& voxel_bounds);
 
         // Can be called from other threads
-        void build_chunk_mesh(const ChunkRegion_OLD& chunk_region);
+        void build_chunk_mesh(const ChunkView<v3i{3}>& chunk_view);
 
     private:
 

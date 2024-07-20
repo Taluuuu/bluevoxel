@@ -9,6 +9,7 @@
 #include "voxel/chunk_column.h"
 #include "voxel/chunk_region.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
+#include "voxel/chunk_view.h"
 #include "voxel/voxel_net_messages.h"
 #include "world_generator.h"
 
@@ -32,8 +33,8 @@ namespace h2o
             INetPeer& server);
         ~ChunkServer() override = default;
 
-        [[nodiscard]] IChunkManager& chunk_mgr() { return m_chunk_mgr; }
-        [[nodiscard]] WorldGenerator& world_generator() { return m_world_generator; }
+        [[nodiscard]] ChunkManager_Base& chunk_mgr() { return m_chunk_mgr; }
+        // [[nodiscard]] WorldGenerator& world_generator() { return m_world_generator; }
 
         void update(f32 delta_time) override;
 
@@ -48,7 +49,7 @@ namespace h2o
             PeerID request_sender,
             const net_msg::BlockPlaceRequest& block_place_request);
 
-        void send_chunk_column(const ChunkColumn& chunk_col, const std::set<PeerID>& client_ids) const;
+        void send_chunk_column(const ChunkColumnView& chunk_col, const std::set<PeerID>& client_ids) const;
 
     private:
 
@@ -58,10 +59,10 @@ namespace h2o
         EventHandle m_received_block_place_request_handle{};
 
         // Storage
-        ChunkManager_Server m_chunk_mgr{};
+        ChunkManager_Server m_chunk_mgr;
 
         // Generation
-        WorldGenerator m_world_generator;
+        // WorldGenerator m_world_generator;
 
     };
 }

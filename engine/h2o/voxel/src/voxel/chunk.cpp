@@ -13,22 +13,6 @@ namespace h2o
             local_pos.z;
     }
 
-    static v3i to_local_block_pos(size_t block_idx)
-    {
-        return {
-            (block_idx / voxel_constants::chunk_size) % voxel_constants::chunk_size,
-            block_idx / voxel_constants::chunk_area,
-            block_idx % voxel_constants::chunk_size,
-        };
-    }
-
-    Chunk::Chunk(const v3i& chunk_pos, const VoxelModule& voxel_module)
-        : m_chunk_pos(chunk_pos)
-        , m_voxel_module(&voxel_module)
-    {
-        m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
-    }
-
     Block Chunk::get_block_at(const v3i& local_pos) const
     {
         assert(is_valid_pos(local_pos));
@@ -43,6 +27,16 @@ namespace h2o
         assert(is_initialized());
 
         set_block_at(to_index(local_pos), block);
+    }
+
+    void Chunk::init(const v3i& chunk_pos, const VoxelModule& voxel_module)
+    {
+        m_chunk_pos = chunk_pos;
+        m_voxel_module = &voxel_module;
+
+        m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
+
+        m_blocks[0] = { 1 };
     }
 
     void Chunk::tick()

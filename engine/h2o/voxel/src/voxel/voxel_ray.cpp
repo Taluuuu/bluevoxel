@@ -1,10 +1,11 @@
 #include "voxel/voxel_ray.h"
 
+#include "voxel/chunk_manager_base.h"
 #include "voxel/voxel_utils.h"
 
 namespace h2o
 {
-    VoxelRay::VoxelRay(const v3& origin, const v3& end, IChunkContainer& block_container)
+    VoxelRay::VoxelRay(const v3& origin, const v3& end, const ChunkManager_Base& chunk_manager)
     {
         const v3 to_end = end - origin;
         const v3 direction = glm::normalize(to_end);
@@ -36,7 +37,7 @@ namespace h2o
         {
             intersection_count++;
 
-            const auto block = block_container.get_block_at(current_voxel);
+            const auto block = chunk_manager.get_block_at(current_voxel);
 
             if (!block) // Out of bounds ?
                 break;
