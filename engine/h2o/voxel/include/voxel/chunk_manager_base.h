@@ -28,6 +28,8 @@ namespace h2o
 
         // Open a temporary view into a cubic region of chunks, mutable or otherwise
         template<v3u ViewSize>
+        void view_or_create(const v3i& corner, const std::function<void(ChunkView<ViewSize>& chunk_view)>& function);
+        template<v3u ViewSize>
         void view(const v3i& corner, const std::function<void(ChunkView<ViewSize>& chunk_view)>& function);
         template<v3u ViewSize>
         void view(const v3i& corner, const std::function<void(const ChunkView<ViewSize>& chunk_view)>& function) const;
@@ -52,6 +54,36 @@ namespace h2o
         mutable std::shared_mutex m_loaded_chunks_mutex{};
 
     };
+
+    template <v3u ViewSize>
+    void ChunkManager_Base::view_or_create(
+        const v3i& corner,
+        const std::function<void(ChunkView<ViewSize>& chunk_view)>& function)
+    {
+        std::vector< std::unique_lock<std::shared_mutex> > chunk_locks{};
+        chunk_locks.reserve(ViewSize.x * ViewSize.y * ViewSize.z);
+
+        ChunkView<ViewSize> chunk_view(corner);
+
+        for (i32 i = corner.x; i < corner.x + ViewSize.x; i++)
+        for (i32 k = corner.z; k < corner.z + ViewSize.z; k++)
+        {
+            const auto chunk_col = find_or_create_chunk_column({ i, k });
+            assert(chunk_col != nullptr);
+
+            for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
+            {
+                if (j >= voxel_constants::vertical_chunk_count)
+                    break;
+
+                auto& [chunk, mutex] = (*chunk_col)[j];
+                chunk_view.add_chunk(chunk);
+                chunk_locks.emplace_back(mutex);
+            }
+        }
+
+        function(chunk_view);
+    }
 
     template<v3u ViewSize>
     void ChunkManager_Base::view(
@@ -95,22 +127,22 @@ namespace h2o
         ChunkView<ViewSize> chunk_view(corner);
 
         for (i32 i = corner.x; i < corner.x + ViewSize.x; i++)
-            for (i32 k = corner.z; k < corner.z + ViewSize.z; k++)
+        for (i32 k = corner.z; k < corner.z + ViewSize.z; k++)
+        {
+            const auto chunk_col = find_chunk_column({ i, k });
+            if (!chunk_col)
+                continue;
+
+            for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
             {
-                const auto chunk_col = find_chunk_column({ i, k });
-                if (!chunk_col)
-                    continue;
+                if (j >= voxel_constants::vertical_chunk_count)
+                    break;
 
-                for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
-                {
-                    if (j >= voxel_constants::vertical_chunk_count)
-                        break;
-
-                    auto& [chunk, mutex] = (*chunk_col)[j];
-                    chunk_view.add_chunk(chunk);
-                    chunk_locks.emplace_back(mutex);
-                }
+                auto& [chunk, mutex] = (*chunk_col)[j];
+                chunk_view.add_chunk(chunk);
+                chunk_locks.emplace_back(mutex);
             }
+        }
 
         function(chunk_view);
     }

@@ -8,7 +8,12 @@
 
 namespace h2o
 {
-    void ChunkRegion::place_structure(Chunk& chunk) const
+    ChunkRegion::ChunkRegion(v2i position)
+        : m_position(position)
+    {
+    }
+
+    void ChunkRegion::place_structures(Chunk& chunk) const
     {
         const auto& voxel_pack = g_engine->get_module_checked<VoxelModule>().voxel_pack();
         const VoxelStructureManager& structure_mgr = voxel_pack->structure_manager();

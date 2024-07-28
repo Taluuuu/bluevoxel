@@ -23,7 +23,6 @@ namespace h2o
 
         explicit ChunkView(const v3i& corner);
 
-
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, ViewRelativeTo relative_to = ViewRelativeTo::World) const;
         bool set_block_at(const v3i& block_pos, Block block, ViewRelativeTo relative_to = ViewRelativeTo::World);
 
