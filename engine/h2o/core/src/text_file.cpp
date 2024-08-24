@@ -6,7 +6,7 @@ namespace h2o
 {
     bool TextFile::load(const fs::path& path)
     {
-        if (const auto text = utils::read_file(path))
+        if (const auto text = utils::read_file(path.string()))
         {
             m_text = *text;
             return true;

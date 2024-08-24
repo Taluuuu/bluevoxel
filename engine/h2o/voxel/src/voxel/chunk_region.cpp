@@ -3,7 +3,6 @@
 #include <core/engine.h>
 #include <voxel/voxel_pack.h>
 
-#include "voxel/chunk_column.h"
 #include "voxel/voxel_utils.h"
 
 namespace h2o
@@ -41,5 +40,10 @@ namespace h2o
                 }
             );
         }
+    }
+
+    void ChunkRegion::generate_structures(ChunkRegionView& destination)
+    {
+        
     }
 }

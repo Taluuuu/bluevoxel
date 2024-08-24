@@ -29,7 +29,9 @@ namespace h2o
         [[nodiscard]] Chunk* get_chunk_at(const v3i& relative_chunk_pos, ViewRelativeTo relative_to = ViewRelativeTo::World);
         [[nodiscard]] const Chunk* get_chunk_at(const v3i& relative_chunk_pos, ViewRelativeTo relative_to = ViewRelativeTo::World) const;
 
-        [[nodiscard]] v3i center_chunk_pos() const;
+        [[nodiscard]] v3i center_chunk_pos() const { return m_corner + v3i{ ViewSize } / 2; }
+        [[nodiscard]] v3i corner_chunk_pos() const { return m_corner; }
+        [[nodiscard]] v3i size() const { return ViewSize; }
 
         // private:
         //
@@ -102,12 +104,6 @@ namespace h2o
     }
 
     template<v3u ViewSize>
-    v3i ChunkView<ViewSize>::center_chunk_pos() const
-    {
-        return m_corner + v3i{ ViewSize } / 2;
-    }
-
-    template<v3u ViewSize>
     void ChunkView<ViewSize>::add_chunk(Chunk& chunk)
     {
         const v3i local_chunk_pos = chunk.chunk_pos() - m_corner;
@@ -151,5 +147,5 @@ namespace h2o
             local_chunk_pos.x;
     }
 
-    using ChunkColumnView = ChunkView<{ 1, voxel_constants::vertical_chunk_count, 1 }>;
+    using ChunkColumnView = ChunkView<v3i{ 1, voxel_constants::vertical_chunk_count, 1 }>;
 }

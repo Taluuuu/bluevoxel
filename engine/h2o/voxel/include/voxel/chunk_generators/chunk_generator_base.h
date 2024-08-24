@@ -1,22 +1,26 @@
 #pragma once
 
 #include "core/types.h"
+#include "voxel/chunk_region.h"
+#include "voxel/structures/voxel_structure_manager.h"
+
+#include <vector>
 
 namespace h2o
 {
-    // class ChunkColumn;
+    class ChunkGenerator_Base
+    {
+    public:
 
-    // class ChunkGenerator_Base
-    // {
-    // public:
-    //
-    //     virtual ~ChunkGenerator_Base() = default;
-    //
-    //     virtual void run_generation_step(ChunkColumn& chunk_column) const = 0;
-    //     [[nodiscard]] virtual i32 max_generation_stage() const = 0;
-    //
-    //     // Later:
-    //     // virtual void generate_structures()...
-    //
-    // };
+        virtual ~ChunkGenerator_Base() = default;
+
+        // Generate blocks for a whole chunk region
+        virtual void gen_blocks(ChunkRegionView& region_view) const = 0;
+
+        // Generate the structure instances for a whole chunk region.
+        // These structures can span multiple regions.
+        // This assumes the blocks are already generated.
+        [[nodiscard]] virtual std::vector<VoxelStructureInstance> gen_structures(const ChunkRegionView& region_view) const = 0;
+
+    };
 }

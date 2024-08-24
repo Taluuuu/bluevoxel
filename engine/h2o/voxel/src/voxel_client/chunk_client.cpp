@@ -16,7 +16,7 @@
 #include "voxel/voxel_utils.h"
 
 #include <glm/gtx/norm.hpp>
-#include <magic_enum_utility.hpp>
+#include <magic_enum.hpp>
 #include <voxel/chunk_view.h>
 
 namespace h2o
@@ -25,7 +25,6 @@ namespace h2o
         const SceneSystemInitializer& system_initializer,
         INetPeer& client)
         : SceneSystem(system_initializer)
-        , m_chunk_mgr(client)
         , m_voxel_bounds(v2i{}, 16)
         , m_client(&client)
     {
@@ -74,12 +73,12 @@ namespace h2o
             }
         );
 
-        m_chunk_mgr.on_placed_block.add_listener(m_on_block_placed,
-            [this](const net_msg::BlockPlaceRequest& block_place_request)
-            {
-                m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
-            }
-        );
+//        m_chunk_mgr.on_placed_block.add_listener(m_on_block_placed,
+//            [this](const net_msg::BlockPlaceRequest& block_place_request)
+//            {
+//                m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+//            }
+//        );
     }
 
     void ChunkClient::update(f32 delta_time)

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "chunk_column.h"
 #include "chunk_view.h"
 
 #include <glm/gtx/hash.hpp>
@@ -10,14 +9,15 @@
 
 namespace h2o
 {
-    class ChunkManager_Base
+    class ChunkManager
     {
     public:
 
-        virtual ~ChunkManager_Base() = default;
+        ChunkManager() = default;
+        virtual ~ChunkManager() = default;
 
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const;
-        virtual bool set_block_at(const v3i& block_pos, Block block, bool replicate);
+        bool set_block_at(const v3i& block_pos, Block block, bool replicate);
 
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const;
@@ -56,7 +56,7 @@ namespace h2o
     };
 
     template <v3u ViewSize>
-    void ChunkManager_Base::view_or_create(
+    void ChunkManager::view_or_create(
         const v3i& corner,
         const std::function<void(ChunkView<ViewSize>& chunk_view)>& function)
     {
@@ -86,7 +86,7 @@ namespace h2o
     }
 
     template<v3u ViewSize>
-    void ChunkManager_Base::view(
+    void ChunkManager::view(
         const v3i& corner,
         const std::function<void(ChunkView<ViewSize>& chunk_view)>& function)
     {
@@ -117,7 +117,7 @@ namespace h2o
     }
 
     template<v3u ViewSize>
-    void ChunkManager_Base::view(
+    void ChunkManager::view(
         const v3i& corner,
         const std::function<void(const ChunkView<ViewSize>& chunk_view)>& function) const
     {

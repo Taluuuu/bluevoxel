@@ -3,11 +3,10 @@
 #include "core/events.h"
 #include "core/types.h"
 #include "networking/networking_types.h"
-#include "chunk_manager_server.h"
 #include "scene/scene_system.h"
-#include "voxel/chunk_column.h"
 #include "voxel/chunk_region.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
+#include "voxel/chunk_manager.h"
 #include "voxel/chunk_view.h"
 #include "voxel/voxel_net_messages.h"
 #include "world_generator.h"
@@ -32,7 +31,7 @@ namespace h2o
             INetPeer& server);
         ~ChunkServer() override = default;
 
-        [[nodiscard]] ChunkManager_Base& chunk_mgr() { return m_chunk_mgr; }
+        [[nodiscard]] ChunkManager& chunk_mgr() { return m_chunk_mgr; }
         // [[nodiscard]] WorldGenerator& world_generator() { return m_world_generator; }
 
         void update(f32 delta_time) override;
@@ -58,10 +57,14 @@ namespace h2o
         EventHandle m_received_block_place_request_handle{};
 
         // Storage
-        ChunkManager_Server m_chunk_mgr;
+        ChunkManager m_chunk_mgr{};
 
-        // Generation
-        // WorldGenerator m_world_generator;
+        // Chunk regions
+        std::unordered_map<v2i, std::shared_ptr<ChunkRegion>> m_chunk_regions{};
+        mutable std::shared_mutex m_chunk_regions_mutex{};
+
+        // World generation
+        std::shared_ptr<ChunkGenerator_Base> m_chunk_generator = nullptr;
 
     };
 }

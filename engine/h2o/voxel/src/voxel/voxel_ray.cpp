@@ -1,11 +1,11 @@
 #include "voxel/voxel_ray.h"
 
-#include "voxel/chunk_manager_base.h"
+#include "voxel/chunk_manager.h"
 #include "voxel/voxel_utils.h"
 
 namespace h2o
 {
-    VoxelRay::VoxelRay(const v3& origin, const v3& end, const ChunkManager_Base& chunk_manager)
+    VoxelRay::VoxelRay(const v3& origin, const v3& end, const ChunkManager& chunk_manager)
     {
         const v3 to_end = end - origin;
         const v3 direction = glm::normalize(to_end);

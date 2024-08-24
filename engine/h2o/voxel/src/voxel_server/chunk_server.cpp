@@ -12,7 +12,6 @@ namespace h2o
     ChunkServer::ChunkServer(const SceneSystemInitializer& system_initializer, INetPeer& server)
         : SceneSystem(system_initializer)
         , m_server(&server)
-        , m_chunk_mgr(server)
         // , m_world_generator(m_chunk_mgr)
     {
         // Bind messages
@@ -46,6 +45,12 @@ namespace h2o
     {
         for (v2i requested_chunk : chunk_fetch_request.requested_chunks)
         {
+            m_chunk_mgr.view_chunk_column(requested_chunk,
+                [&](const ChunkColumnView& chunk_column)
+                {
+                    send_chunk_column(chunk_column, )
+                }
+            );
             // m_world_generator.request_chunk_column(requested_chunk,
             //     [&, client_id](const ChunkColumn& chunk_column)
             //     {

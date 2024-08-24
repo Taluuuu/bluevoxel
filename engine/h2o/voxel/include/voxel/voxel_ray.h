@@ -5,7 +5,7 @@
 namespace h2o
 {
     class Chunk;
-    class ChunkManager_Base;
+    class ChunkManager;
 
     struct VoxelFetchResult
     {
@@ -32,7 +32,7 @@ namespace h2o
         VoxelRay(
             const v3& origin,
             const v3& end,
-            const ChunkManager_Base& chunk_manager);
+            const ChunkManager& chunk_manager);
 
         [[nodiscard]] operator bool() const { return has_hit(); }
         [[nodiscard]] bool has_hit()  const { return m_has_hit; }

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "voxel_rendering/chunk_mesh_pool.h"
-#include "chunk_manager_client.h"
 #include "core/distance_queue.h"
 #include "scene/scene_system.h"
+#include "voxel/chunk_manager.h"
 #include "voxel/voxel_bounds.h"
 #include "voxel/voxel_constants.h"
 #include "voxel_rendering/chunk_meshing_queue.h"
@@ -29,7 +29,7 @@ namespace h2o
             INetPeer& client);
         ~ChunkClient() override = default;
 
-        [[nodiscard]] ChunkManager_Client& chunk_mgr() { return m_chunk_mgr; }
+        [[nodiscard]] ChunkManager& chunk_mgr() { return m_chunk_mgr; }
 
         // Tickable interface
         void update(f32 delta_time) override;
@@ -50,8 +50,7 @@ namespace h2o
 
     private:
 
-        // If there is an entry in the map, the chunk has been requested.
-        ChunkManager_Client m_chunk_mgr;
+        ChunkManager m_chunk_mgr;
 
         ChunkMeshPool m_chunk_mesh_pool{};
         ChunkMeshingQueue m_chunk_meshing_queue{};

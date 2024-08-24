@@ -2,7 +2,6 @@
 
 #include "compressed_chunk.h"
 #include "networking/message_ids.h"
-#include "voxel/chunk_column.h"
 
 #include <bitsery/bitsery.h>
 #include <bitsery/brief_syntax.h>

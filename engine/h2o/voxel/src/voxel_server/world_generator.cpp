@@ -1,8 +1,7 @@
 #include "voxel_server/world_generator.h"
 
 #include "core/engine.h"
-#include "voxel/chunk_column.h"
-#include "voxel/chunk_manager_base.h"
+#include "voxel/chunk_manager.h"
 
 namespace h2o
 {

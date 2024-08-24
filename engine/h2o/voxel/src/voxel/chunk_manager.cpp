@@ -1,4 +1,4 @@
-#include "voxel/chunk_manager_base.h"
+#include "voxel/chunk_manager.h"
 
 #include "core/engine.h"
 #include "voxel/chunk_view.h"
@@ -6,7 +6,7 @@
 
 namespace h2o
 {
-    std::optional<Block> ChunkManager_Base::get_block_at(const v3i& block_pos) const
+    std::optional<Block> ChunkManager::get_block_at(const v3i& block_pos) const
     {
         std::optional<Block> block = std::nullopt;
         fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),
@@ -20,7 +20,7 @@ namespace h2o
         return block;
     }
 
-    bool ChunkManager_Base::set_block_at(const v3i& block_pos, Block block, bool replicate)
+    bool ChunkManager::set_block_at(const v3i& block_pos, Block block, bool replicate)
     {
         bool success = false;
         fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),
@@ -37,7 +37,7 @@ namespace h2o
         return success;
     }
 
-    void ChunkManager_Base::fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
+    void ChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
         if (const auto chunk_col = find_chunk_column({ chunk_pos.x, chunk_pos.z }))
         {
@@ -51,7 +51,7 @@ namespace h2o
         function(nullptr);
     }
 
-    void ChunkManager_Base::fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const
+    void ChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const
     {
         if (const auto chunk_col = find_chunk_column({ chunk_pos.x, chunk_pos.z }))
         {
@@ -65,7 +65,7 @@ namespace h2o
         function(nullptr);
     }
 
-    void ChunkManager_Base::view_or_create_chunk_column(
+    void ChunkManager::view_or_create_chunk_column(
         v2i chunk_column_pos,
         const std::function<void(ChunkColumnView&)>& function)
     {
@@ -78,14 +78,14 @@ namespace h2o
         view({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
     }
 
-    void ChunkManager_Base::view_chunk_column(
+    void ChunkManager::view_chunk_column(
         v2i chunk_column_pos,
         const std::function<void(ChunkColumnView&)>& function)
     {
         view({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
     }
 
-    void ChunkManager_Base::view_chunk_column(
+    void ChunkManager::view_chunk_column(
         v2i chunk_column_pos,
         const std::function<void(const ChunkColumnView&)>& function) const
     {
@@ -195,7 +195,7 @@ namespace h2o
     //     log::info("Erased {} chunks.", num_erased_chunks);
     // }
 
-    std::shared_ptr<ChunkManager_Base::ChunkColumnData> ChunkManager_Base::create_chunk_column(v2i chunk_column_pos)
+    std::shared_ptr<ChunkManager::ChunkColumnData> ChunkManager::create_chunk_column(v2i chunk_column_pos)
     {
         const auto chunk_col = std::make_shared<ChunkColumnData>();
         for (i32 i = 0; i < voxel_constants::vertical_chunk_count; i++)
@@ -208,7 +208,7 @@ namespace h2o
         return chunk_col;
     }
 
-    std::shared_ptr<ChunkManager_Base::ChunkColumnData> ChunkManager_Base::find_chunk_column(v2i chunk_column_pos) const
+    std::shared_ptr<ChunkManager::ChunkColumnData> ChunkManager::find_chunk_column(v2i chunk_column_pos) const
     {
         const std::shared_lock lock { m_loaded_chunks_mutex };
         if (const auto it = m_loaded_chunks.find(chunk_column_pos); it != m_loaded_chunks.end())
@@ -217,7 +217,7 @@ namespace h2o
         return nullptr;
     }
 
-    std::shared_ptr<ChunkManager_Base::ChunkColumnData> ChunkManager_Base::find_or_create_chunk_column(v2i chunk_column_pos)
+    std::shared_ptr<ChunkManager::ChunkColumnData> ChunkManager::find_or_create_chunk_column(v2i chunk_column_pos)
     {
         if (const auto chunk_column = find_chunk_column(chunk_column_pos))
             return chunk_column;

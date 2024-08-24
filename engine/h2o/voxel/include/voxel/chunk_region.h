@@ -10,7 +10,7 @@ namespace h2o
     class Chunk;
     class VoxelStructure;
 
-    using ChunkRegionView = ChunkView<{
+    using ChunkRegionView = ChunkView<v3i{
         voxel_constants::chunk_region_size,
         voxel_constants::vertical_chunk_count,
         voxel_constants::chunk_region_size }>;
@@ -24,7 +24,6 @@ namespace h2o
         // Places the bit of contained structures that fits in this chunk
         void place_structures(Chunk& chunk) const;
 
-        void generate_terrain(ChunkRegionView& destination);
         void generate_structures(ChunkRegionView& destination);
 
         enum class GenerationState
@@ -36,8 +35,6 @@ namespace h2o
 
         std::vector<VoxelStructureInstance> m_structures{};
         v2i m_position{};
-
-        std::vector<u32> m_heightmap{};
 
         GenerationState m_generation_state = GenerationState::None;
 
