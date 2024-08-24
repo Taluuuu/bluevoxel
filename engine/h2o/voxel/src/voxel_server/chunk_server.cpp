@@ -48,7 +48,7 @@ namespace h2o
             m_chunk_mgr.view_chunk_column(requested_chunk,
                 [&](const ChunkColumnView& chunk_column)
                 {
-                    send_chunk_column(chunk_column, )
+                    // send_chunk_column(chunk_column, )
                 }
             );
             // m_world_generator.request_chunk_column(requested_chunk,

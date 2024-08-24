@@ -16,7 +16,7 @@
 #include "voxel/voxel_utils.h"
 
 #include <glm/gtx/norm.hpp>
-#include <magic_enum.hpp>
+#include <magic_enum_all.hpp>
 #include <voxel/chunk_view.h>
 
 namespace h2o

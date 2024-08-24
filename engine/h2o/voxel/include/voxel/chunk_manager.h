@@ -4,6 +4,7 @@
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
+#include <mutex>
 #include <shared_mutex>
 #include <unordered_map>
 

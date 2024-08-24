@@ -3,7 +3,7 @@
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_pack.h"
 
-#include <magic_enum.hpp>
+#include <magic_enum_all.hpp>
 
 namespace h2o
 {
