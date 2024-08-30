@@ -60,10 +60,14 @@ namespace h2o::voxel_utils
         return chunk_pos * voxel_constants::chunk_size;
     }
 
-    constexpr v3i chunk_to_chunk_region_pos(const v3i& chunk_pos)
-    {
-        return chunk_pos / voxel_constants::chunk_region_size;
-    }
+    template<typename T = v3i>
+    constexpr T chunk_to_region_pos(const T& chunk_pos)
+    { return chunk_pos / voxel_constants::chunk_region_size; }
+
+    template<typename T = v3i>
+    constexpr T region_to_chunk_pos(const T& region_pos)
+    { return region_pos * voxel_constants::chunk_region_size; }
+
 
     constexpr void for_v3i(const v3i& min_val, const v3i& max_val, const std::function<void(const v3i&)>& body)
     {

@@ -12,6 +12,12 @@ namespace h2o
     {
     }
 
+    void ChunkRegion::generate(ChunkRegionView& region_view, const ChunkGenerator_Base& generator)
+    {
+        generator.gen_blocks(region_view);
+        m_structures = generator.gen_structures(region_view);
+    }
+
     void ChunkRegion::place_structures(Chunk& chunk) const
     {
         const auto& voxel_pack = g_engine->get_module_checked<VoxelModule>().voxel_pack();
@@ -40,10 +46,5 @@ namespace h2o
                 }
             );
         }
-    }
-
-    void ChunkRegion::generate_structures(ChunkRegionView& destination)
-    {
-        
     }
 }

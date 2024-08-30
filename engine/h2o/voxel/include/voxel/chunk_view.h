@@ -33,6 +33,8 @@ namespace h2o
         [[nodiscard]] v3i corner_chunk_pos() const { return m_corner; }
         [[nodiscard]] v3i size() const { return ViewSize; }
 
+        [[nodiscard]] bool is_generated() const;
+
         // private:
         //
         //     friend class ChunkManager_Base;
@@ -101,6 +103,18 @@ namespace h2o
             return nullptr;
 
         return m_chunks[to_index(local_chunk_pos)];
+    }
+
+    template <v3u ViewSize>
+    bool ChunkView<ViewSize>::is_generated() const
+    {
+        for (const auto& chunk : m_chunks)
+        {
+            if (!chunk || !chunk->is_generated())
+                return false;
+        }
+
+        return true;
     }
 
     template<v3u ViewSize>

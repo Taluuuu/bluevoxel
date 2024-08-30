@@ -1,5 +1,7 @@
 #include "voxel_server/chunk_server.h"
 
+#include <scene/scene.h>
+
 #include "core/engine.h"
 #include "core/log.h"
 #include "networking/message_ids.h"
@@ -36,44 +38,82 @@ namespace h2o
 
     void ChunkServer::update(f32 delta_time)
     {
+        erase_if(m_chunks_pending_send,
+            [&](const std::pair<v2i, PeerID>& chunk_pos_peer_pair)
+            {
+                const auto [chunk_pos, client_id] = chunk_pos_peer_pair;
 
+                bool was_chunk_sent = false;
+                m_chunk_mgr.view_chunk_column(chunk_pos,
+                    [&](const ChunkColumnView& chunk_column)
+                    {
+                        if (chunk_column.is_generated())
+                        {
+                            send_chunk_column(chunk_column, { client_id });
+                            was_chunk_sent = true;
+                        }
+                        else
+                        {
+                            std::lock_guard lock{ m_chunks_pending_generation_mutex };
+                            m_chunks_pending_generation.insert(chunk_pos);
+                        }
+                    }
+                );
+
+                return was_chunk_sent;
+            }
+        );
+
+
+
+        if (!is_chunk_generated)
+        {
+            {
+                std::lock_guard lock{ m_chunks_pending_generation_mutex };
+                m_chunks_pending_generation.push_back(requested_chunk);
+            }
+
+            {
+                std::lock_guard lock{ m_chunks_pending_send_mutex };
+                m_chunks_pending_send.emplace_back(requested_chunk, client_id);
+            }
+        }
+
+        if (!m_chunk_gen_requests.empty())
+        {
+            auto& thread_pool = g_engine->thread_pool();
+            thread_pool.queue_job(1.0f,
+                [this]()
+                {
+
+                }
+            );
+        }
     }
 
     void ChunkServer::on_received_chunk_fetch_requests(
         PeerID client_id,
         const net_msg::ChunkFetchRequest& chunk_fetch_request)
     {
+        std::lock_guard lock{ m_chunks_pending_send_mutex };
         for (v2i requested_chunk : chunk_fetch_request.requested_chunks)
         {
-            m_chunk_mgr.view_chunk_column(requested_chunk,
-                [&](const ChunkColumnView& chunk_column)
-                {
-                    // send_chunk_column(chunk_column, )
-                }
-            );
-            // m_world_generator.request_chunk_column(requested_chunk,
-            //     [&, client_id](const ChunkColumn& chunk_column)
-            //     {
-            //         send_chunk_column(chunk_column, { client_id });
-            //     }
-            // );
+            m_chunks_pending_send.emplace_back(requested_chunk, client_id);
         }
     }
 
-    void ChunkServer:: on_received_block_place_request(
+    void ChunkServer::on_received_block_place_request(
         PeerID request_sender,
         const net_msg::BlockPlaceRequest& block_place_request)
     {
-        // if (!m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block))
-        //     return;
-        //
-        // for (PeerID client_id : m_server->peers())
-        // {
-        //     if (client_id == request_sender)
-        //         continue;
-        //
-        //     m_server->send_message(client_id, block_place_request);
-        // }
+        if (!m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block))
+            return;
+
+        for (PeerID client_id : m_server->peers())
+        {
+            if (client_id != request_sender)
+                m_server->send_message(client_id, block_place_request);
+        }
     }
 
     void ChunkServer::send_chunk_column(const ChunkColumnView& chunk_col, const std::set<PeerID>& client_ids) const

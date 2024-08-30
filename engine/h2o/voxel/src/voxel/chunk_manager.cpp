@@ -20,7 +20,7 @@ namespace h2o
         return block;
     }
 
-    bool ChunkManager::set_block_at(const v3i& block_pos, Block block, bool replicate)
+    bool ChunkManager::set_block_at(const v3i& block_pos, Block block)
     {
         bool success = false;
         fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),

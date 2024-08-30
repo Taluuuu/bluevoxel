@@ -1,19 +1,24 @@
 #pragma once
 
-#include <vector>
-
 #include "chunk_view.h"
+#include "chunk_generators/chunk_generator_base.h"
 #include "structures/voxel_structure_manager.h"
+
+#include <vector>
 
 namespace h2o
 {
     class Chunk;
+    class ChunkGenerator_Base;
     class VoxelStructure;
 
-    using ChunkRegionView = ChunkView<v3i{
+    constexpr v3u ChunkRegionExtents{
         voxel_constants::chunk_region_size,
         voxel_constants::vertical_chunk_count,
-        voxel_constants::chunk_region_size }>;
+        voxel_constants::chunk_region_size
+    };
+
+    using ChunkRegionView = ChunkView<ChunkRegionExtents>;
 
     class ChunkRegion
     {
@@ -21,22 +26,19 @@ namespace h2o
 
         explicit ChunkRegion(v2i position);
 
+        void generate(ChunkRegionView& region_view, const ChunkGenerator_Base& generator);
+
         // Places the bit of contained structures that fits in this chunk
         void place_structures(Chunk& chunk) const;
 
-        void generate_structures(ChunkRegionView& destination);
-
-        enum class GenerationState
-        { None, Terrain, Finished };
-
-        [[nodiscard]] GenerationState generation_state() const { return m_generation_state; }
+        [[nodiscard]] bool is_generated() const { return m_is_generated; }
 
     private:
 
         std::vector<VoxelStructureInstance> m_structures{};
         v2i m_position{};
 
-        GenerationState m_generation_state = GenerationState::None;
+        bool m_is_generated = false;
 
     };
 }

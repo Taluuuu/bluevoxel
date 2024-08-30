@@ -43,6 +43,9 @@ namespace h2o
         [[nodiscard]] Block get_block_at(size_t index) const;
         void set_block_at(size_t index, Block block);
 
+        [[nodiscard]] bool is_generated() const { return m_is_generated; }
+        void mark_generated() { m_is_generated = true; }
+
     private:
 
         [[nodiscard]] bool is_initialized() const { return !m_blocks.empty(); }
@@ -59,6 +62,7 @@ namespace h2o
         const VoxelModule* m_voxel_module = nullptr;
 
         bool m_is_empty = true;
+        bool m_is_generated = false;
 
     };
 }

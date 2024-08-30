@@ -68,7 +68,7 @@ namespace h2o
             [this](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
                 // TODO: It seems like the block placed event is called twice
-                if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block, false))
+                if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block))
                     m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
             }
         );

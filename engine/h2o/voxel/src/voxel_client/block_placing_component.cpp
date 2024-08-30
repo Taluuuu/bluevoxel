@@ -76,15 +76,15 @@ namespace h2o
                 renderer.draw_line(points[0], points[4], line_color);
             }
 
-            if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
-            {
-                chunk_mgr.set_block_at(hit_voxel.pos, Block::Air, true);
-            }
-
-            if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
-            {
-                chunk_mgr.set_block_at(before_hit_voxel.pos, Block { 5 }, true);
-            }
+        //     if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
+        //     {
+        //         chunk_mgr.set_block_at(hit_voxel.pos, Block::Air, true);
+        //     }
+        //
+        //     if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
+        //     {
+        //         chunk_mgr.set_block_at(before_hit_voxel.pos, Block { 5 }, true);
+        //     }
         }
     }
 }
