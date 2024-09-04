@@ -23,6 +23,9 @@ namespace h2o
 
         explicit ChunkView(const v3i& corner);
 
+        void for_each_chunk(const std::function<void(Chunk&)>& function);
+        void for_each_chunk(const std::function<void(const Chunk&)>& function) const;
+
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, ViewRelativeTo relative_to = ViewRelativeTo::World) const;
         bool set_block_at(const v3i& block_pos, Block block, ViewRelativeTo relative_to = ViewRelativeTo::World);
 
@@ -31,8 +34,7 @@ namespace h2o
 
         [[nodiscard]] v3i center_chunk_pos() const { return m_corner + v3i{ ViewSize } / 2; }
         [[nodiscard]] v3i corner_chunk_pos() const { return m_corner; }
-        [[nodiscard]] v3i size() const { return ViewSize; }
-
+        [[nodiscard]] static v3i size() { return ViewSize; }
         [[nodiscard]] bool is_generated() const;
 
         // private:
@@ -59,6 +61,26 @@ namespace h2o
     ChunkView<ViewSize>::ChunkView(const v3i& corner)
         : m_corner(corner)
     {}
+
+    template <v3u ViewSize>
+    void ChunkView<ViewSize>::for_each_chunk(const std::function<void(Chunk&)>& function)
+    {
+        for (Chunk* chunk : m_chunks)
+        {
+            if (chunk)
+                function(*chunk);
+        }
+    }
+
+    template <v3u ViewSize>
+    void ChunkView<ViewSize>::for_each_chunk(const std::function<void(const Chunk&)>& function) const
+    {
+        for (const Chunk* chunk : m_chunks)
+        {
+            if (chunk)
+                function(*chunk);
+        }
+    }
 
     template<v3u ViewSize>
     std::optional<Block> ChunkView<ViewSize>::get_block_at(const v3i& block_pos, ViewRelativeTo relative_to) const

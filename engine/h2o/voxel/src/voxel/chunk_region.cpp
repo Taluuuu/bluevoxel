@@ -1,8 +1,7 @@
 #include "voxel/chunk_region.h"
 
-#include <core/engine.h>
-#include <voxel/voxel_pack.h>
-
+#include "core/engine.h"
+#include "voxel/voxel_pack.h"
 #include "voxel/voxel_utils.h"
 
 namespace h2o
@@ -12,10 +11,10 @@ namespace h2o
     {
     }
 
-    void ChunkRegion::generate(ChunkRegionView& region_view, const ChunkGenerator_Base& generator)
+    void ChunkRegion::register_structures(const std::vector<VoxelStructureInstance>& structures)
     {
-        generator.gen_blocks(region_view);
-        m_structures = generator.gen_structures(region_view);
+        for (const auto& structure : structures)
+            m_structures.push_back(structure);
     }
 
     void ChunkRegion::place_structures(Chunk& chunk) const

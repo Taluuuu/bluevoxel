@@ -1,7 +1,6 @@
 #pragma once
 
 #include "chunk_view.h"
-#include "chunk_generators/chunk_generator_base.h"
 #include "structures/voxel_structure_manager.h"
 
 #include <vector>
@@ -9,7 +8,6 @@
 namespace h2o
 {
     class Chunk;
-    class ChunkGenerator_Base;
     class VoxelStructure;
 
     constexpr v3u ChunkRegionExtents{
@@ -26,7 +24,7 @@ namespace h2o
 
         explicit ChunkRegion(v2i position);
 
-        void generate(ChunkRegionView& region_view, const ChunkGenerator_Base& generator);
+        void register_structures(const std::vector<VoxelStructureInstance>& structures);
 
         // Places the bit of contained structures that fits in this chunk
         void place_structures(Chunk& chunk) const;

@@ -4,18 +4,14 @@
 #include "core/types.h"
 #include "networking/networking_types.h"
 #include "scene/scene_system.h"
-#include "voxel/chunk_region.h"
 #include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/chunk_manager.h"
+#include "voxel/chunk_region_manager.h"
 #include "voxel/chunk_view.h"
 #include "voxel/voxel_net_messages.h"
-#include "world_generator.h"
 
 #include <memory>
 #include <mutex>
-#include <queue>
-#include <thread>
-#include <unordered_map>
 
 namespace h2o
 {
@@ -56,15 +52,6 @@ namespace h2o
         EventHandle m_received_chunk_request_handle{};
         EventHandle m_received_block_place_request_handle{};
 
-        // Storage
-        ChunkManager m_chunk_mgr{};
-
-        // Chunk regions
-        std::unordered_map<v2i, std::shared_ptr<ChunkRegion>> m_chunk_regions{};
-        mutable std::shared_mutex m_chunk_regions_mutex{};
-        std::unordered_set<v2i> m_chunk_regions_pending_generation{};
-        mutable std::mutex m_chunk_regions_pending_generation_mutex{};
-
         // World generation
         //  - How to generate chunks
         std::shared_ptr<ChunkGenerator_Base> m_chunk_generator = nullptr;
@@ -73,6 +60,10 @@ namespace h2o
         mutable std::mutex m_chunks_pending_generation_mutex{};
         //  - Generated chunks pending send to peer
         std::vector< std::pair<v2i, PeerID> > m_chunks_pending_send{};
+
+        // Storage
+        ChunkManager m_chunk_mgr{};
+        ChunkRegionManager m_chunk_region_mgr;
 
     };
 }

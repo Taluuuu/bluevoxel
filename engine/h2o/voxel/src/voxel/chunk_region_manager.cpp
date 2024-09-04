@@ -6,11 +6,15 @@
 #include "voxel/voxel_utils.h"
 
 #include <mutex>
+#include <voxel/chunk_generators/chunk_generator_base.h>
 
 namespace h2o
 {
-    ChunkRegionManager::ChunkRegionManager(ChunkManager& chunk_manager)
+    ChunkRegionManager::ChunkRegionManager(
+        ChunkManager& chunk_manager,
+        const std::shared_ptr<ChunkGenerator_Base>& chunk_generator)
         : m_chunk_manager(&chunk_manager)
+        , m_chunk_generator(chunk_generator)
     {}
 
     void ChunkRegionManager::generate_regions_for_chunk(v2i chunk_pos)
@@ -106,11 +110,18 @@ namespace h2o
                     { corner.x, 0, corner.y },
                     [&](ChunkRegionView& region_view)
                     {
-                        if (m_chunk_generator)
-                            region->generate(region_view, *m_chunk_generator);
+                        m_chunk_generator->gen_blocks(region_view);
+
+                        region->register_structures(m_chunk_generator->gen_structures(region_view));
+                        region_view.for_each_chunk(
+                            [&](Chunk& chunk)
+                            { region->place_structures(chunk); }
+                        );
                     }
                 );
             }
         );
+
+        on_finished_generating_region();
     }
 }

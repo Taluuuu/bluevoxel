@@ -1,20 +1,19 @@
 #include "voxel_server/chunk_server.h"
 
-#include <scene/scene.h>
-
 #include "core/engine.h"
 #include "core/log.h"
-#include "networking/message_ids.h"
 #include "networking/server.h"
+#include "scene/scene.h"
+#include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel/voxel_net_messages.h"
-#include "voxel/voxel_utils.h"
 
 namespace h2o
 {
     ChunkServer::ChunkServer(const SceneSystemInitializer& system_initializer, INetPeer& server)
         : SceneSystem(system_initializer)
         , m_server(&server)
-        // , m_world_generator(m_chunk_mgr)
+        , m_chunk_generator(std::make_shared<ChunkGenerator_Terrain>())
+        , m_chunk_region_mgr(m_chunk_mgr, m_chunk_generator)
     {
         // Bind messages
         server.handle_message<net_msg::ChunkFetchRequest>(m_received_chunk_request_handle,
@@ -54,7 +53,7 @@ namespace h2o
                         }
                         else
                         {
-                            std::lock_guard lock{ m_chunks_pending_generation_mutex };
+                            const std::lock_guard lock{ m_chunks_pending_generation_mutex };
                             m_chunks_pending_generation.insert(chunk_pos);
                         }
                     }
@@ -63,32 +62,6 @@ namespace h2o
                 return was_chunk_sent;
             }
         );
-
-
-
-        if (!is_chunk_generated)
-        {
-            {
-                std::lock_guard lock{ m_chunks_pending_generation_mutex };
-                m_chunks_pending_generation.push_back(requested_chunk);
-            }
-
-            {
-                std::lock_guard lock{ m_chunks_pending_send_mutex };
-                m_chunks_pending_send.emplace_back(requested_chunk, client_id);
-            }
-        }
-
-        if (!m_chunk_gen_requests.empty())
-        {
-            auto& thread_pool = g_engine->thread_pool();
-            thread_pool.queue_job(1.0f,
-                [this]()
-                {
-
-                }
-            );
-        }
     }
 
     void ChunkServer::on_received_chunk_fetch_requests(
@@ -118,22 +91,26 @@ namespace h2o
 
     void ChunkServer::send_chunk_column(const ChunkColumnView& chunk_col, const std::set<PeerID>& client_ids) const
     {
-        // // Send chunk column to requesting clients
-        // std::vector<CompressedChunk> compressed_chunks{};
-        // compressed_chunks.reserve(voxel_constants::vertical_chunk_count);
-        //
-        // for (size_t i = 0; i < voxel_constants::vertical_chunk_count; i++)
-        //     compressed_chunks.emplace_back(chunk_col[i]);
-        //
-        // for (PeerID client: client_ids)
-        // {
-        //     m_server->send_message(client,
-        //         net_msg::ChunkFetchResult
-        //             {
-        //                 compressed_chunks,
-        //                 chunk_col.chunk_column_pos()
-        //             }
-        //     );
-        // }
+        // Send chunk column to requesting clients
+        std::vector<CompressedChunk> compressed_chunks{};
+        compressed_chunks.reserve(voxel_constants::vertical_chunk_count);
+
+        chunk_col.for_each_chunk(
+            [&](const Chunk& chunk)
+            { compressed_chunks.emplace_back(chunk); }
+        );
+
+        const v2i chunk_column_pos{
+            chunk_col.corner_chunk_pos().x,
+            chunk_col.corner_chunk_pos().z };
+
+        for (PeerID client : client_ids)
+        {
+            m_server->send_message(client,
+                net_msg::ChunkFetchResult{
+                    compressed_chunks, chunk_column_pos
+                }
+            );
+        }
     }
 }

@@ -35,6 +35,7 @@ namespace h2o
         [[nodiscard]] std::vector<v2i> get_regions_to_generate_before_chunk(v2i chunk_pos) const;
 
         void generate_region(v2i region_pos);
+        void on_finished_generating_region();
 
     private:
 
@@ -44,7 +45,7 @@ namespace h2o
                 : chunk_region(region_pos) {}
 
             ChunkRegion chunk_region;
-            std::shared_mutex mutex{};
+            mutable std::shared_mutex mutex{};
         };
 
         std::unordered_map<v2i, std::shared_ptr<ChunkRegionData>> m_chunk_regions{};
