@@ -53,8 +53,8 @@ namespace h2o
                         }
                         else
                         {
-                            const std::lock_guard lock{ m_chunks_pending_generation_mutex };
-                            m_chunks_pending_generation.insert(chunk_pos);
+                            // THIS IS SLOW but will work for now ig
+                            m_chunk_region_mgr.generate_regions_for_chunk(chunk_pos);
                         }
                     }
                 );
@@ -68,11 +68,8 @@ namespace h2o
         PeerID client_id,
         const net_msg::ChunkFetchRequest& chunk_fetch_request)
     {
-        std::lock_guard lock{ m_chunks_pending_send_mutex };
         for (v2i requested_chunk : chunk_fetch_request.requested_chunks)
-        {
             m_chunks_pending_send.emplace_back(requested_chunk, client_id);
-        }
     }
 
     void ChunkServer::on_received_block_place_request(
@@ -97,7 +94,9 @@ namespace h2o
 
         chunk_col.for_each_chunk(
             [&](const Chunk& chunk)
-            { compressed_chunks.emplace_back(chunk); }
+            {
+                compressed_chunks.emplace_back(chunk);
+            }
         );
 
         const v2i chunk_column_pos{

@@ -29,14 +29,17 @@ namespace h2o
         // Places the bit of contained structures that fits in this chunk
         void place_structures(Chunk& chunk) const;
 
-        [[nodiscard]] bool is_generated() const { return m_is_generated; }
+        enum class GenerationState
+        { None, Pending, Generated };
+
+    public:
+
+        GenerationState generation_state = GenerationState::None;
 
     private:
 
         std::vector<VoxelStructureInstance> m_structures{};
         v2i m_position{};
-
-        bool m_is_generated = false;
 
     };
 }

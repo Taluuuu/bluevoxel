@@ -61,6 +61,8 @@ namespace h2o
             current_pair.second--;
         }
 
+        dest.mark_generated();
+
         return true;
     }
 }

@@ -59,6 +59,7 @@ block_types:
   - name: log
     preset: normal
     id: 6
+    model: cube
     is_transparent: false
     textures:
       - wood_log_block_side.png
@@ -70,6 +71,7 @@ block_types:
   - name: leaves
     preset: normal
     id: 7
+    model: cube
     is_transparent: true
     textures:
       - leaves_block.png

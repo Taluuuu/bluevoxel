@@ -41,6 +41,6 @@ namespace h2o
 
     std::vector<VoxelStructureInstance> ChunkGenerator_Terrain::gen_structures(const ChunkRegionView& region_view) const
     {
-         return {};
+        return {};
     }
 }

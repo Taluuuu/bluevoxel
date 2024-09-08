@@ -37,6 +37,16 @@ namespace h2o
         return success;
     }
 
+    void ChunkManager::fetch_or_create_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
+    {
+        view_or_create<v3i{1}>(chunk_pos,
+            [&](ChunkView<v3i{1}>& view)
+            {
+                function(view.get_chunk_at(chunk_pos));
+            }
+        );
+    }
+
     void ChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
         if (const auto chunk_col = find_chunk_column({ chunk_pos.x, chunk_pos.z }))

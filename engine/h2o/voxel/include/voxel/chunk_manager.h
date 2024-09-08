@@ -20,6 +20,7 @@ namespace h2o
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const;
         bool set_block_at(const v3i& block_pos, Block block);
 
+        void fetch_or_create_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const;
 

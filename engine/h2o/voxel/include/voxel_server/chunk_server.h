@@ -28,7 +28,6 @@ namespace h2o
         ~ChunkServer() override = default;
 
         [[nodiscard]] ChunkManager& chunk_mgr() { return m_chunk_mgr; }
-        // [[nodiscard]] WorldGenerator& world_generator() { return m_world_generator; }
 
         void update(f32 delta_time) override;
 
@@ -52,13 +51,10 @@ namespace h2o
         EventHandle m_received_chunk_request_handle{};
         EventHandle m_received_block_place_request_handle{};
 
-        // World generation
-        //  - How to generate chunks
+        // How to generate chunks
         std::shared_ptr<ChunkGenerator_Base> m_chunk_generator = nullptr;
-        //  - Chunks pending generation
-        std::unordered_set<v2i> m_chunks_pending_generation{};
-        mutable std::mutex m_chunks_pending_generation_mutex{};
-        //  - Generated chunks pending send to peer
+
+        // Chunks that were requested by clients
         std::vector< std::pair<v2i, PeerID> > m_chunks_pending_send{};
 
         // Storage

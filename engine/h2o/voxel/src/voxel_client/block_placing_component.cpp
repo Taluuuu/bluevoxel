@@ -37,7 +37,7 @@ namespace h2o
         const v3 origin = owner()->transform.position;
         const v3 end = origin + front * 15.0f;
 
-        if (const VoxelRay ray { origin, end, chunk_client->chunk_mgr() })
+        if (const VoxelRay ray{ origin, end, chunk_mgr })
         {
             const auto& [hit_voxel, before_hit_voxel] = ray.hit();
             auto& renderer = m_rendering_module->renderer();

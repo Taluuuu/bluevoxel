@@ -50,7 +50,7 @@ namespace h2o
 
     private:
 
-        ChunkManager m_chunk_mgr;
+        ChunkManager m_chunk_mgr{};
 
         ChunkMeshPool m_chunk_mesh_pool{};
         ChunkMeshingQueue m_chunk_meshing_queue{};
