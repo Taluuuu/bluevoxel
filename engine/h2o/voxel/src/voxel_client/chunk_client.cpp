@@ -37,35 +37,35 @@ namespace h2o
         m_client->handle_message<net_msg::ChunkFetchResult>(m_on_fetched_chunk_handle,
             [&](PeerID client_id, const net_msg::ChunkFetchResult& chunk_fetch_result)
             {
-                auto& [compressed_chunks, chunk_column_pos] = chunk_fetch_result;
-
-                if (!m_voxel_bounds.in_bounds(chunk_column_pos))
-                    return;
-
-                if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
-                    return;
-
-                // Decompressing a chunk is slow. Run it on a thread.
-                g_engine->thread_pool().queue_job(10000.0f,
-                    [this, compressed_chunks, chunk_column_pos]()
-                    {
-                        // TODO: A vector of compressed chunks is always a chunk column, so the class
-                        //       should be CompressedChunkColumn instead so I don't have to fetch the
-                        //       column at every iteration
-                        for (const auto& compressed_chunk : compressed_chunks)
-                        {
-                            const v3i chunk_pos = compressed_chunk.chunk_pos();
-                            m_chunk_mgr.fetch_or_create_chunk(chunk_pos,
-                                [&](Chunk* chunk)
-                                {
-                                    assert(chunk != nullptr);
-                                    compressed_chunk.decompress(*chunk);
-                                    m_chunk_meshing_queue.enqueue(chunk_pos);
-                                }
-                            );
-                        }
-                    }
-                );
+                // auto& [compressed_chunks, chunk_column_pos] = chunk_fetch_result;
+                //
+                // if (!m_voxel_bounds.in_bounds(chunk_column_pos))
+                //     return;
+                //
+                // if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
+                //     return;
+                //
+                // // Decompressing a chunk is slow. Run it on a thread.
+                // g_engine->thread_pool().queue_job(10000.0f,
+                //     [this, compressed_chunks, chunk_column_pos]()
+                //     {
+                //         // TODO: A vector of compressed chunks is always a chunk column, so the class
+                //         //       should be CompressedChunkColumn instead so I don't have to fetch the
+                //         //       column at every iteration
+                //         for (const auto& compressed_chunk : compressed_chunks)
+                //         {
+                //             const v3i chunk_pos = compressed_chunk.chunk_pos();
+                //             m_chunk_mgr.fetch_or_create_chunk(chunk_pos,
+                //                 [&](Chunk* chunk)
+                //                 {
+                //                     assert(chunk != nullptr);
+                //                     compressed_chunk.decompress(*chunk);
+                //                     m_chunk_meshing_queue.enqueue(chunk_pos);
+                //                 }
+                //             );
+                //         }
+                //     }
+                // );
             }
         );
 

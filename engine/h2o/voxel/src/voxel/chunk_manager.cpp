@@ -49,43 +49,29 @@ namespace h2o
 
     void ChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
-        if (const auto chunk_col = find_chunk_column({ chunk_pos.x, chunk_pos.z }))
-        {
-            auto& [chunk, mutex] = (*chunk_col)[chunk_pos.y];
-            const std::unique_lock lock { mutex };
-
-            function(&chunk);
-            return;
-        }
-
-        function(nullptr);
+        view<v3i{1}>(chunk_pos,
+            [&](ChunkView<v3i{1}>& view)
+            {
+                function(view.get_chunk_at(chunk_pos));
+            }
+        );
     }
 
     void ChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const
     {
-        if (const auto chunk_col = find_chunk_column({ chunk_pos.x, chunk_pos.z }))
-        {
-            auto& [chunk, mutex] = (*chunk_col)[chunk_pos.y];
-            const std::shared_lock lock { mutex };
-
-            function(&chunk);
-            return;
-        }
-
-        function(nullptr);
+        view<v3i{1}>(chunk_pos,
+            [&](const ChunkView<v3i{1}>& view)
+            {
+                function(view.get_chunk_at(chunk_pos));
+            }
+        );
     }
 
     void ChunkManager::view_or_create_chunk_column(
         v2i chunk_column_pos,
         const std::function<void(ChunkColumnView&)>& function)
     {
-        {
-            // Create it here if it does not already exist
-            const auto chunk_column = find_or_create_chunk_column(chunk_column_pos);
-            assert(chunk_column);
-        }
-
-        view({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
+        view_or_create({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
     }
 
     void ChunkManager::view_chunk_column(
@@ -101,109 +87,6 @@ namespace h2o
     {
         view({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
     }
-
-    // void ChunkManager_Base::fetch_chunk_region(
-    //     const std::vector<v3i>& chunk_positions,
-    //     const std::function<void(const ChunkRegion_OLD&)>& function)
-    // {
-    //     assert(!chunk_positions.empty());
-    //     v3i min { INT32_MAX, INT32_MAX, INT32_MAX };
-    //     v3i max { INT32_MIN, INT32_MIN, INT32_MIN };
-    //
-    //     // Find min and max chunk positions.
-    //     // NOTE: This might be slow for large amounts of chunks.
-    //     for (const v3i& chunk_pos : chunk_positions)
-    //     {
-    //         min.x = chunk_pos.x < min.x ? chunk_pos.x : min.x;
-    //         min.y = chunk_pos.y < min.y ? chunk_pos.y : min.y;
-    //         min.z = chunk_pos.z < min.z ? chunk_pos.z : min.z;
-    //
-    //         max.x = chunk_pos.x > max.x ? chunk_pos.x : max.x;
-    //         max.y = chunk_pos.y > max.y ? chunk_pos.y : max.y;
-    //         max.z = chunk_pos.z > max.z ? chunk_pos.z : max.z;
-    //     }
-    //
-    //     ChunkRegion_OLD chunk_region(min, max - min + v3i{ 1, 1, 1 });
-    //
-    //     // Make sure chunk columns don't get deallocated.
-    //     std::vector< std::shared_ptr<ChunkColumn> > chunk_columns;
-    //
-    //     for (const v3i& chunk_pos : chunk_positions)
-    //     {
-    //         if (auto chunk_column = find_chunk_column({ chunk_pos.x, chunk_pos.z }))
-    //         {
-    //             chunk_columns.push_back(chunk_column);
-    //
-    //             if (Chunk* chunk = chunk_column->get_chunk_safe(chunk_pos.y))
-    //                 chunk_region.add_chunk(*chunk);
-    //         }
-    //     }
-    //
-    //     // Non-exclusive lock, as the chunk region is const.
-    //     chunk_region.lock_chunks(false);
-    //     function(chunk_region);
-    //     chunk_region.unlock_chunks(false);
-    // }
-
-    // void ChunkManager_Base::fetch_chunk_region(
-    //     v3i min, v3i max,
-    //     const std::function<void(ChunkRegion_OLD&)>& function)
-    // {
-    //     assert(min.x <= max.x && min.y <= max.y && min.z <= max.z);
-    //
-    //     ChunkRegion_OLD chunk_region(min, max - min + v3i{ 1, 1, 1 });
-    //
-    //     // Make sure chunk columns don't get deallocated.
-    //     std::vector< std::shared_ptr<ChunkColumn> > chunk_columns {
-    //         size_t((max.x - min.x + 1) * (max.z - min.z + 1)), nullptr };
-    //
-    //     for (i32 i = min.x; i <= max.x; i++)
-    //     for (i32 j = min.y; j <= max.y; j++)
-    //     {
-    //         const v2i chunk_column_pos { i, j };
-    //         if (auto chunk_column = find_chunk_column(chunk_column_pos))
-    //         {
-    //             chunk_columns.push_back(chunk_column);
-    //
-    //             for (i32 y = min.y; y <= max.y; y++)
-    //             {
-    //                 if (Chunk* chunk = chunk_column->get_chunk_safe(y))
-    //                     chunk_region.add_chunk(*chunk);
-    //             }
-    //         }
-    //     }
-    //
-    //     // Exclusive lock, as the chunk region is non-const.
-    //     chunk_region.lock_chunks(true);
-    //     function(chunk_region);
-    //     chunk_region.unlock_chunks(true);
-    // }
-
-    // void ChunkManager_Base::erase_far_chunks(const std::vector<v2i>& positions, i32 range)
-    // {
-    //     std::unique_lock lock { m_loaded_chunks_mutex };
-    //
-    //     const size_t num_erased_chunks = erase_if(m_loaded_chunks,
-    //         [&](const auto& item) -> bool
-    //         {
-    //             for (const v2i position : positions)
-    //             {
-    //                 const v2i min = position - v2i { range, range };
-    //                 const v2i max = position + v2i { range, range };
-    //
-    //                 if (item.first.x < min.x || item.first.x > max.x ||
-    //                     item.first.y < min.y || item.first.y > max.y)
-    //                 {
-    //                     return true;
-    //                 }
-    //             }
-    //
-    //             return false;
-    //         }
-    //     );
-    //
-    //     log::info("Erased {} chunks.", num_erased_chunks);
-    // }
 
     std::shared_ptr<ChunkManager::ChunkColumnData> ChunkManager::create_chunk_column(v2i chunk_column_pos)
     {

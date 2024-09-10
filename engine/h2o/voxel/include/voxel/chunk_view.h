@@ -37,9 +37,9 @@ namespace h2o
         [[nodiscard]] static v3i size() { return ViewSize; }
         [[nodiscard]] bool is_generated() const;
 
-        // private:
-        //
-        //     friend class ChunkManager_Base;
+    private:
+
+        friend class ChunkManager;
         void add_chunk(Chunk& chunk);
 
     private:

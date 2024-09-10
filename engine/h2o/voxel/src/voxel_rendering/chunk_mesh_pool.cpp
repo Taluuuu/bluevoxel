@@ -93,6 +93,7 @@ namespace h2o
             chunk_pos);
 
         // Init vertex array
+        // TODO: VAO init would be nice to do with a chain of functions that return *this
         auto& vao = chunk_mesh.vertex_array;
         vao.attach_vertex_buffer(renderer.create_buffer_ptr(), 0, 0, 3 * sizeof(u32));
         vao.setup_attribute_int(0, 0, gfx::AttributeType::U32, 1, 0);

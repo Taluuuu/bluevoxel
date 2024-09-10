@@ -28,6 +28,9 @@ namespace h2o
         void view_chunk_column(v2i chunk_column_pos, const std::function<void(ChunkColumnView&)>& function);
         void view_chunk_column(v2i chunk_column_pos, const std::function<void(const ChunkColumnView&)>& function) const;
 
+        // TODO: Implement this. Will need to call event.
+        // void remove_all_chunk_columns(const std::function<bool(v2i)>& condition);
+
         // Open a temporary view into a cubic region of chunks, mutable or otherwise
         template<v3u ViewSize>
         void view_or_create(const v3i& corner, const std::function<void(ChunkView<ViewSize>& chunk_view)>& function);
@@ -35,6 +38,11 @@ namespace h2o
         void view(const v3i& corner, const std::function<void(ChunkView<ViewSize>& chunk_view)>& function);
         template<v3u ViewSize>
         void view(const v3i& corner, const std::function<void(const ChunkView<ViewSize>& chunk_view)>& function) const;
+
+        struct ChunkUpdatedEvent { const Chunk& chunk; };
+        Event<ChunkUpdatedEvent> on_chunk_updated{}; // First update is creation
+        struct ChunkDeletedEvent { v3i chunk_pos{}; };
+        Event<ChunkDeletedEvent> on_chunk_deleted{};
 
     private:
 
@@ -85,6 +93,13 @@ namespace h2o
         }
 
         function(chunk_view);
+
+        chunk_view.for_each_chunk(
+            [&](const Chunk& chunk)
+            {
+                on_chunk_updated.broadcast({ chunk });
+            }
+        );
     }
 
     template<v3u ViewSize>
@@ -116,6 +131,13 @@ namespace h2o
         }
 
         function(chunk_view);
+
+        chunk_view.for_each_chunk(
+            [&](const Chunk& chunk)
+            {
+                on_chunk_updated.broadcast({ chunk });
+            }
+        );
     }
 
     template<v3u ViewSize>
