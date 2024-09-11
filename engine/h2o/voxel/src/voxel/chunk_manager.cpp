@@ -37,6 +37,14 @@ namespace h2o
         return success;
     }
 
+    bool ChunkManager::chunk_exists(const v3i& chunk_pos) const
+    {
+        if (chunk_pos.y < 0 || chunk_pos.y >= voxel_constants::vertical_chunk_count)
+            return false;
+
+        return find_chunk_column({ chunk_pos.x, chunk_pos.z }) != nullptr;
+    }
+
     void ChunkManager::fetch_or_create_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
         view_or_create<v3i{1}>(chunk_pos,
@@ -86,6 +94,21 @@ namespace h2o
         const std::function<void(const ChunkColumnView&)>& function) const
     {
         view({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
+    }
+
+    void ChunkManager::broadcast_events()
+    {
+        {
+            std::unique_lock lock{ m_updated_chunks_mutex };
+            on_chunks_updated.broadcast({ m_updated_chunks });
+            m_updated_chunks.clear();
+        }
+
+        {
+            std::unique_lock lock{ m_deleted_chunk_columns_mutex };
+            on_chunks_deleted.broadcast({ m_deleted_chunk_columns });
+            m_deleted_chunk_columns.clear();
+        }
     }
 
     std::shared_ptr<ChunkManager::ChunkColumnData> ChunkManager::create_chunk_column(v2i chunk_column_pos)

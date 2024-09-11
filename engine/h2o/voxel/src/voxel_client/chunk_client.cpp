@@ -129,37 +129,6 @@ namespace h2o
         }
     }
 
-    void ChunkClient::render()
-    {
-        auto render_system = m_scene->get_system<RenderingSystem>();
-        if (!render_system)
-            return;
-
-        const auto& pipeline = m_voxel_module->pipeline();
-        const auto& block_textures = m_voxel_module->block_textures();
-
-        auto& renderer = m_rendering_module->renderer();
-        renderer.bind_pipeline(pipeline);
-        pipeline->set_uniform_mat4(0, renderer.proj_view_matrix());
-
-        block_textures->bind(0);
-        pipeline->set_uniform_int(2, 0);
-        pipeline->set_uniform_vec3(3, glm::normalize(light_dir));
-        pipeline->set_uniform_vec3(4, light_color);
-        pipeline->set_uniform_float(5, ambient_strength);
-
-        m_chunk_mesh_pool.for_each_chunk_mesh(
-            [&](const ChunkMeshData& chunk_mesh)
-            {
-                if (chunk_mesh.vertex_count > 0)
-                {
-                    pipeline->set_uniform_ivec3(1, chunk_mesh.chunk_pos);
-                    renderer.draw_arrays(chunk_mesh.vertex_array, chunk_mesh.vertex_count, gfx::DrawMode::Triangles);
-                }
-            }
-        );
-    }
-
     void ChunkClient::request_chunk_loads()
     {
         net_msg::ChunkFetchRequest chunk_fetch_request{};

@@ -1,59 +1,36 @@
 #pragma once
 
 #include "core/types.h"
-#include "rendering/vertex_array.h"
 #include "voxel_rendering/chunk_mesh.h"
 
-#include <functional>
 #include <glm/gtx/hash.hpp>
-#include <mutex>
-#include <queue>
 #include <unordered_map>
 #include <vector>
 
 namespace h2o
 {
-    class RenderingModule;
-    class VoxelBounds;
-    class VoxelModule;
-
-    struct ChunkMeshData
-    {
-        gfx::VertexArray vertex_array;
-        u32 vertex_count = 0;
-        v3i chunk_pos{};
-    };
-
-    /**
-     * Thread safe chunk mesh pool wrapper
-     */
+    // Not thread safe
+    // An auto resizing pool of chunk meshes
     class ChunkMeshPool
     {
     public:
 
-        ChunkMeshPool();
+        ChunkMeshPool() = default;
 
-        void for_each_chunk_mesh(const std::function<void(const ChunkMeshData&)>& function) const;
-        void update_meshes(const VoxelBounds& voxel_bounds);
+        // Iterate through all valid chunk meshes
+        void for_each_chunk_mesh(const std::function<void(const ChunkMeshRenderData&)>& function) const;
 
-        // Can be called from other threads
-        void build_chunk_mesh(const ChunkView<v3i{3}>& chunk_view);
+        // Fetch the existing chunk mesh associated with the input chunk pos,
+        // or create one if one does not yet exist.
+        ChunkMeshRenderData& fetch_or_create_mesh(const v3i& chunk_pos);
+
+        // Stop drawing this chunk mesh and make it available for another chunk.
+        void free_mesh(const v3i& chunk_pos);
 
     private:
 
-        [[nodiscard]] ChunkMeshData* get_or_reserve_chunk_mesh(const v3i& chunk_pos, const VoxelBounds& voxel_bounds);
-
-    private:
-
-        std::vector<ChunkMeshData> m_chunk_mesh_pool{};
+        std::vector<ChunkMeshRenderData> m_chunk_mesh_pool{};
         std::unordered_map<v3i, u32> m_chunk_mesh_indices{};
-
-        // Chunk meshes waiting to be sent to the gpu
-        std::queue<ChunkMesh> m_built_chunk_meshes{};
-        mutable std::mutex m_built_chunk_meshes_mutex;
-
-        VoxelModule*     const m_voxel_module = nullptr;
-        RenderingModule* const m_rendering_module = nullptr;
 
     };
 }

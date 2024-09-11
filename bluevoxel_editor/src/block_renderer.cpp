@@ -59,7 +59,7 @@ namespace bluevoxel
         pipeline->set_uniform_float(5, ambient_strength);
 
         m_chunk_mesh_pool->for_each_chunk_mesh(
-            [&](const h2o::ChunkMeshData& chunk_mesh)
+            [&](const h2o::ChunkMeshRenderData& chunk_mesh)
             {
                 if (chunk_mesh.vertex_count > 0)
                 {

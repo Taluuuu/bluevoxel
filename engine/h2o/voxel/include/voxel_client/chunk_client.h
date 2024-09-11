@@ -33,13 +33,6 @@ namespace h2o
 
         // Tickable interface
         void update(f32 delta_time) override;
-        void render() override;
-
-    public:
-
-        v3 light_dir { 0.18f, -1.0f, 0.492f };
-        v3 light_color { 1.0f, 1.0f, 1.0f };
-        f32 ambient_strength = 0.714f;
 
     private:
 

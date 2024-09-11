@@ -20,10 +20,11 @@ namespace h2o
     void ChunkMesh::build_mesh(const ChunkView<v3i{3}>& chunk_view, const VoxelModule& voxel_module)
     {
         m_chunk_pos = chunk_view.center_chunk_pos();
-        const Chunk* chunk = chunk_view.get_chunk_at(m_chunk_pos);
-        assert(chunk);
-
         m_vertices.clear();
+
+        const Chunk* chunk = chunk_view.get_chunk_at(m_chunk_pos);
+        if (!chunk)
+            return;
 
         const auto append_side =
             [&](const v3i& pos,
