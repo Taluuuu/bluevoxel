@@ -15,14 +15,16 @@ namespace h2o::gfx
     {
     public:
 
+        VertexArray();
         explicit VertexArray(Renderer_Base& renderer);
         VertexArray(VertexArray&& other) noexcept;
         VertexArray(const VertexArray&) = delete;
         ~VertexArray();
 
+        VertexArray& operator=(VertexArray&& other) noexcept;
+
         void attach_vertex_buffer(const std::shared_ptr<Buffer>& buffer, u32 binding_index, i64 offset, i32 stride);
         void attach_index_buffer(const std::shared_ptr<Buffer>& buffer);
-
 
         void setup_attribute_float(u32 attribute_index, u32 binding_index, AttributeType type, bool normalize, i32 size, u32 relative_offset);
         void setup_attribute_int(u32 attribute_index, u32 binding_index, AttributeType type, i32 size, u32 relative_offset);
@@ -37,7 +39,7 @@ namespace h2o::gfx
         std::array<std::shared_ptr<Buffer>, 4> m_vertex_buffers{};
         std::shared_ptr<Buffer> m_index_buffer = nullptr;
 
-        Renderer_Base* const m_renderer = nullptr;
+        Renderer_Base* m_renderer = nullptr;
 
         u32 m_id = 0;
 

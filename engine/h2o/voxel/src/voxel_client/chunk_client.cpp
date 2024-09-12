@@ -25,10 +25,11 @@ namespace h2o
         const SceneSystemInitializer& system_initializer,
         INetPeer& client)
         : SceneSystem(system_initializer)
+        , m_voxel_world_renderer(*this, m_chunk_mgr)
         , m_voxel_bounds(v2i{}, 16)
         , m_client(&client)
     {
-        set_tick_phases(TickPhase::Update | TickPhase::Render);
+        set_tick_phases(TickPhase::Update);
 
         m_rendering_module = &g_engine->get_module_checked<RenderingModule>();
         m_voxel_module     = &g_engine->get_module_checked<VoxelModule>();
@@ -37,44 +38,42 @@ namespace h2o
         m_client->handle_message<net_msg::ChunkFetchResult>(m_on_fetched_chunk_handle,
             [&](PeerID client_id, const net_msg::ChunkFetchResult& chunk_fetch_result)
             {
-                // auto& [compressed_chunks, chunk_column_pos] = chunk_fetch_result;
-                //
-                // if (!m_voxel_bounds.in_bounds(chunk_column_pos))
-                //     return;
-                //
-                // if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
-                //     return;
-                //
-                // // Decompressing a chunk is slow. Run it on a thread.
-                // g_engine->thread_pool().queue_job(10000.0f,
-                //     [this, compressed_chunks, chunk_column_pos]()
-                //     {
-                //         // TODO: A vector of compressed chunks is always a chunk column, so the class
-                //         //       should be CompressedChunkColumn instead so I don't have to fetch the
-                //         //       column at every iteration
-                //         for (const auto& compressed_chunk : compressed_chunks)
-                //         {
-                //             const v3i chunk_pos = compressed_chunk.chunk_pos();
-                //             m_chunk_mgr.fetch_or_create_chunk(chunk_pos,
-                //                 [&](Chunk* chunk)
-                //                 {
-                //                     assert(chunk != nullptr);
-                //                     compressed_chunk.decompress(*chunk);
-                //                     m_chunk_meshing_queue.enqueue(chunk_pos);
-                //                 }
-                //             );
-                //         }
-                //     }
-                // );
+                auto& [compressed_chunks, chunk_column_pos] = chunk_fetch_result;
+
+                if (!m_voxel_bounds.in_bounds(chunk_column_pos))
+                    return;
+
+                if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
+                    return;
+
+                // Decompressing a chunk is slow. Run it on a thread.
+                g_engine->thread_pool().queue_job(10000.0f,
+                    [this, compressed_chunks, chunk_column_pos]()
+                    {
+                        // TODO: A vector of compressed chunks is always a chunk column, so the class
+                        //       should be CompressedChunkColumn instead so I don't have to fetch the
+                        //       column at every iteration
+                        for (const auto& compressed_chunk : compressed_chunks)
+                        {
+                            const v3i chunk_pos = compressed_chunk.chunk_pos();
+                            m_chunk_mgr.fetch_or_create_chunk(chunk_pos,
+                                [&](Chunk* chunk)
+                                {
+                                    assert(chunk != nullptr);
+                                    compressed_chunk.decompress(*chunk);
+                                }
+                            );
+                        }
+                    }
+                );
             }
         );
 
         m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request,
             [this](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
-                // TODO: It seems like the block placed event is called twice
-                if (m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block))
-                    m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
+                // TODO: It seems like the block placed event is called twice. Might not happen anymore.
+                m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block);
             }
         );
 
@@ -110,23 +109,25 @@ namespace h2o
 
         m_refresh_chunk_requests = false;
 
-        m_chunk_mesh_pool.update_meshes(m_voxel_bounds);
+        m_chunk_mgr.broadcast_events();
 
-        m_chunk_meshing_queue.set_player_actor(player);
-        while (auto chunk_pos = m_chunk_meshing_queue.dequeue_first(
-            [&](const v3i& chunk_pos) -> bool
-            {
-                // const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
-                // return
-                //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
-                //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
-                //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
-                //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
-                return true;
-            }))
-        {
-            rebuild_chunk_mesh(*chunk_pos);
-        }
+        // m_chunk_mesh_pool.update_meshes(m_voxel_bounds);
+
+        // m_chunk_meshing_queue.set_player_actor(player);
+        // while (auto chunk_pos = m_chunk_meshing_queue.dequeue_first(
+        //     [&](const v3i& chunk_pos) -> bool
+        //     {
+        //         // const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
+        //         // return
+        //         //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
+        //         //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
+        //         //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
+        //         //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
+        //         return true;
+        //     }))
+        // {
+        //     rebuild_chunk_mesh(*chunk_pos);
+        // }
     }
 
     void ChunkClient::request_chunk_loads()
@@ -187,7 +188,7 @@ namespace h2o
                 m_chunk_mgr.view<v3u{3}>(chunk_pos - v3i{ 1 },
                     [&](const auto& chunk_view)
                     {
-                        m_chunk_mesh_pool.build_chunk_mesh(chunk_view);
+                        // m_chunk_mesh_pool.build_chunk_mesh(chunk_view);
                     }
                 );
             }

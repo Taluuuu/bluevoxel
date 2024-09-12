@@ -28,7 +28,7 @@ namespace h2o
             }
         );
 
-        chunk_manager.on_chunks_deleted.add_listener(m_on_chunk_updated_handle,
+        chunk_manager.on_chunks_deleted.add_listener(m_on_chunk_deleted_handle,
             [this](const ChunksDeletedEvent& event)
             {
                 for (const v2i chunk_column_pos : event.deleted_chunk_columns)
@@ -61,17 +61,23 @@ namespace h2o
                 if (!m_chunk_manager->chunk_exists(chunk_mesh.chunk_pos()))
                     continue;
 
-                m_chunk_mesh_pool.fetch_or_create_mesh(chunk_mesh.chunk_pos(),
-                    [&](ChunkMeshRenderData& mesh_data)
-                    {
-                        mesh_data.chunk_pos = chunk_mesh.chunk_pos();
-                        mesh_data.vertex_count = chunk_mesh.vertex_count();
+                auto& mesh_data = m_chunk_mesh_pool.fetch_or_create_mesh(chunk_mesh.chunk_pos());
 
-                        const auto& vertices = chunk_mesh.vertices();
-                        mesh_data.vertex_array.get_vertex_buffer(0)->update_data(
-                            vertices.data(), vertices.size() * sizeof(u32), gfx::BufferUsage::StaticDraw);
-                    }
-                );
+                mesh_data.vertex_count = chunk_mesh.vertex_count();
+                const auto& vertices = chunk_mesh.vertices();
+                const auto& vertex_buffer = mesh_data.vertex_array.get_vertex_buffer(0);
+
+                if (!vertex_buffer)
+                {
+                    // First time init of the VAO here
+                    auto& vao = mesh_data.vertex_array;
+                    vao.attach_vertex_buffer(m_rendering_module->renderer().create_buffer_ptr(), 0, 0, 3 * sizeof(u32));
+                    vao.setup_attribute_int(0, 0, gfx::AttributeType::U32, 1, 0);
+                    vao.setup_attribute_int(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
+                    vao.setup_attribute_int(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
+                }
+
+                vertex_buffer->update_data(vertices.data(), vertices.size() * sizeof(u32), gfx::BufferUsage::StaticDraw);
             }
 
             m_pending_built_meshes.clear();

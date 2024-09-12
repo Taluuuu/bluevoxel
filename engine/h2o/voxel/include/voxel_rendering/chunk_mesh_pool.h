@@ -15,7 +15,7 @@ namespace h2o
     {
     public:
 
-        ChunkMeshPool() = default;
+        ChunkMeshPool();
 
         // Iterate through all valid chunk meshes
         void for_each_chunk_mesh(const std::function<void(const ChunkMeshRenderData&)>& function) const;
@@ -31,6 +31,8 @@ namespace h2o
 
         std::vector<ChunkMeshRenderData> m_chunk_mesh_pool{};
         std::unordered_map<v3i, u32> m_chunk_mesh_indices{};
+
+        RenderingModule* m_rendering_module = nullptr;
 
     };
 }

@@ -1,18 +1,25 @@
 #include "rendering/vertex_array.h"
 
+#include "core/engine.h"
 #include "rendering/renderer_base.h"
+#include "rendering/rendering_module.h"
 
 namespace h2o::gfx
 {
+    VertexArray::VertexArray()
+        // TODO: Rework this shit. Need a default constructor, maybe cache a static rendering module ptr ?
+        : VertexArray(g_engine->get_module_checked<RenderingModule>().renderer_base())
+    {}
+
     VertexArray::VertexArray(Renderer_Base& renderer)
         : m_renderer(&renderer)
-        , m_id(renderer.allocate_vertex_array())
+        , m_id(m_renderer->allocate_vertex_array())
     {}
 
     VertexArray::VertexArray(VertexArray&& other) noexcept
-        : m_renderer(other.m_renderer)
+        : m_vertex_buffers(std::move(other.m_vertex_buffers))
+        , m_renderer(other.m_renderer)
         , m_id(other.m_id)
-        , m_vertex_buffers(std::move(other.m_vertex_buffers))
     {
         other.m_id = 0;
     }
@@ -20,6 +27,20 @@ namespace h2o::gfx
     VertexArray::~VertexArray()
     {
         m_renderer->destroy_vertex_array(m_id);
+    }
+
+    VertexArray& VertexArray::operator=(VertexArray&& other) noexcept
+    {
+        if (this != &other)
+        {
+            m_vertex_buffers = std::move(other.m_vertex_buffers);
+            m_renderer = other.m_renderer;
+            m_id = other.m_id;
+
+            other.m_id = 0;
+        }
+
+        return *this;
     }
 
     void VertexArray::attach_vertex_buffer(const std::shared_ptr<Buffer>& buffer, u32 binding_index, i64 offset, i32 stride)

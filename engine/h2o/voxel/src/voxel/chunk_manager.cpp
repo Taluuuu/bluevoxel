@@ -100,14 +100,20 @@ namespace h2o
     {
         {
             std::unique_lock lock{ m_updated_chunks_mutex };
-            on_chunks_updated.broadcast({ m_updated_chunks });
-            m_updated_chunks.clear();
+            if (!m_updated_chunks.empty())
+            {
+                on_chunks_updated.broadcast({ m_updated_chunks });
+                m_updated_chunks.clear();
+            }
         }
 
         {
             std::unique_lock lock{ m_deleted_chunk_columns_mutex };
-            on_chunks_deleted.broadcast({ m_deleted_chunk_columns });
-            m_deleted_chunk_columns.clear();
+            if (!m_deleted_chunk_columns.empty())
+            {
+                on_chunks_deleted.broadcast({ m_deleted_chunk_columns });
+                m_deleted_chunk_columns.clear();
+            }
         }
     }
 

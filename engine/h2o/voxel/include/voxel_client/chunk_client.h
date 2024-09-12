@@ -12,6 +12,7 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <voxel_rendering/voxel_world_renderer.h>
 
 namespace h2o
 {
@@ -44,9 +45,7 @@ namespace h2o
     private:
 
         ChunkManager m_chunk_mgr{};
-
-        ChunkMeshPool m_chunk_mesh_pool{};
-        ChunkMeshingQueue m_chunk_meshing_queue{};
+        VoxelWorldRenderer m_voxel_world_renderer;
 
         bool m_refresh_chunk_requests = false;
 

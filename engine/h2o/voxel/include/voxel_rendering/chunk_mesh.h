@@ -19,9 +19,37 @@ namespace h2o
 
     struct ChunkMeshRenderData
     {
-        gfx::VertexArray vertex_array;
+        gfx::VertexArray vertex_array{};
         u32 vertex_count = 0;
         v3i chunk_pos{};
+
+        explicit ChunkMeshRenderData(const v3i& chunk_pos)
+            : chunk_pos(chunk_pos)
+        {}
+
+        ChunkMeshRenderData(ChunkMeshRenderData&& other) noexcept
+            : vertex_array(std::move(other.vertex_array))
+            , vertex_count(other.vertex_count)
+            , chunk_pos(other.chunk_pos)
+        {
+            other.chunk_pos = {};
+            other.vertex_count = 0;
+        }
+
+        ChunkMeshRenderData& operator=(ChunkMeshRenderData&& other) noexcept
+        {
+            if (this != &other)
+            {
+                vertex_array = std::move(other.vertex_array);
+                vertex_count = other.vertex_count;
+                chunk_pos = other.chunk_pos;
+
+                other.vertex_count = 0;
+                other.chunk_pos = {};
+            }
+
+            return *this;
+        }
     };
 
     class ChunkMesh
