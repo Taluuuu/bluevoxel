@@ -184,4 +184,5 @@ namespace h2o
     }
 
     using ChunkColumnView = ChunkView<v3i{ 1, voxel_constants::vertical_chunk_count, 1 }>;
+    using ChunkMeshingView = ChunkView<v3i{3}>;
 }

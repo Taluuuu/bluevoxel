@@ -104,7 +104,6 @@ namespace h2o
             m_previous_player_chunk_col_pos = player_chunk_col_pos;
 
             request_chunk_loads();
-            trim_far_chunks();
         }
 
         m_refresh_chunk_requests = false;
@@ -150,48 +149,5 @@ namespace h2o
 
         if (!chunk_fetch_request.requested_chunks.empty())
             m_client->send_message(0, chunk_fetch_request);
-    }
-
-    void ChunkClient::trim_far_chunks()
-    {
-        // m_chunk_mgr.erase_far_chunks({ m_previous_player_chunk_col_pos }, m_voxel_bounds.bounds_distance());
-    }
-
-    void ChunkClient::rebuild_chunk_mesh(const v3i& chunk_pos)
-    {
-        // Calculate the job's priority
-        const auto player = m_scene->get_actor_by_tag(ActorTag::LocalPlayer);
-        f32 job_priority = 0.0f;
-        if (player)
-        {
-            const v3 chunk_world_pos = voxel_utils::chunk_to_world_pos(chunk_pos);
-            const v3 player_pos = player->transform.position;
-            job_priority = glm::distance2(chunk_world_pos, player_pos);
-        }
-
-        g_engine->thread_pool().queue_job(job_priority,
-            [this, chunk_pos]
-            {
-                // Get all neighbouring chunks
-                std::vector<v3i> region_chunk_positions;
-                region_chunk_positions.reserve(7);
-
-                region_chunk_positions.push_back(chunk_pos);
-                magic_enum::enum_for_each<voxel::Direction::Type>(
-                    [&](voxel::Direction::Type dir)
-                    {
-                        const v3i offset = voxel::to_vec3(dir);
-                        region_chunk_positions.push_back(chunk_pos + offset);
-                    }
-                );
-
-                m_chunk_mgr.view<v3u{3}>(chunk_pos - v3i{ 1 },
-                    [&](const auto& chunk_view)
-                    {
-                        // m_chunk_mesh_pool.build_chunk_mesh(chunk_view);
-                    }
-                );
-            }
-        );
     }
 }

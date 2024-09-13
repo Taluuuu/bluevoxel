@@ -96,6 +96,44 @@ namespace h2o
         view({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
     }
 
+    void ChunkManager::view_for_meshing(
+        const v3i& chunk_pos,
+        const std::function<void(const ChunkMeshingView&)>& function) const
+    {
+        std::vector< std::unique_lock<std::shared_mutex> > chunk_locks{};
+        chunk_locks.reserve(3 * 3 * 3);
+
+        const v3i corner = chunk_pos - v3i{1};
+        ChunkMeshingView chunk_view(corner);
+
+        const auto add_chunk =
+            [&](v3i offset)
+            {
+                const v3i neighbour_pos = chunk_pos + offset;
+                if (!is_valid_chunk_y(neighbour_pos.y))
+                    return;
+
+                const v2i neighbour_col_pos{ neighbour_pos.x, neighbour_pos.z };
+                if (const auto neighbour_col = find_chunk_column(neighbour_col_pos))
+                {
+                    auto& [chunk, mutex] = (*neighbour_col)[neighbour_pos.y];
+                    chunk_view.add_chunk(chunk);
+                    chunk_locks.emplace_back(mutex);
+                }
+            };
+
+        // Order is important - XZY
+        add_chunk({-1, 0, 0});
+        add_chunk({ 0, 0,-1});
+        add_chunk({ 0,-1, 0});
+        add_chunk({ 0, 0, 0});
+        add_chunk({ 0, 1, 0});
+        add_chunk({ 0, 0, 1});
+        add_chunk({ 1, 0, 0});
+
+        function(chunk_view);
+    }
+
     void ChunkManager::broadcast_events()
     {
         {

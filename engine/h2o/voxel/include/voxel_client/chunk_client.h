@@ -38,9 +38,6 @@ namespace h2o
     private:
 
         void request_chunk_loads();
-        void trim_far_chunks();
-
-        void rebuild_chunk_mesh(const v3i& chunk_pos);
 
     private:
 

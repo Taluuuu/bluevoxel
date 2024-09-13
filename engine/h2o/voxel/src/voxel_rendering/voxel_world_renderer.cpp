@@ -1,8 +1,7 @@
 #include "voxel_rendering/voxel_world_renderer.h"
 
-#include <rendering/buffer.h>
-
 #include "core/engine.h"
+#include "rendering/buffer.h"
 #include "rendering/pipeline.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
@@ -56,6 +55,12 @@ namespace h2o
 
             for (const auto& chunk_mesh : m_pending_built_meshes)
             {
+                if (chunk_mesh.vertex_count() == 0)
+                {
+                    m_chunk_mesh_pool.free_mesh(chunk_mesh.chunk_pos());
+                    continue;
+                }
+
                 // Make sure the chunk did not get deleted between the time its mesh was queued
                 // for rebuild and now
                 if (!m_chunk_manager->chunk_exists(chunk_mesh.chunk_pos()))
@@ -66,16 +71,6 @@ namespace h2o
                 mesh_data.vertex_count = chunk_mesh.vertex_count();
                 const auto& vertices = chunk_mesh.vertices();
                 const auto& vertex_buffer = mesh_data.vertex_array.get_vertex_buffer(0);
-
-                if (!vertex_buffer)
-                {
-                    // First time init of the VAO here
-                    auto& vao = mesh_data.vertex_array;
-                    vao.attach_vertex_buffer(m_rendering_module->renderer().create_buffer_ptr(), 0, 0, 3 * sizeof(u32));
-                    vao.setup_attribute_int(0, 0, gfx::AttributeType::U32, 1, 0);
-                    vao.setup_attribute_int(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
-                    vao.setup_attribute_int(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
-                }
 
                 vertex_buffer->update_data(vertices.data(), vertices.size() * sizeof(u32), gfx::BufferUsage::StaticDraw);
             }
@@ -135,8 +130,20 @@ namespace h2o
 
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
-        m_chunk_manager->view<v3u{3}>(chunk_pos - v3i{1},
-            [&](const ChunkView<v3u{3}>& view)
+        // m_chunk_manager->view<v3u{3}>(chunk_pos - v3i{1},
+        //     [&](const ChunkView<v3u{3}>& view)
+        //     {
+        //         ChunkMesh chunk_mesh(view, *m_voxel_module);
+        //         if (chunk_mesh.vertex_count() > 0)
+        //         {
+        //             std::unique_lock lock{ m_pending_built_meshes_mutex };
+        //             m_pending_built_meshes.emplace_back(std::move(chunk_mesh));
+        //         }
+        //     }
+        // );
+
+        m_chunk_manager->view_for_meshing(chunk_pos,
+            [&](const ChunkMeshingView& view)
             {
                 ChunkMesh chunk_mesh(view, *m_voxel_module);
                 if (chunk_mesh.vertex_count() > 0)

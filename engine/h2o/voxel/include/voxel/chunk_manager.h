@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chunk_view.h"
+#include "core/log.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -38,13 +39,18 @@ namespace h2o
 
         // Open a temporary view into a cubic region of chunks, mutable or otherwise
         template<v3u ViewSize>
-        void view_or_create(const v3i& corner, const std::function<void(ChunkView<ViewSize>& chunk_view)>& function);
+        void view_or_create(const v3i& corner, const std::function<void(ChunkView<ViewSize>&)>& function);
         template<v3u ViewSize>
-        void view(const v3i& corner, const std::function<void(ChunkView<ViewSize>& chunk_view)>& function);
+        void view(const v3i& corner, const std::function<void(ChunkView<ViewSize>&)>& function);
         template<v3u ViewSize>
-        void view(const v3i& corner, const std::function<void(const ChunkView<ViewSize>& chunk_view)>& function) const;
+        void view(const v3i& corner, const std::function<void(const ChunkView<ViewSize>&)>& function) const;
+
+        void view_for_meshing(const v3i& chunk_pos, const std::function<void(const ChunkMeshingView&)>& function) const;
 
         void broadcast_events();
+
+        static constexpr bool is_valid_chunk_y(i32 chunk_y)
+        { return chunk_y >= 0 && chunk_y < voxel_constants::vertical_chunk_count; }
 
         Event<ChunksUpdatedEvent> on_chunks_updated{}; // First update is creation
         Event<ChunksDeletedEvent> on_chunks_deleted{};
@@ -77,11 +83,16 @@ namespace h2o
 
     };
 
-    template <v3u ViewSize>
+    template<v3u ViewSize>
     void ChunkManager::view_or_create(
         const v3i& corner,
-        const std::function<void(ChunkView<ViewSize>& chunk_view)>& function)
+        const std::function<void(ChunkView<ViewSize>&)>& function)
     {
+        // if (corner.x == -4 && corner.z == -4 && ViewSize.x == 4)
+        // {
+        //     log::info("OK");
+        // }
+
         // TODO: Could this be a stack-allocated array ?
         std::vector< std::unique_lock<std::shared_mutex> > chunk_locks{};
         chunk_locks.reserve(ViewSize.x * ViewSize.y * ViewSize.z);
@@ -96,7 +107,7 @@ namespace h2o
 
             for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
             {
-                if (j >= voxel_constants::vertical_chunk_count)
+                if (!is_valid_chunk_y(j))
                     break;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];
@@ -121,7 +132,7 @@ namespace h2o
     template<v3u ViewSize>
     void ChunkManager::view(
         const v3i& corner,
-        const std::function<void(ChunkView<ViewSize>& chunk_view)>& function)
+        const std::function<void(ChunkView<ViewSize>&)>& function)
     {
         std::vector< std::unique_lock<std::shared_mutex> > chunk_locks{};
         chunk_locks.reserve(ViewSize.x * ViewSize.y * ViewSize.z);
@@ -137,7 +148,7 @@ namespace h2o
 
             for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
             {
-                if (j >= voxel_constants::vertical_chunk_count)
+                if (!is_valid_chunk_y(j))
                     break;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];
@@ -162,7 +173,7 @@ namespace h2o
     template<v3u ViewSize>
     void ChunkManager::view(
         const v3i& corner,
-        const std::function<void(const ChunkView<ViewSize>& chunk_view)>& function) const
+        const std::function<void(const ChunkView<ViewSize>&)>& function) const
     {
         std::vector< std::shared_lock<std::shared_mutex> > chunk_locks{};
         chunk_locks.reserve(ViewSize.x * ViewSize.y * ViewSize.z);
@@ -178,7 +189,7 @@ namespace h2o
 
             for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
             {
-                if (j >= voxel_constants::vertical_chunk_count)
+                if (!is_valid_chunk_y(j))
                     break;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];

@@ -1,10 +1,10 @@
 #include "voxel_rendering/chunk_mesh_pool.h"
 
-#include <voxel/chunk.h>
-
 #include "core/engine.h"
 #include "rendering/buffer.h"
+#include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
+#include "voxel/chunk.h"
 
 namespace h2o
 {
@@ -24,7 +24,16 @@ namespace h2o
             return m_chunk_mesh_pool[it->second];
 
         m_chunk_mesh_indices.emplace(chunk_pos, m_chunk_mesh_pool.size());
-        return m_chunk_mesh_pool.emplace_back(chunk_pos);
+        auto& mesh_render_data = m_chunk_mesh_pool.emplace_back(chunk_pos);
+
+        // First time init of the VAO here
+        auto& vao = mesh_render_data.vertex_array;
+        vao.attach_vertex_buffer(m_rendering_module->renderer().create_buffer_ptr(), 0, 0, 3 * sizeof(u32));
+        vao.setup_attribute_int(0, 0, gfx::AttributeType::U32, 1, 0);
+        vao.setup_attribute_int(1, 0, gfx::AttributeType::U32, 1, sizeof(u32));
+        vao.setup_attribute_int(2, 0, gfx::AttributeType::U32, 1, 2 * sizeof(u32));
+
+        return mesh_render_data;
     }
 
     void ChunkMeshPool::free_mesh(const v3i& chunk_pos)

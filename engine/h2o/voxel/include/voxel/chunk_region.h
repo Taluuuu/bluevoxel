@@ -29,6 +29,8 @@ namespace h2o
         // Places the bit of contained structures that fits in this chunk
         void place_structures(Chunk& chunk) const;
 
+        [[nodiscard]] v2i region_pos() const { return m_position; }
+
         enum class GenerationState
         { None, Pending, Generated };
 

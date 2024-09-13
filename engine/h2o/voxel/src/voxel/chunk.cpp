@@ -35,8 +35,6 @@ namespace h2o
         m_voxel_module = &voxel_module;
 
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
-
-        m_blocks[0] = { 1 };
     }
 
     void Chunk::tick()

@@ -4,6 +4,7 @@
 #include "core/log.h"
 #include "networking/server.h"
 #include "scene/scene.h"
+#include "voxel/chunk_generators/chunk_generator_flat.h"
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel/voxel_net_messages.h"
 
@@ -12,9 +13,12 @@ namespace h2o
     ChunkServer::ChunkServer(const SceneSystemInitializer& system_initializer, INetPeer& server)
         : SceneSystem(system_initializer)
         , m_server(&server)
-        , m_chunk_generator(std::make_shared<ChunkGenerator_Terrain>())
-        , m_chunk_region_mgr(m_chunk_mgr, m_chunk_generator)
+        , m_chunk_region_mgr(*this)
     {
+        auto flat_generator = std::make_shared<ChunkGenerator_Flat>();
+        flat_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
+        m_chunk_generator = flat_generator;
+
         // Bind messages
         server.handle_message<net_msg::ChunkFetchRequest>(m_received_chunk_request_handle,
             [&](PeerID client_id, const net_msg::ChunkFetchRequest& chunk_fetch_request)

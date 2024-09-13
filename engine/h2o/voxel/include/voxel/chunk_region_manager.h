@@ -13,16 +13,14 @@
 namespace h2o
 {
     class ChunkGenerator_Base;
-    class ChunkManager;
+    class ChunkServer;
     class ChunkRegion;
 
     class ChunkRegionManager
     {
     public:
 
-        explicit ChunkRegionManager(
-            ChunkManager& chunk_manager,
-            const std::shared_ptr<ChunkGenerator_Base>& chunk_generator);
+        explicit ChunkRegionManager(ChunkServer& chunk_server);
 
         // Request chunk generation, does not happen instantly
         void generate_regions_for_chunk(v2i chunk_pos);
@@ -63,8 +61,7 @@ namespace h2o
         std::vector<v2i> m_newly_generated_regions{};
         mutable std::mutex m_newly_generated_regions_mutex{};
 
-        ChunkManager* const m_chunk_manager = nullptr;
-        std::shared_ptr<ChunkGenerator_Base> m_chunk_generator = nullptr;
+        ChunkServer* const m_chunk_server = nullptr;
 
     };
 }
