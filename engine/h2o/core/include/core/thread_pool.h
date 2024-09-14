@@ -31,6 +31,9 @@ namespace h2o
          */
         void queue_job(f32 priority, const Job& job);
 
+        [[nodiscard]] size_t job_count() const { return m_job_queue.size(); }
+        [[nodiscard]] size_t thread_count() const;
+
     private:
 
         // This is run on every thread; each thread loops until they get

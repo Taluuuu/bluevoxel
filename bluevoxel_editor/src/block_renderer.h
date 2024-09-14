@@ -39,7 +39,7 @@ namespace bluevoxel
     private:
 
         std::shared_ptr<h2o::Chunk> m_chunk = nullptr;
-        std::shared_ptr<h2o::ChunkView<v3u{3}>> m_chunk_view = nullptr;
+        std::shared_ptr<h2o::ChunkView<v3i{3}>> m_chunk_view = nullptr;
         std::shared_ptr<h2o::VoxelBounds> m_voxel_bounds = nullptr;
         std::shared_ptr<h2o::ChunkMeshPool> m_chunk_mesh_pool = nullptr;
 

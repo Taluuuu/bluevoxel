@@ -9,8 +9,7 @@ namespace h2o
         m_should_terminate = false;
         m_threads.clear();
 
-        const i32 num_threads = std::max(1, i32(std::thread::hardware_concurrency()) / 2);
-        for (i32 i = 0; i < num_threads; ++i)
+        for (i32 i = 0; i < thread_count(); ++i)
             m_threads.emplace_back(&ThreadPool::thread_loop, this);
     }
 
@@ -36,6 +35,12 @@ namespace h2o
         }
 
         m_mutex_condition.notify_one();
+    }
+
+    size_t ThreadPool::thread_count() const
+    {
+        return std::max(1, i32(std::thread::hardware_concurrency()) / 2);
+        // return 12;
     }
 
     void ThreadPool::thread_loop()

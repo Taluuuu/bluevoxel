@@ -46,8 +46,11 @@ namespace h2o
                 if (compressed_chunks.size() != voxel_constants::vertical_chunk_count)
                     return;
 
+                ++m_num_chunk_columns_pending_decompress;
+
                 // Decompressing a chunk is slow. Run it on a thread.
-                g_engine->thread_pool().queue_job(10000.0f,
+                v2 player_pos_2d{ m_player_pos.x, m_player_pos.z };
+                g_engine->thread_pool().queue_job(glm::distance(player_pos_2d, voxel_utils::chunk_to_world_pos(chunk_column_pos)),
                     [this, compressed_chunks, chunk_column_pos]()
                     {
                         // TODO: A vector of compressed chunks is always a chunk column, so the class
@@ -56,7 +59,7 @@ namespace h2o
                         for (const auto& compressed_chunk : compressed_chunks)
                         {
                             const v3i chunk_pos = compressed_chunk.chunk_pos();
-                            m_chunk_mgr.fetch_or_create_chunk(chunk_pos,
+                            m_chunk_mgr.fetch_or_create_chunk_mut(chunk_pos,
                                 [&](Chunk* chunk)
                                 {
                                     assert(chunk != nullptr);
@@ -64,6 +67,8 @@ namespace h2o
                                 }
                             );
                         }
+
+                        --m_num_chunk_columns_pending_decompress;
                     }
                 );
             }
@@ -94,10 +99,12 @@ namespace h2o
         if (!player)
             return;
 
-        const v3& player_pos = player->transform.position;
-        const v3i player_chunk_pos = voxel_utils::world_to_chunk_pos(player_pos);
+        m_player_pos = player->transform.position;
+        const v3i player_chunk_pos = voxel_utils::world_to_chunk_pos(m_player_pos);
         const v2i player_chunk_col_pos { player_chunk_pos.x, player_chunk_pos.z };
         m_voxel_bounds.set_bounds_center(player_chunk_col_pos);
+
+        m_voxel_world_renderer.player_pos = m_player_pos;
 
         if (player_chunk_col_pos != m_previous_player_chunk_col_pos || m_refresh_chunk_requests)
         {
@@ -108,25 +115,10 @@ namespace h2o
 
         m_refresh_chunk_requests = false;
 
+        g_engine->debug_infos().update_debug_statistic(
+            "voxels", "chunk columns pending decompress", m_num_chunk_columns_pending_decompress);
+
         m_chunk_mgr.broadcast_events();
-
-        // m_chunk_mesh_pool.update_meshes(m_voxel_bounds);
-
-        // m_chunk_meshing_queue.set_player_actor(player);
-        // while (auto chunk_pos = m_chunk_meshing_queue.dequeue_first(
-        //     [&](const v3i& chunk_pos) -> bool
-        //     {
-        //         // const v2i chunk_column_pos { chunk_pos.x, chunk_pos.z };
-        //         // return
-        //         //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XNeg) + chunk_column_pos) &&
-        //         //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::XPos) + chunk_column_pos) &&
-        //         //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZNeg) + chunk_column_pos) &&
-        //         //     m_chunk_mgr.is_chunk_column_generated(voxel::to_vec2(voxel::Direction::ZPos) + chunk_column_pos);
-        //         return true;
-        //     }))
-        // {
-        //     rebuild_chunk_mesh(*chunk_pos);
-        // }
     }
 
     void ChunkClient::request_chunk_loads()

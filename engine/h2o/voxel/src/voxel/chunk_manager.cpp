@@ -23,7 +23,7 @@ namespace h2o
     bool ChunkManager::set_block_at(const v3i& block_pos, Block block)
     {
         bool success = false;
-        fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),
+        fetch_chunk_mut(voxel_utils::block_to_chunk_pos(block_pos),
             [&](Chunk* chunk)
             {
                 if (chunk)
@@ -45,9 +45,9 @@ namespace h2o
         return find_chunk_column({ chunk_pos.x, chunk_pos.z }) != nullptr;
     }
 
-    void ChunkManager::fetch_or_create_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
+    void ChunkManager::fetch_or_create_chunk_mut(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
-        view_or_create<v3i{1}>(chunk_pos,
+        view_or_create_mut<v3i{1}>(chunk_pos,
             [&](ChunkView<v3i{1}>& view)
             {
                 function(view.get_chunk_at(chunk_pos));
@@ -55,9 +55,9 @@ namespace h2o
         );
     }
 
-    void ChunkManager::fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
+    void ChunkManager::fetch_chunk_mut(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)
     {
-        view<v3i{1}>(chunk_pos,
+        view_mut<v3i{1}>(chunk_pos,
             [&](ChunkView<v3i{1}>& view)
             {
                 function(view.get_chunk_at(chunk_pos));
@@ -75,18 +75,18 @@ namespace h2o
         );
     }
 
-    void ChunkManager::view_or_create_chunk_column(
+    void ChunkManager::view_or_create_chunk_column_mut(
         v2i chunk_column_pos,
         const std::function<void(ChunkColumnView&)>& function)
     {
-        view_or_create({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
+        view_or_create_mut({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
     }
 
-    void ChunkManager::view_chunk_column(
+    void ChunkManager::view_chunk_column_mut(
         v2i chunk_column_pos,
         const std::function<void(ChunkColumnView&)>& function)
     {
-        view({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
+        view_mut({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
     }
 
     void ChunkManager::view_chunk_column(
@@ -100,8 +100,8 @@ namespace h2o
         const v3i& chunk_pos,
         const std::function<void(const ChunkMeshingView&)>& function) const
     {
-        std::vector< std::unique_lock<std::shared_mutex> > chunk_locks{};
-        chunk_locks.reserve(3 * 3 * 3);
+        std::vector< std::shared_lock<std::shared_mutex> > chunk_locks{};
+        chunk_locks.reserve(7);
 
         const v3i corner = chunk_pos - v3i{1};
         ChunkMeshingView chunk_view(corner);

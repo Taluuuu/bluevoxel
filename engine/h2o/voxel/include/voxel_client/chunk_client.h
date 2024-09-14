@@ -8,6 +8,7 @@
 #include "voxel/voxel_constants.h"
 #include "voxel_rendering/chunk_meshing_queue.h"
 
+#include <atomic>
 #include <glm/gtx/hash.hpp>
 #include <memory>
 #include <mutex>
@@ -56,6 +57,9 @@ namespace h2o
 
         VoxelBounds m_voxel_bounds;
         v2i m_previous_player_chunk_col_pos{};
+        v3 m_player_pos{};
+
+        std::atomic_int m_num_chunk_columns_pending_decompress = 0;
 
         INetPeer*        m_client           = nullptr;
         RenderingModule* m_rendering_module = nullptr;

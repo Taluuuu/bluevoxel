@@ -15,9 +15,11 @@ namespace h2o
         , m_server(&server)
         , m_chunk_region_mgr(*this)
     {
-        auto flat_generator = std::make_shared<ChunkGenerator_Flat>();
-        flat_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
-        m_chunk_generator = flat_generator;
+        // auto flat_generator = std::make_shared<ChunkGenerator_Flat>();
+        // flat_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
+        // m_chunk_generator = flat_generator;
+
+        m_chunk_generator = std::make_shared<ChunkGenerator_Terrain>();
 
         // Bind messages
         server.handle_message<net_msg::ChunkFetchRequest>(m_received_chunk_request_handle,

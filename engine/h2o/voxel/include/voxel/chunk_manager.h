@@ -26,23 +26,23 @@ namespace h2o
 
         [[nodiscard]] bool chunk_exists(const v3i& chunk_pos) const;
 
-        void fetch_or_create_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
-        void fetch_chunk(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
+        void fetch_or_create_chunk_mut(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
+        void fetch_chunk_mut(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const;
 
-        void view_or_create_chunk_column(v2i chunk_column_pos, const std::function<void(ChunkColumnView&)>& function);
-        void view_chunk_column(v2i chunk_column_pos, const std::function<void(ChunkColumnView&)>& function);
+        void view_or_create_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkColumnView&)>& function);
+        void view_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkColumnView&)>& function);
         void view_chunk_column(v2i chunk_column_pos, const std::function<void(const ChunkColumnView&)>& function) const;
 
         // TODO: Implement this. Will need to call event.
         // void remove_all_chunk_columns(const std::function<bool(v2i)>& condition);
 
         // Open a temporary view into a cubic region of chunks, mutable or otherwise
-        template<v3u ViewSize>
-        void view_or_create(const v3i& corner, const std::function<void(ChunkView<ViewSize>&)>& function);
-        template<v3u ViewSize>
-        void view(const v3i& corner, const std::function<void(ChunkView<ViewSize>&)>& function);
-        template<v3u ViewSize>
+        template<v3i ViewSize>
+        void view_or_create_mut(const v3i& corner, const std::function<void(ChunkView<ViewSize>&)>& function);
+        template<v3i ViewSize>
+        void view_mut(const v3i& corner, const std::function<void(ChunkView<ViewSize>&)>& function);
+        template<v3i ViewSize>
         void view(const v3i& corner, const std::function<void(const ChunkView<ViewSize>&)>& function) const;
 
         void view_for_meshing(const v3i& chunk_pos, const std::function<void(const ChunkMeshingView&)>& function) const;
@@ -83,16 +83,11 @@ namespace h2o
 
     };
 
-    template<v3u ViewSize>
-    void ChunkManager::view_or_create(
+    template<v3i ViewSize>
+    void ChunkManager::view_or_create_mut(
         const v3i& corner,
         const std::function<void(ChunkView<ViewSize>&)>& function)
     {
-        // if (corner.x == -4 && corner.z == -4 && ViewSize.x == 4)
-        // {
-        //     log::info("OK");
-        // }
-
         // TODO: Could this be a stack-allocated array ?
         std::vector< std::unique_lock<std::shared_mutex> > chunk_locks{};
         chunk_locks.reserve(ViewSize.x * ViewSize.y * ViewSize.z);
@@ -108,7 +103,7 @@ namespace h2o
             for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
             {
                 if (!is_valid_chunk_y(j))
-                    break;
+                    continue;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];
                 chunk_view.add_chunk(chunk);
@@ -129,8 +124,8 @@ namespace h2o
         }
     }
 
-    template<v3u ViewSize>
-    void ChunkManager::view(
+    template<v3i ViewSize>
+    void ChunkManager::view_mut(
         const v3i& corner,
         const std::function<void(ChunkView<ViewSize>&)>& function)
     {
@@ -149,7 +144,7 @@ namespace h2o
             for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
             {
                 if (!is_valid_chunk_y(j))
-                    break;
+                    continue;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];
                 chunk_view.add_chunk(chunk);
@@ -170,7 +165,7 @@ namespace h2o
         }
     }
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     void ChunkManager::view(
         const v3i& corner,
         const std::function<void(const ChunkView<ViewSize>&)>& function) const
@@ -190,7 +185,7 @@ namespace h2o
             for (i32 j = corner.y; j < corner.y + ViewSize.y; j++)
             {
                 if (!is_valid_chunk_y(j))
-                    break;
+                    continue;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];
                 chunk_view.add_chunk(chunk);

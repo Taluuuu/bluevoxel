@@ -1,6 +1,7 @@
 #pragma once
 
 #include "app_config.h"
+#include "debug_infos.h"
 #include "game_info.h"
 #include "resources.h"
 #include "thread_pool.h"
@@ -59,6 +60,7 @@ namespace h2o
         [[nodiscard]] AppConfig& app_config() { return m_app_config; }
         [[nodiscard]] ResourceManager& resource_mgr() { return m_resource_mgr; }
         [[nodiscard]] ThreadPool& thread_pool() { return m_thread_pool; }
+        [[nodiscard]] DebugInfos& debug_infos() { return m_debug_infos; }
 
         /**
          * @brief Run the engine. Contains the main loop.
@@ -96,8 +98,8 @@ namespace h2o
         f32 m_time_between_network_updates = 1.0f / 20.0f;
 
         ResourceManager m_resource_mgr{};
-
         ThreadPool m_thread_pool{};
+        DebugInfos m_debug_infos{};
 
     };
 

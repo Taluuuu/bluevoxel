@@ -10,7 +10,7 @@ namespace h2o
     class Chunk;
     class VoxelStructure;
 
-    constexpr v3u ChunkRegionExtents{
+    constexpr v3i ChunkRegionExtents{
         voxel_constants::chunk_region_size,
         voxel_constants::vertical_chunk_count,
         voxel_constants::chunk_region_size

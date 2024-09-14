@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_core STATIC
     src/app_config.cpp
+    src/debug_infos.cpp
     src/engine.cpp
     src/resources.cpp
     src/text_file.cpp

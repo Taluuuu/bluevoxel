@@ -24,6 +24,8 @@ namespace h2o
         v3 light_color { 1.0f, 1.0f, 1.0f };
         f32 ambient_strength = 0.714f;
 
+        v3 player_pos{};
+
     protected:
 
         // Tickable interface

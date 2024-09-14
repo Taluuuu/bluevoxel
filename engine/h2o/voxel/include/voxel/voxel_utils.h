@@ -55,6 +55,11 @@ namespace h2o::voxel_utils
         };
     }
 
+    constexpr v2 chunk_to_world_pos(const v2i& chunk_pos)
+    {
+        return chunk_pos * voxel_constants::chunk_size;
+    }
+
     constexpr v3 chunk_to_world_pos(const v3i& chunk_pos)
     {
         return chunk_pos * voxel_constants::chunk_size;

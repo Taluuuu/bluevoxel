@@ -77,6 +77,12 @@ namespace h2o
         run_update(delta_time);
         run_post_update(delta_time);
 
+        // General engine stats
+        m_debug_infos.update_debug_statistic("engine", "queued job count",
+            i32(m_thread_pool.job_count()));
+        m_debug_infos.update_debug_statistic("engine", "thread count",
+            i32(m_thread_pool.thread_count()));
+
         run_pre_render();
         run_render();
         run_post_render();
@@ -84,7 +90,7 @@ namespace h2o
         run_frame_end(delta_time);
 
         if (m_window_module)
-            m_window_module->swap_buffers(144.0);
+            m_window_module->swap_buffers(60.0);
     }
 
     bool Engine::init_modules()

@@ -14,7 +14,7 @@ namespace h2o
     enum class ViewRelativeTo
     { ViewCenter, ViewCorner, World };
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     class ChunkView
     {
     public:
@@ -57,12 +57,12 @@ namespace h2o
 
     };
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     ChunkView<ViewSize>::ChunkView(const v3i& corner)
         : m_corner(corner)
     {}
 
-    template <v3u ViewSize>
+    template<v3i ViewSize>
     void ChunkView<ViewSize>::for_each_chunk(const std::function<void(Chunk&)>& function)
     {
         for (Chunk* chunk : m_chunks)
@@ -72,7 +72,7 @@ namespace h2o
         }
     }
 
-    template <v3u ViewSize>
+    template<v3i ViewSize>
     void ChunkView<ViewSize>::for_each_chunk(const std::function<void(const Chunk&)>& function) const
     {
         for (const Chunk* chunk : m_chunks)
@@ -82,7 +82,7 @@ namespace h2o
         }
     }
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     std::optional<Block> ChunkView<ViewSize>::get_block_at(const v3i& block_pos, ViewRelativeTo relative_to) const
     {
         if (const Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
@@ -91,7 +91,7 @@ namespace h2o
         return std::nullopt;
     }
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     bool ChunkView<ViewSize>::set_block_at(const v3i& block_pos, Block block, ViewRelativeTo relative_to)
     {
         if (Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
@@ -103,7 +103,7 @@ namespace h2o
         return false;
     }
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     Chunk* ChunkView<ViewSize>::get_chunk_at(const v3i& relative_chunk_pos, ViewRelativeTo relative_to)
     {
         const v3i offset = get_relative_to_chunk_pos(relative_to) - m_corner;
@@ -115,7 +115,7 @@ namespace h2o
         return m_chunks[to_index(local_chunk_pos)];
     }
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     const Chunk* ChunkView<ViewSize>::get_chunk_at(const v3i& relative_chunk_pos, ViewRelativeTo relative_to) const
     {
         const v3i offset = get_relative_to_chunk_pos(relative_to) - m_corner;
@@ -127,7 +127,7 @@ namespace h2o
         return m_chunks[to_index(local_chunk_pos)];
     }
 
-    template <v3u ViewSize>
+    template<v3i ViewSize>
     bool ChunkView<ViewSize>::is_generated() const
     {
         for (const auto& chunk : m_chunks)
@@ -139,7 +139,7 @@ namespace h2o
         return true;
     }
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     void ChunkView<ViewSize>::add_chunk(Chunk& chunk)
     {
         const v3i local_chunk_pos = chunk.chunk_pos() - m_corner;
@@ -148,7 +148,7 @@ namespace h2o
         m_chunks[to_index(local_chunk_pos)] = &chunk;
     }
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     v3i ChunkView<ViewSize>::get_relative_to_chunk_pos(ViewRelativeTo relative_to) const
     {
         switch (relative_to)
@@ -163,7 +163,7 @@ namespace h2o
         }
     }
 
-    template<v3u ViewSize>
+    template<v3i ViewSize>
     constexpr bool ChunkView<ViewSize>::in_range(const v3i& local_chunk_pos)
     {
         return
@@ -172,7 +172,7 @@ namespace h2o
             local_chunk_pos.z >= 0 && local_chunk_pos.z < ViewSize.z;
     }
 
-    template <v3u ViewSize>
+    template<v3i ViewSize>
     constexpr size_t ChunkView<ViewSize>::to_index(const v3i& local_chunk_pos)
     {
         assert(in_range(local_chunk_pos));

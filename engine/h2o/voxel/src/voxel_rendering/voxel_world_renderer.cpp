@@ -49,9 +49,18 @@ namespace h2o
 
     void VoxelWorldRenderer::pre_render()
     {
+        {
+            std::unique_lock lock{ m_chunks_pending_remesh_mutex };
+            g_engine->debug_infos().update_debug_statistic(
+                "voxels", "chunks pending remesh",i32(m_chunks_pending_remesh.size()));
+        }
+
         // Send built chunk meshes to the gpu
         {
             std::unique_lock lock{ m_pending_built_meshes_mutex };
+
+            g_engine->debug_infos().update_debug_statistic(
+                "voxels", "chunks remeshed this frame",i32(m_pending_built_meshes.size()));
 
             for (const auto& chunk_mesh : m_pending_built_meshes)
             {
@@ -109,13 +118,24 @@ namespace h2o
 
     void VoxelWorldRenderer::queue_chunk_remesh(const v3i& chunk_pos)
     {
+        // bool is_chunk_empty = true;
+        // m_chunk_manager->fetch_chunk(chunk_pos,
+        //     [&](const Chunk* chunk)
+        //     {
+        //         is_chunk_empty = !chunk || chunk->is_empty();
+        //     }
+        // );
+        //
+        // if (is_chunk_empty)
+        //     return;
+
         std::unique_lock lock{ m_chunks_pending_remesh_mutex };
         if (m_chunks_pending_remesh.contains(chunk_pos))
             return;
 
         m_chunks_pending_remesh.insert(chunk_pos);
 
-        g_engine->thread_pool().queue_job(0.0f,
+        g_engine->thread_pool().queue_job(glm::distance(player_pos, voxel_utils::chunk_to_world_pos(chunk_pos)),
             [this, chunk_pos]
             {
                 {
@@ -130,18 +150,6 @@ namespace h2o
 
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
-        // m_chunk_manager->view<v3u{3}>(chunk_pos - v3i{1},
-        //     [&](const ChunkView<v3u{3}>& view)
-        //     {
-        //         ChunkMesh chunk_mesh(view, *m_voxel_module);
-        //         if (chunk_mesh.vertex_count() > 0)
-        //         {
-        //             std::unique_lock lock{ m_pending_built_meshes_mutex };
-        //             m_pending_built_meshes.emplace_back(std::move(chunk_mesh));
-        //         }
-        //     }
-        // );
-
         m_chunk_manager->view_for_meshing(chunk_pos,
             [&](const ChunkMeshingView& view)
             {

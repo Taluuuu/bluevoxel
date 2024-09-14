@@ -27,10 +27,10 @@ namespace h2o
             region_corner_blocks.x, region_corner_blocks.y,
             region_size_blocks.x, region_size_blocks.y, 1.0f, 69);
 
-        for (i32 x = 0; x < region_size.x * voxel_constants::chunk_size; x++)
-        for (i32 z = 0; z < region_size.y * voxel_constants::chunk_size; z++)
+        for (i32 x = 0; x < region_size_blocks.x; x++)
+        for (i32 z = 0; z < region_size_blocks.y; z++)
         {
-            const i32 ground_level = i32(noise_outputs[z * region_size.x + x]) + 64;
+            const i32 ground_level = i32(noise_outputs[z * region_size_blocks.x + x]) + 64;
             for (i32 y = 0; y < ground_level; y++)
             {
                 const Block block = 3; // stone

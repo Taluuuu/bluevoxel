@@ -165,7 +165,7 @@ namespace h2o
                 continue;
 
             const v2i offset_region_corner = voxel_utils::region_to_chunk_pos(offset_region_pos);
-            m_chunk_server->chunk_mgr().view<ChunkRegionExtents>(
+            m_chunk_server->chunk_mgr().view_mut<ChunkRegionExtents>(
                 { offset_region_corner.x, 0, offset_region_corner.y },
                 [](ChunkRegionView& region_view)
                 {
@@ -185,7 +185,7 @@ namespace h2o
                     return;
 
                 const v2i corner = voxel_utils::region_to_chunk_pos(region_pos);
-                m_chunk_server->chunk_mgr().view_or_create<ChunkRegionExtents>(
+                m_chunk_server->chunk_mgr().view_or_create_mut<ChunkRegionExtents>(
                     { corner.x, 0, corner.y },
                     [&](ChunkRegionView& region_view)
                     {
