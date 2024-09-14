@@ -77,7 +77,6 @@ namespace h2o
         m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request,
             [this](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
-                // TODO: It seems like the block placed event is called twice. Might not happen anymore.
                 m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block);
             }
         );
