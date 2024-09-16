@@ -48,8 +48,8 @@ namespace bluevoxel
         m_input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
         m_input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
         m_input_module->register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
-        m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.001f, true);
-        m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.001f, false);
+        m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.0005f, true);
+        m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.0005f, false);
 
         m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
             [this](h2o::PeerID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
@@ -163,7 +163,7 @@ namespace bluevoxel
         player->add_component<h2o::BlockPlacingComponent>();
         player->set_replicate_transform(true);
         player->transform.position = { 0.0f, 256.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 0.0f, 90.0f };
+        player->transform.rotation = { 0.0f, 0.0f, 0.0f};
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
         player->move_speed = 30.0f;
     }

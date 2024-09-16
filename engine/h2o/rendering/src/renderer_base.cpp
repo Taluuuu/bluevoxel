@@ -222,7 +222,20 @@ namespace h2o::gfx
 
     void Renderer_Base::cleanup()
     {
+        // Have to do this currently because of a crash where
+        // ~Renderer_OpenGL() was called;
+        // ~Renderer_Base() was called, destroying the objects;
+        // The destructor of these objects called functions in Renderer_OpenGL
+        // TODO: Find a better solution when I get around to fixing my renderer
         m_colored_line_pipeline = nullptr;
+        m_debug_lines_vao = nullptr;
+        m_debug_lines_vbo = nullptr;
+        m_colored_shape_pipeline = nullptr;
+        m_cylinder_vao = nullptr;
+        m_cylinder_vbo = nullptr;
+        m_cylinder_ebo = nullptr;
+        m_sphere_vao = nullptr;
+        m_sphere_vbo = nullptr;
     }
 
     void Renderer_Base::start_frame()

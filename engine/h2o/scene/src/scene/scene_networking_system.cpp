@@ -31,10 +31,13 @@ namespace h2o
         {
             if (actor)
             {
+                // TODO: TEMPORARY
+                // This code is only meant to make other players rotate fine
                 Transform transform = actor->transform;
+
                 transform.rotation.x = 0.0f;
                 transform.rotation.z = 0.0f;
-                transform.rotation.y -= 90.0f;
+                transform.rotation.y -= glm::half_pi<f32>();
                 transform.rotation.y *= -1.0f;
 
                 m_client->send_message(0, net_msg::TransformUpdate { 0, transform });

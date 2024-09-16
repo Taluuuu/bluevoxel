@@ -43,7 +43,7 @@ namespace h2o
             [this](const MouseMovedEvent& evt)
             {
                 if (is_mouse_captured())
-                    m_mouse_delta = evt.new_position - m_mouse_pos;
+                    m_mouse_delta += evt.new_position - m_mouse_pos;
 
                 m_mouse_pos = evt.new_position;
             });

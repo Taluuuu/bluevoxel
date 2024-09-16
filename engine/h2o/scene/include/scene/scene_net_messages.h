@@ -9,7 +9,7 @@ namespace h2o::net_msg
     struct PlayerJoin
     {
         ActorID actor_id = 0;
-        Transform transform{}; // TODO: Unused currently
+        Transform transform{};
 
         template<typename S>
         void serialize(S& s)

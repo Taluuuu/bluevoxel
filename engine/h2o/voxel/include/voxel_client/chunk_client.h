@@ -17,7 +17,6 @@
 
 namespace h2o
 {
-    // class ChunkColumn;
     class INetPeer;
     class RenderingModule;
     class VoxelModule;
@@ -32,6 +31,9 @@ namespace h2o
         ~ChunkClient() override = default;
 
         [[nodiscard]] ChunkManager& chunk_mgr() { return m_chunk_mgr; }
+
+        // Replicated
+        void set_block_at(const v3i& block_pos, Block block);
 
         // Tickable interface
         void update(f32 delta_time) override;

@@ -77,10 +77,9 @@ namespace h2o
         m_pipeline->set_uniform_mat4(0, m_renderer->proj_view_matrix());
 
         m_renderer->bind_pipeline(m_pipeline);
-        for (const auto& render_comp : m_mesh_renderer_components)
+        for (const auto render_comp : m_mesh_renderer_components)
         {
-            // TODO: Setting a weak handle not as a reference
-            //       for temporary use is inefficient
+            assert(render_comp);
 
             auto actor = render_comp->owner();
             m_pipeline->set_uniform_mat4(1, actor->transform.model_matrix());

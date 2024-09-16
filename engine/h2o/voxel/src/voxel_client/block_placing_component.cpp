@@ -31,7 +31,7 @@ namespace h2o
         if (!chunk_client)
             return;
 
-        auto& chunk_mgr = chunk_client->chunk_mgr();
+        const auto& chunk_mgr = chunk_client->chunk_mgr();
 
         const v3 front = m_camera->camera().front();
         const v3 origin = owner()->transform.position;
@@ -77,14 +77,10 @@ namespace h2o
             }
 
             if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
-            {
-                chunk_mgr.set_block_at(hit_voxel.pos, Block::Air);
-            }
+                chunk_client->set_block_at(hit_voxel.pos, Block::Air);
 
             if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
-            {
-                chunk_mgr.set_block_at(before_hit_voxel.pos, Block { 5 });
-            }
+                chunk_client->set_block_at(before_hit_voxel.pos, Block { 5 });
         }
     }
 }

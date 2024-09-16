@@ -1,7 +1,6 @@
 #pragma once
 
 #include "chunk_view.h"
-#include "core/log.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -26,10 +25,12 @@ namespace h2o
 
         [[nodiscard]] bool chunk_exists(const v3i& chunk_pos) const;
 
+        // Single chunk access
         void fetch_or_create_chunk_mut(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
         void fetch_chunk_mut(const v3i& chunk_pos, const std::function<void(Chunk*)>& function);
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const;
 
+        // Chunk column access
         void view_or_create_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkColumnView&)>& function);
         void view_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkColumnView&)>& function);
         void view_chunk_column(v2i chunk_column_pos, const std::function<void(const ChunkColumnView&)>& function) const;
@@ -45,6 +46,7 @@ namespace h2o
         template<v3i ViewSize>
         void view(const v3i& corner, const std::function<void(const ChunkView<ViewSize>&)>& function) const;
 
+        // A 3x3x3 view containing only chunks where sides touch directly the center chunk
         void view_for_meshing(const v3i& chunk_pos, const std::function<void(const ChunkMeshingView&)>& function) const;
 
         void broadcast_events();

@@ -38,14 +38,14 @@ namespace h2o
 
     private:
 
-        std::vector<const MeshRendererComponent*> m_mesh_renderer_components;
+        std::vector<const MeshRendererComponent*> m_mesh_renderer_components{};
 
         WeakHandle<gfx::Camera> m_main_camera = nullptr;
-        std::shared_ptr<h2o::gfx::IPipeline> m_pipeline = nullptr;
+        std::shared_ptr<gfx::IPipeline> m_pipeline = nullptr;
 
         gfx::IRenderer* m_renderer = nullptr;
 
-        h2o::EventHandle m_resize_event_handle;
+        EventHandle m_resize_event_handle{};
         f32 m_aspect_ratio = 1.0f;
 
     };

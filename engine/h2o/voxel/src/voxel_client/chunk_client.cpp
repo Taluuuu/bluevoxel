@@ -80,13 +80,12 @@ namespace h2o
                 m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block);
             }
         );
+    }
 
-//        m_chunk_mgr.on_placed_block.add_listener(m_on_block_placed,
-//            [this](const net_msg::BlockPlaceRequest& block_place_request)
-//            {
-//                m_chunk_meshing_queue.enqueue(voxel_utils::block_to_chunk_pos(block_place_request.block_pos));
-//            }
-//        );
+    void ChunkClient::set_block_at(const v3i& block_pos, Block block)
+    {
+        if (m_chunk_mgr.set_block_at(block_pos, block))
+            m_client->send_message(0, net_msg::BlockPlaceRequest(block, block_pos));
     }
 
     void ChunkClient::update(f32 delta_time)
