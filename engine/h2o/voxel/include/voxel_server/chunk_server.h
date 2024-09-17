@@ -24,7 +24,8 @@ namespace h2o
 
         explicit ChunkServer(
             const SceneSystemInitializer& system_initializer,
-            INetPeer& server);
+            INetPeer& server,
+            const std::shared_ptr<ChunkGenerator_Base>& chunk_generator);
         ~ChunkServer() override = default;
 
         [[nodiscard]] ChunkManager& chunk_mgr() { return m_chunk_mgr; }

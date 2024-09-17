@@ -58,6 +58,12 @@ namespace h2o
                         ImGui::Text("%s: %f", name.c_str(), *val);
                         continue;
                     }
+
+                    if (const std::string* val = std::get_if<std::string>(&value))
+                    {
+                        ImGui::Text("%s: %s", name.c_str(), val->c_str());
+                        continue;
+                    }
                 }
             }
         }

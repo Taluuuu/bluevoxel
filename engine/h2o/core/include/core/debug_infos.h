@@ -9,7 +9,7 @@
 
 namespace h2o
 {
-    using DebugStatType = std::variant<i32, f32>;
+    using DebugStatType = std::variant<i32, f32, std::string>;
 
     class DebugInfos
     {

@@ -37,6 +37,10 @@ namespace h2o
 
     private:
 
+        void update_debug_infos();
+
+    private:
+
         std::vector< std::optional<LayerData> > m_layers{};
 
     };

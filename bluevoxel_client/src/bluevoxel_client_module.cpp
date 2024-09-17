@@ -103,12 +103,7 @@ namespace bluevoxel
             else
             {
                 layer_stack.push_layer(h2o::Layer::PauseMenu,
-                    h2o::LayerData
-                    {
-                        .capture_mouse = false,
-                        .allow_ui_interaction = true
-                    }
-                );
+                    h2o::LayerData{ false, true });
             }
         }
 
