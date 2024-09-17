@@ -13,14 +13,6 @@ namespace h2o
 {
     class WindowingModule;
 
-    enum class MouseCapturePriority : u32
-    {
-        Camera = 0,
-        Game = 1,
-        Editor = 2,
-        UI = 3,
-    };
-
     class InputModule
         : public IModule
         , public IInputModule // TODO: Remove this and make the module tick by itself
@@ -43,11 +35,7 @@ namespace h2o
         void register_axis(const std::string_view& name, MouseScrollDelta scroll_delta, f32 sensitivity = 1.0f, bool invert = false);
         [[nodiscard]] f32 get_axis(const std::string_view& name);
 
-        void set_mouse_state(MouseCapturePriority priority, bool wants_capture);
-        void clear_mouse_state(MouseCapturePriority priority);
         [[nodiscard]] bool is_mouse_captured() const;
-        [[nodiscard]] std::optional<MouseCapturePriority> mouse_capture_priority() const;
-
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
         [[nodiscard]] v2 mouse_position() const;
@@ -60,7 +48,6 @@ namespace h2o
         std::vector<KeyState> m_key_states;
         std::vector<KeyState> m_mouse_button_states;
         v2 m_mouse_pos{}, m_mouse_delta{}, m_scroll_delta{};
-        PriorityValue<MouseCapturePriority, bool> m_mouse_capture_state{};
 
         // Input configuration
         struct KeyAxis { Key positive, negative; };

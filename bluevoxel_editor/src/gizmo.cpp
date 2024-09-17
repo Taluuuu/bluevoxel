@@ -54,7 +54,7 @@ namespace bluevoxel
                             // Start moving the selected axis
                             m_selected_axes = axis;
                             m_selection_mgr->pause_selection();
-                            m_input_module->set_mouse_state(h2o::MouseCapturePriority::Editor, false);
+                            g_engine->layer_stack().push_layer(h2o::Layer::UI, h2o::LayerData{ false, false });
                             m_grab_offset = m_selection_mgr->mouse_ray().point_at(hover_data.t) - m_position;
                         }
                         else
@@ -131,7 +131,7 @@ namespace bluevoxel
                 // Deselect axes
                 m_selected_axes = {};
                 m_selection_mgr->resume_selection();
-                m_input_module->clear_mouse_state(h2o::MouseCapturePriority::Editor);
+                g_engine->layer_stack().pop_layer(h2o::Layer::UI);
             }
         }
 

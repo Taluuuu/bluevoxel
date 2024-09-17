@@ -30,18 +30,8 @@ namespace h2o
             m_input_module->get_axis(name) : 0.0f;
     }
 
-    void InputComponent::set_capture_mouse(MouseCapturePriority priority, bool capture)
-    {
-        m_input_module->set_mouse_state(priority, capture);
-    }
-
     bool InputComponent::is_mouse_captured() const
     {
         return m_input_module->is_mouse_captured();
-    }
-
-    std::optional<MouseCapturePriority> InputComponent::mouse_capture_priority() const
-    {
-        return m_input_module->mouse_capture_priority();
     }
 }

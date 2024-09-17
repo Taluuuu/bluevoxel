@@ -1,11 +1,11 @@
 #include "ui/ui_module.h"
 
 #include "core/engine.h"
+#include "core/layers.h"
+#include "imgui.h"
 #include "input/input_module.h"
 #include "rendering/rendering_module.h"
 #include "windowing/windowing_module.h"
-
-#include "imgui.h"
 
 namespace h2o
 {
@@ -66,13 +66,26 @@ namespace h2o
 
     void UIModule::frame_end(f32 delta_time)
     {
-        if (ImGui::GetIO().WantCaptureMouse && !m_input_module->is_mouse_captured())
+        auto& layer_stack = g_engine->layer_stack();
+        const auto& layer_data = layer_stack.top_layer_data();
+
+        auto& io = ImGui::GetIO();
+        if (io.WantCaptureMouse && layer_data.allow_ui_interaction)
         {
-            m_input_module->set_mouse_state(h2o::MouseCapturePriority::UI, false);
+            layer_stack.push_layer(Layer::UI, LayerData{ false, true });
         }
         else
         {
-            m_input_module->clear_mouse_state(h2o::MouseCapturePriority::UI);
+            layer_stack.pop_layer(Layer::UI);
+        }
+
+        if (layer_data.allow_ui_interaction)
+        {
+            io.ConfigFlags &= ~ImGuiConfigFlags_NoMouse;
+        }
+        else
+        {
+            io.ConfigFlags |= ImGuiConfigFlags_NoMouse;
         }
     }
 }

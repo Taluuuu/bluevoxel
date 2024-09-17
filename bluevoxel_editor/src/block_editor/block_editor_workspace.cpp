@@ -32,12 +32,12 @@ namespace bluevoxel
         auto camera = m_scene->spawn_actor();
         camera->add_component<h2o::InputComponent>();
         auto tps_cam = camera->add_component<h2o::ThirdPersonCameraComponent>();
-        tps_cam->rotation_mouse_button = h2o::MouseButton::Right;
+        tps_cam->rotate_mouse_button = h2o::MouseButton::Right;
         camera->tag_actor(h2o::ActorTag::LocalPlayer);
         camera->transform.position = { 0.5f, 0.5f, 0.5f };
         camera->transform.rotation = { 0.0f, 0.0f, 90.0f };
 
-        m_block_renderer = std::make_shared<BlockRenderer>();
+        m_block_renderer = std::make_shared<BlockRenderer>(*this);
         m_block_renderer->set_block(h2o::Block{ 0 });
 
         m_block_type_editor = std::make_shared<BlockTypeEditor>(*this);
@@ -105,8 +105,6 @@ namespace bluevoxel
             return;
 
         auto& renderer = m_rendering_module->renderer();
-
-        m_block_renderer->render(renderer);
 
         // Draw gizmo
         renderer.draw_line(v3(-0.5f), {1.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f, 1.0f});

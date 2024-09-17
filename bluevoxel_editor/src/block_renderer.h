@@ -1,21 +1,8 @@
 #pragma once
 
+#include "voxel/chunk_manager.h"
 #include "voxel/chunk_view.h"
-
-#include <memory>
-
-namespace h2o
-{
-    class Chunk;
-    class ChunkMeshPool;
-    class VoxelBounds;
-    class VoxelModule;
-
-    namespace gfx
-    {
-        class IRenderer;
-    }
-}
+#include "voxel_rendering/voxel_world_renderer.h"
 
 namespace bluevoxel
 {
@@ -23,27 +10,14 @@ namespace bluevoxel
     {
     public:
 
-        BlockRenderer();
+        explicit BlockRenderer(h2o::Tickable& owner);
 
         void set_block(h2o::Block block);
-        void refresh();
-
-        void render(h2o::gfx::IRenderer& renderer);
-
-    public:
-
-        v3 light_dir { 0.18f, -1.0f, 0.492f };
-        v3 light_color { 1.0f, 1.0f, 1.0f };
-        f32 ambient_strength = 0.714f;
 
     private:
 
-        std::shared_ptr<h2o::Chunk> m_chunk = nullptr;
-        std::shared_ptr<h2o::ChunkView<v3i{3}>> m_chunk_view = nullptr;
-        std::shared_ptr<h2o::VoxelBounds> m_voxel_bounds = nullptr;
-        std::shared_ptr<h2o::ChunkMeshPool> m_chunk_mesh_pool = nullptr;
-
-        h2o::VoxelModule* const m_voxel_rendering_module = nullptr;
+        h2o::ChunkManager m_chunk_manager{};
+        h2o::VoxelWorldRenderer m_voxel_world_renderer;
 
     };
 }

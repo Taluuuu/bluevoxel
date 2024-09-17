@@ -17,12 +17,8 @@ namespace h2o
 
         [[nodiscard]] KeyState key_state(Key key) const;
         [[nodiscard]] KeyState mouse_button_state(MouseButton button) const;
-
         [[nodiscard]] f32 get_axis(const std::string& name) const;
-
-        void set_capture_mouse(MouseCapturePriority priority, bool capture);
         [[nodiscard]] bool is_mouse_captured() const;
-        [[nodiscard]] std::optional<MouseCapturePriority> mouse_capture_priority() const;
 
     private:
 

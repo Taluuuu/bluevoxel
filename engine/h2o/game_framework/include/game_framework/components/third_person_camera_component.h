@@ -21,7 +21,7 @@ namespace h2o
         f32 max_distance_with_actor = 10.0f;
         f32 scroll_zoom_factor = 0.1f;
 
-        std::optional<MouseButton> rotation_mouse_button{};
+        std::optional<MouseButton> rotate_mouse_button{};
 
     protected:
 

@@ -93,8 +93,24 @@ namespace bluevoxel
 
     void BlueVoxelClientModule::update(f32 delta_time)
     {
+        auto& layer_stack = g_engine->layer_stack();
         if (m_input_module->key_state(h2o::Key::Escape).pressed_this_frame)
-            m_input_module->set_mouse_state(h2o::MouseCapturePriority::Camera, !m_input_module->is_mouse_captured());
+        {
+            if (layer_stack.top_layer() == h2o::Layer::PauseMenu)
+            {
+                layer_stack.pop_layer(h2o::Layer::PauseMenu);
+            }
+            else
+            {
+                layer_stack.push_layer(h2o::Layer::PauseMenu,
+                    h2o::LayerData
+                    {
+                        .capture_mouse = false,
+                        .allow_ui_interaction = true
+                    }
+                );
+            }
+        }
 
         ImGui::Begin("Connection");
 

@@ -3,6 +3,7 @@
 #include "app_config.h"
 #include "debug_infos.h"
 #include "game_info.h"
+#include "layers.h"
 #include "resources.h"
 #include "thread_pool.h"
 #include "tickable.h"
@@ -61,6 +62,7 @@ namespace h2o
         [[nodiscard]] ResourceManager& resource_mgr() { return m_resource_mgr; }
         [[nodiscard]] ThreadPool& thread_pool() { return m_thread_pool; }
         [[nodiscard]] DebugInfos& debug_infos() { return m_debug_infos; }
+        [[nodiscard]] LayerStack& layer_stack() { return m_layer_stack; }
 
         /**
          * @brief Run the engine. Contains the main loop.
@@ -100,6 +102,7 @@ namespace h2o
         ResourceManager m_resource_mgr{};
         ThreadPool m_thread_pool{};
         DebugInfos m_debug_infos{};
+        LayerStack m_layer_stack{};
 
     };
 

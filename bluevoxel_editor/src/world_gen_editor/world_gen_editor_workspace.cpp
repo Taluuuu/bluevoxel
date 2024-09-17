@@ -17,28 +17,28 @@ namespace bluevoxel
         : h2o::Tickable(owner)
         , m_input_module(&g_engine->get_module_checked<h2o::InputModule>())
     {
-        m_scene = std::make_shared<h2o::Scene>("client_scene", &m_local_net_peer);
-        m_scene->add_system<h2o::RenderingSystem>();
-        m_scene->add_system<h2o::ChunkClient, h2o::INetPeer&>(m_local_net_peer);
-        m_scene->add_system<h2o::SceneNetworkingSystem, h2o::INetPeer&>(m_local_net_peer);
-        const auto chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::INetPeer&>(m_local_net_peer);
-        auto chunk_generator = std::make_unique<h2o::ChunkGenerator_Terrain>();
-        chunk_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
-        chunk_server->world_generator().set_chunk_generator(std::move(chunk_generator));
-
-        const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
-        player->tag_actor(h2o::ActorTag::LocalPlayer);
-        player->transform.position = { 0.0f, 200.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 0.0f, 90.0f };
-        player->transform.scale = { 0.5f, 0.5f, 0.5f };
-        player->move_speed = 100.0f;
-
-        set_tick_phases(h2o::TickPhase::Update);
+        // m_scene = std::make_shared<h2o::Scene>("client_scene", &m_local_net_peer);
+        // m_scene->add_system<h2o::RenderingSystem>();
+        // m_scene->add_system<h2o::ChunkClient, h2o::INetPeer&>(m_local_net_peer);
+        // m_scene->add_system<h2o::SceneNetworkingSystem, h2o::INetPeer&>(m_local_net_peer);
+        // const auto chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::INetPeer&>(m_local_net_peer);
+        // auto chunk_generator = std::make_unique<h2o::ChunkGenerator_Terrain>();
+        // // chunk_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
+        // chunk_server->world_generator().set_chunk_generator(std::move(chunk_generator));
+        //
+        // const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
+        // player->tag_actor(h2o::ActorTag::LocalPlayer);
+        // player->transform.position = { 0.0f, 200.0f, 0.0f };
+        // player->transform.rotation = { 0.0f, 0.0f, 90.0f };
+        // player->transform.scale = { 0.5f, 0.5f, 0.5f };
+        // player->move_speed = 100.0f;
+        //
+        // set_tick_phases(h2o::TickPhase::Update);
     }
 
     void WorldGenEditorWorkspace::update(f32 delta_time)
     {
-        if (m_input_module->key_state(h2o::Key::Escape).pressed_this_frame)
-            m_input_module->set_mouse_state(h2o::MouseCapturePriority::Camera, !m_input_module->is_mouse_captured());
+        // if (m_input_module->key_state(h2o::Key::Escape).pressed_this_frame)
+        //     m_input_module->set_mouse_state(h2o::MouseCapturePriority::Camera, !m_input_module->is_mouse_captured());
     }
 }

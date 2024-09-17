@@ -73,6 +73,10 @@ namespace h2o
 
         m_mouse_delta = { 0.0f, 0.0f };
         m_scroll_delta = { 0.0f, 0.0f };
+
+        // Update mouse capture state
+        const auto& layer_stack = g_engine->layer_stack();
+        m_windowing_module->window().set_capture_mouse(layer_stack.top_layer_data().capture_mouse);
     }
 
     void InputModule::register_axis(const std::string_view& name, Key negative, Key positive)
@@ -161,30 +165,9 @@ namespace h2o
         return 0.0f;
     }
 
-    void InputModule::set_mouse_state(MouseCapturePriority priority, bool wants_capture)
-    {
-        const bool was_captured = m_mouse_capture_state.get().value_or(false);
-        m_mouse_capture_state.push(priority, wants_capture);
-
-        const bool is_captured = m_mouse_capture_state.get().value_or(false);
-
-        if (was_captured != is_captured)
-            m_windowing_module->window().set_capture_mouse(is_captured);
-    }
-
-    void InputModule::clear_mouse_state(MouseCapturePriority priority)
-    {
-        m_mouse_capture_state.remove(priority);
-    }
-
     bool InputModule::is_mouse_captured() const
     {
         return m_windowing_module->window().is_mouse_captured();
-    }
-
-    std::optional<MouseCapturePriority> InputModule::mouse_capture_priority() const
-    {
-        return m_mouse_capture_state.current_priority();
     }
 
     KeyState InputModule::key_state(Key key) const

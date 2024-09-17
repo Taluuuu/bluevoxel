@@ -1,5 +1,6 @@
 #include "game_framework/components/fps_camera_component.h"
 
+#include "core/engine.h"
 #include "input/input_component.h"
 #include "scene/actor.h"
 
@@ -24,6 +25,8 @@ namespace h2o
     {
         if (!m_input)
             return;
+
+        g_engine->layer_stack().push_layer(Layer::Game, LayerData { true, false });
 
         const v3 cam_input {
             m_input->get_axis("cam_x"),

@@ -1,5 +1,6 @@
 #include "game_framework/components/third_person_camera_component.h"
 
+#include "core/engine.h"
 #include "input/input_component.h"
 #include "scene/actor.h"
 
@@ -21,27 +22,29 @@ namespace h2o
         if (!m_input)
             return;
 
-        // Don't rotate camera if a higher priority mouse capture is active
-        bool can_control = false;
-        if (const auto mouse_capture_priority = m_input->mouse_capture_priority())
-            can_control = *mouse_capture_priority <= MouseCapturePriority::Camera;
+        auto& layer_stack = g_engine->layer_stack();
+
+        // Don't rotate camera if a higher layer is active
+        const bool can_control = layer_stack.top_layer() == Layer::Game;
+        const bool wants_rotate = rotate_mouse_button && m_input->mouse_button_state(*rotate_mouse_button).held;
+
+        const bool should_capture_mouse = can_control && wants_rotate;
+
+        layer_stack.push_layer(Layer::Game,
+            LayerData
+            {
+                .capture_mouse = should_capture_mouse,
+                .allow_ui_interaction = !should_capture_mouse
+            }
+        );
 
         if (can_control)
         {
             // Camera scroll
             distance_with_actor -= distance_with_actor * scroll_zoom_factor * m_input->get_axis("cam_zoom");
             distance_with_actor = glm::clamp(distance_with_actor, min_distance_with_actor, max_distance_with_actor);
-        }
 
-        bool wants_rotate = true;
-        if (rotation_mouse_button)
-            wants_rotate = m_input->mouse_button_state(*rotation_mouse_button).held;
-
-        m_input->set_capture_mouse(MouseCapturePriority::Camera, wants_rotate);
-
-        if (wants_rotate)
-        {
-            if (can_control)
+            if (wants_rotate)
             {
                 // Camera rotation
                 const v3 cam_input{

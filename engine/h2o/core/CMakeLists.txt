@@ -7,6 +7,7 @@ add_library(h2o_core STATIC
     src/app_config.cpp
     src/debug_infos.cpp
     src/engine.cpp
+    src/layers.cpp
     src/resources.cpp
     src/text_file.cpp
     src/thread_pool.cpp
