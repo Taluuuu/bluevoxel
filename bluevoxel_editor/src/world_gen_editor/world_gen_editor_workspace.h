@@ -6,7 +6,6 @@
 
 namespace h2o
 {
-    class InputModule;
     class Scene;
 }
 
@@ -29,8 +28,6 @@ namespace bluevoxel
         h2o::NetPeer_Local m_local_net_peer{};
 
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
-
-        h2o::InputModule* const m_input_module = nullptr;
 
     };
 }

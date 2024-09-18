@@ -15,6 +15,7 @@ add_executable(bluevoxel_editor
     src/gizmo.cpp
     src/main.cpp
     src/selection_manager.cpp
+    src/structure_editor/structure_editor_workspace.cpp
     src/world_gen_editor/world_gen_editor_workspace.cpp
 )
 

@@ -28,6 +28,7 @@ namespace h2o
         ~Scene() override;
 
         bool init();
+        void cleanup();
 
         /**
          * Create and store a new actor of type T

@@ -32,7 +32,8 @@ namespace h2o
                 m_aspect_ratio = (f32)event.new_size.x / (f32)event.new_size.y;
                 if (m_main_camera)
                     m_main_camera->aspect_ratio = m_aspect_ratio;
-            });
+            }
+        );
 
         // Pipeline setup
         m_renderer = &rendering_module.renderer();

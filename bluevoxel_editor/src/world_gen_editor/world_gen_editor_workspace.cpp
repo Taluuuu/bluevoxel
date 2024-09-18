@@ -15,7 +15,6 @@ namespace bluevoxel
 {
     WorldGenEditorWorkspace::WorldGenEditorWorkspace(h2o::Tickable* owner)
         : h2o::Tickable(owner)
-        , m_input_module(&g_engine->get_module_checked<h2o::InputModule>())
     {
         m_scene = std::make_shared<h2o::Scene>("client_scene", &m_local_net_peer);
         m_scene->add_system<h2o::RenderingSystem>();
@@ -28,7 +27,7 @@ namespace bluevoxel
         const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
         player->transform.position = { 0.0f, 200.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 0.0f, 90.0f };
+        player->transform.rotation = { 0.0f, 0.0f, 0.0f };
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
         player->move_speed = 100.0f;
 
@@ -38,7 +37,8 @@ namespace bluevoxel
     void WorldGenEditorWorkspace::update(f32 delta_time)
     {
         auto& layer_stack = g_engine->layer_stack();
-        if (m_input_module->key_state(h2o::Key::Escape).pressed_this_frame)
+        const auto& input = g_engine->get_module_checked<h2o::InputModule>();
+        if (input.key_state(h2o::Key::Escape).pressed_this_frame)
         {
             if (layer_stack.top_layer() == h2o::Layer::PauseMenu)
             {

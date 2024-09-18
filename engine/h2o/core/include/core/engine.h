@@ -90,7 +90,7 @@ namespace h2o
 
         // Initialized modules - the pointers are owned by the module stack
         std::unordered_map<std::type_index, IModule*> m_initialized_modules;
-        std::stack<std::unique_ptr<IModule>> m_module_stack;
+        std::vector<std::unique_ptr<IModule>> m_module_stack;
 
         // Queried interfaces
         class IWindowModule* m_window_module = nullptr;

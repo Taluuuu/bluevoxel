@@ -21,15 +21,18 @@ namespace h2o
                 }
             );
         }
+
+        if (auto scene_module = g_engine->get_module<SceneModule>())
+            scene_module->register_scene(*this);
     }
 
     Scene::~Scene()
     {
-        m_actor_map.clear();
-        m_system_map.clear();
-
         if (auto scene_module = g_engine->get_module<SceneModule>())
             scene_module->unregister_scene(*this);
+
+        m_actor_map.clear();
+        m_system_map.clear();
     }
 
     bool Scene::init()
@@ -48,6 +51,13 @@ namespace h2o
             log::warn("Failed to initialize all systems for scene: {}", m_scene_name);
 
         return success;
+    }
+
+    void Scene::cleanup()
+    {
+        m_actor_map.clear();
+        m_actor_tags.clear();
+        m_system_map.clear();
     }
 
     bool Scene::destroy_actor(ActorID actor_id, bool replicate)

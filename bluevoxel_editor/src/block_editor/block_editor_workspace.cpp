@@ -35,7 +35,7 @@ namespace bluevoxel
         tps_cam->rotate_mouse_button = h2o::MouseButton::Right;
         camera->tag_actor(h2o::ActorTag::LocalPlayer);
         camera->transform.position = { 0.5f, 0.5f, 0.5f };
-        camera->transform.rotation = { 0.0f, 0.0f, 90.0f };
+        camera->transform.rotation = { 0.0f, 0.0f, 0.0f };
 
         m_block_renderer = std::make_shared<BlockRenderer>(*this);
         m_block_renderer->set_block(h2o::Block{ 0 });

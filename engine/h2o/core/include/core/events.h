@@ -116,11 +116,6 @@ namespace h2o
             if (id == ID_NONE)
                 return;
 
-            for (const auto& listener : m_listeners)
-            {
-                listener.handle->clear();
-            }
-
             const auto num_erased = std::erase_if(m_listeners,
                 [id](const auto& listener)
                 {

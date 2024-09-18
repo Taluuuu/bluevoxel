@@ -30,6 +30,11 @@ namespace h2o
         [[nodiscard]] virtual bool init(Engine& engine) { return true; }
 
         /**
+         * Use this to free resources before modules start deinitializing
+         */
+        virtual void on_engine_starts_closing() {}
+
+        /**
          * Cleanup resources. Called just before the destructor.
          */
         virtual void cleanup() {}

@@ -26,17 +26,16 @@ namespace h2o
 
     void Tickable::remove_child(Tickable& tickable)
     {
-        // NOTE: This could cause a problem if a child is removed on the same frame as it is added
         m_children.erase(&tickable);
+        m_pending_children.erase(&tickable);
     }
 
     void Tickable::run_frame_start(f32 delta_time)
     {
-        while (!m_pending_children.empty())
-        {
-            m_children.emplace(m_pending_children.front());
-            m_pending_children.pop();
-        }
+        for (Tickable* tickable : m_pending_children)
+            m_children.emplace(tickable);
+
+        m_pending_children.clear();
 
         if (is_enabled())
         {

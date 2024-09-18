@@ -24,11 +24,14 @@ namespace h2o
 
         m_modules_to_init.clear();
 
+        for (auto& module : m_module_stack)
+            module->on_engine_starts_closing();
+
         while (!m_module_stack.empty())
         {
-            auto& module = m_module_stack.top();
+            auto& module = m_module_stack.back();
             module->cleanup();
-            m_module_stack.pop();
+            m_module_stack.pop_back();
         }
 
         assert(g_engine);
@@ -100,7 +103,7 @@ namespace h2o
             if (module.init(*this))
             {
                 // Take ownership of the module ptr
-                m_module_stack.emplace(&module);
+                m_module_stack.emplace_back(&module);
                 m_initialized_modules[module_type] = &module;
 
                 // Remove from modules to init

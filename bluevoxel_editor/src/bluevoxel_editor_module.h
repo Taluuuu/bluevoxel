@@ -1,10 +1,12 @@
 #pragma once
 
-#include "block_editor/block_editor_workspace.h"
 #include "core/module.h"
 #include "core/tickable.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_bounds.h"
+
+#include "block_editor/block_editor_workspace.h"
+#include "structure_editor/structure_editor_workspace.h"
 #include "world_gen_editor/world_gen_editor_workspace.h"
 
 #include <memory>
@@ -25,7 +27,7 @@ namespace bluevoxel
     public:
 
         BlueVoxelEditorModule();
-        ~BlueVoxelEditorModule() override = default;
+        ~BlueVoxelEditorModule() override;
 
         // h2o::IModule interface
         bool init(h2o::Engine& engine) override;
@@ -40,7 +42,10 @@ namespace bluevoxel
 
     private:
 
-        std::variant<nullptr_t, BlockEditorWorkspace, WorldGenEditorWorkspace> m_editor_mode{};
+        std::variant<nullptr_t,
+            BlockEditorWorkspace,
+            StructureEditorWorkspace,
+            WorldGenEditorWorkspace> m_editor_mode{};
 
         h2o::InputModule* m_input_module = nullptr;
         h2o::VoxelModule* m_voxel_module = nullptr;

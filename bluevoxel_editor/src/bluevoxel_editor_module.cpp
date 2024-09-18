@@ -6,6 +6,7 @@
 #include "rendering/pipeline.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
+#include "scene/scene_module.h"
 #include "ui/ui_module.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
@@ -19,6 +20,11 @@ namespace bluevoxel
     BlueVoxelEditorModule::BlueVoxelEditorModule()
         : h2o::Tickable(g_engine)
     {}
+
+    BlueVoxelEditorModule::~BlueVoxelEditorModule()
+    {
+        m_editor_mode = nullptr;
+    }
 
     bool BlueVoxelEditorModule::init(h2o::Engine& engine)
     {
@@ -54,8 +60,10 @@ namespace bluevoxel
     std::vector<std::type_index> BlueVoxelEditorModule::dependencies() const
     {
         return {
-            typeid(h2o::UIModule),
             typeid(h2o::GameFrameworkModule),
+            typeid(h2o::RenderingModule),
+            typeid(h2o::SceneModule),
+            typeid(h2o::UIModule),
             typeid(h2o::VoxelModule),
         };
     }
@@ -68,6 +76,9 @@ namespace bluevoxel
 
             if (ImGui::Button("Block Editor"))
                 m_editor_mode.emplace<BlockEditorWorkspace>(this);
+
+            if (ImGui::Button("Structure Editor"))
+                m_editor_mode.emplace<StructureEditorWorkspace>(this);
 
             if (ImGui::Button("World Gen Editor"))
                 m_editor_mode.emplace<WorldGenEditorWorkspace>(this);

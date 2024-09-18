@@ -9,6 +9,7 @@
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "ui/ui_module.h"
+#include "windowing/window.h"
 #include "windowing/windowing_module.h"
 
 namespace bluevoxel
