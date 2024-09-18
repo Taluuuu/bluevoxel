@@ -42,10 +42,7 @@ namespace bluevoxel
 
     private:
 
-        std::variant<nullptr_t,
-            BlockEditorWorkspace,
-            StructureEditorWorkspace,
-            WorldGenEditorWorkspace> m_editor_mode{};
+        h2o::OwningHandle<h2o::Tickable> m_editor_mode = nullptr;
 
         h2o::InputModule* m_input_module = nullptr;
         h2o::VoxelModule* m_voxel_module = nullptr;

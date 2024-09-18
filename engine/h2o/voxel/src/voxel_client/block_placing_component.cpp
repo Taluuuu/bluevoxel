@@ -8,7 +8,7 @@
 #include "scene/scene.h"
 #include "scene_rendering/camera_component.h"
 #include "voxel/voxel_ray.h"
-#include "voxel_client/chunk_client.h"
+#include "voxel_client/block_placeable_interface.h"
 
 namespace h2o
 {
@@ -27,11 +27,10 @@ namespace h2o
         assert(m_camera);
         assert(m_input);
 
-        const auto chunk_client = m_scene->get_system<ChunkClient>();
-        if (!chunk_client)
+        if (!block_placeable)
             return;
 
-        const auto& chunk_mgr = chunk_client->chunk_mgr();
+        const auto& chunk_mgr = block_placeable->chunk_mgr();
 
         const v3 front = m_camera->camera().front();
         const v3 origin = owner()->transform.position;
@@ -44,43 +43,14 @@ namespace h2o
             const v4 line_color{ 0.0f, 0.0f, 0.0f, 1.0f };
             const v3i pos = hit_voxel.pos;
 
-            std::array<v3, 8> points
-            {
-                v3{ pos + v3i{ 0, 0, 0 } } - front * 0.01f,
-                v3{ pos + v3i{ 0, 0, 1 } } - front * 0.01f,
-                v3{ pos + v3i{ 0, 1, 0 } } - front * 0.01f,
-                v3{ pos + v3i{ 0, 1, 1 } } - front * 0.01f,
-                v3{ pos + v3i{ 1, 0, 0 } } - front * 0.01f,
-                v3{ pos + v3i{ 1, 0, 1 } } - front * 0.01f,
-                v3{ pos + v3i{ 1, 1, 0 } } - front * 0.01f,
-                v3{ pos + v3i{ 1, 1, 1 } } - front * 0.01f,
-            };
-
-            renderer.draw_line(points[0], points[1], line_color);
-            renderer.draw_line(points[0], points[2], line_color);
-            renderer.draw_line(points[0], points[4], line_color);
-            renderer.draw_line(points[1], points[3], line_color);
-            renderer.draw_line(points[1], points[5], line_color);
-            renderer.draw_line(points[2], points[3], line_color);
-            renderer.draw_line(points[2], points[6], line_color);
-            renderer.draw_line(points[4], points[5], line_color);
-            renderer.draw_line(points[4], points[6], line_color);
-            renderer.draw_line(points[3], points[7], line_color);
-            renderer.draw_line(points[5], points[7], line_color);
-            renderer.draw_line(points[6], points[7], line_color);
-
-            for (size_t i = 0; i < 4; i++)
-            {
-                renderer.draw_line(points[0], points[1], line_color);
-                renderer.draw_line(points[0], points[2], line_color);
-                renderer.draw_line(points[0], points[4], line_color);
-            }
+            // Draw selection highlight
+            renderer.draw_cube(v3{pos} - v3{0.005f}, v3{1.01f}, line_color);
 
             if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
-                chunk_client->set_block_at(hit_voxel.pos, Block::Air);
+                block_placeable->set_block_at(hit_voxel.pos, Block::Air);
 
             if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
-                chunk_client->set_block_at(before_hit_voxel.pos, Block { 5 });
+                block_placeable->set_block_at(before_hit_voxel.pos, Block { 5 });
         }
     }
 }

@@ -70,18 +70,18 @@ namespace bluevoxel
 
     void BlueVoxelEditorModule::update(f32 delta_time)
     {
-        if (holds_alternative<nullptr_t>(m_editor_mode))
+        if (!m_editor_mode)
         {
             ImGui::Begin("Editor Selection");
 
             if (ImGui::Button("Block Editor"))
-                m_editor_mode.emplace<BlockEditorWorkspace>(this);
+                m_editor_mode = oup::make_observable_unique<BlockEditorWorkspace>(this);
 
             if (ImGui::Button("Structure Editor"))
-                m_editor_mode.emplace<StructureEditorWorkspace>(this);
+                m_editor_mode = oup::make_observable_unique<StructureEditorWorkspace>(this);
 
             if (ImGui::Button("World Gen Editor"))
-                m_editor_mode.emplace<WorldGenEditorWorkspace>(this);
+                m_editor_mode = oup::make_observable_unique<WorldGenEditorWorkspace>(this);
 
             ImGui::End();
         }

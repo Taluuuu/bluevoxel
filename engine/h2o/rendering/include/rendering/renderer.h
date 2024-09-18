@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/types.h"
 #include "renderer_enums.h"
 
 #include <memory>
@@ -64,6 +65,7 @@ namespace h2o::gfx
         virtual void                          draw_line(const v3& origin, const v3& end, const v4& color) = 0;
         virtual void                          draw_cylinder(const v3& origin, const v3& end, f32 radius, const v4& color) = 0;
         virtual void                          draw_sphere(const v3& origin, f32 radius, const v4& color) = 0;
+        void                                  draw_cube(const v3& origin, const v3& extents, const v4& color);
 
     };
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chunk_view.h"
+#include "scene/scene_system.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -18,7 +19,7 @@ namespace h2o
     public:
 
         ChunkManager() = default;
-        virtual ~ChunkManager() = default;
+        ~ChunkManager() = default;
 
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const;
         bool set_block_at(const v3i& block_pos, Block block);

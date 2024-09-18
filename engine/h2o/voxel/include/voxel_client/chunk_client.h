@@ -1,18 +1,14 @@
 #pragma once
 
-#include "voxel_rendering/chunk_mesh_pool.h"
+#include "block_placeable_interface.h"
 #include "core/distance_queue.h"
 #include "scene/scene_system.h"
 #include "voxel/chunk_manager.h"
 #include "voxel/voxel_bounds.h"
-#include "voxel/voxel_constants.h"
-#include "voxel_rendering/chunk_meshing_queue.h"
 
 #include <atomic>
 #include <glm/gtx/hash.hpp>
 #include <memory>
-#include <mutex>
-#include <unordered_map>
 #include <voxel_rendering/voxel_world_renderer.h>
 
 namespace h2o
@@ -21,7 +17,9 @@ namespace h2o
     class RenderingModule;
     class VoxelModule;
 
-    class ChunkClient : public SceneSystem
+    class ChunkClient
+        : public SceneSystem
+        , public IBlockPlaceable
     {
     public:
 
@@ -30,10 +28,10 @@ namespace h2o
             INetPeer& client);
         ~ChunkClient() override = default;
 
-        [[nodiscard]] ChunkManager& chunk_mgr() { return m_chunk_mgr; }
-
-        // Replicated
-        void set_block_at(const v3i& block_pos, Block block);
+        // IBlockPlaceable interface
+        void set_block_at(const v3i& block_pos, Block block) override;
+        [[nodiscard]] ChunkManager& chunk_mgr() override { return m_chunk_mgr; }
+        [[nodiscard]] const ChunkManager& chunk_mgr() const override { return m_chunk_mgr; }
 
         // Tickable interface
         void update(f32 delta_time) override;

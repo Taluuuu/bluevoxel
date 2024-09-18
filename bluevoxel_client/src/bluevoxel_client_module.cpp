@@ -171,7 +171,9 @@ namespace bluevoxel
         m_inventory_ui.emplace(this);
         m_inventory_ui->open(inventory_comp->inventory());
 
-        player->add_component<h2o::BlockPlacingComponent>();
+        const auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
+        block_placing_comp->block_placeable = m_chunk_client;
+
         player->set_replicate_transform(true);
         player->transform.position = { 0.0f, 256.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 0.0f};

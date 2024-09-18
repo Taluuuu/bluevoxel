@@ -5,10 +5,11 @@
 namespace h2o
 {
     class CameraComponent;
+    class ChunkManager;
+    class IBlockPlaceable;
     class InputComponent;
     class RenderingModule;
 
-    // This module is a weird place to put this, but it will work fine for now
     class BlockPlacingComponent : public Component
     {
     public:
@@ -17,6 +18,10 @@ namespace h2o
         ~BlockPlacingComponent() override = default;
 
         void update(f32 delta_time) override;
+
+    public:
+
+        WeakHandle<IBlockPlaceable> block_placeable = nullptr;
 
     private:
 
