@@ -2,9 +2,11 @@
 
 #include "core/tickable.h"
 #include "inventory/inventory.h"
+#include "inventory/inventory_draw_data.h"
 #include "ui/imgui.h"
 
 #include <fmt/core.h>
+#include <memory>
 
 namespace h2o
 {
@@ -13,49 +15,32 @@ namespace h2o
     {
     public:
 
-        explicit InventoryUI(Tickable* owner);
-        ~InventoryUI() override = default;
+        using InvDrawDataRef = std::shared_ptr<InventoryDrawData<ItemType>>;
 
-        // TODO: Use a shared_ptr to make sure the inventory does not get deallocated
-        void open(Inventory<ItemType>& inventory);
-        void close();
+        explicit InventoryUI(Tickable* owner, const InvDrawDataRef& draw_Data);
+        ~InventoryUI() override = default;
 
     public:
 
-        f32 item_texture_size = 64.0f;
-        f32 item_texture_spacing = 8.0f;
+        std::weak_ptr< Inventory<ItemType> > weak_inventory{};
 
     protected:
 
         // Tickable interface
         void update(f32 delta_time) override;
 
-        [[nodiscard]] virtual std::optional<u32> fetch_item_texture_id(const ItemType& item) const = 0;
-        [[nodiscard]] virtual std::string fetch_item_name(const ItemType& item) const = 0;
-
     private:
 
         std::optional< ItemStack<ItemType> > m_selected_stack = std::nullopt;
 
-        Inventory<ItemType>* m_inventory = nullptr;
+        InvDrawDataRef m_draw_data = nullptr;
 
     };
 
     template<class ItemType>
-    void InventoryUI<ItemType>::open(Inventory<ItemType>& inventory)
-    {
-        m_inventory = &inventory;
-    }
-
-    template<class ItemType>
-    void InventoryUI<ItemType>::close()
-    {
-        m_inventory = nullptr;
-    }
-
-    template<class ItemType>
-    InventoryUI<ItemType>::InventoryUI(Tickable* owner)
+    InventoryUI<ItemType>::InventoryUI(Tickable* owner, const InvDrawDataRef& draw_Data)
         : Tickable(owner)
+        , m_draw_data(draw_Data)
     {
         set_tick_phases(TickPhase::Update);
     }
@@ -63,19 +48,20 @@ namespace h2o
     template<class ItemType>
     void InventoryUI<ItemType>::update(f32 delta_time)
     {
-        if (!m_inventory)
+        auto inventory = weak_inventory.lock();
+        if (!inventory || !m_draw_data)
             return;
 
         const v2 mouse_pos = ImGui::GetMousePos();
         auto foreground_draw_list = ImGui::GetForegroundDrawList();
         if (m_selected_stack)
         {
-            if (const auto tex_id = fetch_item_texture_id(m_selected_stack->item))
+            if (const auto tex_id = m_draw_data->fetch_item_texture_id(m_selected_stack->item))
             {
                 foreground_draw_list->AddImage(
                     (void*)(u64)(*tex_id),
-                    mouse_pos - v2{ item_texture_size } / 2.0f,
-                    mouse_pos + v2{ item_texture_size } / 2.0f);
+                    mouse_pos - v2{ m_draw_data->item_texture_size } / 2.0f,
+                    mouse_pos + v2{ m_draw_data->item_texture_size } / 2.0f);
             }
         }
 
@@ -83,8 +69,11 @@ namespace h2o
         {
             const v2 window_size = ImGui::GetWindowSize();
 
-            auto& item_stacks = m_inventory->item_stacks();
-            const i32 num_columns = window_size.x / (item_texture_size + item_texture_spacing);
+            auto& item_stacks = inventory->item_stacks();
+
+            const i32 num_columns = window_size.x /
+                (m_draw_data->item_texture_size + m_draw_data->item_texture_spacing);
+
             if (num_columns > 0)
             {
                 const i32 num_rows = glm::ceil(item_stacks.size() / f32(num_columns));
@@ -99,8 +88,8 @@ namespace h2o
                         break;
 
                     const v2 tex_offset{
-                        i * (item_texture_size + item_texture_spacing),
-                        j * (item_texture_size + item_texture_spacing) };
+                        i * (m_draw_data->item_texture_size + m_draw_data->item_texture_spacing),
+                        j * (m_draw_data->item_texture_size + m_draw_data->item_texture_spacing) };
 
                     const v2 item_pos = grid_pos + tex_offset;
 
@@ -108,27 +97,27 @@ namespace h2o
 
                     if (ImGui::InvisibleButton(
                         fmt::format("Item({};{})", i, j).c_str(),
-                        v2{ item_texture_size, item_texture_size },
+                        v2{ m_draw_data->item_texture_size, m_draw_data->item_texture_size },
                         ImGuiButtonFlags_MouseButtonLeft))
                     {
                         // Item slot is clicked
                         const auto item_stack = m_selected_stack;
-                        m_selected_stack = m_inventory->remove_stack(stack_index);
+                        m_selected_stack = inventory->remove_stack(stack_index);
 
                         if (item_stack)
-                            m_inventory->set_item_stack(stack_index, *item_stack);
+                            inventory->set_item_stack(stack_index, *item_stack);
                     }
 
                     if (const auto& item_stack = item_stacks[stack_index])
                     {
-                        if (const auto tex_id = fetch_item_texture_id(item_stack->item))
+                        if (const auto tex_id = m_draw_data->fetch_item_texture_id(item_stack->item))
                         {
                             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-                                ImGui::SetTooltip("%s", fetch_item_name(item_stack->item).c_str());
+                                ImGui::SetTooltip("%s", m_draw_data->fetch_item_name(item_stack->item).c_str());
 
                             draw_list->AddImage(
                                 (void*)(u64)(*tex_id),
-                                item_pos, item_pos + v2{ item_texture_size });
+                                item_pos, item_pos + v2{ m_draw_data->item_texture_size });
 
                             draw_list->AddText(
                                 item_pos,
@@ -140,7 +129,7 @@ namespace h2o
                     // Blank space...
                     draw_list->AddRect(
                         grid_pos + tex_offset,
-                        grid_pos + tex_offset + v2{ item_texture_size },
+                        grid_pos + tex_offset + v2{ m_draw_data->item_texture_size },
                         ImColor(0.5f, 0.7f, 1.0f, 1.0f), 0.0f, 0, 2.0f);
                 }
             }

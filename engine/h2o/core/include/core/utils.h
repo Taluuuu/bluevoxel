@@ -20,4 +20,10 @@ namespace h2o::utils
     template<class T>
     bool contains(const std::vector<T>& vec, const T& val)
     { return std::ranges::find(vec.begin(), vec.end(), val) != vec.end(); }
+
+    constexpr i32 non_stupid_mod(i32 x, i32 m)
+    {
+        i32 r = x % m;
+        return r + m * (r < 0);
+    }
 }

@@ -1,4 +1,4 @@
-#include "bluevoxel_inventory_ui.h"
+#include "bluevoxel_inventory_draw_data.h"
 
 #include "core/engine.h"
 #include "rendering/texture.h"
@@ -8,12 +8,11 @@
 
 namespace bluevoxel
 {
-    BluevoxelInventoryUI::BluevoxelInventoryUI(h2o::Tickable* owner)
-        : InventoryUI(owner)
-        , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
+    BluevoxelInventoryDrawData::BluevoxelInventoryDrawData()
+        : m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
     {}
 
-    std::optional<u32> BluevoxelInventoryUI::fetch_item_texture_id(const h2o::Block& item) const
+    std::optional<u32> BluevoxelInventoryDrawData::fetch_item_texture_id(const h2o::Block& item) const
     {
         const auto voxel_pack = m_voxel_module->voxel_pack();
         if (!voxel_pack)
@@ -47,7 +46,7 @@ namespace bluevoxel
         return std::nullopt;
     }
 
-    std::string BluevoxelInventoryUI::fetch_item_name(const h2o::Block& item) const
+    std::string BluevoxelInventoryDrawData::fetch_item_name(const h2o::Block& item) const
     {
         if (const auto voxel_pack = m_voxel_module->voxel_pack())
         {

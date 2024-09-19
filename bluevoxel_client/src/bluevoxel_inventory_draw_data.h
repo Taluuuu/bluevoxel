@@ -1,9 +1,7 @@
 #pragma once
 
-#include "inventory/inventory_ui.h"
+#include "inventory/inventory_draw_data.h"
 #include "voxel/block.h"
-
-#include <optional>
 
 namespace h2o
 {
@@ -12,15 +10,14 @@ namespace h2o
 
 namespace bluevoxel
 {
-    class BluevoxelInventoryUI : public h2o::InventoryUI<h2o::Block>
+    class BluevoxelInventoryDrawData : public h2o::InventoryDrawData<h2o::Block>
     {
     public:
 
-        explicit BluevoxelInventoryUI(h2o::Tickable* owner);
-        ~BluevoxelInventoryUI() override = default;
+        BluevoxelInventoryDrawData();
+        ~BluevoxelInventoryDrawData() override = default;
 
-    protected:
-
+        // h2o::InventoryUI interface
         [[nodiscard]] std::optional<u32> fetch_item_texture_id(const h2o::Block& item) const override;
         [[nodiscard]] std::string fetch_item_name(const h2o::Block& item) const override;
 

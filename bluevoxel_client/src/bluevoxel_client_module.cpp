@@ -1,5 +1,6 @@
 #include "bluevoxel_client_module.h"
 
+#include "bluevoxel_inventory_draw_data.h"
 #include "core/engine.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "input/input_module.h"
@@ -162,14 +163,16 @@ namespace bluevoxel
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
 
-        const auto inventory_comp = player->add_component<h2o::InventoryComponent<h2o::Block>>(h2o::Inventory<h2o::Block>{ 5, std::nullopt });
-        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 1 }, .count = 69 });
-        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 2 }, .count = 1 });
-//        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 3 }, .count = 1});
-//        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 4 }, .count = 1});
-//        inventory_comp->inventory().add_item_stack({ .item = h2o::Block{ 5 }, .count = 1});
-        m_inventory_ui.emplace(this);
-        m_inventory_ui->open(inventory_comp->inventory());
+        const auto inventory_comp = player->add_component<h2o::InventoryComponent<h2o::Block>>(std::make_shared<h2o::Inventory<h2o::Block>>(5, std::nullopt));
+        inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 1 }, .count = 69 });
+        inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 2 }, .count = 1 });
+
+        const auto inv_draw_data = std::make_shared<BluevoxelInventoryDrawData>();
+        m_inventory_ui.emplace(this, inv_draw_data);
+        m_inventory_ui->weak_inventory = inventory_comp->inventory();
+
+        m_hotbar_ui.emplace(this, inv_draw_data);
+        m_hotbar_ui->weak_inventory = inventory_comp->inventory();
 
         const auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
         block_placing_comp->block_placeable = m_chunk_client;

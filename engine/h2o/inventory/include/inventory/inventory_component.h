@@ -10,23 +10,24 @@ namespace h2o
     {
     public:
 
+        using InventoryPtr = std::shared_ptr< Inventory<ItemType> >;
+
         InventoryComponent(
             const ComponentInitializer& component_initializer,
-            const Inventory<ItemType>& inventory);
+            const InventoryPtr& inventory);
 
-        [[nodiscard]] const Inventory<ItemType>& inventory() const { return m_inventory; }
-        [[nodiscard]]       Inventory<ItemType>& inventory()       { return m_inventory; }
+        [[nodiscard]] const InventoryPtr& inventory() const { return m_inventory; }
 
     private:
 
-        Inventory<ItemType> m_inventory;
+        InventoryPtr m_inventory = nullptr;
 
     };
 
     template<class ItemType>
     InventoryComponent<ItemType>::InventoryComponent(
         const ComponentInitializer& component_initializer,
-        const Inventory<ItemType>& inventory)
+        const InventoryPtr& inventory)
         : Component(component_initializer)
         , m_inventory(inventory)
     {}
