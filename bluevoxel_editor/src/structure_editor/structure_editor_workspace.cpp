@@ -21,6 +21,13 @@ namespace bluevoxel
         m_chunk_manager.view_or_create_mut<h2o::voxel_constants::max_structure_size_chunks>(
             v3i{}, [](auto&){});
 
+        m_chunk_manager.on_chunks_updated.add_listener(m_on_chunks_updated_handle,
+            [this](const h2o::ChunksUpdatedEvent& event)
+            {
+                m_extents = calc_extents();
+            }
+        );
+
         // Starter block
         StructureEditorWorkspace::set_block_at(v3i{0}, h2o::Block{1});
 
@@ -69,6 +76,51 @@ namespace bluevoxel
     void StructureEditorWorkspace::render()
     {
         auto& renderer = m_rendering_module->renderer();
-        renderer.draw_cube(v3{0.0f}, v3{h2o::voxel_constants::max_structure_size_blocks}, v4{});
+        renderer.draw_cube(v3{-0.005f}, v3{m_extents} + v3{0.01f}, v4{});
+    }
+
+    v3i StructureEditorWorkspace::calc_extents() const
+    {
+        v3i extents{};
+
+        // TODO: Add for_each_block to ChunkManager ?
+        for (i32 i = 0; i < h2o::voxel_constants::max_structure_size_chunks.x; i++)
+        for (i32 j = 0; j < h2o::voxel_constants::max_structure_size_chunks.y; j++)
+        for (i32 k = 0; k < h2o::voxel_constants::max_structure_size_chunks.z; k++)
+        {
+            const v3i chunk_pos{ i, j, k };
+            const v3i chunk_corner = chunk_pos * h2o::voxel_constants::chunk_size;
+
+            m_chunk_manager.fetch_chunk(chunk_pos,
+                [&](const h2o::Chunk* chunk)
+                {
+                    if (!chunk)
+                        return;
+
+                    for (i32 ii = 0; ii < h2o::voxel_constants::chunk_size; ii++)
+                    for (i32 jj = 0; jj < h2o::voxel_constants::chunk_size; jj++)
+                    for (i32 kk = 0; kk < h2o::voxel_constants::chunk_size; kk++)
+                    {
+                        const v3i local_block_pos{ ii, jj, kk };
+                        if (chunk->get_block_at(local_block_pos) != h2o::Block::Air)
+                        {
+                            const v3i block_pos = local_block_pos + chunk_corner;
+                            extents = glm::max(block_pos + v3i{1}, extents);
+                        }
+                    }
+                }
+            );
+        }
+
+        // for (i32 i = 0; i < h2o::voxel_constants::max_structure_size_blocks.x; i++)
+        // for (i32 j = 0; j < h2o::voxel_constants::max_structure_size_blocks.y; j++)
+        // for (i32 k = 0; k < h2o::voxel_constants::max_structure_size_blocks.z; k++)
+        // {
+        //     const v3i block_pos{ i, j, k };
+        //     if (const auto block = m_chunk_manager.get_block_at(block_pos); block && block != h2o::Block::Air)
+        //         extents = glm::max(block_pos + v3i{1}, extents);
+        // }
+
+        return extents;
     }
 }

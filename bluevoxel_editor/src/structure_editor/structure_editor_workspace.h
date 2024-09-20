@@ -33,12 +33,19 @@ namespace bluevoxel
         void update(f32 delta_time) override;
         void render() override;
 
+        [[nodiscard]] v3i calc_extents() const;
+
     private:
 
         h2o::ChunkManager m_chunk_manager{};
         h2o::VoxelWorldRenderer m_voxel_world_renderer;
 
+        // The structure's extents
+        v3i m_extents{};
+
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
+
+        h2o::EventHandle m_on_chunks_updated_handle{};
 
         h2o::RenderingModule* m_rendering_module = nullptr;
 

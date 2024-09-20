@@ -14,12 +14,11 @@ namespace h2o::voxel_constants
     constexpr i32 chunk_region_size = 4;
     constexpr i32 chunk_region_block_count = chunk_region_size * chunk_size;
 
-    constexpr v3i max_structure_size_chunks{
-        chunk_region_size,
-        vertical_chunk_count,
-        chunk_region_size
-    };
+    constexpr v3i max_structure_size_chunks{ 1, vertical_chunk_count, 1 };
     constexpr v3i max_structure_size_blocks = max_structure_size_chunks * chunk_size;
+    static_assert(
+        max_structure_size_chunks.x <= chunk_region_size &&
+        max_structure_size_chunks.z <= chunk_region_size);
 
     constexpr i32 max_generation_stage = 4096;
 
