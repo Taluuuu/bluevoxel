@@ -404,6 +404,9 @@ namespace h2o
             yaml << YAML::Key << "model";
             yaml << YAML::Value << m_block_models[block_type->model_id].name;
 
+            yaml << YAML::Key << "is_transparent";
+            yaml << YAML::Value << block_type->is_transparent;
+
             yaml << YAML::Key << "textures";
             yaml << YAML::Value;
 

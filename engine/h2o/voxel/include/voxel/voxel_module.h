@@ -2,6 +2,7 @@
 
 #include "core/events.h"
 #include "core/module.h"
+#include "inventory/hotbar_ui.h"
 #include "voxel/block_presets/block_preset_base.h"
 
 #include <memory>
@@ -13,6 +14,7 @@ namespace h2o
 {
     class BlockPreset_Base;
     class RenderingModule;
+    class VoxelInventoryDrawData;
     class VoxelPack;
 
     struct BlockModel;
@@ -63,6 +65,9 @@ namespace h2o
         [[nodiscard]] const std::shared_ptr<gfx::IPipeline>& pipeline() const;
         [[nodiscard]] const std::shared_ptr<gfx::TextureArray>& block_textures() const;
 
+        [[nodiscard]] std::shared_ptr<VoxelInventoryDrawData> inventory_draw_data() const
+        { return m_inventory_draw_data; }
+
     public:
 
         Event<VoxelPackChangedEvent> on_voxel_pack_changed{};
@@ -77,6 +82,8 @@ namespace h2o
         std::vector<BlockPresetData> m_block_presets;
 
         std::shared_ptr<VoxelPack> m_voxel_pack = nullptr;
+
+        std::shared_ptr<VoxelInventoryDrawData> m_inventory_draw_data = nullptr;
 
         // Rendering
         std::shared_ptr<gfx::IPipeline> m_pipeline = nullptr;

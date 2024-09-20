@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_executable(bluevoxel_client
     src/bluevoxel_client_module.cpp
-    src/bluevoxel_inventory_draw_data.cpp
     src/main.cpp
 )
 

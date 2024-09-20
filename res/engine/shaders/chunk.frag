@@ -14,6 +14,8 @@ out vec4 frag_color;
 void main()
 {
     const vec4 albedo = texture(block_textures, vec3(pass_uv, pass_tex_index));
+    if (albedo.a < 0.1f)
+        discard;
 
     const vec3 ambient = light_color * ambient_strength;
 

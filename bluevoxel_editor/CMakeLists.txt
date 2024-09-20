@@ -24,6 +24,7 @@ target_link_libraries(bluevoxel_editor
         h2o_core
         h2o_game_framework
         h2o_input
+        h2o_inventory
         h2o_networking
         h2o_physics
         h2o_rendering
@@ -40,6 +41,7 @@ target_include_directories(bluevoxel_editor
         h2o_core
         h2o_game_framework
         h2o_input
+        h2o_inventory
         h2o_networking
         h2o_rendering
         h2o_physics

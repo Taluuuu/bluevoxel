@@ -1,4 +1,4 @@
-#include "bluevoxel_inventory_draw_data.h"
+#include "voxel_client/voxel_inventory_draw_data.h"
 
 #include "core/engine.h"
 #include "rendering/texture.h"
@@ -6,13 +6,17 @@
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
 
-namespace bluevoxel
+namespace h2o
 {
-    BluevoxelInventoryDrawData::BluevoxelInventoryDrawData()
-        : m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
+    VoxelInventoryDrawData::VoxelInventoryDrawData()
+        : VoxelInventoryDrawData(g_engine->get_module_checked<VoxelModule>())
     {}
 
-    std::optional<u32> BluevoxelInventoryDrawData::fetch_item_texture_id(const h2o::Block& item) const
+    VoxelInventoryDrawData::VoxelInventoryDrawData(const VoxelModule& voxel_module)
+        : m_voxel_module(&voxel_module)
+    {}
+
+    std::optional<u32> VoxelInventoryDrawData::fetch_item_texture_id(const Block& item) const
     {
         const auto voxel_pack = m_voxel_module->voxel_pack();
         if (!voxel_pack)
@@ -46,7 +50,7 @@ namespace bluevoxel
         return std::nullopt;
     }
 
-    std::string BluevoxelInventoryDrawData::fetch_item_name(const h2o::Block& item) const
+    std::string VoxelInventoryDrawData::fetch_item_name(const Block& item) const
     {
         if (const auto voxel_pack = m_voxel_module->voxel_pack())
         {

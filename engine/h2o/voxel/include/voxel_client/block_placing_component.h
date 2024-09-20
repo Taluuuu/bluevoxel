@@ -1,6 +1,8 @@
 #pragma once
 
+#include "inventory/hotbar_ui.h"
 #include "scene/component.h"
+#include "voxel/block.h"
 
 namespace h2o
 {
@@ -27,6 +29,9 @@ namespace h2o
 
         WeakHandle<CameraComponent> m_camera = nullptr;
         WeakHandle<InputComponent> m_input = nullptr;
+
+        std::shared_ptr< Inventory<Block> > m_hotbar_inventory = nullptr;
+        HotbarUI<Block> m_hotbar_ui;
 
         // Module refs
         RenderingModule* const m_rendering_module = nullptr;

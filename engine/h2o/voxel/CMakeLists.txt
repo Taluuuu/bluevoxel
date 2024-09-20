@@ -21,8 +21,10 @@ target_link_libraries(h2o_voxel
     PRIVATE
         h2o_core
         h2o_input
+        h2o_inventory
         h2o_networking
         h2o_rendering
+        h2o_ui
         h2o_scene
 
         magic_enum
@@ -39,8 +41,10 @@ target_include_directories(h2o_voxel
     PRIVATE
         h2o_core
         h2o_input
+        h2o_inventory
         h2o_networking
         h2o_rendering
+        h2o_ui
         h2o_scene
 
         magic_enum

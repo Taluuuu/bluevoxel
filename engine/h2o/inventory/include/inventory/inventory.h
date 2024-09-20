@@ -29,6 +29,7 @@ namespace h2o
 
         [[nodiscard]] u32 compute_num_items() const;
         [[nodiscard]] const std::vector< std::optional< ItemStack<ItemType> > >& item_stacks() const { return m_item_stacks; }
+        [[nodiscard]] std::vector< std::optional< ItemStack<ItemType> > >& item_stacks() { return m_item_stacks; }
 
     private:
 

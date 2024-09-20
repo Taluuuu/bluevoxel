@@ -35,27 +35,27 @@ block_types:
       - stone_block.png
       - stone_block.png
       - stone_block.png
-  - name: test_crop
-    preset: crop
+  - name: gravel
+    preset: normal
     id: 4
     model: cube
-    is_transparent: true
+    is_transparent: false
     textures:
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
-      - stone_block.png
+      - gravel.png
+      - gravel.png
+      - gravel.png
+      - gravel.png
+      - gravel.png
+      - gravel.png
   - name: barrel
     preset: normal
     id: 5
     model: barrel
-    is_transparent: true
+    is_transparent: false
     textures:
-      - wood_planks_block.png
-      - stone_block.png
-      - wood_planks_block.png
+      - wood_log_block_side.png
+      - gravel.png
+      - wood_log_block_top.png
   - name: log
     preset: normal
     id: 6
@@ -72,7 +72,7 @@ block_types:
     preset: normal
     id: 7
     model: cube
-    is_transparent: true
+    is_transparent: false
     textures:
       - leaves_block.png
       - leaves_block.png

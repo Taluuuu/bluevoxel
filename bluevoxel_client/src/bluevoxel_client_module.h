@@ -65,7 +65,6 @@ namespace bluevoxel
 
         // TEMP
         std::optional< h2o::InventoryUI<h2o::Block> > m_inventory_ui = std::nullopt;
-        std::optional< h2o::HotbarUI<h2o::Block> > m_hotbar_ui = std::nullopt;
 
         h2o::InputModule* m_input_module = nullptr;
 

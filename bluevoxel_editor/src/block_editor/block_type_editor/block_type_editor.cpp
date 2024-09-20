@@ -54,7 +54,7 @@ namespace bluevoxel
                 m_block_type_names_c_str.size()))
                 m_workspace->select_block(selected_block_id);
 
-            if (auto edited_block_type = voxel_pack->block_types()[selected_block_id]; edited_block_type->block_id != 0)
+            if (auto edited_block_type = voxel_pack->block_types()[selected_block_id]; edited_block_type && edited_block_type->block_id != 0)
             {
                 ImGui::Text("ID: %i", selected_block_id);
 

@@ -2,9 +2,9 @@
 
 #include "core/tickable.h"
 #include "core/utils.h"
+#include "ui/imgui.h"
 #include "inventory.h"
 #include "inventory_draw_data.h"
-#include "ui/imgui.h"
 
 #include <memory>
 
@@ -19,6 +19,9 @@ namespace h2o
 
         HotbarUI(Tickable* owner, const InvDrawDataRef& draw_data);
         ~HotbarUI() override = default;
+
+        [[nodiscard]] const ItemStack<ItemType>* selected_item() const;
+        [[nodiscard]] ItemStack<ItemType>* selected_item();
 
     public:
 
@@ -46,9 +49,41 @@ namespace h2o
     }
 
     template<class ItemType>
+    const ItemStack<ItemType>* HotbarUI<ItemType>::selected_item() const
+    {
+        if (const auto inventory = weak_inventory.lock())
+        {
+            const auto& item_stacks = inventory->item_stacks();
+            if (m_selection_index >= 0 && m_selection_index < item_stacks.size())
+            {
+                const auto& item_stack = item_stacks[m_selection_index];
+                return item_stack ? &*item_stack : nullptr;
+            }
+        }
+
+        return nullptr;
+    }
+
+    template<class ItemType>
+    ItemStack<ItemType>* HotbarUI<ItemType>::selected_item()
+    {
+        if (auto inventory = weak_inventory.lock())
+        {
+            auto& item_stacks = inventory->item_stacks();
+            if (m_selection_index >= 0 && m_selection_index < item_stacks.size())
+            {
+                auto& item_stack = item_stacks[m_selection_index];
+                return item_stack ? &*item_stack : nullptr;
+            }
+        }
+
+        return nullptr;
+    }
+
+    template<class ItemType>
     void HotbarUI<ItemType>::update(f32 delta_time)
     {
-        auto inventory = weak_inventory.lock();
+        const auto inventory = weak_inventory.lock();
         if (!inventory)
             return;
 
@@ -67,7 +102,7 @@ namespace h2o
 
         const v2 window_size = ImGui::GetIO().DisplaySize;
 
-        const v2 hotbar_corner  = {
+        const v2 hotbar_corner {
             window_size.x / 2.0f - hotbar_size.x / 2.0f,
             window_size.y - hotbar_size.y - m_draw_data->item_texture_spacing
         };

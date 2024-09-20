@@ -1,6 +1,5 @@
 #include "bluevoxel_client_module.h"
 
-#include "bluevoxel_inventory_draw_data.h"
 #include "core/engine.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "input/input_module.h"
@@ -19,6 +18,7 @@
 #include "voxel/voxel_pack.h"
 #include "voxel_client/chunk_client.h"
 #include "voxel_client/block_placing_component.h"
+#include "voxel_client/voxel_inventory_draw_data.h"
 
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -167,12 +167,9 @@ namespace bluevoxel
         inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 1 }, .count = 69 });
         inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 2 }, .count = 1 });
 
-        const auto inv_draw_data = std::make_shared<BluevoxelInventoryDrawData>();
-        m_inventory_ui.emplace(this, inv_draw_data);
-        m_inventory_ui->weak_inventory = inventory_comp->inventory();
-
-        m_hotbar_ui.emplace(this, inv_draw_data);
-        m_hotbar_ui->weak_inventory = inventory_comp->inventory();
+        // const auto inv_draw_data = std::make_shared<h2o::VoxelInventoryDrawData>();
+        // m_inventory_ui.emplace(this, inv_draw_data);
+        // m_inventory_ui->weak_inventory = inventory_comp->inventory();
 
         const auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
         block_placing_comp->block_placeable = m_chunk_client;
