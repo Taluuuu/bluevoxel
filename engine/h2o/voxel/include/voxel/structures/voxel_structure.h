@@ -19,6 +19,8 @@ namespace h2o
         void resize(const v3i& new_size);
         [[nodiscard]] const v3i& size() const { return m_data.size; }
 
+    private:
+
         // This struct exists to allow for easier resizing, probably in
         // editor mode
         struct StructureData
@@ -37,8 +39,6 @@ namespace h2o
             [[nodiscard]] std::optional<size_t> to_index(const v3i& pos) const;
 
         };
-
-    private:
 
         StructureData m_data{};
 

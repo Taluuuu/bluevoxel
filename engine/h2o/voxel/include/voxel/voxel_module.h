@@ -2,7 +2,6 @@
 
 #include "core/events.h"
 #include "core/module.h"
-#include "inventory/hotbar_ui.h"
 #include "voxel/block_presets/block_preset_base.h"
 
 #include <memory>

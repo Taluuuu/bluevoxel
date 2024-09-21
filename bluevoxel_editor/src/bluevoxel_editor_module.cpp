@@ -32,7 +32,7 @@ namespace bluevoxel
         m_input_module = &engine.get_module_checked<h2o::InputModule>();
 
         auto& renderer = engine.get_module_checked<h2o::RenderingModule>().renderer();
-        renderer.set_clear_color({ 0.16f, 0.26f, 0.34f, 1.0f });
+        renderer.set_clear_color({ 0.2f, 0.48f, 0.66f, 1.0f });
 
         // TODO: Voxel pack picker in this class ?
         auto voxel_pack = engine

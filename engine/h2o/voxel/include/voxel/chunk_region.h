@@ -32,11 +32,11 @@ namespace h2o
         [[nodiscard]] v2i region_pos() const { return m_position; }
 
         enum class GenerationState
-        { None, Pending, Generated };
+        { Pending, Terrain, Structures, Finished = Structures };
 
     public:
 
-        GenerationState generation_state = GenerationState::None;
+        GenerationState generation_state = GenerationState::Pending;
 
     private:
 

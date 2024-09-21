@@ -30,6 +30,16 @@ namespace h2o
         tree.set_block({ 1, 4, 1 }, 7);
 
         add_structure("tree", tree);
+
+        VoxelStructure plus({ 32, 32, 32 });
+        for (i32 i = 0; i < 32; i++)
+        {
+            plus.set_block({ i, 0, 0 }, 4);
+            plus.set_block({ 0, i, 0 }, 4);
+            plus.set_block({ 0, 0, i }, 4);
+        }
+
+        add_structure("plus", plus);
     }
 
     std::optional<u32> VoxelStructureManager::get_structure_id(const std::string& name) const
@@ -60,5 +70,11 @@ namespace h2o
         m_structures.push_back(structure);
 
         assert(m_structures.size() == m_structure_ids.size());
+    }
+
+    bool VoxelStructureManager::load(const fs::path& path)
+    {
+        // TODO
+        return true;
     }
 }

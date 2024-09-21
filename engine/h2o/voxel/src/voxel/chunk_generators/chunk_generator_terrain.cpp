@@ -41,6 +41,23 @@ namespace h2o
 
     std::vector<VoxelStructureInstance> ChunkGenerator_Terrain::gen_structures(const ChunkRegionView& region_view) const
     {
-        return {};
+        std::vector<VoxelStructureInstance> structures{};
+
+        // Find ground level. This should probably be an easily accessible function
+        i32 ground_level = 0;
+        for (; ground_level < voxel_constants::vertical_block_count; ground_level++)
+        {
+            const auto block = region_view.get_block_at({0, ground_level, 0}, ViewRelativeTo::ViewCorner);
+            if (!block || block == Block::Air)
+                break;
+        }
+
+        const v3i corner_chunk_pos = region_view.corner_chunk_pos();
+        v3i structure_pos = corner_chunk_pos * voxel_constants::chunk_size;
+        structure_pos.y = ground_level;
+
+        structures.emplace_back(0, v3i{0, 100, 0});
+
+        return structures;
     }
 }

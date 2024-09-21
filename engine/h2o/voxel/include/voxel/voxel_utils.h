@@ -90,9 +90,9 @@ namespace h2o::voxel_utils
 
     constexpr void for_v3i(const v3i& min_val, const v3i& max_val, const std::function<void(const v3i&)>& body)
     {
-        for (v3i iter = min_val; iter.x < max_val.x; iter.x++)
-        for (;                   iter.y < max_val.y; iter.y++)
-        for (;                   iter.z < max_val.z; iter.z++)
-            body(iter);
+        for (i32 i = min_val.x; i < max_val.x; i++)
+        for (i32 j = min_val.y; j < max_val.y; j++)
+        for (i32 k = min_val.z; k < max_val.z; k++)
+            body({ i, j, k });
     }
 }

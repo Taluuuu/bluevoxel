@@ -27,6 +27,10 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override { return "h2o_ui"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
+    public:
+
+        bool display_stats = false;
+
     protected:
 
         // Tickable interface

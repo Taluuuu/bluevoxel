@@ -1,15 +1,15 @@
 #pragma once
 
+#include "core/resources.h"
 #include "core/types.h"
+#include "voxel_structure.h"
 
 #include <string>
 #include <unordered_map>
 
-#include "voxel_structure.h"
-
 namespace h2o
 {
-    class VoxelStructureManager
+    class VoxelStructureManager : public IResource
     {
     public:
 
@@ -20,6 +20,9 @@ namespace h2o
         [[nodiscard]] const VoxelStructure* get_structure(u32 structure_id) const;
 
         void add_structure(const std::string& name, const VoxelStructure& structure);
+
+        // IResource interface
+        bool load(const fs::path& path) override;
 
     private:
 

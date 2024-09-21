@@ -41,7 +41,8 @@ namespace h2o
                 {
                     const v3i pos_in_chunk = block_pos - chunk_min;
                     const v3i pos_in_structure = block_pos - structure_min;
-                    chunk.set_block_at(pos_in_chunk, structure->get_block(pos_in_structure));
+                    if (const auto block = structure->get_block(pos_in_structure); block != Block::Air)
+                        chunk.set_block_at(pos_in_chunk, block);
                 }
             );
         }
