@@ -159,12 +159,8 @@ namespace h2o
 
                     const auto it = m_chunk_regions.find(offset_region_pos);
 
-                    // Returning nullopt here as would be logical causes some holes in the world that are
-                    // never generated. Doing continue here might lead to some structures spawning in an
-                    // incomplete way. Need to investigate this further.
                     if (it == m_chunk_regions.end())
-                        // return std::nullopt;
-                        continue;
+                        return std::nullopt;
 
                     if (!it->second)
                         return std::nullopt; // OK
@@ -190,7 +186,7 @@ namespace h2o
             if (!structures)
                 continue;
 
-            const v2i offset_region_corner = voxel_utils::region_to_chunk_pos(region_pos);
+            const v2i offset_region_corner = voxel_utils::region_to_chunk_pos(offset_region_pos);
             m_chunk_server->chunk_mgr().view_mut<ChunkRegionExtents>(
                 { offset_region_corner.x, 0, offset_region_corner.y },
                 [&](ChunkRegionView& region_view)
