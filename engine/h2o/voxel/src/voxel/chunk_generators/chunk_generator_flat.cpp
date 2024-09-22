@@ -27,7 +27,7 @@ namespace h2o
 
         const v3i corner = region_view.corner_chunk_pos() * voxel_constants::chunk_size;
 
-        srand(time(nullptr));
+        srand(corner.x ^ corner.z);
         for (i32 i = 0; i < voxel_constants::chunk_region_block_count; i++)
         for (i32 j = 0; j < voxel_constants::chunk_region_block_count; j++)
         {

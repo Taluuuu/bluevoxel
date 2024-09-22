@@ -43,20 +43,28 @@ namespace h2o
     {
         std::vector<VoxelStructureInstance> structures{};
 
-        // Find ground level. This should probably be an easily accessible function
-        i32 ground_level = 0;
-        for (; ground_level < voxel_constants::vertical_block_count; ground_level++)
+        const v3i corner = region_view.corner_chunk_pos() * voxel_constants::chunk_size;
+
+        srand(corner.x ^ corner.z);
+        for (i32 i = 0; i < voxel_constants::chunk_region_block_count; i++)
+        for (i32 j = 0; j < voxel_constants::chunk_region_block_count; j++)
         {
-            const auto block = region_view.get_block_at({0, ground_level, 0}, ViewRelativeTo::ViewCorner);
-            if (!block || block == Block::Air)
-                break;
+            const f32 random_float = f32(rand()) / std::numeric_limits<i32>::max();
+            if (random_float > 0.001f)
+                continue;
+
+            // Find ground level. This should probably be an easily accessible function
+            i32 ground_level = 0;
+            for (; ground_level < voxel_constants::vertical_block_count; ground_level++)
+            {
+                const auto block = region_view.get_block_at({ i, ground_level, j }, ViewRelativeTo::ViewCorner);
+                if (!block || block == Block::Air)
+                    break;
+            }
+
+            const v3i structure_pos = corner + v3i{ i, ground_level, j };
+            structures.emplace_back(1, structure_pos);
         }
-
-        const v3i corner_chunk_pos = region_view.corner_chunk_pos();
-        v3i structure_pos = corner_chunk_pos * voxel_constants::chunk_size;
-        structure_pos.y = ground_level;
-
-        structures.emplace_back(0, v3i{0, 100, 0});
 
         return structures;
     }

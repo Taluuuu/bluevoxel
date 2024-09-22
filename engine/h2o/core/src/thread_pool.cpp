@@ -40,7 +40,7 @@ namespace h2o
     size_t ThreadPool::thread_count() const
     {
         return std::max(1, i32(std::thread::hardware_concurrency()) / 2);
-        // return 12;
+        // return 1;
     }
 
     void ThreadPool::thread_loop()

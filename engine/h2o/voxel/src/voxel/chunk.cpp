@@ -1,7 +1,10 @@
 #include "voxel/chunk.h"
 
+#include "voxel/structures/voxel_structure_manager.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_module.h"
+#include "voxel/voxel_pack.h"
+#include "voxel/voxel_utils.h"
 
 namespace h2o
 {
@@ -27,6 +30,39 @@ namespace h2o
         assert(is_initialized());
 
         set_block_at(to_index(local_pos), block);
+    }
+
+    void Chunk::place_structure(const VoxelStructureInstance& structure_instance)
+    {
+        const auto& voxel_pack = m_voxel_module->voxel_pack();
+        assert(voxel_pack);
+
+        const auto& structure_mgr = voxel_pack->structure_manager();
+
+        const auto& [structure_id, structure_min] = structure_instance;
+        const auto structure = structure_mgr.get_structure(structure_id);
+        if (!structure)
+            return;
+
+        const v3i structure_size = structure->size();
+
+        const v3i chunk_min = m_chunk_pos * voxel_constants::chunk_size;
+
+        const v3i min = glm::max(structure_min, chunk_min);
+        const v3i max = glm::min(
+            structure_min + structure_size,
+            chunk_min + v3i{ voxel_constants::chunk_size });
+
+        voxel_utils::for_v3i(min, max,
+            [&](const v3i& block_pos)
+            {
+                const v3i pos_in_chunk = block_pos - chunk_min;
+                const v3i pos_in_structure = block_pos - structure_min;
+
+                if (const auto block = structure->get_block(pos_in_structure); block != Block::Air)
+                    set_block_at(pos_in_chunk, block);
+            }
+        );
     }
 
     void Chunk::init(const v3i& chunk_pos, const VoxelModule& voxel_module)

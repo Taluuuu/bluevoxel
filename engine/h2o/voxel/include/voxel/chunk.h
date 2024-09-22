@@ -15,6 +15,7 @@
 namespace h2o
 {
     class VoxelModule;
+    struct VoxelStructureInstance;
 
     class Chunk
     {
@@ -27,6 +28,8 @@ namespace h2o
 
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
         void set_block_at(const v3i& local_pos, Block block);
+
+        void place_structure(const VoxelStructureInstance& structure_instance);
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
         [[nodiscard]] bool is_empty() const { return m_is_empty; }

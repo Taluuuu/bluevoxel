@@ -25,9 +25,7 @@ namespace h2o
         explicit ChunkRegion(v2i position);
 
         void register_structures(const std::vector<VoxelStructureInstance>& structures);
-
-        // Places the bit of contained structures that fits in this chunk
-        void place_structures(Chunk& chunk) const;
+        [[nodiscard]] const auto& structures() const { return m_structures; }
 
         [[nodiscard]] v2i region_pos() const { return m_position; }
 

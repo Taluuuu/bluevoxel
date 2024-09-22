@@ -17,23 +17,44 @@ namespace h2o
 
     void ChunkRegionManager::generate_regions_for_chunk(v2i chunk_pos)
     {
-        const auto regions_to_generate = get_regions_to_generate_for_chunk(chunk_pos);
-        if (regions_to_generate.empty())
-            return;
+        std::vector<v2i> regions_to_generate{};
 
-        const std::unique_lock lock{ m_chunk_regions_mutex };
-        for (v2i region_pos : regions_to_generate)
+        // Find regions that need generating
         {
-            auto& region = m_chunk_regions[region_pos];
-            region = std::make_shared<ChunkRegionData>(region_pos);
+            const std::shared_lock lock{ m_chunk_regions_mutex };
 
-            g_engine->thread_pool().queue_job(0.0f,
-                [this, region_pos]
+            const v2i center_region_pos = voxel_utils::chunk_to_region_pos(chunk_pos);
+            for (i32 i = -1; i <= 1; i++)
+            for (i32 j = -1; j <= 1; j++)
+            {
+                const v2i offset{ i, j };
+                const v2i offset_region_pos = center_region_pos + offset;
+
+                if (!m_chunk_regions.contains(offset_region_pos))
+                    regions_to_generate.push_back(offset_region_pos);
+            }
+        }
+
+        if (!regions_to_generate.empty())
+        {
+            // Only exclusively lock the mutex if there are regions that need to be generated
+            const std::unique_lock lock{ m_chunk_regions_mutex };
+
+            for (v2i region_pos : regions_to_generate)
+            {
+                if (auto& region = m_chunk_regions[region_pos]; !region)
                 {
-                    generate_region_terrain(region_pos);
-                    update_chunk_generation_states(region_pos);
+                    region = std::make_shared<ChunkRegionData>(region_pos);
+
+                    g_engine->thread_pool().queue_job(0.0f,
+                        [this, region_pos]
+                        {
+                            generate_region_terrain(region_pos);
+                            update_chunk_generation_states(region_pos);
+                        }
+                    );
                 }
-            );
+            }
         }
     }
 
@@ -95,79 +116,6 @@ namespace h2o
         function(region_data);
     }
 
-    std::vector<v2i> ChunkRegionManager::get_regions_to_generate_for_chunk(v2i chunk_pos) const
-    {
-        std::vector<v2i> result{};
-
-        const v2i region_pos = voxel_utils::chunk_to_region_pos(chunk_pos);
-        for (i32 i = -1; i <= 1; i++)
-        for (i32 j = -1; j <= 1; j++)
-        {
-            const v2i offset{ i, j };
-            const v2i offset_region_pos = region_pos + offset;
-
-            fetch_region(offset_region_pos,
-                [&](const ChunkRegion* region)
-                {
-                    if (!region)
-                        result.push_back(offset_region_pos);
-                }
-            );
-        }
-
-        return result;
-    }
-
-    bool ChunkRegionManager::should_generate_structures(v2i region_pos) const
-    {
-        {
-            bool is_region_already_fully_generated = false;
-            fetch_region(region_pos,
-                [&](const ChunkRegion* chunk_region)
-                {
-                    is_region_already_fully_generated = chunk_region && chunk_region->generation_state == ChunkRegion::GenerationState::Finished;
-                }
-            );
-
-            if (is_region_already_fully_generated)
-                return false;
-        }
-
-        for (i32 i = -1; i <= 1; i++)
-        for (i32 j = -1; j <= 1; j++)
-        {
-            v2i offset_pos = region_pos + v2i{ i, j };
-            if (offset_pos == region_pos)
-                continue;
-
-            bool is_region_generated = false;
-            fetch_region(offset_pos,
-                [&](const ChunkRegion* chunk_region)
-                {
-                    is_region_generated =
-                        chunk_region &&
-                        chunk_region->generation_state >= ChunkRegion::GenerationState::Terrain;
-                }
-            );
-
-            if (!is_region_generated)
-                return false;
-        }
-
-        return true;
-    }
-
-    void ChunkRegionManager::update_chunk_generation_states(v2i region_pos)
-    {
-        for (i32 i = -1; i <= 1; i++)
-        for (i32 j = -1; j <= 1; j++)
-        {
-            const v2i offset_region_pos = region_pos + v2i{ i, j };
-            if (should_generate_structures(offset_region_pos))
-                generate_region_structures(offset_region_pos);
-        }
-    }
-
     void ChunkRegionManager::generate_region_terrain(v2i region_pos)
     {
         fetch_region_mut(region_pos,
@@ -194,42 +142,78 @@ namespace h2o
         );
     }
 
-    void ChunkRegionManager::generate_region_structures(v2i region_pos)
+    void ChunkRegionManager::update_chunk_generation_states(v2i region_pos)
     {
-        const v2i region_corner = voxel_utils::region_to_chunk_pos(region_pos);
+        // Returns structures that should be placed in the region at region_pos, or nullopt if
+        // not all regions neighbouring this one are generated.
+        const auto find_structures_to_place =
+            [this](v2i region_pos) -> std::optional< std::vector<VoxelStructureInstance> >
+            {
+                std::vector<VoxelStructureInstance> result{};
+
+                const std::shared_lock regions_lock{ m_chunk_regions_mutex };
+                for (i32 i = -1; i <= 1; i++)
+                for (i32 j = -1; j <= 1; j++)
+                {
+                    const v2i offset_region_pos = region_pos + v2i{ i, j };
+
+                    const auto it = m_chunk_regions.find(offset_region_pos);
+
+                    // Returning nullopt here as would be logical causes some holes in the world that are
+                    // never generated. Doing continue here might lead to some structures spawning in an
+                    // incomplete way. Need to investigate this further.
+                    if (it == m_chunk_regions.end())
+                        // return std::nullopt;
+                        continue;
+
+                    if (!it->second)
+                        return std::nullopt; // OK
+
+                    auto& [region, mutex] = *it->second;
+                    const std::shared_lock region_lock{ mutex };
+                    if (region.generation_state < ChunkRegion::GenerationState::Terrain)
+                        return std::nullopt;
+
+                    const auto& region_structures = region.structures();
+                    result.insert(result.end(), region_structures.begin(), region_structures.end());
+                }
+
+                return result;
+            };
+
         for (i32 i = -1; i <= 1; i++)
         for (i32 j = -1; j <= 1; j++)
         {
-            const v2i offset_region = region_pos + v2i{ i, j };
-            fetch_region(offset_region,
-                [&](const ChunkRegion* chunk_region)
-                {
-                    if (!chunk_region)
-                        return;
+            const v2i offset_region_pos = region_pos + v2i{ i, j };
 
-                    m_chunk_server->chunk_mgr().view_mut<ChunkRegionExtents>(
-                        { region_corner.x, 0, region_corner.y },
-                        [&](ChunkRegionView& region_view)
+            const auto structures = find_structures_to_place(offset_region_pos);
+            if (!structures)
+                continue;
+
+            const v2i offset_region_corner = voxel_utils::region_to_chunk_pos(region_pos);
+            m_chunk_server->chunk_mgr().view_mut<ChunkRegionExtents>(
+                { offset_region_corner.x, 0, offset_region_corner.y },
+                [&](ChunkRegionView& region_view)
+                {
+                    region_view.for_each_chunk(
+                        [&](Chunk& chunk)
                         {
-                            region_view.for_each_chunk(
-                                [&](Chunk& chunk)
-                                {
-                                    chunk_region->place_structures(chunk);
-                                    chunk.mark_generated();
-                                }
-                            );
+                            for (const auto& structure : *structures)
+                                chunk.place_structure(structure);
+
+                            chunk.mark_generated();
                         }
                     );
                 }
             );
-        }
 
-        fetch_region_mut(region_pos,
-            [](ChunkRegion* chunk_region)
-            {
-                if (chunk_region)
-                    chunk_region->generation_state = ChunkRegion::GenerationState::Finished;
-            }
-        );
+            fetch_region_mut(offset_region_pos,
+                [](ChunkRegion* chunk_region)
+                {
+                    if (chunk_region)
+                        chunk_region->generation_state = ChunkRegion::GenerationState::Structures;
+                }
+            );
+        }
     }
 }

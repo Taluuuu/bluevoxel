@@ -57,7 +57,6 @@ namespace h2o
                         }
                         else
                         {
-                            // THIS IS SLOW but will work for now ig
                             m_chunk_region_mgr.generate_regions_for_chunk(chunk_pos);
                         }
                     }

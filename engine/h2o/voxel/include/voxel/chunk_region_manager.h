@@ -43,13 +43,8 @@ namespace h2o
         void fetch_region_data(v2i region_pos, const std::function<void(const ChunkRegionData*)>& function) const;
         void fetch_region_data_mut(v2i region_pos, const std::function<void(ChunkRegionData*)>& function);
 
-        [[nodiscard]] std::vector<v2i> get_regions_to_generate_for_chunk(v2i chunk_pos) const;
-
-        [[nodiscard]] bool should_generate_structures(v2i region_pos) const;
-        void update_chunk_generation_states(v2i region_pos);
-
         void generate_region_terrain(v2i region_pos);
-        void generate_region_structures(v2i region_pos);
+        void update_chunk_generation_states(v2i region_pos);
 
     private:
 

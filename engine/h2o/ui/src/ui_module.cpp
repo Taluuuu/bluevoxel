@@ -37,7 +37,8 @@ namespace h2o
 
     void UIModule::post_update(f32 delta_time)
     {
-        if (display_stats)
+        auto& layer_stack = g_engine->layer_stack();
+        if (layer_stack.top_layer() == Layer::PauseMenu)
         {
             if (ImGui::Begin("Stats"))
             {
