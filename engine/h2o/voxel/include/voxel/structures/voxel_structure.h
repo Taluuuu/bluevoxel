@@ -19,6 +19,8 @@ namespace h2o
         void resize(const v3i& new_size);
         [[nodiscard]] const v3i& size() const { return m_data.size; }
 
+        void clear();
+
     private:
 
         // This struct exists to allow for easier resizing, probably in

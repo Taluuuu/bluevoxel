@@ -163,7 +163,7 @@ namespace h2o
                         return std::nullopt;
 
                     if (!it->second)
-                        return std::nullopt; // OK
+                        return std::nullopt;
 
                     auto& [region, mutex] = *it->second;
                     const std::shared_lock region_lock{ mutex };

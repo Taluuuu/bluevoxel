@@ -8,6 +8,8 @@
 namespace h2o
 {
     class Scene;
+    class VoxelStructure;
+    class VoxelStructureManager;
 }
 
 namespace bluevoxel
@@ -33,12 +35,23 @@ namespace bluevoxel
         void update(f32 delta_time) override;
         void render() override;
 
+        void tick_editor_gui();
+        void load_structure(u32 structure_id);
+        void save_structure();
+
         [[nodiscard]] v3i calc_extents() const;
+
+        [[nodiscard]] static h2o::VoxelPack& get_voxel_pack();
+        [[nodiscard]] static h2o::VoxelStructureManager& get_structure_mgr();
 
     private:
 
+        static constexpr h2o::Block default_block = 3;
+
         h2o::ChunkManager m_chunk_manager{};
         h2o::VoxelWorldRenderer m_voxel_world_renderer;
+
+        u32 m_selected_structure_id = 0;
 
         // The structure's extents
         v3i m_extents{};

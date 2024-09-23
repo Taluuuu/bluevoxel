@@ -60,13 +60,16 @@ namespace h2o
             // Draw selection highlight
             renderer.draw_cube(v3{pos} - v3{0.005f}, v3{1.01f}, line_color);
 
-            if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
-                block_placeable->set_block_at(hit_voxel.pos, Block::Air);
-
-            if (const auto selected_item = m_hotbar_ui.selected_item())
+            if (g_engine->layer_stack().top_layer() == Layer::Game)
             {
-                if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
-                    block_placeable->set_block_at(before_hit_voxel.pos, selected_item->item);
+                if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
+                    block_placeable->set_block_at(hit_voxel.pos, Block::Air);
+
+                if (const auto selected_item = m_hotbar_ui.selected_item())
+                {
+                    if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
+                        block_placeable->set_block_at(before_hit_voxel.pos, selected_item->item);
+                }
             }
         }
     }

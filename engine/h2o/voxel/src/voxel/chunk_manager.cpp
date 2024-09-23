@@ -96,6 +96,31 @@ namespace h2o
         view({ chunk_column_pos.x, 0, chunk_column_pos.y }, function);
     }
 
+    void ChunkManager::remove_all_chunk_columns(const std::function<bool(v2i)>& condition)
+    {
+        std::vector<v2i> chunk_columns_to_delete{};
+
+        {
+            const std::shared_lock loaded_chunks_lock{ m_loaded_chunks_mutex };
+            for (const auto& [chunk_col_pos, _] : m_loaded_chunks)
+            {
+                if (condition(chunk_col_pos))
+                    chunk_columns_to_delete.push_back(chunk_col_pos);
+            }
+        }
+
+        if (chunk_columns_to_delete.empty())
+            return;
+
+        add_to_deleted_chunks_list(chunk_columns_to_delete);
+
+        {
+            const std::unique_lock loaded_chunks_lock{ m_loaded_chunks_mutex };
+            for (const v2i chunk_col_pos : chunk_columns_to_delete)
+                m_loaded_chunks.erase(chunk_col_pos);
+        }
+    }
+
     void ChunkManager::view_for_meshing(
         const v3i& chunk_pos,
         const std::function<void(const ChunkMeshingView&)>& function) const
@@ -137,20 +162,20 @@ namespace h2o
     void ChunkManager::broadcast_events()
     {
         {
-            std::unique_lock lock{ m_updated_chunks_mutex };
-            if (!m_updated_chunks.empty())
-            {
-                on_chunks_updated.broadcast({ m_updated_chunks });
-                m_updated_chunks.clear();
-            }
-        }
-
-        {
-            std::unique_lock lock{ m_deleted_chunk_columns_mutex };
+            const std::unique_lock lock{ m_deleted_chunk_columns_mutex };
             if (!m_deleted_chunk_columns.empty())
             {
                 on_chunks_deleted.broadcast({ m_deleted_chunk_columns });
                 m_deleted_chunk_columns.clear();
+            }
+        }
+
+        {
+            const std::unique_lock lock{ m_updated_chunks_mutex };
+            if (!m_updated_chunks.empty())
+            {
+                on_chunks_updated.broadcast({ m_updated_chunks });
+                m_updated_chunks.clear();
             }
         }
     }
@@ -189,5 +214,49 @@ namespace h2o
             it->second = create_chunk_column(chunk_column_pos);
 
         return it->second;
+    }
+
+    void ChunkManager::add_to_updated_chunks_list(const std::vector<v3i>& updated_chunks)
+    {
+        {
+            const std::unique_lock lock{ m_updated_chunks_mutex };
+            for (const v3i chunk_col_pos : updated_chunks)
+                m_updated_chunks.insert(chunk_col_pos);
+        }
+
+        {
+            const std::unique_lock lock{ m_deleted_chunk_columns_mutex };
+            for (const v3i& chunk_pos : updated_chunks)
+            {
+                erase_if(m_deleted_chunk_columns,
+                    [&](v2i chunk_col_pos)
+                    {
+                        return chunk_pos.x == chunk_col_pos.x && chunk_pos.z == chunk_col_pos.y;
+                    }
+                );
+            }
+        }
+    }
+
+    void ChunkManager::add_to_deleted_chunks_list(const std::vector<v2i>& deleted_chunks)
+    {
+        {
+            const std::unique_lock lock{ m_deleted_chunk_columns_mutex };
+            for (const v2i chunk_col_pos : deleted_chunks)
+                m_deleted_chunk_columns.insert(chunk_col_pos);
+        }
+
+        {
+            const std::unique_lock lock{ m_updated_chunks_mutex };
+            for (const v2i chunk_col_pos : deleted_chunks)
+            {
+                erase_if(m_updated_chunks,
+                    [&](const v3i& chunk_pos)
+                    {
+                        return chunk_pos.x == chunk_col_pos.x && chunk_pos.z == chunk_col_pos.y;
+                    }
+                );
+            }
+        }
     }
 }

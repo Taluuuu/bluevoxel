@@ -169,6 +169,7 @@ namespace h2o
         {
             save_block_types();
             save_block_models();
+            m_structure_manager.save(m_path / structures_file_name);
         }
         catch(const std::exception& e)
         {
@@ -206,6 +207,9 @@ namespace h2o
         const auto texture_ids = generate_texture_ids(textures_path);
         const auto block_types = load_block_types(block_types_path, *uncooked_block_models, texture_ids);
         if (!block_types)
+            return false;
+
+        if (!m_structure_manager.load(path / structures_file_name))
             return false;
 
         m_uncooked_block_models = *uncooked_block_models;

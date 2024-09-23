@@ -48,6 +48,11 @@ namespace h2o
         m_data = new_data;
     }
 
+    void VoxelStructure::clear()
+    {
+        m_data = StructureData{};
+    }
+
     VoxelStructure::StructureData::StructureData(v3i size)
         : size(size)
     {

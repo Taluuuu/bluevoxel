@@ -70,6 +70,7 @@ namespace h2o
 
         static constexpr std::string_view block_types_file_name  { "block_types.yml"  };
         static constexpr std::string_view block_models_file_name { "block_models.yml" };
+        static constexpr std::string_view structures_file_name   { "structures.yml"   };
         static constexpr std::string_view textures_folder_name   { "textures"         };
 
         Event<VoxelPackUpdatedEvent> on_voxel_pack_updated{};

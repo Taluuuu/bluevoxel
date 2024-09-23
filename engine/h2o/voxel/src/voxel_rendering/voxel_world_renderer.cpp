@@ -154,11 +154,9 @@ namespace h2o
             [&](const ChunkMeshingView& view)
             {
                 ChunkMesh chunk_mesh(view, *m_voxel_module);
-                if (chunk_mesh.vertex_count() > 0)
-                {
-                    std::unique_lock lock{ m_pending_built_meshes_mutex };
-                    m_pending_built_meshes.emplace_back(std::move(chunk_mesh));
-                }
+
+                const std::unique_lock lock{ m_pending_built_meshes_mutex };
+                m_pending_built_meshes.emplace_back(std::move(chunk_mesh));
             }
         );
     }

@@ -36,8 +36,7 @@ namespace h2o
         void view_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkColumnView&)>& function);
         void view_chunk_column(v2i chunk_column_pos, const std::function<void(const ChunkColumnView&)>& function) const;
 
-        // TODO: Implement this. Will need to call event.
-        // void remove_all_chunk_columns(const std::function<bool(v2i)>& condition);
+        void remove_all_chunk_columns(const std::function<bool(v2i)>& condition);
 
         // Open a temporary view into a cubic region of chunks, mutable or otherwise
         template<v3i ViewSize>
@@ -71,6 +70,9 @@ namespace h2o
         [[nodiscard]] static std::shared_ptr<ChunkColumnData> create_chunk_column(v2i chunk_column_pos);
         [[nodiscard]] std::shared_ptr<ChunkColumnData> find_chunk_column(v2i chunk_column_pos) const;
         [[nodiscard]] std::shared_ptr<ChunkColumnData> find_or_create_chunk_column(v2i chunk_column_pos);
+
+        void add_to_updated_chunks_list(const std::vector<v3i>& updated_chunks);
+        void add_to_deleted_chunks_list(const std::vector<v2i>& deleted_chunks);
 
     private:
 
@@ -116,15 +118,14 @@ namespace h2o
 
         function(chunk_view);
 
-        {
-            std::unique_lock updated_chunks_lock{ m_updated_chunks_mutex };
-            chunk_view.for_each_chunk(
-                [&](const Chunk& chunk)
-                {
-                    m_updated_chunks.insert(chunk.chunk_pos());
-                }
-            );
-        }
+        std::vector<v3i> updated_chunks{};
+        chunk_view.for_each_chunk(
+            [&](const Chunk& chunk)
+            {
+                updated_chunks.push_back(chunk.chunk_pos());
+            }
+        );
+        add_to_updated_chunks_list(updated_chunks);
     }
 
     template<v3i ViewSize>
@@ -157,15 +158,14 @@ namespace h2o
 
         function(chunk_view);
 
-        {
-            std::unique_lock updated_chunks_lock{ m_updated_chunks_mutex };
-            chunk_view.for_each_chunk(
-                [&](const Chunk& chunk)
-                {
-                    m_updated_chunks.insert(chunk.chunk_pos());
-                }
-            );
-        }
+        std::vector<v3i> updated_chunks{};
+        chunk_view.for_each_chunk(
+            [&](const Chunk& chunk)
+            {
+                updated_chunks.push_back(chunk.chunk_pos());
+            }
+        );
+        add_to_updated_chunks_list(updated_chunks);
     }
 
     template<v3i ViewSize>

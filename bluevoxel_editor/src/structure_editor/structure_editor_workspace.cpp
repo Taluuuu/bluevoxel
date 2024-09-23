@@ -8,6 +8,7 @@
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
 #include "scene_rendering/rendering_scene_system.h"
+#include "voxel/voxel_pack.h"
 #include "voxel_client/block_placing_component.h"
 
 namespace bluevoxel
@@ -17,19 +18,13 @@ namespace bluevoxel
         , m_voxel_world_renderer(*this, m_chunk_manager)
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
     {
-        // Allocate space for the max structure size
-        m_chunk_manager.view_or_create_mut<h2o::voxel_constants::max_structure_size_chunks>(
-            v3i{}, [](auto&){});
-
         m_chunk_manager.on_chunks_updated.add_listener(m_on_chunks_updated_handle,
-            [this](const h2o::ChunksUpdatedEvent& event)
+            [this](const h2o::ChunksUpdatedEvent&)
             {
                 m_extents = calc_extents();
+                save_structure();
             }
         );
-
-        // Starter block
-        StructureEditorWorkspace::set_block_at(v3i{0}, h2o::Block{1});
 
         m_scene = std::make_shared<h2o::Scene>("editor_scene", nullptr);
         m_scene->add_system<h2o::RenderingSystem>();
@@ -44,6 +39,8 @@ namespace bluevoxel
         player->transform.rotation = { 0.0f, 0.0f, 0.0f };
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
         player->move_speed = 5.0f;
+
+        load_structure(m_selected_structure_id);
 
         set_tick_phases(h2o::TickPhase::Update | h2o::TickPhase::Render);
     }
@@ -71,6 +68,12 @@ namespace bluevoxel
                     h2o::LayerData{ false, true });
             }
         }
+
+        if (layer_stack.top_layer() == h2o::Layer::PauseMenu)
+            tick_editor_gui();
+
+        if (m_extents == v3i{0})
+            set_block_at(v3i{0}, default_block);
     }
 
     void StructureEditorWorkspace::render()
@@ -79,48 +82,131 @@ namespace bluevoxel
         renderer.draw_cube(v3{-0.005f}, v3{m_extents} + v3{0.01f}, v4{});
     }
 
+    void StructureEditorWorkspace::tick_editor_gui()
+    {
+        if (ImGui::Begin("Structure Editor"))
+        {
+            const auto& structure_mgr = get_structure_mgr();
+            const auto structure_names = structure_mgr.structure_names();
+
+            std::vector<const char*> structure_names_c_str{};
+            structure_names_c_str.reserve(structure_names.size());
+            for (const auto& name : structure_names)
+                structure_names_c_str.push_back(name.c_str());
+
+            if (ImGui::Combo("Structure", (i32*)&m_selected_structure_id, structure_names_c_str.data(), i32(structure_names_c_str.size())))
+                load_structure(m_selected_structure_id);
+
+            if (ImGui::Button("Create New"))
+            {
+
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Delete"))
+            {
+
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Save"))
+            {
+                get_voxel_pack().save();
+            }
+
+            ImGui::SameLine();
+            if (ImGui::Button("Rename"))
+            {
+
+            }
+        }
+        ImGui::End();
+    }
+
+    void StructureEditorWorkspace::load_structure(u32 structure_id)
+    {
+        const auto& structure_mgr = get_structure_mgr();
+
+        const auto structure = structure_mgr.get_structure(structure_id);
+        if (!structure)
+            return;
+
+        m_chunk_manager.remove_all_chunk_columns([](v2i) { return true; });
+
+        const h2o::VoxelStructureInstance structure_instance{ structure_id, v3i{0} };
+
+        const v3i structure_size = structure->size();
+        const v3i structure_size_chunks = structure_size / h2o::voxel_constants::chunk_size;
+
+        h2o::voxel_utils::for_v3i(v3i{0}, structure_size_chunks + v3i{1},
+            [&](const v3i& chunk_pos)
+            {
+                m_chunk_manager.fetch_or_create_chunk_mut(chunk_pos,
+                    [&](h2o::Chunk* chunk)
+                    {
+                        if (chunk)
+                            chunk->place_structure(structure_instance);
+                    }
+                );
+            }
+        );
+
+        m_chunk_manager.broadcast_events();
+    }
+
+    void StructureEditorWorkspace::save_structure()
+    {
+        auto& structure_mgr = get_structure_mgr();
+        if (const auto structure = structure_mgr.get_structure(m_selected_structure_id))
+        {
+            structure->clear();
+            structure->resize(m_extents);
+
+            constexpr v3i max_size_chunks = h2o::voxel_constants::max_structure_size_chunks;
+            m_chunk_manager.view<max_size_chunks>(v3i{0},
+                [&](const h2o::ChunkView<max_size_chunks>& view)
+                {
+                    view.for_each_block(
+                        [&](const v3i& block_pos, const h2o::Block& block)
+                        {
+                            structure->set_block(block_pos, block);
+                        }
+                    );
+                }
+            );
+        }
+    }
+
     v3i StructureEditorWorkspace::calc_extents() const
     {
         v3i extents{};
 
-        // TODO: Add for_each_block to ChunkManager ?
-        for (i32 i = 0; i < h2o::voxel_constants::max_structure_size_chunks.x; i++)
-        for (i32 j = 0; j < h2o::voxel_constants::max_structure_size_chunks.y; j++)
-        for (i32 k = 0; k < h2o::voxel_constants::max_structure_size_chunks.z; k++)
-        {
-            const v3i chunk_pos{ i, j, k };
-            const v3i chunk_corner = chunk_pos * h2o::voxel_constants::chunk_size;
-
-            m_chunk_manager.fetch_chunk(chunk_pos,
-                [&](const h2o::Chunk* chunk)
-                {
-                    if (!chunk)
-                        return;
-
-                    for (i32 ii = 0; ii < h2o::voxel_constants::chunk_size; ii++)
-                    for (i32 jj = 0; jj < h2o::voxel_constants::chunk_size; jj++)
-                    for (i32 kk = 0; kk < h2o::voxel_constants::chunk_size; kk++)
+        constexpr v3i max_size_chunks = h2o::voxel_constants::max_structure_size_chunks;
+        m_chunk_manager.view<max_size_chunks>(v3i{0},
+            [&](const h2o::ChunkView<max_size_chunks>& view)
+            {
+                view.for_each_block(
+                    [&](const v3i& block_pos, const h2o::Block&)
                     {
-                        const v3i local_block_pos{ ii, jj, kk };
-                        if (chunk->get_block_at(local_block_pos) != h2o::Block::Air)
-                        {
-                            const v3i block_pos = local_block_pos + chunk_corner;
-                            extents = glm::max(block_pos + v3i{1}, extents);
-                        }
+                        extents = glm::max(block_pos + v3i{1}, extents);
                     }
-                }
-            );
-        }
-
-        // for (i32 i = 0; i < h2o::voxel_constants::max_structure_size_blocks.x; i++)
-        // for (i32 j = 0; j < h2o::voxel_constants::max_structure_size_blocks.y; j++)
-        // for (i32 k = 0; k < h2o::voxel_constants::max_structure_size_blocks.z; k++)
-        // {
-        //     const v3i block_pos{ i, j, k };
-        //     if (const auto block = m_chunk_manager.get_block_at(block_pos); block && block != h2o::Block::Air)
-        //         extents = glm::max(block_pos + v3i{1}, extents);
-        // }
+                );
+            }
+        );
 
         return extents;
+    }
+
+    h2o::VoxelPack& StructureEditorWorkspace::get_voxel_pack()
+    {
+        const auto& voxel_pack = g_engine->get_module_checked<h2o::VoxelModule>().voxel_pack();
+        assert(voxel_pack);
+
+        return *voxel_pack;
+    }
+
+    h2o::VoxelStructureManager& StructureEditorWorkspace::get_structure_mgr()
+    {
+        return get_voxel_pack().structure_manager();
     }
 }

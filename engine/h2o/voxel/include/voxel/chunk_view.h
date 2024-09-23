@@ -26,6 +26,9 @@ namespace h2o
         void for_each_chunk(const std::function<void(Chunk&)>& function);
         void for_each_chunk(const std::function<void(const Chunk&)>& function) const;
 
+        // Loop through all blocks that are not air
+        void for_each_block(const std::function<void(const v3i&, const Block&)>& function) const;
+
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, ViewRelativeTo relative_to = ViewRelativeTo::World) const;
         bool set_block_at(const v3i& block_pos, Block block, ViewRelativeTo relative_to = ViewRelativeTo::World);
 
@@ -45,7 +48,7 @@ namespace h2o
     private:
 
         [[nodiscard]] v3i get_relative_to_chunk_pos(ViewRelativeTo relative_to) const;
-        [[nodiscard]] static constexpr bool in_range(const v3i& local_chunk_pos);
+        [[nodiscard]] static constexpr bool in_bounds(const v3i& local_chunk_pos);
         [[nodiscard]] static constexpr size_t to_index(const v3i& local_chunk_pos);
 
     private:
@@ -83,6 +86,27 @@ namespace h2o
     }
 
     template<v3i ViewSize>
+    void ChunkView<ViewSize>::for_each_block(const std::function<void(const v3i&, const Block&)>& function) const
+    {
+        for (const Chunk* chunk : m_chunks)
+        {
+            if (!chunk || chunk->is_empty())
+                continue;
+
+            const v3i chunk_corner_pos = chunk->chunk_pos() * voxel_constants::chunk_size;
+            for (i32 i = 0; i < voxel_constants::chunk_size; i++)
+            for (i32 j = 0; j < voxel_constants::chunk_size; j++)
+            for (i32 k = 0; k < voxel_constants::chunk_size; k++)
+            {
+                const v3i local_block_pos{ i, j, k };
+                const v3i world_block_pos = chunk_corner_pos + local_block_pos;
+                if (const auto block = chunk->get_block_at(local_block_pos); block != Block::Air)
+                    function(world_block_pos, block);
+            }
+        }
+    }
+
+    template<v3i ViewSize>
     std::optional<Block> ChunkView<ViewSize>::get_block_at(const v3i& block_pos, ViewRelativeTo relative_to) const
     {
         if (const Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
@@ -109,7 +133,7 @@ namespace h2o
         const v3i offset = get_relative_to_chunk_pos(relative_to) - m_corner;
         const v3i local_chunk_pos = relative_chunk_pos + offset;
 
-        if (!in_range(local_chunk_pos))
+        if (!in_bounds(local_chunk_pos))
             return nullptr;
 
         return m_chunks[to_index(local_chunk_pos)];
@@ -121,7 +145,7 @@ namespace h2o
         const v3i offset = get_relative_to_chunk_pos(relative_to) - m_corner;
         const v3i local_chunk_pos = relative_chunk_pos + offset;
 
-        if (!in_range(local_chunk_pos))
+        if (!in_bounds(local_chunk_pos))
             return nullptr;
 
         return m_chunks[to_index(local_chunk_pos)];
@@ -143,7 +167,7 @@ namespace h2o
     void ChunkView<ViewSize>::add_chunk(Chunk& chunk)
     {
         const v3i local_chunk_pos = chunk.chunk_pos() - m_corner;
-        assert(in_range(local_chunk_pos));
+        assert(in_bounds(local_chunk_pos));
 
         m_chunks[to_index(local_chunk_pos)] = &chunk;
     }
@@ -164,7 +188,7 @@ namespace h2o
     }
 
     template<v3i ViewSize>
-    constexpr bool ChunkView<ViewSize>::in_range(const v3i& local_chunk_pos)
+    constexpr bool ChunkView<ViewSize>::in_bounds(const v3i& local_chunk_pos)
     {
         return
             local_chunk_pos.x >= 0 && local_chunk_pos.x < ViewSize.x &&
@@ -175,7 +199,7 @@ namespace h2o
     template<v3i ViewSize>
     constexpr size_t ChunkView<ViewSize>::to_index(const v3i& local_chunk_pos)
     {
-        assert(in_range(local_chunk_pos));
+        assert(in_bounds(local_chunk_pos));
 
         return
             local_chunk_pos.z * ViewSize.x * ViewSize.y +
