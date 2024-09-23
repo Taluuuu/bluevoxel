@@ -33,7 +33,7 @@ namespace h2o
             const i32 ground_level = i32(noise_outputs[z * region_size_blocks.x + x]) + 64;
             for (i32 y = 0; y < ground_level; y++)
             {
-                const Block block = 3; // stone
+                const Block block = 1; // stone
                 region_view.set_block_at({ x, y, z }, block, ViewRelativeTo::ViewCorner);
             }
         }
@@ -50,7 +50,7 @@ namespace h2o
         for (i32 j = 0; j < voxel_constants::chunk_region_block_count; j++)
         {
             const f32 random_float = f32(rand()) / std::numeric_limits<i32>::max();
-            if (random_float > 0.001f)
+            if (random_float > 0.005f)
                 continue;
 
             // Find ground level. This should probably be an easily accessible function
@@ -63,7 +63,7 @@ namespace h2o
             }
 
             const v3i structure_pos = corner + v3i{ i, ground_level, j };
-            structures.emplace_back(1, structure_pos);
+            structures.emplace_back(0, structure_pos);
         }
 
         return structures;
