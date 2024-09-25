@@ -5,7 +5,8 @@
 
 namespace h2o
 {
-    VoxelStructure::VoxelStructure(v3i size)
+    VoxelStructure::VoxelStructure(const std::string& name, v3i size)
+        : m_name(name)
     {
         resize(size);
     }
@@ -22,30 +23,49 @@ namespace h2o
 
     void VoxelStructure::resize(const v3i& new_size)
     {
-        if (new_size.x <= 0 ||
-            new_size.y <= 0 ||
-            new_size.z <= 0)
-        {
-            log::warn("Trying to resize voxel structure to invalid size: {}, {}, {}",
-                new_size.x, new_size.y, new_size.z);
-
-            return;
-        }
-
         StructureData new_data(new_size);
         for (i32 i = 0; i < m_data.size.x; i++)
+        for (i32 j = 0; j < m_data.size.y; j++)
+        for (i32 k = 0; k < m_data.size.z; k++)
         {
-            for (i32 j = 0; j < m_data.size.y; j++)
+            const v3i pos{ i, j, k };
+            new_data.set_block(pos, m_data.get_block(pos));
+        }
+
+        m_data = new_data;
+    }
+
+    bool VoxelStructure::move(const v3i& delta)
+    {
+        const v3i new_size = m_data.size + delta;
+        if (new_size.x < 0 || new_size.y < 0 || new_size.z < 0)
+            return false;
+
+        StructureData new_data(m_data.size + delta);
+        for (i32 i = 0; i < m_data.size.x; i++)
+        for (i32 j = 0; j < m_data.size.y; j++)
+        for (i32 k = 0; k < m_data.size.z; k++)
+        {
+            const v3i pos{ i, j, k };
+
+            if (const Block block = m_data.get_block(pos); block != Block::Air)
             {
-                for (i32 k = 0; k < m_data.size.z; k++)
+                const v3i pos_in_new_data = pos + delta;
+
+                if (pos_in_new_data.x >= voxel_constants::max_structure_size_blocks.x ||
+                    pos_in_new_data.y >= voxel_constants::max_structure_size_blocks.y ||
+                    pos_in_new_data.z >= voxel_constants::max_structure_size_blocks.z)
                 {
-                    const v3i pos{ i, j, k };
-                    new_data.set_block(pos, m_data.get_block(pos));
+                    return false;
                 }
+
+                if (!new_data.set_block(pos_in_new_data, block))
+                    return false;
             }
         }
 
         m_data = new_data;
+        return true;
     }
 
     void VoxelStructure::clear()
@@ -59,10 +79,15 @@ namespace h2o
         blocks.resize(size.x * size.y * size.z, Block::Air);
     }
 
-    void VoxelStructure::StructureData::set_block(const v3i& pos, Block block)
+    bool VoxelStructure::StructureData::set_block(const v3i& pos, Block block)
     {
         if (const auto index = to_index(pos))
+        {
             blocks[*index] = block;
+            return true;
+        }
+
+        return false;
     }
 
     Block VoxelStructure::StructureData::get_block(const v3i& pos) const

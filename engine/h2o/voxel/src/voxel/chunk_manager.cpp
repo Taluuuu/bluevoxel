@@ -142,7 +142,7 @@ namespace h2o
                 if (const auto neighbour_col = find_chunk_column(neighbour_col_pos))
                 {
                     auto& [chunk, mutex] = (*neighbour_col)[neighbour_pos.y];
-                    chunk_view.add_chunk(chunk);
+                    chunk_view.add_chunk(chunk, neighbour_col);
                     chunk_locks.emplace_back(mutex);
                 }
             };
@@ -180,7 +180,7 @@ namespace h2o
         }
     }
 
-    std::shared_ptr<ChunkManager::ChunkColumnData> ChunkManager::create_chunk_column(v2i chunk_column_pos)
+    std::shared_ptr<ChunkColumnData> ChunkManager::create_chunk_column(v2i chunk_column_pos)
     {
         const auto chunk_col = std::make_shared<ChunkColumnData>();
         for (i32 i = 0; i < voxel_constants::vertical_chunk_count; i++)
@@ -193,7 +193,7 @@ namespace h2o
         return chunk_col;
     }
 
-    std::shared_ptr<ChunkManager::ChunkColumnData> ChunkManager::find_chunk_column(v2i chunk_column_pos) const
+    std::shared_ptr<ChunkColumnData> ChunkManager::find_chunk_column(v2i chunk_column_pos) const
     {
         const std::shared_lock lock { m_loaded_chunks_mutex };
         if (const auto it = m_loaded_chunks.find(chunk_column_pos); it != m_loaded_chunks.end())
@@ -202,7 +202,7 @@ namespace h2o
         return nullptr;
     }
 
-    std::shared_ptr<ChunkManager::ChunkColumnData> ChunkManager::find_or_create_chunk_column(v2i chunk_column_pos)
+    std::shared_ptr<ChunkColumnData> ChunkManager::find_or_create_chunk_column(v2i chunk_column_pos)
     {
         if (const auto chunk_column = find_chunk_column(chunk_column_pos))
             return chunk_column;

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "chunk_column_data.h"
 #include "chunk_view.h"
-#include "scene/scene_system.h"
 
 #include <glm/gtx/hash.hpp>
 #include <memory>
@@ -59,14 +59,6 @@ namespace h2o
 
     private:
 
-        struct ChunkData
-        {
-            Chunk chunk{};
-            std::shared_mutex mutex{};
-        };
-
-        using ChunkColumnData = std::array< ChunkData, voxel_constants::vertical_chunk_count >;
-
         [[nodiscard]] static std::shared_ptr<ChunkColumnData> create_chunk_column(v2i chunk_column_pos);
         [[nodiscard]] std::shared_ptr<ChunkColumnData> find_chunk_column(v2i chunk_column_pos) const;
         [[nodiscard]] std::shared_ptr<ChunkColumnData> find_or_create_chunk_column(v2i chunk_column_pos);
@@ -111,7 +103,7 @@ namespace h2o
                     continue;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];
-                chunk_view.add_chunk(chunk);
+                chunk_view.add_chunk(chunk, chunk_col);
                 chunk_locks.emplace_back(mutex);
             }
         }
@@ -151,7 +143,7 @@ namespace h2o
                     continue;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];
-                chunk_view.add_chunk(chunk);
+                chunk_view.add_chunk(chunk, chunk_col);
                 chunk_locks.emplace_back(mutex);
             }
         }
@@ -191,7 +183,7 @@ namespace h2o
                     continue;
 
                 auto& [chunk, mutex] = (*chunk_col)[j];
-                chunk_view.add_chunk(chunk);
+                chunk_view.add_chunk(chunk, chunk_col);
                 chunk_locks.emplace_back(mutex);
             }
         }

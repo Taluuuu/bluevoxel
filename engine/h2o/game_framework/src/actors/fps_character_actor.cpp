@@ -1,8 +1,8 @@
 #include "game_framework/actors/fps_character_actor.h"
 
+#include "core/engine.h"
 #include "game_framework/components/fps_camera_component.h"
 #include "input/input_component.h"
-#include "rendering/camera.h"
 
 #include <glm/gtx/norm.hpp>
 
@@ -20,6 +20,9 @@ namespace h2o
 
     void FpsCharacterActor::update(f32 delta_time)
     {
+        if (g_engine->layer_stack().top_layer() != Layer::Game)
+            return;
+
         v2 move_input {
             m_input->get_axis("move_y"),
             m_input->get_axis("move_x") };

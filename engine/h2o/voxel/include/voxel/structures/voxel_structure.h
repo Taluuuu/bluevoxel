@@ -11,13 +11,21 @@ namespace h2o
     {
     public:
 
-        explicit VoxelStructure(v3i size = { 1, 1, 1 });
+        explicit VoxelStructure(const std::string& name, v3i size = { 1, 1, 1 });
 
         void set_block(const v3i& pos, Block block);
         [[nodiscard]] Block get_block(const v3i& pos) const;
 
         void resize(const v3i& new_size);
         [[nodiscard]] const v3i& size() const { return m_data.size; }
+
+        // Moves the structure by leaving blank blocks.
+        // Cannot delete blocks.
+        // Returns true on success.
+        bool move(const v3i& delta);
+
+        void set_name(const std::string& name) { m_name = name; }
+        [[nodiscard]] const std::string& name() const { return m_name; }
 
         void clear();
 
@@ -32,7 +40,8 @@ namespace h2o
             v3i size{};
             std::vector<Block> blocks{};
 
-            void set_block(const v3i& pos, Block block);
+            // Returns true if in bounds
+            bool set_block(const v3i& pos, Block block);
             [[nodiscard]] Block get_block(const v3i& pos) const;
 
         private:
@@ -43,6 +52,7 @@ namespace h2o
         };
 
         StructureData m_data{};
+        std::string m_name{};
 
     };
 }

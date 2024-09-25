@@ -7,48 +7,14 @@
 
 namespace h2o
 {
-    VoxelStructureManager::VoxelStructureManager()
-    {
-        // VoxelStructure tree({ 3, 5, 3 });
-        //
-        // tree.set_block({ 1, 0, 1 }, 6);
-        // tree.set_block({ 1, 1, 1 }, 6);
-        // tree.set_block({ 1, 2, 1 }, 6);
-        // tree.set_block({ 1, 3, 1 }, 6);
-        //
-        // tree.set_block({ 0, 2, 0 }, 7);
-        // tree.set_block({ 1, 2, 0 }, 7);
-        // tree.set_block({ 2, 2, 0 }, 7);
-        // tree.set_block({ 2, 2, 1 }, 7);
-        // tree.set_block({ 2, 2, 2 }, 7);
-        // tree.set_block({ 1, 2, 2 }, 7);
-        // tree.set_block({ 0, 2, 2 }, 7);
-        // tree.set_block({ 0, 2, 1 }, 7);
-        //
-        // tree.set_block({ 1, 3, 0 }, 7);
-        // tree.set_block({ 2, 3, 1 }, 7);
-        // tree.set_block({ 1, 3, 2 }, 7);
-        // tree.set_block({ 0, 3, 1 }, 7);
-        //
-        // tree.set_block({ 1, 4, 1 }, 7);
-        //
-        // add_structure("tree", tree);
-        //
-        // VoxelStructure plus({ 32, 32, 32 });
-        // for (i32 i = 0; i < 32; i++)
-        // {
-        //     plus.set_block({ i, 0, 0 }, 4);
-        //     plus.set_block({ 0, i, 0 }, 4);
-        //     plus.set_block({ 0, 0, i }, 4);
-        // }
-        //
-        // add_structure("plus", plus);
-    }
-
     std::optional<u32> VoxelStructureManager::get_structure_id(const std::string& name) const
     {
-        if (const auto it = m_structure_ids.find(name); it != m_structure_ids.end())
-            return it->second;
+        for (u32 i = 0; i < m_structures.size(); i++)
+        {
+            const auto& structure = m_structures[i];
+            if (structure && structure->name() == name)
+                return i;
+        }
 
         return std::nullopt;
     }
@@ -78,29 +44,57 @@ namespace h2o
     std::vector<std::string> VoxelStructureManager::structure_names() const
     {
         std::vector<std::string> result{};
-        result.resize(m_structure_ids.size(), "none");
+        result.resize(m_structures.size(), "none");
 
-        for (const auto& [name, id] : m_structure_ids)
+        for (u32 i = 0; i < m_structures.size(); i++)
         {
-            if (id < result.size())
-                result[id] = name;
+            if (const auto& structure = m_structures[i])
+                result[i] = structure->name();
         }
 
         return result;
     }
 
-    void VoxelStructureManager::add_structure(const std::string& name, const VoxelStructure& structure)
+    u32 VoxelStructureManager::add_structure(const VoxelStructure& structure)
     {
-        if (get_structure_id(name).has_value())
+        for (u32 i = 0; i < m_structures.size(); i++)
         {
-            log::warn("There is already a structure registered with name '{}'. Ignoring.", name);
-            return;
+            if (auto& s = m_structures[i]; !s)
+            {
+                s = structure;
+                return i;
+            }
         }
 
-        m_structure_ids.emplace(name, m_structures.size());
-        m_structures.push_back(structure);
+        const u32 id = m_structures.size();
+        m_structures.emplace_back(structure);
 
-        assert(m_structures.size() == m_structure_ids.size());
+        return id;
+    }
+
+    std::optional<u32> VoxelStructureManager::delete_structure(u32 id)
+    {
+        if (id < m_structures.size())
+            m_structures[id] = std::nullopt;
+
+        for (i32 i = i32(m_structures.size()) - 1; i >= 0; --i)
+        {
+            if (m_structures[i])
+                return i;
+
+            m_structures.erase(m_structures.begin() + i);
+        }
+
+        return std::nullopt;
+    }
+
+    void VoxelStructureManager::rename_structure(u32 id, const std::string& name)
+    {
+        if (id < m_structures.size())
+        {
+            if (auto& structure = m_structures[id])
+                structure->set_name(name);
+        }
     }
 
     void VoxelStructureManager::save(const fs::path& path) const
@@ -115,7 +109,7 @@ namespace h2o
             yaml << YAML::Value;
 
             yaml << YAML::BeginSeq;
-            for (const auto& [name, id] : m_structure_ids)
+            for (u32 id = 0; id < m_structures.size(); id++)
             {
                 const VoxelStructure* structure = get_structure(id);
                 if (!structure)
@@ -125,7 +119,7 @@ namespace h2o
 
                 yaml << YAML::BeginMap;
 
-                yaml << YAML::Key << "name" << YAML::Value << name;
+                yaml << YAML::Key << "name" << YAML::Value << structure->name();
                 yaml << YAML::Key << "id" << YAML::Value << id;
                 yaml << YAML::Key << "size" << YAML::Value << structure_size;
 
@@ -176,21 +170,19 @@ namespace h2o
                 const auto size = structure_yml["size"].as<v3i>();
                 const auto blocks = structure_yml["blocks"].as<std::vector<u32>>();
 
-                VoxelStructure structure{ size };
+                VoxelStructure structure{ name, size };
                 for (u32 i = 0; i < blocks.size(); i++)
                 {
                     const BlockID block = blocks[i];
 
                     const v3i pos{
-                        (i / size.z) % size.x,//(i / size.x) % size.z,
+                        (i / size.z) % size.x,
                         i / (size.x * size.z),
                         i % size.z
                     };
 
                     structure.set_block(pos, Block{ block });
                 }
-
-                m_structure_ids[name] = id;
 
                 if (id >= m_structures.size())
                     m_structures.resize(id + 1, std::nullopt);

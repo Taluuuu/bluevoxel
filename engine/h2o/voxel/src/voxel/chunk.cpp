@@ -65,12 +65,19 @@ namespace h2o
         );
     }
 
+    Chunk::~Chunk()
+    {
+        TESTING2 = true;
+    }
+
     void Chunk::init(const v3i& chunk_pos, const VoxelModule& voxel_module)
     {
         m_chunk_pos = chunk_pos;
         m_voxel_module = &voxel_module;
 
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
+
+        TESTING = true;
     }
 
     void Chunk::tick()

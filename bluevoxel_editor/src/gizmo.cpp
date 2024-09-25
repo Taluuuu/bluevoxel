@@ -132,6 +132,9 @@ namespace bluevoxel
                 m_selected_axes = {};
                 m_selection_mgr->resume_selection();
                 g_engine->layer_stack().pop_layer(h2o::Layer::UI);
+
+                if (reset_position_on_release)
+                    set_position(v3{});
             }
         }
 

@@ -31,6 +31,8 @@ namespace bluevoxel
         struct Bounds{ v3 min{}, max{}; };
         std::optional<Bounds> bounds = std::nullopt;
 
+        bool reset_position_on_release = false;
+
     protected:
 
         // h2o::Tickable interface

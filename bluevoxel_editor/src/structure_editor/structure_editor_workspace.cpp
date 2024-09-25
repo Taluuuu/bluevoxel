@@ -13,9 +13,14 @@
 
 namespace bluevoxel
 {
+    static constexpr const char* rename_structure_modal_name = "Name Selected Structure";
+    static constexpr const char* delete_structure_modal_name = "Delete Selected Structure?";
+
     StructureEditorWorkspace::StructureEditorWorkspace(h2o::Tickable* owner)
         : h2o::Tickable(owner)
         , m_voxel_world_renderer(*this, m_chunk_manager)
+        , m_selection_mgr(owner)
+        , m_structure_gizmo(owner, m_selection_mgr)
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
     {
         m_chunk_manager.on_chunks_updated.add_listener(m_on_chunks_updated_handle,
@@ -40,7 +45,10 @@ namespace bluevoxel
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
         player->move_speed = 5.0f;
 
-        load_structure(m_selected_structure_id);
+        m_structure_gizmo.increment_size = 1.0f;
+        m_structure_gizmo.reset_position_on_release = true;
+
+        load_selected_structure();
 
         set_tick_phases(h2o::TickPhase::Update | h2o::TickPhase::Render);
     }
@@ -69,8 +77,25 @@ namespace bluevoxel
             }
         }
 
-        if (layer_stack.top_layer() == h2o::Layer::PauseMenu)
+        if (layer_stack.top_layer() >= h2o::Layer::PauseMenu)
+        {
             tick_editor_gui();
+            m_structure_gizmo.enable();
+
+            m_structure_gizmo.bounds = Gizmo::Bounds{
+                -h2o::voxel_constants::max_structure_size_blocks,
+                h2o::voxel_constants::max_structure_size_blocks };
+
+            if (const auto structure = get_selected_structure())
+            {
+                if (structure->move(m_structure_gizmo.movement_delta()))
+                    load_selected_structure();
+            }
+        }
+        else
+        {
+            m_structure_gizmo.disable();
+        }
 
         if (m_extents == v3i{0})
             set_block_at(v3i{0}, default_block);
@@ -78,15 +103,19 @@ namespace bluevoxel
 
     void StructureEditorWorkspace::render()
     {
-        auto& renderer = m_rendering_module->renderer();
-        renderer.draw_cube(v3{-0.005f}, v3{m_extents} + v3{0.01f}, v4{});
+        if (m_extents.x && m_extents.y && m_extents.z)
+        {
+            auto& renderer = m_rendering_module->renderer();
+            renderer.draw_cube(v3{-0.005f}, v3{m_extents} + v3{0.01f}, v4{});
+        }
     }
 
     void StructureEditorWorkspace::tick_editor_gui()
     {
-        if (ImGui::Begin("Structure Editor"))
+        auto& structure_mgr = get_structure_mgr();
+
+        if (ImGui::Begin("Structure Editor", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
         {
-            const auto& structure_mgr = get_structure_mgr();
             const auto structure_names = structure_mgr.structure_names();
 
             std::vector<const char*> structure_names_c_str{};
@@ -95,17 +124,22 @@ namespace bluevoxel
                 structure_names_c_str.push_back(name.c_str());
 
             if (ImGui::Combo("Structure", (i32*)&m_selected_structure_id, structure_names_c_str.data(), i32(structure_names_c_str.size())))
-                load_structure(m_selected_structure_id);
+                load_selected_structure();
+
+            ImGui::Text("ID: %u", m_selected_structure_id);
+            ImGui::Text("Size: (%i, %i, %i)", m_extents.x, m_extents.y, m_extents.z);
 
             if (ImGui::Button("Create New"))
             {
-
+                m_selected_structure_id = structure_mgr.add_structure(h2o::VoxelStructure{ "no_name" });
+                load_selected_structure();
+                open_rename_structure_popup();
             }
 
             ImGui::SameLine();
             if (ImGui::Button("Delete"))
             {
-
+                open_delete_structure_popup();
             }
 
             ImGui::SameLine();
@@ -117,47 +151,83 @@ namespace bluevoxel
             ImGui::SameLine();
             if (ImGui::Button("Rename"))
             {
-
+                open_rename_structure_popup();
             }
         }
+
+        // Structure naming pop-up
+        if (ImGui::BeginPopupModal(rename_structure_modal_name))
+        {
+            ImGui::InputText("New Name", &m_selected_structure_name_edit);
+
+            if (ImGui::Button("Confirm"))
+            {
+                structure_mgr.rename_structure(m_selected_structure_id, m_selected_structure_name_edit);
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel"))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
+        }
+
+        // Structure deleting pop-up
+        if (ImGui::BeginPopupModal(delete_structure_modal_name))
+        {
+            if (ImGui::Button("Confirm"))
+            {
+                m_selected_structure_id = structure_mgr.delete_structure(m_selected_structure_id).value_or(0);
+                load_selected_structure();
+
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::SameLine();
+
+            if (ImGui::Button("Cancel"))
+                ImGui::CloseCurrentPopup();
+
+            ImGui::EndPopup();
+        }
+
         ImGui::End();
     }
 
-    void StructureEditorWorkspace::load_structure(u32 structure_id)
+    void StructureEditorWorkspace::load_selected_structure()
     {
-        const auto& structure_mgr = get_structure_mgr();
-
-        const auto structure = structure_mgr.get_structure(structure_id);
-        if (!structure)
-            return;
-
         m_chunk_manager.remove_all_chunk_columns([](v2i) { return true; });
 
-        const h2o::VoxelStructureInstance structure_instance{ structure_id, v3i{0} };
+        if (const auto structure = get_selected_structure())
+        {
+            const h2o::VoxelStructureInstance structure_instance{ m_selected_structure_id, v3i{0} };
 
-        const v3i structure_size = structure->size();
-        const v3i structure_size_chunks = structure_size / h2o::voxel_constants::chunk_size;
+            const v3i structure_size = structure->size();
+            const v3i structure_size_chunks = structure_size / h2o::voxel_constants::chunk_size;
 
-        h2o::voxel_utils::for_v3i(v3i{0}, structure_size_chunks + v3i{1},
-            [&](const v3i& chunk_pos)
-            {
-                m_chunk_manager.fetch_or_create_chunk_mut(chunk_pos,
-                    [&](h2o::Chunk* chunk)
-                    {
-                        if (chunk)
-                            chunk->place_structure(structure_instance);
-                    }
-                );
-            }
-        );
+            h2o::voxel_utils::for_v3i(v3i{0}, structure_size_chunks + v3i{1},
+                [&](const v3i& chunk_pos)
+                {
+                    m_chunk_manager.fetch_or_create_chunk_mut(chunk_pos,
+                        [&](h2o::Chunk* chunk)
+                        {
+                            if (chunk)
+                                chunk->place_structure(structure_instance);
+                        }
+                    );
+                }
+            );
+        }
 
+        m_extents = calc_extents();
         m_chunk_manager.broadcast_events();
     }
 
     void StructureEditorWorkspace::save_structure()
     {
-        auto& structure_mgr = get_structure_mgr();
-        if (const auto structure = structure_mgr.get_structure(m_selected_structure_id))
+        if (const auto structure = get_selected_structure())
         {
             structure->clear();
             structure->resize(m_extents);
@@ -175,6 +245,20 @@ namespace bluevoxel
                 }
             );
         }
+    }
+
+    void StructureEditorWorkspace::open_rename_structure_popup()
+    {
+        if (const auto structure = get_selected_structure())
+        {
+            m_selected_structure_name_edit = structure->name();
+            ImGui::OpenPopup(rename_structure_modal_name);
+        }
+    }
+
+    void StructureEditorWorkspace::open_delete_structure_popup()
+    {
+        ImGui::OpenPopup(delete_structure_modal_name);
     }
 
     v3i StructureEditorWorkspace::calc_extents() const
@@ -208,5 +292,10 @@ namespace bluevoxel
     h2o::VoxelStructureManager& StructureEditorWorkspace::get_structure_mgr()
     {
         return get_voxel_pack().structure_manager();
+    }
+
+    h2o::VoxelStructure* StructureEditorWorkspace::get_selected_structure() const
+    {
+        return get_structure_mgr().get_structure(m_selected_structure_id);
     }
 }

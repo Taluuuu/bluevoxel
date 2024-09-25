@@ -1,6 +1,8 @@
 #pragma once
 
 #include "core/tickable.h"
+#include "gizmo.h"
+#include "selection_manager.h"
 #include "voxel/chunk_manager.h"
 #include "voxel_client/block_placeable_interface.h"
 #include "voxel_rendering/voxel_world_renderer.h"
@@ -36,13 +38,17 @@ namespace bluevoxel
         void render() override;
 
         void tick_editor_gui();
-        void load_structure(u32 structure_id);
+        void load_selected_structure();
         void save_structure();
+
+        void open_rename_structure_popup();
+        void open_delete_structure_popup();
 
         [[nodiscard]] v3i calc_extents() const;
 
         [[nodiscard]] static h2o::VoxelPack& get_voxel_pack();
         [[nodiscard]] static h2o::VoxelStructureManager& get_structure_mgr();
+        [[nodiscard]] h2o::VoxelStructure* get_selected_structure() const;
 
     private:
 
@@ -55,6 +61,14 @@ namespace bluevoxel
 
         // The structure's extents
         v3i m_extents{};
+
+        // Gizmo for moving a whole structure
+        SelectionManager m_selection_mgr;
+        Gizmo m_structure_gizmo;
+
+        // Modals
+        // The input for the structure currently being renamed.
+        std::string m_selected_structure_name_edit{};
 
         std::shared_ptr<h2o::Scene> m_scene = nullptr;
 

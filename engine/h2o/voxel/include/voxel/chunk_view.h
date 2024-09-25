@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chunk.h"
+#include "chunk_column_data.h"
 #include "voxel/block.h"
 #include "voxel_utils.h"
 
@@ -43,7 +44,8 @@ namespace h2o
     private:
 
         friend class ChunkManager;
-        void add_chunk(Chunk& chunk);
+        // The chunk must be from the chunk column to ensure thread-safety (see comment below)
+        void add_chunk(Chunk& chunk, const std::shared_ptr<ChunkColumnData>& chunk_column);
 
     private:
 
@@ -55,6 +57,11 @@ namespace h2o
 
         // 3D vector of chunk pointers
         std::array<Chunk*, ViewSize.x * ViewSize.y * ViewSize.z> m_chunks{};
+
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // !!! Make sure chunk columns stay allocated while chunk pointers are in use !!!
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        std::unordered_set< std::shared_ptr<ChunkColumnData> > m_chunk_columns{};
 
         v3i m_corner{};
 
@@ -164,12 +171,13 @@ namespace h2o
     }
 
     template<v3i ViewSize>
-    void ChunkView<ViewSize>::add_chunk(Chunk& chunk)
+    void ChunkView<ViewSize>::add_chunk(Chunk& chunk, const std::shared_ptr<ChunkColumnData>& chunk_column)
     {
         const v3i local_chunk_pos = chunk.chunk_pos() - m_corner;
         assert(in_bounds(local_chunk_pos));
 
         m_chunks[to_index(local_chunk_pos)] = &chunk;
+        m_chunk_columns.insert(chunk_column);
     }
 
     template<v3i ViewSize>

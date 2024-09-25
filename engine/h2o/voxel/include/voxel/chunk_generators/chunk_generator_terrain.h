@@ -1,7 +1,6 @@
 #pragma once
 
 #include "chunk_generator_base.h"
-#include "voxel/block.h"
 
 #include <FastNoise/FastNoise.h>
 
