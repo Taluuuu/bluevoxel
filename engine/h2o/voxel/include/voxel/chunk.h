@@ -22,7 +22,6 @@ namespace h2o
     public:
 
         Chunk() = default;
-        ~Chunk();
 
         void init(const v3i& chunk_pos, const VoxelModule& voxel_module);
         void tick();
@@ -67,8 +66,6 @@ namespace h2o
 
         bool m_is_empty = true;
         bool m_is_generated = false;
-        bool TESTING = false;
-        bool TESTING2 = false;
 
     };
 }

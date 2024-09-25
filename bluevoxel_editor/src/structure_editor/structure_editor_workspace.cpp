@@ -88,8 +88,11 @@ namespace bluevoxel
 
             if (const auto structure = get_selected_structure())
             {
-                if (structure->move(m_structure_gizmo.movement_delta()))
-                    load_selected_structure();
+                if (m_structure_gizmo.movement_delta() != v3{})
+                {
+                    if (structure->move(m_structure_gizmo.movement_delta()))
+                        load_selected_structure();
+                }
             }
         }
         else
