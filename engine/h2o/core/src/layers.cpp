@@ -44,6 +44,11 @@ namespace h2o
         return Layer::None;
     }
 
+    bool LayerStack::has_layer(Layer layer) const
+    {
+        return m_layers[static_cast<size_t>(layer)].has_value();
+    }
+
     void LayerStack::update_debug_infos()
     {
         g_engine->debug_infos().update_debug_statistic("layers", "top layer",

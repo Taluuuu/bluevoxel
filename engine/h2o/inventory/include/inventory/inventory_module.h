@@ -16,5 +16,9 @@ namespace h2o
         [[nodiscard]] std::string_view module_name() const override { return "h2o_inventory"; }
         [[nodiscard]] std::vector<std::type_index> dependencies() const override;
 
+    public:
+
+
+
     };
 }

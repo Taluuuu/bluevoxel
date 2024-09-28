@@ -8,6 +8,7 @@
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
 #include "scene_rendering/rendering_scene_system.h"
+#include "ui/imgui.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_client/block_placing_component.h"
 

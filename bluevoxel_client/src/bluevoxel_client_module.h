@@ -7,10 +7,6 @@
 #include "scene/actor_initializer.h"
 #include "voxel/block.h"
 
-// TEMP
-#include "inventory/hotbar_ui.h"
-#include "inventory/inventory_ui.h"
-
 #include <memory>
 
 namespace h2o
@@ -62,9 +58,6 @@ namespace bluevoxel
         h2o::EventHandle m_on_client_connected_to_server_handle{};
         h2o::EventHandle m_on_connected_handle{};
         h2o::EventHandle m_on_disconnected_handle{};
-
-        // TEMP
-        std::optional< h2o::InventoryUI<h2o::Block> > m_inventory_ui = std::nullopt;
 
         h2o::InputModule* m_input_module = nullptr;
 

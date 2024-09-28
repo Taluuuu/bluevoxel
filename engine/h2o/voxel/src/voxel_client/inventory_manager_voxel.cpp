@@ -1,4 +1,4 @@
-#include "voxel_client/voxel_inventory_draw_data.h"
+#include "voxel_client/inventory_manager_voxel.h"
 
 #include "core/engine.h"
 #include "rendering/texture.h"
@@ -8,15 +8,12 @@
 
 namespace h2o
 {
-    VoxelInventoryDrawData::VoxelInventoryDrawData()
-        : VoxelInventoryDrawData(g_engine->get_module_checked<VoxelModule>())
+    InventoryManager_Voxel::InventoryManager_Voxel(VoxelModule& voxel_module)
+        : InventoryManager_Base(&voxel_module)
+        , m_voxel_module(&voxel_module)
     {}
 
-    VoxelInventoryDrawData::VoxelInventoryDrawData(const VoxelModule& voxel_module)
-        : m_voxel_module(&voxel_module)
-    {}
-
-    std::optional<u32> VoxelInventoryDrawData::fetch_item_texture_id(const Block& item) const
+    std::optional<u32> InventoryManager_Voxel::fetch_item_texture_id(const Block& item) const
     {
         const auto voxel_pack = m_voxel_module->voxel_pack();
         if (!voxel_pack)
@@ -50,7 +47,7 @@ namespace h2o
         return std::nullopt;
     }
 
-    std::string VoxelInventoryDrawData::fetch_item_name(const Block& item) const
+    std::string InventoryManager_Voxel::fetch_item_name(const Block& item) const
     {
         if (const auto voxel_pack = m_voxel_module->voxel_pack())
         {

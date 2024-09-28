@@ -10,7 +10,8 @@ namespace h2o
     enum class Layer : i32
     {
         Game = 0,  // Camera controls and the like
-        UI,        // Inventory screens, dialogs, ...
+        UI,        // Whenever any UI wants to keep control
+        Inventory, //
         PauseMenu, // Pause menu
 
         Last = PauseMenu,
@@ -34,6 +35,7 @@ namespace h2o
 
         [[nodiscard]] const LayerData& top_layer_data() const;
         [[nodiscard]] Layer top_layer() const;
+        [[nodiscard]] bool has_layer(Layer layer) const;
 
     private:
 

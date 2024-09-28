@@ -1,7 +1,5 @@
 #include "voxel/voxel_module.h"
 
-#include <voxel_client/voxel_inventory_draw_data.h>
-
 #include "core/engine.h"
 #include "networking/networking_module.h"
 #include "rendering/pipeline.h"
@@ -12,15 +10,21 @@
 #include "rendering/texture_array.h"
 #include "voxel/block_presets/block_preset_crop.h"
 #include "voxel/voxel_pack.h"
+#include "voxel_client/inventory_manager_voxel.h"
 
 namespace h2o
 {
+    VoxelModule::VoxelModule()
+        : Tickable(g_engine)
+    {
+    }
+
     bool VoxelModule::init(Engine& engine)
     {
         register_block_preset("normal", std::make_shared<BlockPreset_Base>());
         register_block_preset("crop", std::make_shared<BlockPreset_Crop>());
 
-        m_inventory_draw_data = std::make_shared<VoxelInventoryDrawData>(*this);
+        m_inventory_manager = std::make_shared<InventoryManager_Voxel>(*this);
 
         // Rendering module is an optional dependency.
         m_rendering_module = engine.get_module<RenderingModule>();

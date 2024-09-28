@@ -1,8 +1,6 @@
 #include "inventory/inventory_module.h"
 
 #include "inventory/inventory.h"
-#include "inventory/inventory_ui.h"
-#include "inventory/hotbar_ui.h"
 #include "scene/scene_module.h"
 #include "ui/ui_module.h"
 

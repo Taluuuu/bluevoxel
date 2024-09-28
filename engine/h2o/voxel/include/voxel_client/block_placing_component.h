@@ -1,11 +1,16 @@
 #pragma once
 
-#include "inventory/hotbar_ui.h"
+#include "inventory/inventory.h"
 #include "scene/component.h"
 #include "voxel/block.h"
 
 namespace h2o
 {
+    namespace gfx
+    {
+        class Texture;
+    }
+
     class CameraComponent;
     class ChunkManager;
     class IBlockPlaceable;
@@ -30,8 +35,11 @@ namespace h2o
         WeakHandle<CameraComponent> m_camera = nullptr;
         WeakHandle<InputComponent> m_input = nullptr;
 
+        std::shared_ptr< Inventory<Block> > m_inventory = nullptr;
         std::shared_ptr< Inventory<Block> > m_hotbar_inventory = nullptr;
-        HotbarUI<Block> m_hotbar_ui;
+
+        v2 m_crosshair_size{ 16.0f };
+        std::shared_ptr<gfx::Texture> m_crosshair_texture = nullptr;
 
         // Module refs
         RenderingModule* const m_rendering_module = nullptr;

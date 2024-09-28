@@ -18,7 +18,6 @@
 #include "voxel/voxel_pack.h"
 #include "voxel_client/chunk_client.h"
 #include "voxel_client/block_placing_component.h"
-#include "voxel_client/voxel_inventory_draw_data.h"
 
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -64,6 +63,7 @@ namespace bluevoxel
             [this](const h2o::Client::ConnectionEvent&)
             {
                 create_scene();
+                g_engine->layer_stack().pop_layer(h2o::Layer::PauseMenu);
             }
         );
 
@@ -73,6 +73,8 @@ namespace bluevoxel
                 m_scene = nullptr;
             }
         );
+
+        g_engine->layer_stack().push_layer(h2o::Layer::PauseMenu, { false, true });
 
         return true;
     }
@@ -108,40 +110,43 @@ namespace bluevoxel
             }
         }
 
-        ImGui::Begin("Connection");
-
-        switch (m_client.connection_state())
+        if (layer_stack.top_layer() == h2o::Layer::PauseMenu)
         {
-        case h2o::ConnectionState::Disconnected:
-        {
-            ImGui::InputText("Server IP", &m_server_ip);
+            ImGui::Begin("Connection");
 
-            if (ImGui::InputInt("Server Port", &m_server_port))
-                m_server_port = glm::clamp(m_server_port, 0, 65'535);
+            switch (m_client.connection_state())
+            {
+            case h2o::ConnectionState::Disconnected:
+            {
+                ImGui::InputText("Server IP", &m_server_ip);
 
-            if (ImGui::Button("Connect"))
-                m_client.connect(m_server_ip, m_server_port);
+                if (ImGui::InputInt("Server Port", &m_server_port))
+                    m_server_port = glm::clamp(m_server_port, 0, 65'535);
 
-            break;
+                if (ImGui::Button("Connect"))
+                    m_client.connect(m_server_ip, m_server_port);
+
+                break;
+            }
+
+            case h2o::ConnectionState::Connecting:
+            {
+                ImGui::Text("Connecting to Server...");
+
+                break;
+            }
+
+            case h2o::ConnectionState::Connected:
+            {
+                if (ImGui::Button("Disconnect"))
+                    m_client.stop();
+
+                break;
+            }
+            }
+
+            ImGui::End();
         }
-
-        case h2o::ConnectionState::Connecting:
-        {
-            ImGui::Text("Connecting to Server...");
-
-            break;
-        }
-
-        case h2o::ConnectionState::Connected:
-        {
-            if (ImGui::Button("Disconnect"))
-                m_client.stop();
-
-            break;
-        }
-        }
-
-        ImGui::End();
     }
 
     void BlueVoxelClientModule::create_scene()
@@ -163,9 +168,9 @@ namespace bluevoxel
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
 
-        const auto inventory_comp = player->add_component<h2o::InventoryComponent<h2o::Block>>(std::make_shared<h2o::Inventory<h2o::Block>>(5, std::nullopt));
-        inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 1 }, .count = 69 });
-        inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 2 }, .count = 1 });
+        // const auto inventory_comp = player->add_component<h2o::InventoryComponent<h2o::Block>>(std::make_shared<h2o::Inventory<h2o::Block>>(5, std::nullopt));
+        // inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 1 }, .count = 69 });
+        // inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 2 }, .count = 1 });
 
         // const auto inv_draw_data = std::make_shared<h2o::VoxelInventoryDrawData>();
         // m_inventory_ui.emplace(this, inv_draw_data);

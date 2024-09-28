@@ -51,7 +51,7 @@ block_types:
     preset: normal
     id: 5
     model: barrel
-    is_transparent: false
+    is_transparent: true
     textures:
       - wood_log_block_side.png
       - gravel.png
@@ -71,8 +71,8 @@ block_types:
   - name: leaves
     preset: normal
     id: 7
-    model: cube
-    is_transparent: false
+    model: leaves
+    is_transparent: true
     textures:
       - leaves_block.png
       - leaves_block.png
@@ -80,3 +80,52 @@ block_types:
       - leaves_block.png
       - leaves_block.png
       - leaves_block.png
+  - name: planks
+    preset: normal
+    id: 8
+    model: cube
+    is_transparent: false
+    textures:
+      - wood_planks_block.png
+      - wood_planks_block.png
+      - wood_planks_block.png
+      - wood_planks_block.png
+      - wood_planks_block.png
+      - wood_planks_block.png
+  - name: cactus
+    preset: normal
+    id: 9
+    model: thin_cube
+    is_transparent: true
+    textures:
+      - cactus_block_side.png
+      - cactus_block_side.png
+      - cactus_block_top.png
+      - cactus_block_top.png
+      - cactus_block_side.png
+      - cactus_block_side.png
+  - name: cobble
+    preset: normal
+    id: 10
+    model: cube
+    is_transparent: false
+    textures:
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png
+  - name: cobble_stair
+    preset: normal
+    id: 11
+    model: stair
+    is_transparent: true
+    textures:
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png
+      - cobblestone_block.png

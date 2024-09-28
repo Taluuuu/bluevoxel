@@ -1,6 +1,6 @@
 #pragma once
 
-#include "inventory/inventory_draw_data.h"
+#include "inventory/inventory_manager_base.h"
 #include "voxel/block.h"
 
 namespace h2o
@@ -10,13 +10,12 @@ namespace h2o
 
 namespace h2o
 {
-    class VoxelInventoryDrawData : public InventoryDrawData<Block>
+    class InventoryManager_Voxel : public InventoryManager_Base<Block>
     {
     public:
 
-        VoxelInventoryDrawData();
-        explicit VoxelInventoryDrawData(const VoxelModule& voxel_module);
-        ~VoxelInventoryDrawData() override = default;
+        explicit InventoryManager_Voxel(VoxelModule& voxel_module);
+        ~InventoryManager_Voxel() override = default;
 
         // InventoryUI interface
         [[nodiscard]] std::optional<u32> fetch_item_texture_id(const Block& item) const override;

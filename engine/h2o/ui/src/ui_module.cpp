@@ -38,7 +38,7 @@ namespace h2o
     void UIModule::post_update(f32 delta_time)
     {
         auto& layer_stack = g_engine->layer_stack();
-        if (layer_stack.top_layer() == Layer::PauseMenu)
+        if (layer_stack.top_layer() == Layer::PauseMenu || m_keep_stats_open)
         {
             if (ImGui::Begin("Stats"))
             {
@@ -69,6 +69,8 @@ namespace h2o
                         }
                     }
                 }
+
+                ImGui::Checkbox("Keep Open", &m_keep_stats_open);
             }
             ImGui::End();
         }

@@ -37,6 +37,8 @@ namespace h2o
 
         std::shared_ptr<IUIRenderer> m_ui_renderer = nullptr;
 
+        bool m_keep_stats_open = false;
+
         InputModule* m_input_module = nullptr;
 
     };

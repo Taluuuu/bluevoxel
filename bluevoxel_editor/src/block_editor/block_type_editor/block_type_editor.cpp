@@ -91,6 +91,9 @@ namespace bluevoxel
 
                 ImGui::Columns();
 
+                if (ImGui::Checkbox("Is Transparent", &edited_block_type->is_transparent))
+                    voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
+
                 if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen))
                 {
                     if (const auto model = voxel_pack->get_uncooked_block_model(edited_block_type->model_id))
@@ -135,7 +138,26 @@ namespace bluevoxel
 
                 if (ImGui::Button("Confirm"))
                 {
-                    voxel_pack->create_block_model(m_new_block_model_name_edit);
+                    // Some ugly code to copy the current block model and set the current block type's model to the new one
+                    const u32 new_model_id = voxel_pack->create_block_model(m_new_block_model_name_edit);
+
+                    if (auto edited_block_type = voxel_pack->block_types()[selected_block_id])
+                    {
+                        if (const auto prev_model = voxel_pack->get_uncooked_block_model(edited_block_type->model_id))
+                        {
+                            prev_model->for_each_face(
+                                [&](h2o::UncookedBlockModel::FaceHandle, const h2o::UncookedBlockModel::Face& face)
+                                {
+                                    voxel_pack->add_face_to_model(new_model_id, face);
+                                }
+                            );
+                        }
+
+                        edited_block_type->model_id = new_model_id;
+                        voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
+                        voxel_pack->build_block_model(new_model_id);
+                    }
+
                     ImGui::CloseCurrentPopup();
                 }
 
