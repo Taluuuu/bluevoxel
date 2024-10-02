@@ -4,7 +4,7 @@
 
 namespace h2o
 {
-    class BlockTrait_Rotation : public BlockTrait
+    class BlockTrait_Rotation final : public BlockTrait
     {
     public:
 

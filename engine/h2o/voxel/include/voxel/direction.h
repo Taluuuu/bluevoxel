@@ -34,6 +34,34 @@ namespace h2o::voxel
         X, Y, Z
     };
 
+    constexpr u8 to_index(const Direction::Type dir)
+    {
+        switch (dir)
+        {
+        case Direction::XNeg: return 0;
+        case Direction::XPos: return 1;
+        case Direction::ZNeg: return 2;
+        case Direction::ZPos: return 3;
+        case Direction::YNeg: return 4;
+        case Direction::YPos: return 5;
+        default: return Direction::None;
+        }
+    }
+
+    constexpr Direction::Type to_direction(const u8 index)
+    {
+        switch (index)
+        {
+        case 0: return Direction::XNeg;
+        case 1: return Direction::XPos;
+        case 2: return Direction::ZNeg;
+        case 3: return Direction::ZPos;
+        case 4: return Direction::YNeg;
+        case 5: return Direction::YPos;
+        default: return Direction::None;
+        }
+    }
+
     constexpr Direction::Type to_direction(Axis axis)
     {
         switch (axis)

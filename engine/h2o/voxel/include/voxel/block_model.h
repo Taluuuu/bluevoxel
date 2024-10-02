@@ -12,6 +12,8 @@
 
 namespace h2o
 {
+    constexpr u32 max_model_position = 16;
+
     struct BlockVertex
     {
         // Byte 1

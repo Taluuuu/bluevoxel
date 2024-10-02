@@ -19,6 +19,9 @@ using v3b  = glm::bvec3;
 using v4   = glm::vec4;
 using quat = glm::quat;
 
+using m3i = glm::imat3x3;
+
+using m2 = glm::mat2;
 using m3 = glm::mat3;
 using m4 = glm::mat4;
 

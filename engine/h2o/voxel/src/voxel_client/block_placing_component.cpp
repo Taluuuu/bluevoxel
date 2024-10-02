@@ -9,6 +9,7 @@
 #include "rendering/texture.h"
 #include "scene/scene.h"
 #include "scene_rendering/camera_component.h"
+#include "voxel/traits/block_trait_rotation.h"
 #include "voxel/voxel_ray.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
@@ -20,15 +21,15 @@ namespace h2o
     BlockPlacingComponent::BlockPlacingComponent(const ComponentInitializer& component_initializer)
         : Component(component_initializer)
         , m_rendering_module(&g_engine->get_module_checked<RenderingModule>())
+        , m_voxel_module(&g_engine->get_module_checked<VoxelModule>())
     {
         m_hotbar_inventory = std::make_shared<Inventory<Block>>("PlayerHotbar", 9, 1, std::nullopt);
         m_inventory = std::make_shared<Inventory<Block>>("PlayerInventory", 9, 3, std::nullopt);
 
-        const auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
-        voxel_module.inventory_manager()->open(m_hotbar_inventory, InventoryUIAnchor::Bottom);
+        m_voxel_module->inventory_manager()->open(m_hotbar_inventory, InventoryUIAnchor::Bottom);
 
         // TEMP: Just calissate every block in the inventory
-        const auto& voxel_pack = voxel_module.voxel_pack();
+        const auto& voxel_pack = m_voxel_module->voxel_pack();
         for (const auto& block_type : voxel_pack->block_types())
         {
             if (block_type)
@@ -96,7 +97,7 @@ namespace h2o
         {
             const auto& [hit_voxel, before_hit_voxel] = ray.hit();
             auto& renderer = m_rendering_module->renderer();
-            const v4 line_color{ 0.0f, 0.0f, 0.0f, 1.0f };
+            constexpr v4 line_color{ 0.0f, 0.0f, 0.0f, 1.0f };
             const v3i pos = hit_voxel.pos;
 
             // Draw selection highlight
@@ -107,10 +108,28 @@ namespace h2o
                 if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
                     block_placeable->set_block_at(hit_voxel.pos, Block::Air);
 
-                if (const auto selected_item = m_hotbar_inventory->selected_item())
+                if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
                 {
-                    if (m_input->mouse_button_state(MouseButton::Right).pressed_this_frame)
-                        block_placeable->set_block_at(before_hit_voxel.pos, selected_item->item);
+                    if (const auto selected_item = m_hotbar_inventory->selected_item())
+                    {
+                        const Block block = selected_item->item;
+
+                        if (const auto& voxel_pack = m_voxel_module->voxel_pack())
+                        {
+                            if (const BlockType* block_type = voxel_pack->get_block_type(selected_item->item.id))
+                            {
+                                // if (const auto rotation = block_type->query_trait<BlockTrait_Rotation>())
+                                // {
+                                //     block.data
+                                //     selected_item->item
+                                // }
+                                // else
+                                {
+                                    block_placeable->set_block_at(before_hit_voxel.pos, selected_item->item);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

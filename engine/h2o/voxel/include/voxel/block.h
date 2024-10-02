@@ -14,6 +14,7 @@ namespace h2o
         u16 data{};
 
         constexpr Block(const BlockID id = 0) : id { id } {}
+        constexpr Block(const BlockID id, const u16 data) : id { id }, data { data } {}
 
         static const Block Air;
 

@@ -132,7 +132,18 @@ namespace h2o
                     {
                         yaml << YAML::Newline;
                         for (i32 k = 0; k < structure_size.z; k++)
-                            yaml << structure->get_block({ i, j, k }).id;
+                        {
+                            const auto block = structure->get_block({ i, j, k });
+                            if (block.data == 0)
+                            {
+                                yaml << block.id;
+                            }
+                            else
+                            {
+                                // Also encode data if needed
+                                yaml << YAML::BeginSeq << block.id << block.data << YAML::EndSeq;
+                            }
+                        }
                     }
 
                     yaml << YAML::Newline;
@@ -168,12 +179,29 @@ namespace h2o
                 const auto name = structure_yml["name"].as<std::string>();
                 const auto id = structure_yml["id"].as<BlockID>();
                 const auto size = structure_yml["size"].as<v3i>();
-                const auto blocks = structure_yml["blocks"].as<std::vector<u32>>();
+                const auto blocks_yml = structure_yml["blocks"];//.as<std::vector<u32>>();
 
                 VoxelStructure structure{ name, size };
-                for (u32 i = 0; i < blocks.size(); i++)
+                for (u32 i = 0; i < blocks_yml.size(); i++)
                 {
-                    const BlockID block = blocks[i];
+                    Block block{};
+
+                    const auto block_yml = blocks_yml[i];
+                    if (block_yml.IsSequence())
+                    {
+                        if (block_yml.size() != 2)
+                        {
+                            log::error("Structure blocks must be encoded either as a single id or as a sequence of length 2 with an id and block data.");
+                            return false;
+                        }
+
+                        block.id = block_yml[0].as<u16>();
+                        block.data = block_yml[1].as<u16>();
+                    }
+                    else
+                    {
+                        block.id = block_yml.as<u16>();
+                    }
 
                     const v3i pos{
                         (i / size.z) % size.x,

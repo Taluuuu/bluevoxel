@@ -1,16 +1,11 @@
 #pragma once
 
 #include "core/types.h"
+#include "core/utils.h"
 #include "voxel_constants.h"
 
 namespace h2o::voxel_utils
 {
-    constexpr i32 non_stupid_mod(i32 x, i32 m)
-    {
-        i32 r = x % m;
-        return r + m * (r < 0);
-    }
-
     constexpr v3i world_to_block_pos(const v3& world_pos)
     {
         return
@@ -49,9 +44,9 @@ namespace h2o::voxel_utils
     {
         return
         {
-            non_stupid_mod(block_pos.x, voxel_constants::chunk_size),
-            non_stupid_mod(block_pos.y, voxel_constants::chunk_size),
-            non_stupid_mod(block_pos.z, voxel_constants::chunk_size)
+            utils::non_stupid_mod(block_pos.x, voxel_constants::chunk_size),
+            utils::non_stupid_mod(block_pos.y, voxel_constants::chunk_size),
+            utils::non_stupid_mod(block_pos.z, voxel_constants::chunk_size)
         };
     }
 

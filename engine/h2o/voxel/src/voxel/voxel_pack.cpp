@@ -222,11 +222,11 @@ namespace h2o
         m_block_types = *block_types;
         m_texture_ids = texture_ids;
 
-        if (const auto cactus = get_block_type(9))
+        if (const auto block = get_block_type(11))
         {
-            auto edited_cactus = *cactus;
-            edited_cactus.add_trait<BlockTrait_Rotation>();
-            edit_block_type(9, edited_cactus);
+            auto edited_block = *block;
+            edited_block.add_trait<BlockTrait_Rotation>();
+            edit_block_type(11, edited_block);
         }
 
         return true;
@@ -311,15 +311,6 @@ namespace h2o
                 if (const auto& block_type_with_id = result[id])
                 {
                     log::warn("Block type with name '{}' uses already assigned id: {} to block '{}'.", name, id, block_type_with_id->name);
-                    continue;
-                }
-
-                // Find preset id
-                const auto preset_name = block_type_yml["preset"].as<std::string>();
-                const auto preset_id = voxel_module.find_block_preset_id(preset_name);
-                if (!preset_id)
-                {
-                    log::warn("Block type with name '{}' uses unknown preset: '{}'. Skipping.", name, preset_name);
                     continue;
                 }
 

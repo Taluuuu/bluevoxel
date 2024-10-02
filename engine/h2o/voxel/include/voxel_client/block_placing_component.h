@@ -15,7 +15,9 @@ namespace h2o
     class ChunkManager;
     class IBlockPlaceable;
     class InputComponent;
+
     class RenderingModule;
+    class VoxelModule;
 
     class BlockPlacingComponent : public Component
     {
@@ -43,6 +45,7 @@ namespace h2o
 
         // Module refs
         RenderingModule* const m_rendering_module = nullptr;
+        VoxelModule* const m_voxel_module = nullptr;
 
     };
 }
