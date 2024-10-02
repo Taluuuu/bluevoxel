@@ -9,6 +9,7 @@
 #include "rendering/texture.h"
 #include "rendering/texture_array.h"
 #include "voxel/block_presets/block_preset_crop.h"
+#include "voxel/traits/block_trait.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_client/inventory_manager_voxel.h"
 
@@ -109,25 +110,34 @@ namespace h2o
         m_block_presets.emplace_back(name, preset);
     }
 
-    const BlockModel* VoxelModule::get_model(BlockID id, const std::vector<u32>*& out_texture_ids) const
+    std::optional<BlockModel> VoxelModule::get_model(const Block block, const std::vector<u32>*& out_texture_ids) const
     {
         assert(with_rendering());
 
         if (!m_voxel_pack)
-            return nullptr;
+            return std::nullopt;
 
-        const auto& block_types = m_voxel_pack->block_types();
-
-        if (id >= block_types.size())
-            return nullptr;
-
-        if (const auto& block_type = block_types[id])
+        if (const auto block_type = m_voxel_pack->get_block_type(block.id))
         {
-            out_texture_ids = &block_type->texture_ids;
-            return m_voxel_pack->get_block_model(block_type->model_id);
+            if (const auto block_model = m_voxel_pack->get_block_model(block_type->model_id))
+            {
+                // AAAAAAAAAARGHHHHHH
+                // There are like 8 heap allocations here
+                auto edited_block_model = *block_model;
+
+                block_type->for_each_trait(
+                    [&](const BlockTrait& trait)
+                    {
+                        trait.edit_block_model(block, edited_block_model);
+                    }
+                );
+
+                out_texture_ids = &block_type->texture_ids;
+                return edited_block_model;
+            }
         }
 
-        return nullptr;
+        return std::nullopt;
     }
 
     bool VoxelModule::is_transparent(BlockID id) const

@@ -3,6 +3,8 @@
 #include "block.h"
 #include "voxel_constants.h"
 
+#include <vector>
+
 namespace h2o
 {
     class Chunk;

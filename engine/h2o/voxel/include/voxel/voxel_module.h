@@ -61,7 +61,7 @@ namespace h2o
         void register_block_preset(const std::string& name, const std::shared_ptr<BlockPreset_Base>& preset);
 
         // Voxel rendering
-        [[nodiscard]] const BlockModel* get_model(BlockID id, const std::vector<u32>*& out_texture_ids) const;
+        [[nodiscard]] std::optional<BlockModel> get_model(Block block, const std::vector<u32>*& out_texture_ids) const;
         [[nodiscard]] bool is_transparent(BlockID id) const;
         // Return value is always valid or an assert fails
         [[nodiscard]] const std::shared_ptr<gfx::IPipeline>& pipeline() const;

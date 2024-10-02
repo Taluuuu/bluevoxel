@@ -72,7 +72,7 @@ namespace h2o
                 continue;
 
             const std::vector<u32>* texture_ids = nullptr;
-            const auto* model = voxel_module.get_model(block.id, texture_ids);
+            const auto model = voxel_module.get_model(block, texture_ids);
             if (!model)
                 continue;
 

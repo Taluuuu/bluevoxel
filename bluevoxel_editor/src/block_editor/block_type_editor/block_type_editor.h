@@ -35,7 +35,6 @@ namespace bluevoxel
         // Update combobox names
         void update_block_type_names();
         void update_texture_names();
-        void update_preset_names();
         void update_model_names();
 
     private:
@@ -45,7 +44,6 @@ namespace bluevoxel
 
         std::vector<const char*> m_block_type_names_c_str{};
         std::vector<const char*> m_texture_names_c_str{};
-        std::vector<const char*> m_block_preset_names_c_str{};
         std::vector<const char*> m_block_model_names_c_str{};
 
         BlockEditorWorkspace* const m_workspace = nullptr;

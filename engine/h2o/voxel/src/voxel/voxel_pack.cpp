@@ -1,6 +1,7 @@
 #include "voxel/voxel_pack.h"
 
 #include "core/engine.h"
+#include "voxel/traits/block_trait_rotation.h"
 #include "voxel/voxel_module.h"
 
 #include <fstream>
@@ -221,6 +222,13 @@ namespace h2o
         m_block_types = *block_types;
         m_texture_ids = texture_ids;
 
+        if (const auto cactus = get_block_type(9))
+        {
+            auto edited_cactus = *cactus;
+            edited_cactus.add_trait<BlockTrait_Rotation>();
+            edit_block_type(9, edited_cactus);
+        }
+
         return true;
     }
 
@@ -284,7 +292,10 @@ namespace h2o
         auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
         BlockTypeList result{};
-        result.emplace_back(BlockType{ "air", 0, {}, 0, 0, true });
+        {
+            BlockType air_block("air", 0, {}, 0, true);
+            result.emplace_back(std::move(air_block));
+        }
 
         try
         {
@@ -353,16 +364,7 @@ namespace h2o
                     }
                 }
 
-                result[id] =
-                    BlockType
-                    {
-                        .name = name,
-                        .block_id = id,
-                        .texture_ids = texture_ids,
-                        .model_id = model_it->id,
-                        .preset_id = *preset_id,
-                        .is_transparent = is_transparent,
-                    };
+                result[id] = BlockType(name, id, texture_ids, model_it->id, is_transparent);
             }
         }
         catch (const std::exception& e)
@@ -394,13 +396,6 @@ namespace h2o
 
             yaml << YAML::Key << "name";
             yaml << YAML::Value << block_type->name;
-
-            auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
-            if (const auto preset_name = voxel_module.find_block_preset_name(block_type->preset_id))
-            {
-                yaml << YAML::Key << "preset";
-                yaml << YAML::Value << *preset_name;
-            }
 
             yaml << YAML::Key << "id";
             yaml << YAML::Value << block_type->block_id;

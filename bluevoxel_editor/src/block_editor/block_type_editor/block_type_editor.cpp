@@ -20,9 +20,6 @@ namespace bluevoxel
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
         , m_voxel_module(&g_engine->get_module_checked<h2o::VoxelModule>())
     {
-        // This should be updatable on-demand
-        update_preset_names();
-
         set_tick_phases(h2o::TickPhase::Update);
     }
 
@@ -54,7 +51,8 @@ namespace bluevoxel
                 m_block_type_names_c_str.size()))
                 m_workspace->select_block(selected_block_id);
 
-            if (auto edited_block_type = voxel_pack->block_types()[selected_block_id]; edited_block_type && edited_block_type->block_id != 0)
+            if (auto edited_block_type = voxel_pack->block_types()[selected_block_id];
+                edited_block_type && edited_block_type->block_id != 0)
             {
                 ImGui::Text("ID: %i", selected_block_id);
 
@@ -68,10 +66,6 @@ namespace bluevoxel
                     m_selected_block_name_edit = edited_block_type->name;
                     ImGui::OpenPopup("Name Selected Block");
                 }
-
-                if (ImGui::Combo("Block Preset", (i32*)(&edited_block_type->preset_id),
-                    m_block_preset_names_c_str.data(), m_block_preset_names_c_str.size()))
-                    voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
 
                 ImGui::Columns(2, nullptr, false);
 
@@ -214,17 +208,6 @@ namespace bluevoxel
             for (const auto& texture_path_string : texture_ids)
                 m_texture_names_c_str.push_back(texture_path_string.first.c_str());
         }
-    }
-
-    void BlockTypeEditor::update_preset_names()
-    {
-        m_block_preset_names_c_str.clear();
-
-        const auto& block_presets = m_voxel_module->block_presets();
-
-        m_block_preset_names_c_str.reserve(block_presets.size());
-        for (const auto& block_preset : block_presets)
-            m_block_preset_names_c_str.push_back(block_preset.name.c_str());
     }
 
     void BlockTypeEditor::update_model_names()

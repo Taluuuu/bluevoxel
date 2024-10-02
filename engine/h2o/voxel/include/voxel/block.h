@@ -2,32 +2,30 @@
 
 #include "core/types.h"
 
-#include <string>
-#include <vector>
-
 namespace h2o
 {
     using BlockID = u16;
+
+    constexpr u32 max_data_bits = 16;
 
     struct Block
     {
         BlockID id{};
         u16 data{};
 
-        Block() : Block(0) {}
-        constexpr Block(BlockID id) : id { id } {}
+        constexpr Block(const BlockID id = 0) : id { id } {}
 
         static const Block Air;
 
-        bool operator==(Block other) const
+        bool operator==(const Block other) const
         {
-            return id == other.id;
+            return id == other.id && data == other.data;
         }
 
         template<typename S>
         void serialize(S& s)
         {
-            s(id);
+            s(id, data);
         }
     };
 }

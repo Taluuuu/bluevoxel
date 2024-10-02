@@ -173,11 +173,11 @@ namespace h2o
             std::is_base_of_v<SceneSystem, T> &&
             !std::is_same_v<SceneSystem, T>, "T must derive from h2o::SceneSystem.");
 
-        auto system_it = m_system_map.find(typeid(T));
+        const auto system_it = m_system_map.find(typeid(T));
         if (system_it == m_system_map.end())
             return nullptr;
 
-        WeakHandle<SceneSystem> system = system_it->second;
+        const WeakHandle<SceneSystem> system = system_it->second;
         return oup::dynamic_pointer_cast<T>(system);
     }
 }

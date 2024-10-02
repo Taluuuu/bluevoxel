@@ -3,6 +3,7 @@
 #include "voxel/block.h"
 
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace h2o

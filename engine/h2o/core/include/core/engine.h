@@ -111,7 +111,7 @@ namespace h2o
     {
         static_assert(std::is_base_of_v<IModule, T>, "T must implement h2o::IModule.");
 
-        std::type_index module_type(typeid(T));
+        const std::type_index module_type(typeid(T));
 
         // Make sure the module hadn't already been added
         assert(!m_initialized_modules.contains(module_type));
