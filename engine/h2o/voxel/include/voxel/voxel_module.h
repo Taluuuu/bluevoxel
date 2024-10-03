@@ -1,18 +1,17 @@
 #pragma once
 
+#include "block.h"
 #include "core/events.h"
 #include "core/module.h"
 #include "core/tickable.h"
-#include "voxel/block_presets/block_preset_base.h"
+#include "traits/block_trait_manager.h"
 
 #include <memory>
 #include <optional>
-#include <string>
 #include <vector>
 
 namespace h2o
 {
-    class BlockPreset_Base;
     class RenderingModule;
     class InventoryManager_Voxel;
     class VoxelPack;
@@ -49,16 +48,7 @@ namespace h2o
         [[nodiscard]] const std::shared_ptr<VoxelPack>& voxel_pack() const { return m_voxel_pack; }
         void set_voxel_pack(const std::shared_ptr<VoxelPack>& voxel_pack);
 
-        // Block presets
-        struct BlockPresetData
-        {
-            std::string name{};
-            std::shared_ptr<BlockPreset_Base> preset{};
-        };
-        [[nodiscard]] const std::vector<BlockPresetData>& block_presets() const { return m_block_presets; }
-        [[nodiscard]] std::optional<u32> find_block_preset_id(const std::string& preset_name) const;
-        [[nodiscard]] const std::string* find_block_preset_name(u32 preset_id) const;
-        void register_block_preset(const std::string& name, const std::shared_ptr<BlockPreset_Base>& preset);
+        [[nodiscard]] const BlockTraitManager& block_trait_manager() const { return m_block_trait_manager; }
 
         // Voxel rendering
         [[nodiscard]] std::optional<BlockModel> get_model(Block block, const std::vector<u32>*& out_texture_ids) const;
@@ -81,7 +71,7 @@ namespace h2o
 
     private:
 
-        std::vector<BlockPresetData> m_block_presets;
+        BlockTraitManager m_block_trait_manager{};
 
         std::shared_ptr<VoxelPack> m_voxel_pack = nullptr;
 

@@ -52,11 +52,13 @@ namespace h2o
                 {
                     current_voxel.x += step.x;
                     t_max.x += t_delta.x;
+                    m_ray_hit.normal = { -step.x, 0, 0 };
                 }
                 else
                 {
                     current_voxel.z += step.z;
                     t_max.z += t_delta.z;
+                    m_ray_hit.normal = { 0, 0, -step.z };
                 }
             }
             else
@@ -65,11 +67,13 @@ namespace h2o
                 {
                     current_voxel.y += step.y;
                     t_max.y += t_delta.y;
+                    m_ray_hit.normal = { 0, -step.y, 0 };
                 }
                 else
                 {
                     current_voxel.z += step.z;
                     t_max.z += t_delta.z;
+                    m_ray_hit.normal = { 0, 0, -step.z };
                 }
             }
 

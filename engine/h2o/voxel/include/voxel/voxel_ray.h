@@ -15,8 +15,9 @@ namespace h2o
 
     struct VoxelRayHit
     {
-        VoxelFetchResult hit_voxel;
-        VoxelFetchResult before_hit_voxel;
+        VoxelFetchResult hit_voxel{};
+        VoxelFetchResult before_hit_voxel{};
+        v3i normal{};
 
         void add_voxel(const VoxelFetchResult& voxel_fetch_result)
         {

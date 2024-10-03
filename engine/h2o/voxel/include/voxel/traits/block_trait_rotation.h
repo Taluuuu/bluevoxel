@@ -8,7 +8,9 @@ namespace h2o
     {
     public:
 
-        BlockTrait_Rotation(const BlockType& block_type, u16 offset);
+        explicit BlockTrait_Rotation(const BlockType& block_type);
+
+        [[nodiscard]] Block rotate_to_normal(Block block, const v3i& normal) const;
 
         // BlockTrait interface
         [[nodiscard]] u16 num_bits() const override { return 2; }

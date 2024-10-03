@@ -5,7 +5,7 @@
 namespace h2o
 {
     struct BlockModel;
-    struct BlockType;
+    class BlockType;
 
     class BlockTrait
     {
@@ -22,9 +22,10 @@ namespace h2o
     protected:
 
         // Meant to be called by subclasses
-        BlockTrait(const BlockType& block_type, u16 offset, u16 num_bits);
+        explicit BlockTrait(const BlockType& block_type, u16 num_bits);
 
         [[nodiscard]] u16 read_data(Block block) const;
+        void set_data(Block& block, u16 data) const;
 
     protected:
 

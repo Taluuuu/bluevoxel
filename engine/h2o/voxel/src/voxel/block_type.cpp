@@ -4,13 +4,20 @@
 
 namespace h2o
 {
-    void BlockType::for_each_trait(const std::function<void(const BlockTrait&)>& function) const
+    bool BlockType::add_trait(std::shared_ptr<BlockTrait>& trait)
     {
-        for (const auto& trait : m_block_traits)
+        if (!trait)
+            return false;
+
+        const u32 current_bit_count = calc_trait_bit_count();
+        if (current_bit_count + trait->num_bits() > max_data_bits)
         {
-            assert(trait != nullptr);
-            function(*trait);
+            log::warn("Trying to add too many data bits to block type: {}", name);
+            return false;
         }
+
+        m_block_traits.emplace_back(std::move(trait));
+        return true;
     }
 
     u32 BlockType::calc_trait_bit_count() const
@@ -23,5 +30,14 @@ namespace h2o
         }
 
         return bit_count;
+    }
+
+    void BlockType::for_each_trait(const std::function<void(const BlockTrait&)>& function) const
+    {
+        for (const auto& trait : m_block_traits)
+        {
+            assert(trait != nullptr);
+            function(*trait);
+        }
     }
 }

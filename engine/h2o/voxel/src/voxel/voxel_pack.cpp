@@ -225,7 +225,7 @@ namespace h2o
         if (const auto block = get_block_type(11))
         {
             auto edited_block = *block;
-            edited_block.add_trait<BlockTrait_Rotation>();
+            g_engine->get_module_checked<VoxelModule>().block_trait_manager().add_trait_to_block_type("rotation", edited_block);
             edit_block_type(11, edited_block);
         }
 

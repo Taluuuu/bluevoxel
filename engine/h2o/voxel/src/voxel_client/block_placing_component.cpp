@@ -95,7 +95,7 @@ namespace h2o
 
         if (const VoxelRay ray{ origin, end, chunk_mgr })
         {
-            const auto& [hit_voxel, before_hit_voxel] = ray.hit();
+            const auto& [hit_voxel, before_hit_voxel, normal] = ray.hit();
             auto& renderer = m_rendering_module->renderer();
             constexpr v4 line_color{ 0.0f, 0.0f, 0.0f, 1.0f };
             const v3i pos = hit_voxel.pos;
@@ -112,21 +112,16 @@ namespace h2o
                 {
                     if (const auto selected_item = m_hotbar_inventory->selected_item())
                     {
-                        const Block block = selected_item->item;
+                        Block block = selected_item->item;
 
                         if (const auto& voxel_pack = m_voxel_module->voxel_pack())
                         {
                             if (const BlockType* block_type = voxel_pack->get_block_type(selected_item->item.id))
                             {
-                                // if (const auto rotation = block_type->query_trait<BlockTrait_Rotation>())
-                                // {
-                                //     block.data
-                                //     selected_item->item
-                                // }
-                                // else
-                                {
-                                    block_placeable->set_block_at(before_hit_voxel.pos, selected_item->item);
-                                }
+                                if (const auto rotation = block_type->query_trait<BlockTrait_Rotation>())
+                                    block = rotation->rotate_to_normal(block, normal);
+
+                                block_placeable->set_block_at(before_hit_voxel.pos, block);
                             }
                         }
                     }

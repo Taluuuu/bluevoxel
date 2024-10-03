@@ -35,6 +35,17 @@ namespace h2o
             }
         }
 
+        static constexpr i32 atan2(const i32 x, const i32 y)
+        {
+            if (glm::abs(x) + glm::abs(y) != 1)
+                return 0;
+
+            if (x == 0)
+                return (y == 1) ? 1 : 3;
+
+            return (x == 1) ? 0 : 2;
+        }
+
         static constexpr u32 index_of_y_rotated_direction(const u8 dir_index, const i32 half_pi_coeff)
         {
             // This function is really ugly, as I have to move the direction index into a workable space
@@ -66,9 +77,15 @@ namespace h2o
         }
     }
 
-    BlockTrait_Rotation::BlockTrait_Rotation(const BlockType& block_type, const u16 offset)
-        : BlockTrait(block_type, offset, BlockTrait_Rotation::num_bits())
+    BlockTrait_Rotation::BlockTrait_Rotation(const BlockType& block_type)
+        : BlockTrait(block_type, BlockTrait_Rotation::num_bits())
     {}
+
+    Block BlockTrait_Rotation::rotate_to_normal(Block block, const v3i& normal) const
+    {
+        set_data(block, int_math::atan2(normal.x, normal.z));
+        return block;
+    }
 
     void BlockTrait_Rotation::edit_block_model(const Block block, BlockModel& block_model) const
     {

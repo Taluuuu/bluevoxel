@@ -50,7 +50,7 @@ namespace h2o
         for (i32 j = 0; j < voxel_constants::chunk_region_block_count; j++)
         {
             const f32 random_float = f32(rand()) / std::numeric_limits<i32>::max();
-            if (random_float > 0.005f)
+            if (random_float > 0.00005f)
                 continue;
 
             // Find ground level. This should probably be an easily accessible function
@@ -63,7 +63,7 @@ namespace h2o
             }
 
             const v3i structure_pos = corner + v3i{ i, ground_level, j };
-            structures.emplace_back(0, structure_pos);
+            structures.emplace_back(2, structure_pos);
         }
 
         return structures;
