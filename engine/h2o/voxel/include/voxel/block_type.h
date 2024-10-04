@@ -32,12 +32,16 @@ namespace h2o
 
         // Returns true on success
         bool add_trait(std::shared_ptr<BlockTrait>& trait);
+        void remove_trait(const std::string& name);
 
         template<class T> [[nodiscard]] const T* query_trait() const;
         template<class T> [[nodiscard]] T* query_trait();
 
         // Calculate the number of bits in the data field currently in use
         [[nodiscard]] u32 calc_trait_bit_count() const;
+        // Returns null if none match the predicate
+        [[nodiscard]] const BlockTrait* find_trait(const std::function<bool(const BlockTrait&)>& predicate) const;
+        [[nodiscard]] bool has_trait(const std::string& trait_name) const;
         void for_each_trait(const std::function<void(const BlockTrait&)>& function) const;
 
     public:

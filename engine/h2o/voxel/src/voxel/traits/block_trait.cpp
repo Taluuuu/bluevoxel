@@ -1,5 +1,7 @@
 #include "voxel/traits/block_trait.h"
 
+#include <utility>
+
 #include "voxel/block_type.h"
 
 namespace h2o
@@ -16,9 +18,10 @@ namespace h2o
         block.data = block.data | (data << m_data_offset); // set block data
     }
 
-    BlockTrait::BlockTrait(const BlockType& block_type, const u16 num_bits)
+    BlockTrait::BlockTrait(std::string trait_name, const BlockType& block_type, const u16 num_bits)
         : m_block_type(&block_type)
         , m_data_offset(block_type.calc_trait_bit_count())
+        , m_trait_name(std::move(trait_name))
     {
         m_data_mask = ((1 << num_bits) - 1) << m_data_offset;
     }

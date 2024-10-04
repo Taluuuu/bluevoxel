@@ -20,7 +20,8 @@ namespace h2o
         bool add_trait_to_block_type(const std::string& trait_name, BlockType& block_type) const;
 
         // Templated version for easy registration of C++ types
-        // Non-templated version for eventual more complex trait configurations
+        // Non-templated version for eventual traits which share the same class but with different names
+        // and creation process
         template<class T>
         void register_trait(const std::string& name);
         void register_trait(const std::string& name, const BlockTraitBuilder& builder);
@@ -37,9 +38,9 @@ namespace h2o
     void BlockTraitManager::register_trait(const std::string& name)
     {
         register_trait(name,
-            [](const BlockType& block_type)
+            [name](const BlockType& block_type)
             {
-                return std::make_shared<T>(block_type);
+                return std::make_shared<T>(name, block_type);
             }
         );
     }

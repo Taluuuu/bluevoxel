@@ -222,13 +222,6 @@ namespace h2o
         m_block_types = *block_types;
         m_texture_ids = texture_ids;
 
-        if (const auto block = get_block_type(11))
-        {
-            auto edited_block = *block;
-            g_engine->get_module_checked<VoxelModule>().block_trait_manager().add_trait_to_block_type("rotation", edited_block);
-            edit_block_type(11, edited_block);
-        }
-
         return true;
     }
 
@@ -355,7 +348,16 @@ namespace h2o
                     }
                 }
 
-                result[id] = BlockType(name, id, texture_ids, model_it->id, is_transparent);
+                auto block_type = BlockType(name, id, texture_ids, model_it->id, is_transparent);
+
+                for (const auto trait_yml : block_type_yml["traits"])
+                {
+                    const auto trait_name = trait_yml.as<std::string>();
+                    if (!voxel_module.block_trait_manager().add_trait_to_block_type(trait_name, block_type))
+                        log::warn("Failed to add trait '{}' to block type '{}'.", trait_name, block_type.name);
+                }
+
+                result[id] = std::move(block_type);
             }
         }
         catch (const std::exception& e)
@@ -401,7 +403,6 @@ namespace h2o
             yaml << YAML::Value;
 
             yaml << YAML::BeginSeq;
-
             for (u32 texture_id : block_type->texture_ids)
             {
                 // Find texture name with id texture_id
@@ -413,7 +414,18 @@ namespace h2o
                 if (it != m_texture_ids.end())
                     yaml << it->first;
             }
+            yaml << YAML::EndSeq;
 
+            yaml << YAML::Key << "traits";
+            yaml << YAML::Value;
+
+            yaml << YAML::BeginSeq;
+            block_type->for_each_trait(
+                [&](const BlockTrait& trait)
+                {
+                    yaml << trait.trait_name();
+                }
+            );
             yaml << YAML::EndSeq;
 
             yaml << YAML::EndMap;

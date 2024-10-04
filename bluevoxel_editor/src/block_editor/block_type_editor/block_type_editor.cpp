@@ -100,6 +100,31 @@ namespace bluevoxel
                         }
                     }
                 }
+
+                ImGui::BeginGroup();
+                ImGui::Text("Block Traits");
+                auto& trait_mgr = m_voxel_module->block_trait_manager();
+                for (const auto& trait_name : trait_mgr.trait_names())
+                {
+                    bool has_trait = edited_block_type->has_trait(trait_name);
+                    if (ImGui::Checkbox(trait_name.c_str(), &has_trait))
+                    {
+                        if (has_trait)
+                        {
+                            trait_mgr.add_trait_to_block_type(trait_name, *edited_block_type);
+                        }
+                        else
+                        {
+                            edited_block_type->remove_trait(trait_name);
+                        }
+
+                        // TODO: This sucks
+                        voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
+                    }
+                }
+                ImGui::EndGroup();
+                ImGui::GetWindowDrawList()->AddRect(ImGui::GetItemRectMin(), v2{ ImGui::GetWindowWidth(), ImGui::GetItemRectMax().y },
+                    ImColor(ImGui::GetStyle().Colors[ImGuiCol_Border]));
             }
 
             if (ImGui::BeginPopupModal("Name Selected Block"))

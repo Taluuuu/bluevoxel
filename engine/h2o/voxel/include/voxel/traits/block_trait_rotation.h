@@ -8,7 +8,7 @@ namespace h2o
     {
     public:
 
-        explicit BlockTrait_Rotation(const BlockType& block_type);
+        BlockTrait_Rotation(const std::string& trait_name, const BlockType& block_type);
 
         [[nodiscard]] Block rotate_to_normal(Block block, const v3i& normal) const;
 

@@ -77,8 +77,8 @@ namespace h2o
         }
     }
 
-    BlockTrait_Rotation::BlockTrait_Rotation(const BlockType& block_type)
-        : BlockTrait(block_type, BlockTrait_Rotation::num_bits())
+    BlockTrait_Rotation::BlockTrait_Rotation(const std::string& trait_name, const BlockType& block_type)
+        : BlockTrait(trait_name, block_type, BlockTrait_Rotation::num_bits())
     {}
 
     Block BlockTrait_Rotation::rotate_to_normal(Block block, const v3i& normal) const
