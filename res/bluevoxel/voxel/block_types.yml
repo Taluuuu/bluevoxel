@@ -10,6 +10,8 @@ block_types:
       - grass_block_top.png
       - grass_block_side.png
       - grass_block_side.png
+    traits:
+      []
   - name: dirt_block
     id: 2
     model: cube
@@ -21,6 +23,8 @@ block_types:
       - dirt_block.png
       - dirt_block.png
       - dirt_block.png
+    traits:
+      []
   - name: stone_block
     id: 3
     model: cube
@@ -32,6 +36,8 @@ block_types:
       - stone_block.png
       - stone_block.png
       - stone_block.png
+    traits:
+      []
   - name: gravel
     id: 4
     model: cube
@@ -43,6 +49,8 @@ block_types:
       - gravel.png
       - gravel.png
       - gravel.png
+    traits:
+      []
   - name: barrel
     id: 5
     model: barrel
@@ -51,6 +59,8 @@ block_types:
       - wood_log_block_side.png
       - gravel.png
       - wood_log_block_top.png
+    traits:
+      []
   - name: log
     id: 6
     model: cube
@@ -62,6 +72,8 @@ block_types:
       - wood_log_block_top.png
       - wood_log_block_side.png
       - wood_log_block_side.png
+    traits:
+      []
   - name: leaves
     id: 7
     model: leaves
@@ -73,6 +85,8 @@ block_types:
       - leaves_block.png
       - leaves_block.png
       - leaves_block.png
+    traits:
+      []
   - name: planks
     id: 8
     model: cube
@@ -84,6 +98,8 @@ block_types:
       - wood_planks_block.png
       - wood_planks_block.png
       - wood_planks_block.png
+    traits:
+      []
   - name: cactus
     id: 9
     model: thin_cube
@@ -95,6 +111,8 @@ block_types:
       - cactus_block_top.png
       - cactus_block_side.png
       - cactus_block_side.png
+    traits:
+      []
   - name: cobble
     id: 10
     model: cube
@@ -106,6 +124,8 @@ block_types:
       - cobblestone_block.png
       - cobblestone_block.png
       - cobblestone_block.png
+    traits:
+      []
   - name: cobble_stair
     id: 11
     model: stair
@@ -118,3 +138,18 @@ block_types:
       - cobblestone_block.png
       - cobblestone_block.png
       - cobblestone_block.png
+    traits:
+      - rotation
+  - name: vertical_stone_slab
+    id: 12
+    model: vertical_slab
+    is_transparent: true
+    textures:
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+      - stone_block.png
+    traits:
+      - rotation
