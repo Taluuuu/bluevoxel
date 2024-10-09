@@ -3,6 +3,7 @@
 #include "core/engine.h"
 #include "game_framework/components/fps_camera_component.h"
 #include "input/input_component.h"
+#include "physics/scene/collider_component.h"
 
 #include <glm/gtx/norm.hpp>
 
@@ -13,6 +14,9 @@ namespace h2o
     {
         m_input = add_component<InputComponent>();
 
+        m_collider = add_component<ColliderComponent>();
+        m_collider->collider.size = v3{ 1.0f };
+
         add_component<FpsCameraComponent>();
 
         set_tick_phases(TickPhase::Update);
@@ -20,8 +24,10 @@ namespace h2o
 
     void FpsCharacterActor::update(f32 delta_time)
     {
-        if (g_engine->layer_stack().top_layer() != Layer::Game)
-            return;
+        // if (g_engine->layer_stack().top_layer() != Layer::Game)
+        //     return;
+
+        assert(m_collider);
 
         v2 move_input {
             m_input->get_axis("move_y"),
@@ -36,6 +42,6 @@ namespace h2o
             m_input->get_axis("fly"),
             move_input.x * glm::sin(rot_y) + move_input.y * glm::cos(rot_y) };
 
-        transform.position += move_input_rotated * move_speed * delta_time;
+        m_collider->collider.velocity = move_input_rotated * move_speed * delta_time;
     }
 }

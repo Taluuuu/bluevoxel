@@ -6,6 +6,7 @@ namespace h2o
 {
     class InputComponent;
     class CameraComponent;
+    class ColliderComponent;
 
     class FpsCharacterActor : public Actor
     {
@@ -23,6 +24,7 @@ namespace h2o
     private:
 
         WeakHandle<InputComponent> m_input = nullptr;
+        WeakHandle<ColliderComponent> m_collider = nullptr;
 
     };
 }

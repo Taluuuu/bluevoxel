@@ -5,7 +5,7 @@
 
 namespace h2o::physics
 {
-    std::optional<f32> intersect_plane(const Ray& ray, const Plane& plane)
+    static std::optional<f32> intersect_plane(const Ray& ray, const Plane& plane)
     {
         static constexpr f32 e = glm::epsilon<f32>();
         const f32 denominator = glm::dot(ray.direction, plane.normal);
@@ -16,7 +16,7 @@ namespace h2o::physics
         return (t >= 0.0f) ? std::optional<f32>{ t } : std::nullopt;
     }
 
-    std::optional<f32> intersect_disk(const Ray& ray, const Disk& disk)
+    static std::optional<f32> intersect_disk(const Ray& ray, const Disk& disk)
     {
         if (const auto t = intersect_plane(ray, Plane{ disk.center, disk.normal }))
         {
@@ -32,7 +32,7 @@ namespace h2o::physics
 
     // https://hugi.scene.org/online/hugi24/coding%20graphics%20chris%20dragan%20raytracing%20shapes.htm
     // https://mrl.cs.nyu.edu/~dzorin/rendering/lectures/lecture3/lecture3.pdf
-    std::optional<f32> intersect_cylinder(const Ray& ray, const Cylinder& cylinder)
+    static std::optional<f32> intersect_cylinder(const Ray& ray, const Cylinder& cylinder)
     {
         const v3 C = cylinder.p2;
         const v3 D = ray.direction;
@@ -87,7 +87,7 @@ namespace h2o::physics
     }
 
     // https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
-    std::optional<f32> intersect_triangle(const Ray& ray, const Triangle& triangle)
+    static std::optional<f32> intersect_triangle(const Ray& ray, const Triangle& triangle)
     {
         constexpr f32 epsilon = glm::epsilon<f32>();
 
@@ -117,7 +117,7 @@ namespace h2o::physics
     }
 
     // https://www.scratchapixel.com/lessons/3d-basic-rendering/minimal-ray-tracer-rendering-simple-shapes/ray-sphere-intersection.html
-    std::optional<f32> intersect_sphere(const Ray& ray, const Sphere& sphere)
+    static std::optional<f32> intersect_sphere(const Ray& ray, const Sphere& sphere)
     {
         const v3 L = ray.origin - sphere.center;
         const f32 a = glm::dot(ray.direction, ray.direction);

@@ -3,7 +3,7 @@
 #include "core/engine.h"
 #include "game_framework/actors/fps_character_actor.h"
 #include "input/input_module.h"
-#include "inventory/inventory_component.h"
+#include "physics/scene/physics_system.h"
 #include "rendering/mesh.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
@@ -147,6 +147,8 @@ namespace bluevoxel
 
             ImGui::End();
         }
+
+        g_engine->get_module_checked<h2o::RenderingModule>().renderer().draw_cube(v3{ 0.0f, 256.0f, 0.0f }, v3{1.0f}, v4{1.0f});
     }
 
     void BlueVoxelClientModule::create_scene()
@@ -158,6 +160,18 @@ namespace bluevoxel
         m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
 
+        const auto physics_system = m_scene->add_system<h2o::PhysicsSystem>();
+        physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
+            [this](const h2o::TestingCollisionEvent& event)
+            {
+                event.near_colliders.emplace_back(
+                    v3{ 0.0f, 256.0f, 0.0f },
+                    v3{ 0.0f },
+                    v3{ 1.0f }
+                );
+            }
+        );
+
         spawn_local_player();
     }
 
@@ -168,16 +182,10 @@ namespace bluevoxel
         auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
 
-        // const auto inventory_comp = player->add_component<h2o::InventoryComponent<h2o::Block>>(std::make_shared<h2o::Inventory<h2o::Block>>(5, std::nullopt));
-        // inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 1 }, .count = 69 });
-        // inventory_comp->inventory()->add_item_stack({ .item = h2o::Block{ 2 }, .count = 1 });
-
-        // const auto inv_draw_data = std::make_shared<h2o::VoxelInventoryDrawData>();
-        // m_inventory_ui.emplace(this, inv_draw_data);
-        // m_inventory_ui->weak_inventory = inventory_comp->inventory();
-
-        const auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
-        block_placing_comp->block_placeable = m_chunk_client;
+        {
+            const auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
+            block_placing_comp->block_placeable = m_chunk_client;
+        }
 
         player->set_replicate_transform(true);
         player->transform.position = { 0.0f, 256.0f, 0.0f };

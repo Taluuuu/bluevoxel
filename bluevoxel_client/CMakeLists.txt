@@ -15,6 +15,7 @@ target_link_libraries(bluevoxel_client
         h2o_input
         h2o_inventory
         h2o_networking
+        h2o_physics
         h2o_rendering
         h2o_scene
         h2o_ui
@@ -29,6 +30,7 @@ target_include_directories(bluevoxel_client
         h2o_input
         h2o_inventory
         h2o_networking
+        h2o_physics
         h2o_rendering
         h2o_scene
         h2o_ui
