@@ -4,16 +4,13 @@
 
 namespace h2o
 {
-    class Transform
+    struct Transform
     {
     public:
 
-        explicit Transform(
-            const v3& position = v3 { 0.0f, 0.0f, 0.0f },
-            const v3& rotation = v3 { 0.0f, 0.0f, 0.0f },
-            const v3& scale = v3 { 1.0f, 1.0f, 1.0f });
-
-        ~Transform() = default;
+        v3 position { 0.0f, 0.0f, 0.0f };
+        v3 rotation { 0.0f, 0.0f, 0.0f };
+        v3 scale    { 1.0f, 1.0f, 1.0f };
 
         /**
          * Construct a model matrix from this transform's data.
@@ -26,12 +23,6 @@ namespace h2o
         template<typename S>
         void serialize(S& s)
         { s(position, rotation, scale); }
-
-    public:
-
-        v3 position { 0.0f, 0.0f, 0.0f };
-        v3 rotation { 0.0f, 0.0f, 0.0f };
-        v3 scale    { 1.0f, 1.0f, 1.0f };
 
     };
 }
