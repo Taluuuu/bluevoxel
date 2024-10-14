@@ -31,6 +31,3 @@
 [submodule "engine/lib/imgui"]
 	path = engine/lib/imgui
 	url = https://github.com/Taluuuu/imgui
-[submodule "engine/lib/flecs"]
-	path = engine/lib/flecs
-	url = https://github.com/SanderMertens/flecs

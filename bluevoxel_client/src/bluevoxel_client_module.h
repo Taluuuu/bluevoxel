@@ -14,7 +14,6 @@ namespace h2o
     class ChunkClient;
     class InputModule;
     class Scene;
-    class Scene_ECS;
     class Transform;
     class UIModule;
 }
@@ -52,8 +51,7 @@ namespace bluevoxel
 
         h2o::Client m_client;
 
-        std::shared_ptr<h2o::Scene_ECS> m_scene = nullptr;
-        // std::shared_ptr<h2o::Scene> m_scene = nullptr;
+        std::shared_ptr<h2o::Scene> m_scene = nullptr;
         h2o::WeakHandle<h2o::ChunkClient> m_chunk_client = nullptr;
 
         h2o::EventHandle m_on_client_created_handle{};

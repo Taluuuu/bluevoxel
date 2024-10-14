@@ -9,7 +9,6 @@
 #include "rendering/rendering_module.h"
 #include "rendering/texture.h"
 #include "scene/scene.h"
-#include "scene/scene_ecs.h"
 #include "scene/scene_module.h"
 #include "scene/scene_networking_system.h"
 #include "scene/scene_net_messages.h"
@@ -156,22 +155,22 @@ namespace bluevoxel
     {
         assert(m_scene == nullptr);
 
-        // m_scene = std::make_shared<h2o::Scene_ECS>();
-        // m_scene->add_system<h2o::RenderingSystem>();
-        // m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
-        // m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
-        //
-        // const auto physics_system = m_scene->add_system<h2o::PhysicsSystem>();
-        // physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
-        //     [this](const h2o::TestingCollisionEvent& event)
-        //     {
-        //         event.near_colliders.emplace_back(
-        //             v3{ 0.0f, 256.0f, 0.0f },
-        //             v3{ 0.0f },
-        //             v3{ 1.0f }
-        //         );
-        //     }
-        // );
+        m_scene = std::make_shared<h2o::Scene>("client_scene", &m_client);
+        m_scene->add_system<h2o::RenderingSystem>();
+        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
+        m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
+
+        const auto physics_system = m_scene->add_system<h2o::PhysicsSystem>();
+        physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
+            [this](const h2o::TestingCollisionEvent& event)
+            {
+                event.near_colliders.emplace_back(
+                    v3{ 0.0f, 256.0f, 0.0f },
+                    v3{ 0.0f },
+                    v3{ 1.0f }
+                );
+            }
+        );
 
         spawn_local_player();
     }
@@ -180,32 +179,32 @@ namespace bluevoxel
     {
         assert(m_scene);
 
-        // auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
-        // player->tag_actor(h2o::ActorTag::LocalPlayer);
-        //
-        // {
-        //     const auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
-        //     block_placing_comp->block_placeable = m_chunk_client;
-        // }
-        //
-        // player->set_replicate_transform(true);
-        // player->transform.position = { 0.0f, 256.0f, 0.0f };
-        // player->transform.rotation = { 0.0f, 0.0f, 0.0f};
-        // player->transform.scale = { 0.5f, 0.5f, 0.5f };
-        // player->move_speed = 30.0f;
+        auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
+        player->tag_actor(h2o::ActorTag::LocalPlayer);
+
+        {
+            const auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
+            block_placing_comp->block_placeable = m_chunk_client;
+        }
+
+        player->set_replicate_transform(true);
+        player->transform.position = { 0.0f, 256.0f, 0.0f };
+        player->transform.rotation = { 0.0f, 0.0f, 0.0f};
+        player->transform.scale = { 0.5f, 0.5f, 0.5f };
+        player->move_speed = 30.0f;
     }
 
     void BlueVoxelClientModule::spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform)
     {
         assert(g_engine);
 
-        // if (auto remote_player = m_scene->spawn_actor(spawn_transform, actor_id))
-        // {
-        //     auto mesh_renderer = remote_player->add_component<h2o::MeshRendererComponent>();
-        //     mesh_renderer->set_mesh(
-        //         g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("bluevoxel/models/robot.fbx"));
-        //     mesh_renderer->set_texture(
-        //         g_engine->resource_mgr().fetch<h2o::gfx::Texture>("bluevoxel/textures/robot.png"));
-        // }
+        if (auto remote_player = m_scene->spawn_actor(spawn_transform, actor_id))
+        {
+            auto mesh_renderer = remote_player->add_component<h2o::MeshRendererComponent>();
+            mesh_renderer->set_mesh(
+                g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("bluevoxel/models/robot.fbx"));
+            mesh_renderer->set_texture(
+                g_engine->resource_mgr().fetch<h2o::gfx::Texture>("bluevoxel/textures/robot.png"));
+        }
     }
 }

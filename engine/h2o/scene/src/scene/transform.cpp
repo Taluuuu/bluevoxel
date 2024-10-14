@@ -2,13 +2,13 @@
 
 namespace h2o
 {
-    // Transform::Transform(const v3& position, const v3& rotation, const v3& scale)
-    //     : position { position }
-    //     , rotation { rotation }
-    //     , scale { scale }
-    // {
-    //
-    // }
+    Transform::Transform(const v3& position, const v3& rotation, const v3& scale)
+        : position { position }
+        , rotation { rotation }
+        , scale { scale }
+    {
+
+    }
 
     m4 Transform::model_matrix() const
     {

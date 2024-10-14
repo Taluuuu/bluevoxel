@@ -7,7 +7,6 @@ add_library(h2o_scene STATIC
     src/scene/actor.cpp
     src/scene/component.cpp
     src/scene/scene.cpp
-    src/scene/scene_ecs.cpp
     src/scene/scene_module.cpp
     src/scene/scene_networking_system.cpp
     src/scene/scene_system.cpp
@@ -19,9 +18,6 @@ add_library(h2o_scene STATIC
 )
 
 target_link_libraries(h2o_scene
-    PUBLIC
-        flecs::flecs_static
-
     PRIVATE
         h2o_core
         h2o_networking
@@ -32,7 +28,6 @@ target_link_libraries(h2o_scene
 target_include_directories(h2o_scene
     PUBLIC
         include/
-        flecs::flecs_static
 
     PRIVATE
         h2o_core

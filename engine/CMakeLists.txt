@@ -26,9 +26,6 @@ add_subdirectory(lib/magic_enum)
 # fmt
 add_subdirectory(lib/fmt)
 
-# flecs
-add_subdirectory(lib/flecs)
-
 # Catch2
 add_subdirectory(lib/Catch2)
 
