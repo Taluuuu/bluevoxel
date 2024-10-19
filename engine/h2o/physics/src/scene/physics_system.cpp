@@ -83,7 +83,6 @@ namespace h2o
             if (total_displacement)
             {
                 collider_data->collider.position += *total_displacement;
-                collider_data->previous_collider.position += *total_displacement;
                 collider_data->collider_comp->on_displaced(*total_displacement);
             }
         }

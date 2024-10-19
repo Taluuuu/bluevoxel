@@ -21,6 +21,7 @@ namespace h2o::physics
             (this_min.z <= other_max.z) && (this_max.z >= other_min.z);
     }
 
+    // Cringe and bad and cringe discrete collision resolution
     std::optional<v3> Collider_AABB::resolve(
         const Collider_AABB& a,
         const Collider_AABB& a_prev,

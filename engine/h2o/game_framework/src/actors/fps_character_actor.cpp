@@ -23,7 +23,7 @@ namespace h2o
         set_tick_phases(TickPhase::Update);
     }
 
-    void FpsCharacterActor::update(f32 delta_time)
+    void FpsCharacterActor::update(const f32 delta_time)
     {
         // if (g_engine->layer_stack().top_layer() != Layer::Game)
         //     return;
