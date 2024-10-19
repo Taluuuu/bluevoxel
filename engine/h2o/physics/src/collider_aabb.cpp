@@ -80,9 +80,6 @@ namespace h2o::physics
             response += v3(0.0f, 0.0f, b_max.z - a_min.z + 0.001f);
         }
 
-        if (response != v3{})
-            log::info("{} {} {}", response.x, response.y, response.z);
-
         return response;
     }
 }

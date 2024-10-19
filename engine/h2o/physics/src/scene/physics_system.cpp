@@ -52,7 +52,7 @@ namespace h2o
 
     void PhysicsSystem::update(f32 delta_time)
     {
-        for (const auto collider_data : m_mobile_colliders)
+        for (auto& collider_data : m_mobile_colliders)
         {
             assert(collider_data.has_value());
 
@@ -81,7 +81,11 @@ namespace h2o
             }
 
             if (total_displacement)
+            {
+                collider_data->collider.position += *total_displacement;
+                collider_data->previous_collider.position += *total_displacement;
                 collider_data->collider_comp->on_displaced(*total_displacement);
+            }
         }
     }
 }
