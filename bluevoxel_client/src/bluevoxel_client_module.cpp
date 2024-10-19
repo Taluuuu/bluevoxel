@@ -164,11 +164,7 @@ namespace bluevoxel
         physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
             [this](const h2o::TestingCollisionEvent& event)
             {
-                event.near_colliders.emplace_back(
-                    v3{ 0.0f, 256.0f, 0.0f },
-                    v3{ 0.0f },
-                    v3{ 1.0f }
-                );
+                event.near_colliders.emplace_back(v3{ 0.0f, 256.0f, 0.0f }, v3{ 1.0f });
             }
         );
 
@@ -191,7 +187,7 @@ namespace bluevoxel
         player->transform.position = { 0.0f, 256.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 0.0f};
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
-        player->move_speed = 30.0f;
+        player->move_speed = 10.0f;
     }
 
     void BlueVoxelClientModule::spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform)

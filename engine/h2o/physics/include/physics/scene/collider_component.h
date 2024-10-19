@@ -5,6 +5,8 @@
 
 namespace h2o
 {
+    class PhysicsSystem;
+
     class ColliderComponent : public Component
     {
     public:
@@ -14,11 +16,22 @@ namespace h2o
 
         void update(f32 delta_time) override;
 
-        void on_collision_resolve();
+        void on_displaced(const v3& displacement);
 
-    public:
+        void set_size(const v3& size);
+        void set_offset(const v3& offset);
 
-        physics::Collider_AABB collider{};
+        [[nodiscard]] physics::Collider_AABB calc_collider() const;
+
+    private:
+
+        v3 m_offset{};
+        v3 m_size{};
+
+        v3 m_previous_location{};
+
+        WeakHandle<PhysicsSystem> m_physics_system = nullptr;
+        u32 m_collider_id = 0;
 
     };
 }

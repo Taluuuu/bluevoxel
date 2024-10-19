@@ -15,7 +15,8 @@ namespace h2o
         m_input = add_component<InputComponent>();
 
         m_collider = add_component<ColliderComponent>();
-        m_collider->collider.size = v3{ 1.0f };
+        m_collider->set_size(v3{ 1.0f });
+        m_collider->set_offset(v3{ -0.5f });
 
         add_component<FpsCameraComponent>();
 
@@ -37,11 +38,11 @@ namespace h2o
             move_input = glm::normalize(move_input);
 
         const f32 rot_y = transform.rotation.y;
-        v3 move_input_rotated {
+        const v3 move_input_rotated {
             move_input.x * glm::cos(rot_y) - move_input.y * glm::sin(rot_y),
             m_input->get_axis("fly"),
             move_input.x * glm::sin(rot_y) + move_input.y * glm::cos(rot_y) };
 
-        m_collider->collider.velocity = move_input_rotated * move_speed * delta_time;
+        transform.position += move_input_rotated * move_speed * delta_time;
     }
 }

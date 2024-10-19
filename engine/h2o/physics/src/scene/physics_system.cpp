@@ -8,41 +8,80 @@ namespace h2o
         set_tick_phases(TickPhase::Update);
     }
 
-    void PhysicsSystem::register_mobile_collider(ColliderComponent& collider)
+    u32 PhysicsSystem::register_mobile_collider(ColliderComponent& collider_comp)
     {
-        m_mobile_colliders.push_back(&collider);
+        const physics::Collider_AABB collider = collider_comp.calc_collider();
+        const MobileCollider mobile_collider {
+            .collider = collider,
+            .previous_collider = collider,
+            .collider_comp = &collider_comp
+        };
+
+        u32 id = 0;
+        for (; id < m_mobile_colliders.size(); id++)
+        {
+            if (auto& collider_data = m_mobile_colliders[id]; !collider_data)
+            {
+                collider_data = mobile_collider;
+                return id;
+            }
+        }
+
+        m_mobile_colliders.emplace_back(mobile_collider);
+        return id;
     }
 
-    void PhysicsSystem::unregister_mobile_collider(const ColliderComponent& collider)
+    void PhysicsSystem::update_mobile_collider(const u32 collider_id)
     {
-        erase_if(m_mobile_colliders,
-            [&](const ColliderComponent* other)
-            {
-                return &collider == other;
-            }
-        );
+        if (collider_id < m_mobile_colliders.size())
+        {
+            auto& collider = m_mobile_colliders[collider_id];
+            assert(collider.has_value());
+            assert(collider->collider_comp != nullptr);
+
+            collider->previous_collider = collider->collider;
+            collider->collider = collider->collider_comp->calc_collider();
+        }
+    }
+
+    void PhysicsSystem::unregister_mobile_collider(const u32 collider_id)
+    {
+        if (collider_id < m_mobile_colliders.size())
+            m_mobile_colliders[collider_id] = std::nullopt;
     }
 
     void PhysicsSystem::update(f32 delta_time)
     {
-        for (const auto collider : m_mobile_colliders)
+        for (const auto collider_data : m_mobile_colliders)
         {
-            assert(collider);
+            assert(collider_data.has_value());
 
             std::vector<physics::Collider_AABB> near_colliders{};
-            const TestingCollisionEvent event{ *collider, near_colliders };
-
-            // This event call fills the near_colliders array
-            on_testing_collisions.broadcast(event);
-
-            bool any_collision = false;
-            for (const auto& near_collider : near_colliders)
-                any_collision = any_collision || collider->collider.resolve(near_collider);
-
-            if (!any_collision)
             {
-                collider->collider.position += collider->collider.velocity;
+                // This event call fills the near_colliders array
+                const TestingCollisionEvent event{ collider_data->collider, near_colliders };
+                on_testing_collisions.broadcast(event);
             }
+
+            std::optional<v3> total_displacement = std::nullopt;
+            for (const auto& other_collider : near_colliders)
+            {
+                const auto displacement = physics::Collider_AABB::resolve(
+                    collider_data->collider,
+                    collider_data->previous_collider,
+                    other_collider);
+
+                if (displacement)
+                {
+                    if (!total_displacement)
+                        total_displacement = v3{ 0.0f };
+
+                    *total_displacement += *displacement;
+                }
+            }
+
+            if (total_displacement)
+                collider_data->collider_comp->on_displaced(*total_displacement);
         }
     }
 }
