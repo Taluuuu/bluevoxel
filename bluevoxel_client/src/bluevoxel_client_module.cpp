@@ -147,8 +147,6 @@ namespace bluevoxel
 
             ImGui::End();
         }
-
-        g_engine->get_module_checked<h2o::RenderingModule>().renderer().draw_cube(v3{ 0.0f, 256.0f, 0.0f }, v3{1.0f}, v4{1.0f});
     }
 
     void BlueVoxelClientModule::create_scene()
@@ -156,17 +154,10 @@ namespace bluevoxel
         assert(m_scene == nullptr);
 
         m_scene = std::make_shared<h2o::Scene>("client_scene", &m_client);
+        m_scene->add_system<h2o::PhysicsSystem>();
         m_scene->add_system<h2o::RenderingSystem>();
         m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
-
-        const auto physics_system = m_scene->add_system<h2o::PhysicsSystem>();
-        physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
-            [this](const h2o::TestingCollisionEvent& event)
-            {
-                event.near_colliders.emplace_back(v3{ 0.0f, 256.0f, 0.0f }, v3{ 1.0f });
-            }
-        );
 
         spawn_local_player();
     }
@@ -175,7 +166,7 @@ namespace bluevoxel
     {
         assert(m_scene);
 
-        auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
+        const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
 
         {

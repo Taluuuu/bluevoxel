@@ -50,10 +50,11 @@ namespace h2o
         // Net event handles
         EventHandle m_on_connected_handle{};
         EventHandle m_on_fetched_chunk_handle{};
-        EventHandle m_on_received_block_place_request{};
+        EventHandle m_on_received_block_place_request_handle{};
 
         // Local events
-        EventHandle m_on_block_placed{};
+        EventHandle m_on_testing_collisions_handle{};
+        EventHandle m_on_block_placed_handle{};
 
         VoxelBounds m_voxel_bounds;
         v2i m_previous_player_chunk_col_pos{};

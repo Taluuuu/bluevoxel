@@ -15,8 +15,8 @@ namespace h2o
         m_input = add_component<InputComponent>();
 
         m_collider = add_component<ColliderComponent>();
-        m_collider->set_size(v3{ 1.0f });
-        m_collider->set_offset(v3{ -0.5f });
+        m_collider->set_size(v3{ 0.8f, 1.8f, 0.8f });
+        m_collider->set_offset(v3{ -0.4f, -1.5f, -0.4f });
 
         add_component<FpsCameraComponent>();
 

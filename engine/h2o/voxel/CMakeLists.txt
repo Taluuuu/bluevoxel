@@ -23,6 +23,7 @@ target_link_libraries(h2o_voxel
         h2o_input
         h2o_inventory
         h2o_networking
+        h2o_physics
         h2o_rendering
         h2o_ui
         h2o_scene
@@ -43,6 +44,7 @@ target_include_directories(h2o_voxel
         h2o_input
         h2o_inventory
         h2o_networking
+        h2o_physics
         h2o_rendering
         h2o_ui
         h2o_scene

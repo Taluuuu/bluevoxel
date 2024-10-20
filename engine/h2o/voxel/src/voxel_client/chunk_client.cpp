@@ -2,6 +2,7 @@
 
 #include "core/engine.h"
 #include "networking/net_peer.h"
+#include "physics/scene/physics_system.h"
 #include "rendering/camera.h"
 #include "rendering/pipeline.h"
 #include "rendering/renderer.h"
@@ -18,6 +19,7 @@
 #include <glm/gtx/norm.hpp>
 #include <magic_enum_all.hpp>
 #include <voxel/chunk_view.h>
+
 
 namespace h2o
 {
@@ -74,12 +76,35 @@ namespace h2o
             }
         );
 
-        m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request,
+        m_client->handle_message<net_msg::BlockPlaceRequest>(m_on_received_block_place_request_handle,
             [this](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
                 m_chunk_mgr.set_block_at(block_place_request.block_pos, block_place_request.placed_block);
             }
         );
+
+        if (const auto physics_system = m_scene->get_system<PhysicsSystem>())
+        {
+            physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
+                [this](const TestingCollisionEvent& event)
+                {
+                    const v3i min = event.collider_to_test.position - v3{1.0f};
+                    const v3i max = event.collider_to_test.size + v3{min} + v3{3.0f};
+
+                    auto& renderer = g_engine->get_module_checked<RenderingModule>().renderer();
+                    voxel_utils::for_v3i(min, max,
+                        [&](const v3i& block_pos)
+                        {
+                            if (const auto block = m_chunk_mgr.get_block_at(block_pos); block && block != Block::Air)
+                            {
+                                event.near_colliders.emplace_back(block_pos, v3{1.0f});
+                                renderer.draw_cube(block_pos, v3i{1}, v4{1.0f});
+                            }
+                        }
+                    );
+                }
+            );
+        }
     }
 
     void ChunkClient::set_block_at(const v3i& block_pos, Block block)

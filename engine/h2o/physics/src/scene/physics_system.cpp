@@ -5,7 +5,7 @@ namespace h2o
     PhysicsSystem::PhysicsSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
     {
-        set_tick_phases(TickPhase::Update);
+        set_tick_phases(TickPhase::PostUpdate);
     }
 
     u32 PhysicsSystem::register_mobile_collider(ColliderComponent& collider_comp)
@@ -50,7 +50,7 @@ namespace h2o
             m_mobile_colliders[collider_id] = std::nullopt;
     }
 
-    void PhysicsSystem::update(f32 delta_time)
+    void PhysicsSystem::post_update(f32 delta_time)
     {
         for (auto& collider_data : m_mobile_colliders)
         {
@@ -66,7 +66,7 @@ namespace h2o
             std::optional<v3> total_displacement = std::nullopt;
             for (const auto& other_collider : near_colliders)
             {
-                const auto displacement = physics::Collider_AABB::resolve(
+                auto displacement = physics::Collider_AABB::resolve(
                     collider_data->collider,
                     collider_data->previous_collider,
                     other_collider);
@@ -76,15 +76,13 @@ namespace h2o
                     if (!total_displacement)
                         total_displacement = v3{ 0.0f };
 
+                    collider_data->collider.position += *displacement;
                     *total_displacement += *displacement;
                 }
             }
 
             if (total_displacement)
-            {
-                collider_data->collider.position += *total_displacement;
                 collider_data->collider_comp->on_displaced(*total_displacement);
-            }
         }
     }
 }

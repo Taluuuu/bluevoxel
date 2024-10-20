@@ -59,9 +59,6 @@ namespace bluevoxel
         h2o::EventHandle m_on_connected_handle{};
         h2o::EventHandle m_on_disconnected_handle{};
 
-        // TEMP
-        h2o::EventHandle m_on_testing_collisions_handle{};
-
         h2o::InputModule* m_input_module = nullptr;
 
     };

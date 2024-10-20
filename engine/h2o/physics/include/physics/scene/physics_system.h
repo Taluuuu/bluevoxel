@@ -35,7 +35,7 @@ namespace h2o
 
     protected:
 
-        void update(f32 delta_time) override;
+        void post_update(f32 delta_time) override;
 
     private:
 
