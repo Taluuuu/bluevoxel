@@ -88,18 +88,16 @@ namespace h2o
             physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
                 [this](const TestingCollisionEvent& event)
                 {
-                    const v3i min = event.collider_to_test.position - v3{1.0f};
-                    const v3i max = event.collider_to_test.size + v3{min} + v3{3.0f};
+                    const auto [col_pos, col_size] = event.collider_to_test;
 
-                    auto& renderer = g_engine->get_module_checked<RenderingModule>().renderer();
+                    const v3i min = voxel_utils::world_to_block_pos(col_pos);
+                    const v3i max = voxel_utils::world_to_block_pos(col_pos + col_size) + v3i{1};
+
                     voxel_utils::for_v3i(min, max,
                         [&](const v3i& block_pos)
                         {
                             if (const auto block = m_chunk_mgr.get_block_at(block_pos); block && block != Block::Air)
-                            {
                                 event.near_colliders.emplace_back(block_pos, v3{1.0f});
-                                renderer.draw_cube(block_pos, v3i{1}, v4{1.0f});
-                            }
                         }
                     );
                 }

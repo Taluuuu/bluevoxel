@@ -1,11 +1,14 @@
 #pragma once
 
+#include "core/events.h"
 #include "physics/collider_aabb.h"
 #include "scene/component.h"
 
 namespace h2o
 {
     class PhysicsSystem;
+
+    struct CollisionEvent { v3 displacement{}, normal{}; };
 
     class ColliderComponent : public Component
     {
@@ -14,14 +17,20 @@ namespace h2o
         explicit ColliderComponent(const ComponentInitializer& component_initializer);
         ~ColliderComponent() override;
 
-        void update(f32 delta_time) override;
-
-        void on_displaced(const v3& displacement);
+        void on_displaced(const v3& displacement, const v3& normal);
 
         void set_size(const v3& size);
         void set_offset(const v3& offset);
 
         [[nodiscard]] physics::Collider_AABB calc_collider() const;
+
+    public:
+
+        Event<CollisionEvent> on_collision{};
+
+    protected:
+
+        void update(f32 delta_time) override;
 
     private:
 

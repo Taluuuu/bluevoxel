@@ -29,7 +29,6 @@ namespace bluevoxel
         player->transform.position = { 0.0f, 200.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 0.0f };
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
-        player->move_speed = 100.0f;
 
         set_tick_phases(h2o::TickPhase::Update);
     }

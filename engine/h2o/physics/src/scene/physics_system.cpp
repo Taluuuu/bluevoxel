@@ -63,26 +63,21 @@ namespace h2o
                 on_testing_collisions.broadcast(event);
             }
 
-            std::optional<v3> total_displacement = std::nullopt;
             for (const auto& other_collider : near_colliders)
             {
+                v3 normal;
                 auto displacement = physics::Collider_AABB::resolve(
                     collider_data->collider,
                     collider_data->previous_collider,
-                    other_collider);
+                    other_collider,
+                    normal);
 
                 if (displacement)
                 {
-                    if (!total_displacement)
-                        total_displacement = v3{ 0.0f };
-
                     collider_data->collider.position += *displacement;
-                    *total_displacement += *displacement;
+                    collider_data->collider_comp->on_displaced(*displacement, normal);
                 }
             }
-
-            if (total_displacement)
-                collider_data->collider_comp->on_displaced(*total_displacement);
         }
     }
 }

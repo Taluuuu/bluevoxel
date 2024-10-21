@@ -17,6 +17,7 @@ namespace h2o::physics
         [[nodiscard]] static std::optional<v3> resolve(
             const Collider_AABB& a,
             const Collider_AABB& a_prev,
-            const Collider_AABB& b);
+            const Collider_AABB& b,
+            v3& out_normal);
     };
 }

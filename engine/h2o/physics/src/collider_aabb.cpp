@@ -25,7 +25,8 @@ namespace h2o::physics
     std::optional<v3> Collider_AABB::resolve(
         const Collider_AABB& a,
         const Collider_AABB& a_prev,
-        const Collider_AABB& b)
+        const Collider_AABB& b,
+        v3& out_normal)
     {
         const v3 a_min = a.position;
         const v3 a_max = a_min + a.size;
@@ -49,36 +50,42 @@ namespace h2o::physics
         if (a_max.y > b_min.y && a_old_max.y <= b_old_min.y)
         {
             response += v3(0.0f, b_min.y - a_max.y - 0.001f, 0.0f);
+            out_normal = { 0.0f, -1.0f, 0.0f };
         }
 
         // Top
         else if (a_min.y < b_max.y && a_old_min.y >= b_old_max.y)
         {
             response += v3(0.0f, b_max.y - a_min.y + 0.001f, 0.0f);
+            out_normal = { 0.0f, 1.0f, 0.0f };
         }
 
         // X-
         else if (a_max.x > b_min.x && a_old_max.x <= b_old_min.x)
         {
             response += v3(b_min.x - a_max.x - 0.001f, 0.0f, 0.0f);
+            out_normal = { -1.0f, 0.0f, 0.0f };
         }
 
         // X+
         else if (a_min.x < b_max.x && a_old_min.x >= b_old_max.x)
         {
             response += v3(b_max.x - a_min.x + 0.001f, 0.0f, 0.0f);
+            out_normal = { 1.0f, 0.0f, 0.0f };
         }
 
         // Z-
         else if (a_max.z > b_min.z && a_old_max.z <= b_old_min.z)
         {
             response += v3(0.0f, 0.0f, b_min.z - a_max.z - 0.001f);
+            out_normal = { 0.0f, 0.0f, -1.0f };
         }
 
         // Z+
         else if (a_min.z < b_max.z && a_old_min.z >= b_old_max.z)
         {
             response += v3(0.0f, 0.0f, b_max.z - a_min.z + 0.001f);
+            out_normal = { 0.0f, 0.0f, 1.0f };
         }
 
         return response;

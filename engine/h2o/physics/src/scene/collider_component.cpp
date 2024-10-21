@@ -23,20 +23,10 @@ namespace h2o
             m_physics_system->unregister_mobile_collider(m_collider_id);
     }
 
-    void ColliderComponent::update(f32 delta_time)
-    {
-        if (m_previous_location != owner()->transform.position)
-        {
-            if (m_physics_system)
-                m_physics_system->update_mobile_collider(m_collider_id);
-
-            m_previous_location = owner()->transform.position;
-        }
-    }
-
-    void ColliderComponent::on_displaced(const v3& displacement)
+    void ColliderComponent::on_displaced(const v3& displacement, const v3& normal)
     {
         owner()->transform.position += displacement;
+        on_collision.broadcast({ displacement, normal });
     }
 
     void ColliderComponent::set_size(const v3& size)
@@ -61,5 +51,16 @@ namespace h2o
             .position = owner()->transform.position + m_offset,
             .size = m_size
         };
+    }
+
+    void ColliderComponent::update(f32 delta_time)
+    {
+        if (m_previous_location != owner()->transform.position)
+        {
+            if (m_physics_system)
+                m_physics_system->update_mobile_collider(m_collider_id);
+
+            m_previous_location = owner()->transform.position;
+        }
     }
 }
