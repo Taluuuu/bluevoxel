@@ -45,6 +45,9 @@ namespace bluevoxel
         player->transform.rotation = { 0.0f, 0.0f, 0.0f };
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
 
+        player->fly = true;
+        player->fly_speed = 5.0f;
+
         m_structure_gizmo.increment_size = 1.0f;
         m_structure_gizmo.reset_position_on_release = true;
 
