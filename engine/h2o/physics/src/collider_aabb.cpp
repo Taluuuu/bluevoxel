@@ -49,6 +49,8 @@ namespace h2o::physics
         // Bottom
         if (a_max.y > b_min.y && a_old_max.y <= b_old_min.y)
         {
+            // TODO TODO TODO
+            // Voxel collision test with slightly larger capsule on the y axis to check if on ground
             response += v3(0.0f, b_min.y - a_max.y - 0.001f, 0.0f);
             out_normal = { 0.0f, -1.0f, 0.0f };
         }

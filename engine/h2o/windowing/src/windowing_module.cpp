@@ -39,6 +39,12 @@ namespace h2o
         return m_window->delta_time();
     }
 
+    f64 WindowingModule::time() const
+    {
+        assert(m_window != nullptr);
+        return m_window->time();
+    }
+
     void WindowingModule::poll_events() const
     {
         assert(m_window != nullptr);

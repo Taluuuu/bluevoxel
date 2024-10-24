@@ -59,6 +59,18 @@ namespace h2o
         }
     }
 
+    void Tickable::run_physics_update(f32 delta_time)
+    {
+        if (is_enabled())
+        {
+            if (m_tick_phases & TickPhase::PhysicsUpdate)
+                physics_update(delta_time);
+
+            for (Tickable* child: m_children)
+                child->run_physics_update(delta_time);
+        }
+    }
+
     void Tickable::run_post_update(f32 delta_time)
     {
         if (is_enabled())

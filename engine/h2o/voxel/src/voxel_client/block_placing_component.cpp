@@ -41,10 +41,10 @@ namespace h2o
 
         m_crosshair_texture = g_engine->resource_mgr().fetch<gfx::Texture>("engine/textures/crosshair.png");
 
-        set_tick_phases(TickPhase::Update);
+        set_tick_phases(TickPhase::PostUpdate);
     }
 
-    void BlockPlacingComponent::update(f32 delta_time)
+    void BlockPlacingComponent::post_update(f32 delta_time)
     {
         assert(m_camera);
         assert(m_input);
@@ -95,7 +95,7 @@ namespace h2o
 
         if (const VoxelRay ray{ origin, end, chunk_mgr })
         {
-            const auto& [hit_voxel, before_hit_voxel, normal] = ray.hit();
+            const auto& [hit_voxel, before_hit_voxel, normal, distance] = ray.hit();
             auto& renderer = m_rendering_module->renderer();
             constexpr v4 line_color{ 0.0f, 0.0f, 0.0f, 1.0f };
             const v3i pos = hit_voxel.pos;

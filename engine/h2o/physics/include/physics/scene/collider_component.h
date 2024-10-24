@@ -22,6 +22,9 @@ namespace h2o
         void set_size(const v3& size);
         void set_offset(const v3& offset);
 
+        [[nodiscard]] const v3& size() const { return m_size; }
+        [[nodiscard]] const v3& offset() const { return m_offset; }
+
         [[nodiscard]] physics::Collider_AABB calc_collider() const;
 
     public:

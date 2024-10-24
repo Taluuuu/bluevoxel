@@ -14,12 +14,12 @@
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_net_messages.h"
+#include "voxel/voxel_ray.h"
 #include "voxel/voxel_utils.h"
 
 #include <glm/gtx/norm.hpp>
 #include <magic_enum_all.hpp>
 #include <voxel/chunk_view.h>
-
 
 namespace h2o
 {
@@ -83,6 +83,7 @@ namespace h2o
             }
         );
 
+        // TODO: Move these in a common server/client base class, as they will certainly be needed server-side as well
         if (const auto physics_system = m_scene->get_system<PhysicsSystem>())
         {
             physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
@@ -96,10 +97,26 @@ namespace h2o
                     voxel_utils::for_v3i(min, max,
                         [&](const v3i& block_pos)
                         {
-                            if (const auto block = m_chunk_mgr.get_block_at(block_pos); block && block != Block::Air)
+                            if (const auto block = m_chunk_mgr.get_block_at(block_pos); block != Block::Air)
                                 event.near_colliders.emplace_back(block_pos, v3{1.0f});
                         }
                     );
+                }
+            );
+
+            physics_system->on_raycasting.add_listener(m_on_raycasting_handle,
+                [this](const RaycastingEvent& event)
+                {
+                    const VoxelRay voxel_ray(event.origin, event.origin + event.direction * event.range, m_chunk_mgr);
+                    if (voxel_ray.has_hit())
+                    {
+                        const auto& voxel_ray_hit = voxel_ray.hit();
+                        if (voxel_ray_hit.distance < event.hit_result.distance)
+                        {
+                            event.hit_result.distance = voxel_ray_hit.distance;
+                            event.hit_result.hit_location = event.origin + event.direction * voxel_ray_hit.distance;
+                        }
+                    }
                 }
             );
         }

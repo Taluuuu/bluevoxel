@@ -6,9 +6,9 @@
 
 namespace h2o
 {
-    std::optional<Block> ChunkManager::get_block_at(const v3i& block_pos) const
+    Block ChunkManager::get_block_at(const v3i& block_pos) const
     {
-        std::optional<Block> block = std::nullopt;
+        Block block = Block::Air;
         fetch_chunk(voxel_utils::block_to_chunk_pos(block_pos),
             [&](const Chunk* chunk)
             {

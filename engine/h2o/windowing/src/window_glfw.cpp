@@ -82,6 +82,11 @@ namespace h2o
         return m_delta_time;
     }
 
+    f64 Window_GLFW::time() const
+    {
+        return m_previous_time;
+    }
+
     void Window_GLFW::poll_events() const
     {
         // Managing window input?

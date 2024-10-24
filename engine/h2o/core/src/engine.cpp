@@ -61,11 +61,13 @@ namespace h2o
         if (m_input_module)
             m_input_module->prepare();
 
+        // TODO: Make these work without a window
         f32 delta_time = 0.0f;
         if (m_window_module)
         {
             m_window_module->poll_events();
             delta_time = static_cast<f32>(m_window_module->delta_time());
+            m_current_time = static_cast<f32>(m_window_module->time());
         }
 
         run_frame_start(delta_time);
@@ -78,6 +80,7 @@ namespace h2o
         }
 
         run_update(delta_time);
+        run_physics_update(delta_time);
         run_post_update(delta_time);
 
         // General engine stats

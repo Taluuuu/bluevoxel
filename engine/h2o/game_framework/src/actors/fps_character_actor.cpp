@@ -4,6 +4,8 @@
 #include "game_framework/components/fps_camera_component.h"
 #include "input/input_component.h"
 #include "physics/scene/collider_component.h"
+#include "physics/scene/physics_system.h"
+#include "scene/scene.h"
 
 #include <glm/gtx/norm.hpp>
 
@@ -26,7 +28,9 @@ namespace h2o
             }
         );
 
-        add_component<FpsCameraComponent>();
+        m_camera = add_component<FpsCameraComponent>();
+
+        m_physics_system = m_scene->get_system<PhysicsSystem>();
 
         set_tick_phases(TickPhase::Update);
     }
@@ -40,16 +44,20 @@ namespace h2o
         if (m_input->key_state(Key::H).pressed_this_frame)
             fly = !fly;
 
+        m_is_sprinting = m_input->key_state(Key::LeftShift).held;
+        if (m_camera)
+        {
+            m_camera->target_fov_modifier =
+                (m_is_sprinting && glm::length(m_velocity) > 1.0f) ? sprint_fov_modifier : 1.0f;
+        }
+
         if (fly)
         {
             update_fly(delta_time);
         }
         else
         {
-            // Bad but will work until i make a better raycast system to find the ground
-            const bool touching_grass = m_velocity.y > -1.0f;
-
-            if (touching_grass)
+            if (touching_grass())
             {
                 update_walk(delta_time);
             }
@@ -84,70 +92,79 @@ namespace h2o
         return move_input_rotated;
     }
 
+    bool FpsCharacterActor::touching_grass() const
+    {
+        // Test environment collision at the player's feet
+        if (m_physics_system && m_collider)
+        {
+            auto feet_collider = m_collider->calc_collider();
+            feet_collider.size.y = 0.1f;
+            feet_collider.position.y -= 0.05f;
+
+            return m_physics_system->collides(feet_collider);
+        }
+
+        return false;
+    }
+
     void FpsCharacterActor::update_fly(const f32 delta_time)
     {
-        const v3 move_dir = get_desired_move_dir();
+        m_velocity = steered_horizontal_movement(
+            m_velocity,
+            acceleration_fly,
+            deceleration_fly,
+            m_is_sprinting ? max_speed_fly_sprint : max_speed_fly,
+            delta_time);
 
-        m_velocity = move_dir * fly_speed;
+        // Fly
         m_velocity.y = m_input->get_axis("fly") * fly_speed;
     }
 
     void FpsCharacterActor::update_walk(const f32 delta_time)
     {
-        const v3 move_dir = get_desired_move_dir();
-        const v3 horizontal_vel{ m_velocity.x, 0.0f, m_velocity.z };
-
-        if (move_dir != v3{ 0.0f })
-        {
-            // Accelerate...
-            if (glm::length(horizontal_vel) > 0.1f &&
-                glm::dot(move_dir, glm::normalize(horizontal_vel)) < glm::acos(glm::radians(deceleration_angle)))
-            {
-                // Use deceleration if going the opposite way enough
-                m_velocity += deceleration * move_dir * delta_time;
-            }
-            else
-            {
-                m_velocity += acceleration * move_dir * delta_time;
-            }
-        }
-        else
-        {
-            // Decelerate...
-            const f32 horizontal_speed = glm::length(horizontal_vel);
-            if (horizontal_speed > 0.0001f)
-            {
-                // Make sure we don't decelerate past 0
-                const f32 speed_change = deceleration * delta_time;
-                v3 velocity_change;
-                if (speed_change < horizontal_speed)
-                {
-                    const v3 horizontal_move_dir = glm::normalize(horizontal_vel);
-                    velocity_change = -speed_change * horizontal_move_dir;
-                }
-                else
-                {
-                    velocity_change = -horizontal_vel;
-                }
-
-                m_velocity += velocity_change;
-            }
-        }
-
-        // Cap horizontal speed to max_speed
-        const f32 horizontal_speed = glm::length(v2{ m_velocity.x, m_velocity.z });
-        if (horizontal_speed > max_speed)
-        {
-            const f32 temp = max_speed / horizontal_speed;
-            m_velocity *= v3{ temp, 1.0f, temp };
-        }
+        m_velocity = steered_horizontal_movement(
+            m_velocity,
+            acceleration_walk,
+            deceleration_walk,
+            m_is_sprinting ? max_speed_walk_sprint : max_speed_walk,
+            delta_time);
 
         // Jump
-        if (m_input->key_state(Key::Space).pressed_this_frame)
+        const f32 current_time = g_engine->current_time();
+        if (m_input->key_state(Key::Space).held && current_time > m_last_jump_time + min_time_between_jumps)
+        {
+            m_last_jump_time = current_time;
             m_velocity.y = jump_speed;
+        }
     }
 
     void FpsCharacterActor::update_fall(const f32 delta_time)
     {
+        m_velocity = steered_horizontal_movement(
+            m_velocity,
+            acceleration_fall,
+            deceleration_fall,
+            m_is_sprinting ? max_speed_fall_sprint : max_speed_fall,
+            delta_time);
+    }
+
+    v3 FpsCharacterActor::steered_horizontal_movement(
+        const v3& velocity,
+        const f32 accel,
+        const f32 decel,
+        const f32 max_speed,
+        const f32 delta_time) const
+    {
+        const v3 move_dir = get_desired_move_dir();
+        const v3 current_horizontal_vel{ velocity.x, 0.0f, velocity.z };
+        const f32 current_horizontal_speed = glm::length(current_horizontal_vel);
+
+        const f32 target_speed = (glm::length(move_dir) < 0.001f) ? 0.0f : max_speed;
+        const f32 mix_coeff = (target_speed < current_horizontal_speed) ? decel : accel;
+
+        const v3 target_vel = move_dir * target_speed;
+        const v3 result = glm::mix(current_horizontal_vel, target_vel, mix_coeff * delta_time);
+
+        return v3{ result.x, velocity.y, result.z };
     }
 }

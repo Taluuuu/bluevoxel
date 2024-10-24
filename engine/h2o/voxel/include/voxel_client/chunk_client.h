@@ -54,6 +54,7 @@ namespace h2o
 
         // Local events
         EventHandle m_on_testing_collisions_handle{};
+        EventHandle m_on_raycasting_handle{};
         EventHandle m_on_block_placed_handle{};
 
         VoxelBounds m_voxel_bounds;

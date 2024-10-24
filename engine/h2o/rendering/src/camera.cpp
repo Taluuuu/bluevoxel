@@ -3,7 +3,7 @@
 namespace h2o::gfx
 {
     Camera::Camera(f32 fov, f32 aspect_ratio, v3 position, v3 rotation)
-        : fov(glm::radians(fov))
+        : fov(fov)
         , aspect_ratio(aspect_ratio)
     {
         update(position, rotation);
@@ -24,7 +24,7 @@ namespace h2o::gfx
 
     m4 Camera::calc_proj_matrix() const
     {
-        return glm::perspective(fov, aspect_ratio, near, far);
+        return glm::perspective(glm::radians(fov), aspect_ratio, near, far);
     }
 
     v3 Camera::calc_front() const

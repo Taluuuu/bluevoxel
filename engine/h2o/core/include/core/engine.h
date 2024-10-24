@@ -64,6 +64,9 @@ namespace h2o
         [[nodiscard]] DebugInfos& debug_infos() { return m_debug_infos; }
         [[nodiscard]] LayerStack& layer_stack() { return m_layer_stack; }
 
+        // TODO: Put this somewhere else
+        [[nodiscard]] f32 current_time() const { return m_current_time; }
+
         /**
          * @brief Run the engine. Contains the main loop.
          *
@@ -98,6 +101,7 @@ namespace h2o
 
         f32 m_time_since_network_update = 0.0f;
         f32 m_time_between_network_updates = 1.0f / 20.0f;
+        f32 m_current_time = 0.0f;
 
         ResourceManager m_resource_mgr{};
         ThreadPool m_thread_pool{};

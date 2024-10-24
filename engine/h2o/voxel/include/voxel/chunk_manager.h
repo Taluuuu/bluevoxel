@@ -21,7 +21,7 @@ namespace h2o
         ChunkManager() = default;
         ~ChunkManager() = default;
 
-        [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos) const;
+        [[nodiscard]] Block get_block_at(const v3i& block_pos) const;
         bool set_block_at(const v3i& block_pos, Block block);
 
         [[nodiscard]] bool chunk_exists(const v3i& chunk_pos) const;

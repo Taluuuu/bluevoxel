@@ -5,7 +5,33 @@ namespace h2o
     PhysicsSystem::PhysicsSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
     {
-        set_tick_phases(TickPhase::PostUpdate);
+        set_tick_phases(TickPhase::PhysicsUpdate);
+    }
+
+    bool PhysicsSystem::raycast(const v3& origin, const v3& direction, const f32 range, RayHit& out_hit) const
+    {
+        out_hit.distance = range + 0.0001f;
+        on_raycasting.broadcast(RaycastingEvent{ origin, direction, range, out_hit });
+        
+        return out_hit.distance < range;
+    }
+
+    bool PhysicsSystem::collides(const physics::Collider_AABB& collider_to_test) const
+    {
+        std::vector<physics::Collider_AABB> near_colliders{};
+        {
+            // This event call fills the near_colliders array
+            const TestingCollisionEvent event{ collider_to_test, near_colliders };
+            on_testing_collisions.broadcast(event);
+        }
+
+        for (const auto& near_collider : near_colliders)
+        {
+            if (collider_to_test.intersects(near_collider))
+                return true;
+        }
+
+        return false;
     }
 
     u32 PhysicsSystem::register_mobile_collider(ColliderComponent& collider_comp)
@@ -50,7 +76,7 @@ namespace h2o
             m_mobile_colliders[collider_id] = std::nullopt;
     }
 
-    void PhysicsSystem::post_update(f32 delta_time)
+    void PhysicsSystem::physics_update(f32 delta_time)
     {
         for (auto& collider_data : m_mobile_colliders)
         {

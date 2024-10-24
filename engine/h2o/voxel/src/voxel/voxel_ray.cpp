@@ -5,11 +5,14 @@
 
 namespace h2o
 {
+    // Based on http://www.cse.yorku.ca/~amana/research/grid.pdf
+    // A Fast Voxel Traversal Algorithm for Ray Tracing
     VoxelRay::VoxelRay(const v3& origin, const v3& end, const ChunkManager& chunk_manager)
     {
         const v3 to_end = end - origin;
         const v3 direction = glm::normalize(to_end);
         const f32 range = glm::length(to_end);
+        m_ray_hit.distance = range;
 
         v3i current_voxel = voxel_utils::world_to_block_pos(origin);
 
@@ -37,7 +40,7 @@ namespace h2o
         {
             intersection_count++;
 
-            const auto block = chunk_manager.get_block_at(current_voxel).value_or(Block::Air);
+            const auto block = chunk_manager.get_block_at(current_voxel);
 
             m_ray_hit.add_voxel({ current_voxel, block });
             if (block != Block::Air)
@@ -51,12 +54,14 @@ namespace h2o
                 if (t_max.x < t_max.z)
                 {
                     current_voxel.x += step.x;
+                    m_ray_hit.distance = t_max.x * range;
                     t_max.x += t_delta.x;
                     m_ray_hit.normal = { -step.x, 0, 0 };
                 }
                 else
                 {
                     current_voxel.z += step.z;
+                    m_ray_hit.distance = t_max.z * range;
                     t_max.z += t_delta.z;
                     m_ray_hit.normal = { 0, 0, -step.z };
                 }
@@ -66,12 +71,14 @@ namespace h2o
                 if (t_max.y < t_max.z)
                 {
                     current_voxel.y += step.y;
+                    m_ray_hit.distance = t_max.y * range;
                     t_max.y += t_delta.y;
                     m_ray_hit.normal = { 0, -step.y, 0 };
                 }
                 else
                 {
                     current_voxel.z += step.z;
+                    m_ray_hit.distance = t_max.z * range;
                     t_max.z += t_delta.z;
                     m_ray_hit.normal = { 0, 0, -step.z };
                 }

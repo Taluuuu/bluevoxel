@@ -66,6 +66,8 @@ namespace h2o
          */
         [[nodiscard]] virtual f64 delta_time() const = 0;
 
+        [[nodiscard]] virtual f64 time() const = 0;
+
         /**
          * @brief Getter for if the window should close
          * 

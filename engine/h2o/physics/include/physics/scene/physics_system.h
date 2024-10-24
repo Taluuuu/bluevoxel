@@ -18,6 +18,19 @@ namespace h2o
         std::vector<physics::Collider_AABB>& near_colliders;
     };
 
+    struct RayHit
+    {
+        f32 distance = std::numeric_limits<f32>::max();
+        v3 hit_location{};
+    };
+
+    struct RaycastingEvent
+    {
+        v3 origin{}, direction{};
+        f32 range = 10.0f;
+        RayHit& hit_result;
+    };
+
     class PhysicsSystem : public SceneSystem
     {
     public:
@@ -25,17 +38,21 @@ namespace h2o
         explicit PhysicsSystem(const SceneSystemInitializer& system_initializer);
         ~PhysicsSystem() override = default;
 
+        [[nodiscard]] bool raycast(const v3& origin, const v3& direction, f32 range, RayHit& out_hit) const;
+        [[nodiscard]] bool collides(const physics::Collider_AABB& collider_to_test) const;
+
         // Returns new collider's id
         u32 register_mobile_collider(ColliderComponent& collider_comp);
         void update_mobile_collider(u32 collider_id);
         void unregister_mobile_collider(u32 collider_id);
 
-        // Environment classes should bind to this to provide colliders to check for collision.
+        // Different systems can bind to these to influence physics
         Event<TestingCollisionEvent> on_testing_collisions{};
+        Event<RaycastingEvent> on_raycasting{};
 
     protected:
 
-        void post_update(f32 delta_time) override;
+        void physics_update(f32 delta_time) override;
 
     private:
 

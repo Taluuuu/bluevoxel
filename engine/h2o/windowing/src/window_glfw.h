@@ -31,6 +31,7 @@ namespace h2o
         [[nodiscard]] v2i framebuffer_size() const override;
         [[nodiscard]] bool should_close() const override;
         [[nodiscard]] f64 delta_time() const override;
+        [[nodiscard]] f64 time() const override;
         void poll_events() const override;
         [[nodiscard]] void* handle() const override;
         void swap_buffers(f64 max_fps) override;

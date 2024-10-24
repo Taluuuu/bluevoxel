@@ -26,7 +26,7 @@ namespace h2o
         explicit BlockPlacingComponent(const ComponentInitializer& component_initializer);
         ~BlockPlacingComponent() override = default;
 
-        void update(f32 delta_time) override;
+        void post_update(f32 delta_time) override;
 
     public:
 

@@ -23,6 +23,8 @@ namespace h2o
 
     void FpsCameraComponent::update(f32 delta_time)
     {
+        CameraComponent::update(delta_time);
+
         if (!m_input)
             return;
 

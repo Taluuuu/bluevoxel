@@ -15,12 +15,13 @@ namespace h2o
             None          = 0,
             FrameStart    = 1 << 0,
             Update        = 1 << 1,
-            PostUpdate    = 1 << 2,
-            NetworkUpdate = 1 << 3,
-            PreRender     = 1 << 4,
-            Render        = 1 << 5,
-            PostRender    = 1 << 6,
-            FrameEnd      = 1 << 7,
+            PhysicsUpdate = 1 << 2,
+            PostUpdate    = 1 << 3,
+            NetworkUpdate = 1 << 4,
+            PreRender     = 1 << 5,
+            Render        = 1 << 6,
+            PostRender    = 1 << 7,
+            FrameEnd      = 1 << 8,
         };
 
         inline TickPhase::Type operator|(TickPhase::Type lhs, TickPhase::Type rhs)
@@ -53,6 +54,7 @@ namespace h2o
 
         void run_frame_start(f32 delta_time);
         void run_update(f32 delta_time);
+        void run_physics_update(f32 delta_time);
         void run_post_update(f32 delta_time);
         void run_network_update(f32 delta_time);
         void run_pre_render();
@@ -62,6 +64,7 @@ namespace h2o
 
         virtual void frame_start(f32 delta_time)    { assert(false); }
         virtual void update(f32 delta_time)         { assert(false); }
+        virtual void physics_update(f32 delta_time) { assert(false); }
         virtual void post_update(f32 delta_time)    { assert(false); }
         virtual void network_update(f32 delta_time) { assert(false); }
         virtual void pre_render()                   { assert(false); }

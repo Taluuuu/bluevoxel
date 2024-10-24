@@ -18,6 +18,7 @@ namespace h2o
         VoxelFetchResult hit_voxel{};
         VoxelFetchResult before_hit_voxel{};
         v3i normal{};
+        f32 distance = std::numeric_limits<f32>::max();
 
         void add_voxel(const VoxelFetchResult& voxel_fetch_result)
         {
