@@ -148,6 +148,13 @@ namespace h2o
         {
             m_previous_player_chunk_col_pos = player_chunk_col_pos;
 
+            m_chunk_mgr.remove_all_chunk_columns(
+                [&](v2i chunk_column_pos) -> bool
+                {
+                    return !m_voxel_bounds.in_bounds(chunk_column_pos);
+                }
+            );
+
             request_chunk_loads();
         }
 

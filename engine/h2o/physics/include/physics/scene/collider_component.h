@@ -27,13 +27,13 @@ namespace h2o
 
         [[nodiscard]] physics::Collider_AABB calc_collider() const;
 
+        // Tickable interface
+        void set_enabled(bool enabled) override;
+        void update(f32 delta_time) override;
+
     public:
 
         Event<CollisionEvent> on_collision{};
-
-    protected:
-
-        void update(f32 delta_time) override;
 
     private:
 

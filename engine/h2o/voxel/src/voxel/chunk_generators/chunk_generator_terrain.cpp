@@ -11,29 +11,53 @@ namespace h2o
         : m_noise_generator(FastNoise::NewFromEncodedNodeTree("GQAbABkAEwCmm8Q7DQAFAAAAAAAAQAcAAFyPwj4AAAAAAAAAAIA/AAAAcEEAAADwQg=="))
     {}
 
+    static std::vector<f32> gen_noise(const v3i& corner, const v3i& size, const i32 num_octaves, const f32 frequency)
+    {
+        const FastNoise::SmartNode<> simplex = FastNoise::New<FastNoise::OpenSimplex2S>();
+
+        std::vector<f32> result(size.x * size.y * size.z, 0.0f);
+        for (i32 i = 0; i < num_octaves; i++)
+        {
+            std::vector<f32> noise_outputs(size.x * size.y * size.z, 0.0f);
+            simplex->GenUniformGrid3D(noise_outputs.data(),
+                corner.x, corner.y, corner.z,
+                size.x, size.y, size.z,
+                frequency * f32(i + 1), 0);
+
+            for (i32 j = 0; j < noise_outputs.size(); j++)
+                result[j] += noise_outputs[j] / f32(i + 1);
+        }
+
+        return result;
+    }
+
     void ChunkGenerator_Terrain::gen_blocks(ChunkRegionView& region_view) const
     {
         // In chunk coordinates
-        const v2i region_corner{ region_view.corner_chunk_pos().x, region_view.corner_chunk_pos().z };
-        const v2i region_size{ region_view.size().x, region_view.size().z };
+        const v3i region_corner{ region_view.corner_chunk_pos().x, 0, region_view.corner_chunk_pos().z };
+        const v3i region_size = region_view.size();
 
         // In block coordinates
-        const v2i region_corner_blocks = region_corner * v2i{ voxel_constants::chunk_size };
-        const v2i region_size_blocks = region_size * v2i{ voxel_constants::chunk_size };
+        const v3i region_corner_blocks = region_corner * v3i{ voxel_constants::chunk_size };
+        const v3i region_size_blocks = region_size * v3i{ voxel_constants::chunk_size };
 
-        std::vector<f32> noise_outputs(region_size_blocks.x * region_size_blocks.y, 0.0f);
-        m_noise_generator->GenUniformGrid2D(
-            noise_outputs.data(),
-            region_corner_blocks.x, region_corner_blocks.y,
-            region_size_blocks.x, region_size_blocks.y, 1.0f, 69);
+        const std::vector<f32> noise_outputs = gen_noise(region_corner_blocks, region_size_blocks, 1, 0.01f);
 
+        for (i32 z = 0; z < region_size_blocks.z; z++)
+        for (i32 y = 0; y < region_size_blocks.y; y++)
         for (i32 x = 0; x < region_size_blocks.x; x++)
-        for (i32 z = 0; z < region_size_blocks.y; z++)
         {
-            const i32 ground_level = i32(noise_outputs[z * region_size_blocks.x + x]) + 64;
-            for (i32 y = 0; y < ground_level; y++)
+            const size_t index =
+                region_size_blocks.x * region_size_blocks.y * z +
+                region_size_blocks.x * y +
+                x;
+
+            const f32 noise_val = (noise_outputs[index] + 1.0f) / 2.0f;
+            const f32 air_threshold = glm::clamp(noise_val / 3.0f + 0.1f, 0.0f, 1.0f);
+
+            if (f32(y) / voxel_constants::vertical_block_count < air_threshold)
             {
-                const Block block = 1; // stone
+                const Block block = 3;
                 region_view.set_block_at({ x, y, z }, block, ViewRelativeTo::ViewCorner);
             }
         }

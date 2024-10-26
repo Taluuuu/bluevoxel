@@ -53,6 +53,24 @@ namespace h2o
         };
     }
 
+    void ColliderComponent::set_enabled(bool enabled)
+    {
+        Component::set_enabled(enabled);
+
+        if (m_physics_system)
+        {
+            if (enabled)
+            {
+                m_collider_id = m_physics_system->register_mobile_collider(*this);
+            }
+            else
+            {
+                m_physics_system->unregister_mobile_collider(m_collider_id);
+                m_collider_id = 0;
+            }
+        }
+    }
+
     void ColliderComponent::update(f32 delta_time)
     {
         if (m_previous_location != owner()->transform.position)

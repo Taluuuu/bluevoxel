@@ -44,6 +44,12 @@ namespace h2o
         if (m_input->key_state(Key::H).pressed_this_frame)
             fly = !fly;
 
+        if (m_input->key_state(Key::J).pressed_this_frame)
+        {
+            if (m_collider)
+                m_collider->set_enabled(!m_collider->is_enabled());
+        }
+
         m_is_sprinting = m_input->key_state(Key::LeftShift).held;
         if (m_camera)
         {

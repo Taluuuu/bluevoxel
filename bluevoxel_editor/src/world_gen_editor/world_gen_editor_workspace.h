@@ -3,6 +3,7 @@
 #include "networking/net_peer_local.h"
 
 #include <memory>
+#include <vector>
 
 namespace h2o
 {
@@ -24,6 +25,13 @@ namespace bluevoxel
         void update(f32 delta_time) override;
 
     private:
+
+        struct PointGraph
+        {
+            std::vector<v2> points{};
+        };
+
+        PointGraph m_point_graph{};
 
         h2o::NetPeer_Local m_local_net_peer{};
 

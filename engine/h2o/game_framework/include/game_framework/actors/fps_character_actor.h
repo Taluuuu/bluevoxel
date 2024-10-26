@@ -22,8 +22,6 @@ namespace h2o
         explicit FpsCharacterActor(const ActorInitializer& actor_initializer);
         ~FpsCharacterActor() override = default;
 
-        void update(f32 delta_time) override;
-
     public:
 
         f32 acceleration_walk = 12.0f;
@@ -50,6 +48,11 @@ namespace h2o
         f32 fly_speed = 20.0f; // m/s
 
         f32 sprint_fov_modifier = 1.1f;
+
+    protected:
+
+        // Tickable interface
+        void update(f32 delta_time) override;
 
     private:
 

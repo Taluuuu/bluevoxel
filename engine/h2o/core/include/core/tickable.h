@@ -44,7 +44,7 @@ namespace h2o
         void remove_child(Tickable& tickable);
 
         [[nodiscard]] bool is_enabled() const { return m_enabled; }
-        void set_enabled(bool enabled) { m_enabled = enabled; }
+        virtual void set_enabled(bool enabled) { m_enabled = enabled; }
         void enable()  { set_enabled(true);  }
         void disable() { set_enabled(false); }
 
