@@ -57,7 +57,7 @@ namespace h2o
             const f32 noise_val = (noise_outputs[index] + 1.0f) / 2.0f;
             const f32 air_threshold = m_graph.get_value_by_x(f32(y)).value_or(0.0f);
 
-            if (noise_val > air_threshold)
+            if (noise_val < air_threshold)
             {
                 const Block block = 1;
                 region_view.set_block_at({ x, y, z }, block, ViewRelativeTo::ViewCorner);
