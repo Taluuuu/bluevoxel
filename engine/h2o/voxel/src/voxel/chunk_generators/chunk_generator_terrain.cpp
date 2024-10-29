@@ -4,13 +4,10 @@
 #include "voxel/voxel_constants.h"
 
 #include <FastNoise/FastNoise.h>
+#include <fstream>
 
 namespace h2o
 {
-    ChunkGenerator_Terrain::ChunkGenerator_Terrain()
-        : m_noise_generator(FastNoise::NewFromEncodedNodeTree("GQAbABkAEwCmm8Q7DQAFAAAAAAAAQAcAAFyPwj4AAAAAAAAAAIA/AAAAcEEAAADwQg=="))
-    {}
-
     static std::vector<f32> gen_noise(const v3i& corner, const v3i& size, const i32 num_octaves, const f32 frequency)
     {
         const FastNoise::SmartNode<> simplex = FastNoise::New<FastNoise::OpenSimplex2S>();
@@ -29,6 +26,11 @@ namespace h2o
         }
 
         return result;
+    }
+
+    ChunkGenerator_Terrain::ChunkGenerator_Terrain()
+        : m_graph(v2{0.0f}, v2{ voxel_constants::vertical_block_count, 1.0f })
+    {
     }
 
     void ChunkGenerator_Terrain::gen_blocks(ChunkRegionView& region_view) const
@@ -53,11 +55,11 @@ namespace h2o
                 x;
 
             const f32 noise_val = (noise_outputs[index] + 1.0f) / 2.0f;
-            const f32 air_threshold = glm::clamp(noise_val / 3.0f + 0.1f, 0.0f, 1.0f);
+            const f32 air_threshold = m_graph.get_value_by_x(f32(y)).value_or(0.0f);
 
-            if (f32(y) / voxel_constants::vertical_block_count < air_threshold)
+            if (noise_val > air_threshold)
             {
-                const Block block = 3;
+                const Block block = 1;
                 region_view.set_block_at({ x, y, z }, block, ViewRelativeTo::ViewCorner);
             }
         }
@@ -91,5 +93,45 @@ namespace h2o
         }
 
         return structures;
+    }
+
+    void ChunkGenerator_Terrain::save(const fs::path& path) const
+    {
+        try
+        {
+            YAML::Emitter yaml{};
+
+            yaml << YAML::BeginMap;
+
+            yaml << YAML::Key << "graph";
+            yaml << YAML::Value << m_graph;
+
+            yaml << YAML::EndMap;
+
+            std::ofstream file(path.string());
+            file << yaml.c_str();
+
+            log::info("Saved chunk generator to file at '{}'", absolute(path).string());
+        }
+        catch (const std::exception& e)
+        {
+            log::error("Failed to save chunk generator: {}", e.what());
+        }
+    }
+
+    bool ChunkGenerator_Terrain::load(const fs::path& path)
+    {
+        try
+        {
+            const auto root_yml = YAML::LoadFile(path.string());
+
+            m_graph = root_yml["graph"].as<Graph>();
+            return true;
+        }
+        catch (const std::exception& e)
+        {
+            log::error("Failed to load chunk generator: {}", e.what());
+            return false;
+        }
     }
 }

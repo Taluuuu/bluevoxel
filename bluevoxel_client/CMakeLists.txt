@@ -12,6 +12,7 @@ target_link_libraries(bluevoxel_client
     PRIVATE
         h2o_core
         h2o_game_framework
+        h2o_graph
         h2o_input
         h2o_inventory
         h2o_networking
@@ -27,6 +28,7 @@ target_include_directories(bluevoxel_client
     PRIVATE
         h2o_core
         h2o_game_framework
+        h2o_graph
         h2o_input
         h2o_inventory
         h2o_networking

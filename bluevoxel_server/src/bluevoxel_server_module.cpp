@@ -38,8 +38,7 @@ namespace bluevoxel
 
         // auto chunk_generator = std::make_shared<h2o::ChunkGenerator_Flat>();
         // chunk_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
-        auto chunk_generator = std::make_shared<h2o::ChunkGenerator_Terrain>();
-        m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::Server&>(m_server, chunk_generator);
+        m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::Server&>(m_server);
 
         m_server.on_player_joined.add_listener(m_player_joined_event_handle,
             [&](const h2o::Server::PlayerConnectionChangedEvent& event)

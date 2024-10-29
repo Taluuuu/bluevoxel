@@ -5,10 +5,15 @@
 #include "voxel/voxel_module.h"
 
 #include <fstream>
+#include <voxel/chunk_generators/chunk_generator_terrain.h>
 #include <yaml-cpp/yaml.h>
 
 namespace h2o
 {
+    VoxelPack::VoxelPack()
+        : m_chunk_generator(std::make_shared<ChunkGenerator_Terrain>())
+    {}
+
     const BlockType* VoxelPack::get_block_type(BlockID block_id) const
     {
         if (block_id < m_block_types.size())
@@ -171,6 +176,9 @@ namespace h2o
             save_block_types();
             save_block_models();
             m_structure_manager.save(m_path / structures_file_name);
+
+            if (m_chunk_generator)
+                m_chunk_generator->save(m_path / chunk_generator_file_name);
         }
         catch(const std::exception& e)
         {
@@ -211,6 +219,9 @@ namespace h2o
             return false;
 
         if (!m_structure_manager.load(path / structures_file_name))
+            return false;
+
+        if (!m_chunk_generator->load(path / chunk_generator_file_name))
             return false;
 
         m_uncooked_block_models = *uncooked_block_models;

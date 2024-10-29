@@ -122,6 +122,12 @@ namespace h2o
         }
     }
 
+    void ChunkClient::reload_all()
+    {
+        m_chunk_mgr.remove_all_chunk_columns([](v2i){ return true; });
+        request_chunk_loads();
+    }
+
     void ChunkClient::set_block_at(const v3i& block_pos, Block block)
     {
         if (m_chunk_mgr.set_block_at(block_pos, block))

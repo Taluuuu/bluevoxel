@@ -27,4 +27,25 @@ namespace YAML
             return true;
         }
     };
+
+    inline Emitter& operator<<(Emitter& out, const v2 v)
+    {
+        out << Flow;
+        out << BeginSeq << v.x << v.y << EndSeq;
+        return out;
+    }
+
+    template<>
+    struct convert<v2>
+    {
+        static bool decode(const Node& node, v2& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 2)
+                return false;
+
+            rhs.x = node[0].as<f32>();
+            rhs.y = node[1].as<f32>();
+            return true;
+        }
+    };
 }

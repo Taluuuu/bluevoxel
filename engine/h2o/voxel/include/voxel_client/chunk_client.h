@@ -28,10 +28,14 @@ namespace h2o
             INetPeer& client);
         ~ChunkClient() override = default;
 
+        void reload_all();
+
         // IBlockPlaceable interface
         void set_block_at(const v3i& block_pos, Block block) override;
         [[nodiscard]] ChunkManager& chunk_mgr() override { return m_chunk_mgr; }
         [[nodiscard]] const ChunkManager& chunk_mgr() const override { return m_chunk_mgr; }
+
+    protected:
 
         // Tickable interface
         void update(f32 delta_time) override;

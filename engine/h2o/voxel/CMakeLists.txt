@@ -20,6 +20,7 @@ target_link_libraries(h2o_voxel
 
     PRIVATE
         h2o_core
+        h2o_graph
         h2o_input
         h2o_inventory
         h2o_networking
@@ -41,6 +42,7 @@ target_include_directories(h2o_voxel
 
     PRIVATE
         h2o_core
+        h2o_graph
         h2o_input
         h2o_inventory
         h2o_networking

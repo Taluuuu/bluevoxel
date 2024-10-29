@@ -29,6 +29,8 @@ namespace h2o
         void fetch_region(v2i region_pos, const std::function<void(const ChunkRegion*)>& function) const;
         void fetch_region_mut(v2i region_pos, const std::function<void(ChunkRegion*)>& function);
 
+        void clear();
+
     private:
 
         struct ChunkRegionData

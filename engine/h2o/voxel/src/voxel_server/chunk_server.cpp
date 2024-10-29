@@ -7,21 +7,20 @@
 #include "voxel/chunk_generators/chunk_generator_flat.h"
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel/voxel_net_messages.h"
+#include "voxel/voxel_pack.h"
 
 namespace h2o
 {
     ChunkServer::ChunkServer(
         const SceneSystemInitializer& system_initializer,
-        INetPeer& server,
-        const std::shared_ptr<ChunkGenerator_Base>& chunk_generator)
+        INetPeer& server)
         : SceneSystem(system_initializer)
         , m_server(&server)
-        , m_chunk_generator(chunk_generator)
         , m_chunk_region_mgr(*this)
     {
         // Bind messages
         server.handle_message<net_msg::ChunkFetchRequest>(m_received_chunk_request_handle,
-            [&](PeerID client_id, const net_msg::ChunkFetchRequest& chunk_fetch_request)
+            [&](const PeerID client_id, const net_msg::ChunkFetchRequest& chunk_fetch_request)
             {
                 log::info("Received {} chunk fetch requests.", chunk_fetch_request.requested_chunks.size());
                 on_received_chunk_fetch_requests(client_id, chunk_fetch_request);
@@ -29,14 +28,23 @@ namespace h2o
         );
 
         server.handle_message<net_msg::BlockPlaceRequest>(m_received_block_place_request_handle,
-            [&](PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
+            [&](const PeerID client_id, const net_msg::BlockPlaceRequest& block_place_request)
             {
                 log::info("Received block place request.");
                 on_received_block_place_request(client_id, block_place_request);
             }
         );
 
+        if (const auto voxel_pack = g_engine->get_module_checked<VoxelModule>().voxel_pack())
+            m_chunk_generator = voxel_pack->chunk_generator();
+
         set_tick_phases(TickPhase::Update);
+    }
+
+    void ChunkServer::regenerate()
+    {
+        m_chunk_mgr.remove_all_chunk_columns([](v2i){ return true; });
+        m_chunk_region_mgr.clear();
     }
 
     void ChunkServer::update(f32 delta_time)

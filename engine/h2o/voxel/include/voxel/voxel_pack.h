@@ -15,6 +15,11 @@
 
 namespace h2o
 {
+    class ChunkGenerator_Terrain;
+}
+
+namespace h2o
+{
     class UncookedBlockModel;
     class VoxelPack;
 
@@ -29,7 +34,7 @@ namespace h2o
     {
     public:
 
-        VoxelPack() = default;
+        VoxelPack();
         ~VoxelPack() override = default;
 
         [[nodiscard]] const BlockTypeList&    block_types()  const { return m_block_types;  }
@@ -60,6 +65,8 @@ namespace h2o
         VoxelStructureManager& structure_manager() { return m_structure_manager; }
         const VoxelStructureManager& structure_manager() const { return m_structure_manager; }
 
+        [[nodiscard]] const auto& chunk_generator() const { return m_chunk_generator; }
+
         // Apply local changes
         void save() const;
 
@@ -68,10 +75,11 @@ namespace h2o
 
     public:
 
-        static constexpr std::string_view block_types_file_name  { "block_types.yml"  };
-        static constexpr std::string_view block_models_file_name { "block_models.yml" };
-        static constexpr std::string_view structures_file_name   { "structures.yml"   };
-        static constexpr std::string_view textures_folder_name   { "textures"         };
+        static constexpr std::string_view block_types_file_name     { "block_types.yml"     };
+        static constexpr std::string_view block_models_file_name    { "block_models.yml"    };
+        static constexpr std::string_view structures_file_name      { "structures.yml"      };
+        static constexpr std::string_view chunk_generator_file_name { "chunk_generator.yml" };
+        static constexpr std::string_view textures_folder_name      { "textures"            };
 
         Event<VoxelPackUpdatedEvent> on_voxel_pack_updated{};
 
@@ -95,6 +103,7 @@ namespace h2o
         TextureNameIdMap m_texture_ids{};
 
         VoxelStructureManager m_structure_manager{};
+        std::shared_ptr<ChunkGenerator_Terrain> m_chunk_generator = nullptr;
 
         fs::path m_path{};
 

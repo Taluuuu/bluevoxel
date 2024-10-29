@@ -1,8 +1,8 @@
 #pragma once
 
 #include "chunk_generator_base.h"
-
-#include <FastNoise/FastNoise.h>
+#include "core/resources.h"
+#include "graph/graph.h"
 
 namespace h2o
 {
@@ -16,9 +16,13 @@ namespace h2o
          void gen_blocks(ChunkRegionView& region_view) const override;
          [[nodiscard]] std::vector<VoxelStructureInstance> gen_structures(const ChunkRegionView& region_view) const override;
 
-     private:
+         // Serialization
+         void save(const fs::path& path) const;
+         bool load(const fs::path& path);
 
-         FastNoise::SmartNode<> m_noise_generator = nullptr;
+     public:
+
+         Graph m_graph;
 
      };
 }

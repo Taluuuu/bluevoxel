@@ -11,6 +11,7 @@ add_executable(bluevoxel_server
 target_link_libraries(bluevoxel_server
     PRIVATE
         h2o_core
+        h2o_graph
         h2o_networking
         h2o_scene
         h2o_voxel
@@ -22,6 +23,7 @@ target_include_directories(bluevoxel_server
 
     PRIVATE
         h2o_core
+        h2o_graph
         h2o_networking
         h2o_scene
         h2o_voxel

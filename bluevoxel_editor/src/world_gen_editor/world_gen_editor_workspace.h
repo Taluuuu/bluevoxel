@@ -1,12 +1,16 @@
 #pragma once
 
+#include "core/handle_types.h"
+#include "graph/graph_ui.h"
 #include "networking/net_peer_local.h"
 
 #include <memory>
-#include <vector>
+
 
 namespace h2o
 {
+    class ChunkClient;
+    class ChunkServer;
     class Scene;
 }
 
@@ -23,15 +27,14 @@ namespace bluevoxel
 
         // h2o::Tickable interface
         void update(f32 delta_time) override;
+        void regenerate();
 
     private:
 
-        struct PointGraph
-        {
-            std::vector<v2> points{};
-        };
+        h2o::WeakHandle<h2o::ChunkClient> m_chunk_client = nullptr;
+        h2o::WeakHandle<h2o::ChunkServer> m_chunk_server = nullptr;
 
-        PointGraph m_point_graph{};
+        h2o::GraphUIContext m_graph_ui_context{};
 
         h2o::NetPeer_Local m_local_net_peer{};
 

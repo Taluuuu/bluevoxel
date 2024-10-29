@@ -92,6 +92,12 @@ namespace h2o
         );
     }
 
+    void ChunkRegionManager::clear()
+    {
+        const std::unique_lock lock{ m_chunk_regions_mutex };
+        m_chunk_regions.clear();
+    }
+
     void ChunkRegionManager::fetch_region_data(v2i region_pos, const std::function<void(const ChunkRegionData*)>& function) const
     {
         const ChunkRegionData* region_data = nullptr;
