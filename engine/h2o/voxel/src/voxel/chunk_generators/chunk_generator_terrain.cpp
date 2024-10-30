@@ -8,24 +8,19 @@
 
 namespace h2o
 {
-    static std::vector<f32> gen_noise(const v3i& corner, const v3i& size, const i32 num_octaves, const f32 frequency)
+    static std::vector<f32> gen_noise(const v3i& corner, const v3i& size, const f32 frequency)
     {
-        const FastNoise::SmartNode<> simplex = FastNoise::New<FastNoise::OpenSimplex2S>();
+        const auto generator = FastNoise::New<FastNoise::FractalFBm>();
+        generator->SetSource(FastNoise::New<FastNoise::Simplex>());
+        generator->SetOctaveCount(5);
 
-        std::vector<f32> result(size.x * size.y * size.z, 0.0f);
-        for (i32 i = 0; i < num_octaves; i++)
-        {
-            std::vector<f32> noise_outputs(size.x * size.y * size.z, 0.0f);
-            simplex->GenUniformGrid3D(noise_outputs.data(),
-                corner.x, corner.y, corner.z,
-                size.x, size.y, size.z,
-                frequency * f32(i + 1), 0);
+        std::vector<f32> noise_outputs(size.x * size.y * size.z, 0.0f);
+        generator->GenUniformGrid3D(noise_outputs.data(),
+            corner.x, corner.y, corner.z,
+            size.x, size.y, size.z,
+            frequency, 0);
 
-            for (i32 j = 0; j < noise_outputs.size(); j++)
-                result[j] += noise_outputs[j] / f32(i + 1);
-        }
-
-        return result;
+        return noise_outputs;
     }
 
     ChunkGenerator_Terrain::ChunkGenerator_Terrain()
@@ -43,7 +38,7 @@ namespace h2o
         const v3i region_corner_blocks = region_corner * v3i{ voxel_constants::chunk_size };
         const v3i region_size_blocks = region_size * v3i{ voxel_constants::chunk_size };
 
-        const std::vector<f32> noise_outputs = gen_noise(region_corner_blocks, region_size_blocks, 1, 0.01f);
+        const std::vector<f32> noise_outputs = gen_noise(region_corner_blocks, region_size_blocks, 0.002f);
 
         for (i32 z = 0; z < region_size_blocks.z; z++)
         for (i32 y = 0; y < region_size_blocks.y; y++)
@@ -59,8 +54,36 @@ namespace h2o
 
             if (noise_val < air_threshold)
             {
-                const Block block = 1;
+                const Block block = 3;
                 region_view.set_block_at({ x, y, z }, block, ViewRelativeTo::ViewCorner);
+            }
+        }
+
+        // Set dirt and grass
+        for (i32 x = 0; x < region_size_blocks.x; x++)
+        for (i32 z = 0; z < region_size_blocks.z; z++)
+        {
+            i32 num_blocks_under_air = 0;
+            for (i32 y = region_size_blocks.y; y >= 0; --y)
+            {
+                const auto block = region_view.get_block_at({ x, y, z }, ViewRelativeTo::ViewCorner);
+                if (block == Block::Air)
+                {
+                    num_blocks_under_air = 0;
+                }
+                else
+                {
+                    if (num_blocks_under_air == 0)
+                    {
+                        region_view.set_block_at({ x, y, z }, Block{ 1 }, ViewRelativeTo::ViewCorner);
+                    }
+                    else if (num_blocks_under_air < 5)
+                    {
+                        region_view.set_block_at({ x, y, z }, Block{ 2 }, ViewRelativeTo::ViewCorner);
+                    }
+
+                    num_blocks_under_air++;
+                }
             }
         }
     }
@@ -76,20 +99,31 @@ namespace h2o
         for (i32 j = 0; j < voxel_constants::chunk_region_block_count; j++)
         {
             const f32 random_float = f32(rand()) / std::numeric_limits<i32>::max();
-            if (random_float > 0.00005f)
+
+            const f32 tree_threshold = 0.01f;
+            const f32 house_threshold = 0.00005f;
+
+            if (random_float > tree_threshold)
                 continue;
 
             // Find ground level. This should probably be an easily accessible function
-            i32 ground_level = 0;
-            for (; ground_level < voxel_constants::vertical_block_count; ground_level++)
+            i32 ground_level = voxel_constants::vertical_block_count - 1;
+            for (; ground_level >= 0; --ground_level)
             {
                 const auto block = region_view.get_block_at({ i, ground_level, j }, ViewRelativeTo::ViewCorner);
-                if (!block || block == Block::Air)
+                if (block != Block::Air)
                     break;
             }
 
             const v3i structure_pos = corner + v3i{ i, ground_level, j };
-            structures.emplace_back(2, structure_pos);
+            if (random_float < house_threshold)
+            {
+                structures.emplace_back(2, structure_pos);
+            }
+            else if (random_float < tree_threshold)
+            {
+                structures.emplace_back(0, structure_pos);
+            }
         }
 
         return structures;
