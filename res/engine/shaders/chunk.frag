@@ -2,6 +2,7 @@
 
 in vec2 pass_uv;
 in vec3 pass_normal;
+in float pass_light_level;
 flat in uint pass_tex_index;
 
 layout(location = 2) uniform sampler2DArray block_textures;
@@ -21,5 +22,5 @@ void main()
 
     const vec3 diffuse = light_color * max(dot(pass_normal, -light_dir), 0.0f);
 
-    frag_color = vec4(clamp(ambient + diffuse, 0.0f, 1.0f), 0.0f) * albedo;
+    frag_color = vec4(clamp(ambient + diffuse, 0.0f, 1.0f), 0.0f) * albedo * pass_light_level;
 }

@@ -19,7 +19,7 @@ namespace bluevoxel
 
     StructureEditorWorkspace::StructureEditorWorkspace(h2o::Tickable* owner)
         : h2o::Tickable(owner)
-        , m_voxel_world_renderer(*this, m_chunk_manager)
+        , m_voxel_world_renderer(*this, m_chunk_manager, h2o::ChunkRenderMode::DrawAllChunks)
         , m_selection_mgr(owner)
         , m_structure_gizmo(owner, m_selection_mgr)
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
@@ -220,7 +220,10 @@ namespace bluevoxel
                         [&](h2o::Chunk* chunk)
                         {
                             if (chunk)
+                            {
                                 chunk->place_structure(structure_instance);
+                                chunk->mark_generated();
+                            }
                         }
                     );
                 }

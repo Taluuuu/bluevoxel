@@ -29,6 +29,9 @@ namespace h2o
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;
         void set_block_at(const v3i& local_pos, Block block);
 
+        [[nodiscard]] u8 get_light_level_at(const v3i& local_pos) const;
+        void set_light_level_at(const v3i& local_pos, u8 light_level);
+
         void place_structure(const VoxelStructureInstance& structure_instance);
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
@@ -55,6 +58,7 @@ namespace h2o
 
     private:
 
+        std::vector<u8> m_light_levels{};
         std::vector<Block> m_blocks{};
 
         // Stores the indices of blocks to tick

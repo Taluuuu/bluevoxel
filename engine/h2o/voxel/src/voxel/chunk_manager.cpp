@@ -37,12 +37,17 @@ namespace h2o
         return success;
     }
 
+    bool ChunkManager::chunk_column_exists(const v2i chunk_column_pos) const
+    {
+        return find_chunk_column(chunk_column_pos) != nullptr;
+    }
+
     bool ChunkManager::chunk_exists(const v3i& chunk_pos) const
     {
-        if (chunk_pos.y < 0 || chunk_pos.y >= voxel_constants::vertical_chunk_count)
-            return false;
+        if (chunk_pos.y >= 0 && chunk_pos.y < voxel_constants::vertical_chunk_count)
+            return chunk_column_exists({ chunk_pos.x, chunk_pos.z });
 
-        return find_chunk_column({ chunk_pos.x, chunk_pos.z }) != nullptr;
+        return false;
     }
 
     void ChunkManager::fetch_or_create_chunk_mut(const v3i& chunk_pos, const std::function<void(Chunk*)>& function)

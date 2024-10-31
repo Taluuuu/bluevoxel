@@ -31,7 +31,8 @@ namespace h2o
         // Byte 3
         u32 n_pitch : voxel_constants::num_normal_pitch_bits;
         u32 n_yaw : voxel_constants::num_normal_yaw_bits;
-        u32 : 0; // 7-bit
+        u32 light_level : voxel_constants::num_light_level_bits;
+        u32 : 0; // 11-bit
 
         [[nodiscard]] constexpr std::array<u32, 3> to_array() const
         {
@@ -39,7 +40,7 @@ namespace h2o
             {
                 static_cast<u32>((x << 0) | (y << 10) | (z << 20)),
                 static_cast<u32>((u << 0) | (v << 5) | (tex_idx << 10)),
-                static_cast<u32>((n_pitch << 0) | (n_yaw << 4))
+                static_cast<u32>((n_pitch << 0) | (n_yaw << 4) | (light_level << 9))
             };
         }
     };

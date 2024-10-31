@@ -11,13 +11,14 @@
 
 namespace h2o
 {
-    VoxelWorldRenderer::VoxelWorldRenderer(Tickable& owner, ChunkManager& chunk_manager)
+    VoxelWorldRenderer::VoxelWorldRenderer(Tickable& owner, ChunkManager& chunk_manager, ChunkRenderMode chunk_render_mode)
         : Tickable(&owner)
         , m_chunk_manager(&chunk_manager)
         , m_rendering_module(&g_engine->get_module_checked<RenderingModule>())
         , m_voxel_module(&g_engine->get_module_checked<VoxelModule>())
+        , m_render_mode(chunk_render_mode)
     {
-        set_tick_phases(TickPhase::PreRender | TickPhase::Render);
+        set_tick_phases(TickPhase::Update | TickPhase::PreRender | TickPhase::Render);
 
         chunk_manager.on_chunks_updated.add_listener(m_on_chunk_updated_handle,
             [this](const ChunksUpdatedEvent& event)
@@ -43,6 +44,42 @@ namespace h2o
                         }
                     }
                 }
+            }
+        );
+    }
+
+    void VoxelWorldRenderer::update(const f32 delta_time)
+    {
+        const std::unique_lock lock{ m_chunks_pending_remesh_mutex };
+
+        erase_if(m_chunks_pending_remesh,
+            [&](const v3i& chunk_pos) -> bool
+            {
+                if (m_render_mode == ChunkRenderMode::DrawChunksWithAdjacentChunks)
+                {
+                    static constexpr std::array offsets{
+                        v2i{ 0, 0 },
+                        v2i{ 1, 0 },
+                        v2i{-1, 0 },
+                        v2i{ 0, 1 },
+                        v2i{ 0,-1 },
+                    };
+
+                    for (const v2i offset : offsets)
+                    {
+                        if (!m_chunk_manager->chunk_column_exists(offset + v2i{ chunk_pos.x, chunk_pos.z }))
+                            return false;
+                    }
+                }
+
+                g_engine->thread_pool().queue_job(glm::distance(player_pos, voxel_utils::chunk_to_world_pos(chunk_pos)),
+                    [this, chunk_pos]
+                    {
+                        remesh_chunk_immediate(chunk_pos);
+                    }
+                );
+
+                return true;
             }
         );
     }
@@ -130,22 +167,8 @@ namespace h2o
         //     return;
 
         std::unique_lock lock{ m_chunks_pending_remesh_mutex };
-        if (m_chunks_pending_remesh.contains(chunk_pos))
-            return;
-
-        m_chunks_pending_remesh.insert(chunk_pos);
-
-        g_engine->thread_pool().queue_job(glm::distance(player_pos, voxel_utils::chunk_to_world_pos(chunk_pos)),
-            [this, chunk_pos]
-            {
-                {
-                    std::unique_lock lock{ m_chunks_pending_remesh_mutex };
-                    m_chunks_pending_remesh.erase(chunk_pos);
-                }
-
-                remesh_chunk_immediate(chunk_pos);
-            }
-        );
+        if (!m_chunks_pending_remesh.contains(chunk_pos))
+            m_chunks_pending_remesh.insert(chunk_pos);
     }
 
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)

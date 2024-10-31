@@ -13,7 +13,7 @@
 namespace bluevoxel
 {
     BlockRenderer::BlockRenderer(h2o::Tickable& owner)
-        : m_voxel_world_renderer(owner, m_chunk_manager)
+        : m_voxel_world_renderer(owner, m_chunk_manager, h2o::ChunkRenderMode::DrawAllChunks)
     {}
 
     void BlockRenderer::set_block(h2o::Block block)
@@ -22,7 +22,10 @@ namespace bluevoxel
             [&](h2o::Chunk* chunk)
             {
                 if (chunk)
+                {
                     chunk->set_block_at(v3i{0}, block);
+                    chunk->mark_generated();
+                }
             }
         );
 

@@ -29,7 +29,8 @@ namespace h2o
         const auto append_side =
             [&](const v3i& pos,
                 const std::vector<u32>& textures,
-                const std::vector<BlockModel::Triangle>& side)
+                const std::vector<BlockModel::Triangle>& side,
+                const u8 light_level)
             {
                 for (const auto& triangle : side)
                 {
@@ -42,23 +43,13 @@ namespace h2o
                         // Left is texture index relative to all textures; right is the face index.
                         vertex.tex_idx = textures[vertex.tex_idx];
 
-                        auto temp = vertex.to_array();
-                        for (u32 data : temp)
+                        vertex.light_level = light_level;
+
+                        const auto temp = vertex.to_array();
+                        for (const u32 data : temp)
                             m_vertices.push_back(data);
                     }
                 }
-            };
-
-        const auto is_transparent =
-            [&](const v3i& block_pos, voxel::Direction::Type direction) -> bool
-            {
-                const v3i offset = voxel::to_vec3(direction);
-                const v3i adj_pos = block_pos + offset;
-
-                if (const auto block = chunk_view.get_block_at(adj_pos, ViewRelativeTo::ViewCenter))
-                    return voxel_module.is_transparent(block->id);
-
-                return true;
             };
 
         for (i32 y = 0; y < voxel_constants::chunk_size; y++)
@@ -80,16 +71,25 @@ namespace h2o
 
             u8 dir_index = 0;
             voxel::Direction::for_each(
-                [&](voxel::Direction::Type dir)
+                [&](const voxel::Direction::Type dir)
                 {
-                    if (is_transparent(pos, dir))
-                        append_side(pos, *texture_ids, model->occluded_triangles_per_side[dir_index]);
+                    const v3i offset = voxel::to_vec3(dir);
+                    const v3i adjacent_block_pos = pos + offset;
+
+                    const auto block_tuple = chunk_view
+                        .get_block_and_light_level_at(adjacent_block_pos, ViewRelativeTo::ViewCenter)
+                        .value_or(std::tuple{ Block::Air, 15 });
+
+                    const auto [adj_block, adj_light_level] = block_tuple;
+                    if (voxel_module.is_transparent(adj_block.id))
+                        append_side(pos, *texture_ids, model->occluded_triangles_per_side[dir_index], adj_light_level);
 
                     dir_index++;
                 }
             );
 
-            append_side(pos, *texture_ids, model->unoccluded_triangles);
+            const u8 light_level = chunk->get_light_level_at(pos);
+            append_side(pos, *texture_ids, model->unoccluded_triangles, light_level);
         }
     }
 }

@@ -33,6 +33,8 @@ namespace h2o
         [[nodiscard]] std::optional<Block> get_block_at(const v3i& block_pos, ViewRelativeTo relative_to = ViewRelativeTo::World) const;
         bool set_block_at(const v3i& block_pos, Block block, ViewRelativeTo relative_to = ViewRelativeTo::World);
 
+        [[nodiscard]] std::optional<std::tuple<Block, u8>> get_block_and_light_level_at(const v3i& block_pos, ViewRelativeTo relative_to = ViewRelativeTo::World) const;
+
         [[nodiscard]] Chunk* get_chunk_at(const v3i& relative_chunk_pos, ViewRelativeTo relative_to = ViewRelativeTo::World);
         [[nodiscard]] const Chunk* get_chunk_at(const v3i& relative_chunk_pos, ViewRelativeTo relative_to = ViewRelativeTo::World) const;
 
@@ -132,6 +134,23 @@ namespace h2o
         }
 
         return false;
+    }
+
+    template<v3i ViewSize>
+    std::optional<std::tuple<Block, u8>> ChunkView<ViewSize>::get_block_and_light_level_at(
+        const v3i& block_pos,
+        const ViewRelativeTo relative_to) const
+    {
+        if (const Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
+        {
+            const v3i within_chunk = voxel_utils::block_pos_to_within_chunk(block_pos);
+            return std::tuple {
+                chunk->get_block_at(within_chunk),
+                chunk->get_light_level_at(within_chunk)
+            };
+        }
+
+        return std::nullopt;
     }
 
     template<v3i ViewSize>

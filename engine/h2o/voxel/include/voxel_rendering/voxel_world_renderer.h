@@ -10,12 +10,20 @@ namespace h2o
     class RenderingModule;
     class VoxelModule;
 
+    enum class ChunkRenderMode
+    {
+        DrawAllChunks,
+        DrawChunksWithAdjacentChunks
+    };
+
     class VoxelWorldRenderer : public Tickable
     {
-
     public:
 
-        VoxelWorldRenderer(Tickable& owner, ChunkManager& chunk_manager);
+        VoxelWorldRenderer(
+            Tickable& owner,
+            ChunkManager& chunk_manager,
+            ChunkRenderMode chunk_render_mode = ChunkRenderMode::DrawChunksWithAdjacentChunks);
 
     public:
 
@@ -29,6 +37,7 @@ namespace h2o
     protected:
 
         // Tickable interface
+        void update(f32 delta_time) override;
         void pre_render() override;
         void render() override;
 
@@ -44,6 +53,8 @@ namespace h2o
 
         std::mutex m_pending_built_meshes_mutex{};
         std::vector<ChunkMesh> m_pending_built_meshes{};
+
+        ChunkRenderMode m_render_mode = ChunkRenderMode::DrawChunksWithAdjacentChunks;
 
         EventHandle m_on_chunk_updated_handle{};
         EventHandle m_on_chunk_deleted_handle{};

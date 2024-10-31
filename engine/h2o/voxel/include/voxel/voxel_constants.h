@@ -31,4 +31,7 @@ namespace h2o::voxel_constants
     constexpr i32 packed_pitch_max_value = 8;//(1 << num_normal_pitch_bits) - 1;
     constexpr i32 num_normal_yaw_bits = 5;
     constexpr i32 packed_yaw_max_value = 16;//(1 << num_normal_yaw_bits) - 1;
+
+    constexpr u32 num_light_level_bits = 4;
+    constexpr u32 max_light_level = (1 << num_light_level_bits) - 1;
 }

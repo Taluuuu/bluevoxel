@@ -24,6 +24,7 @@ namespace h2o
         [[nodiscard]] Block get_block_at(const v3i& block_pos) const;
         bool set_block_at(const v3i& block_pos, Block block);
 
+        [[nodiscard]] bool chunk_column_exists(v2i chunk_column_pos) const;
         [[nodiscard]] bool chunk_exists(const v3i& chunk_pos) const;
 
         // Single chunk access

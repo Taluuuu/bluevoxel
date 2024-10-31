@@ -178,6 +178,7 @@ namespace bluevoxel
         player->transform.position = { 0.0f, 220.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 0.0f};
         player->transform.scale = { 0.28f, 0.28f, 0.28f };
+        player->fly = true;
     }
 
     void BlueVoxelClientModule::spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform)

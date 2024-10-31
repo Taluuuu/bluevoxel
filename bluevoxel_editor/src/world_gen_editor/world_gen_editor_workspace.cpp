@@ -27,7 +27,7 @@ namespace bluevoxel
 
         const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
-        player->transform.position = { 0.0f, 200.0f, 0.0f };
+        player->transform.position = { 0.0f, 300.0f, 0.0f };
         player->fly = true;
 
         set_tick_phases(h2o::TickPhase::Update);

@@ -19,6 +19,7 @@ layout(location = 1) uniform ivec3 chunk_pos;
 
 out vec2 pass_uv;
 out vec3 pass_normal;
+out float pass_light_level;
 flat out uint pass_tex_index;
 
 void main()
@@ -41,7 +42,7 @@ void main()
 
     // Calculate face normal
     const uint packed_pitch = bitfieldExtract(vertex_data_1, 0, 4);
-    const uint packed_yaw = bitfieldExtract(vertex_data_1, 4, 9);
+    const uint packed_yaw = bitfieldExtract(vertex_data_1, 4, 5);
 
     const float pitch = (packed_pitch / float(MAX_PITCH_VALUE)) * PI - HALF_PI;
     const float yaw = (packed_yaw / float(MAX_YAW_VALUE)) * TWO_PI - PI;
@@ -56,4 +57,6 @@ void main()
         sin_pitch,
         cos_pitch * cos_yaw
     );
+
+    pass_light_level = float(bitfieldExtract(vertex_data_1, 9, 4)) / 15.0f;
 }

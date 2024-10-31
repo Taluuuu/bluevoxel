@@ -16,6 +16,19 @@ namespace h2o
             local_pos.z;
     }
 
+    static v3i to_block_pos(size_t index)
+    {
+        v3i local_pos;
+
+        local_pos.y = index / voxel_constants::chunk_area;
+        index %= voxel_constants::chunk_area;
+
+        local_pos.x = index / voxel_constants::chunk_size;
+        local_pos.z = index % voxel_constants::chunk_size;
+
+        return local_pos;
+    }
+
     Block Chunk::get_block_at(const v3i& local_pos) const
     {
         assert(is_valid_pos(local_pos));
@@ -30,6 +43,22 @@ namespace h2o
         assert(is_initialized());
 
         set_block_at(to_index(local_pos), block);
+    }
+
+    u8 Chunk::get_light_level_at(const v3i& local_pos) const
+    {
+        assert(is_valid_pos(local_pos));
+        assert(is_initialized());
+
+        return m_light_levels[to_index(local_pos)];
+    }
+
+    void Chunk::set_light_level_at(const v3i& local_pos, u8 light_level)
+    {
+        assert(is_valid_pos(local_pos));
+        assert(is_initialized());
+
+        m_light_levels[to_index(local_pos)] = light_level;
     }
 
     void Chunk::place_structure(const VoxelStructureInstance& structure_instance)
@@ -70,6 +99,7 @@ namespace h2o
         m_chunk_pos = chunk_pos;
         m_voxel_module = &voxel_module;
 
+        m_light_levels.resize(voxel_constants::chunk_volume, 15);
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
     }
 
@@ -86,31 +116,35 @@ namespace h2o
         // }
     }
 
-    Block Chunk::get_block_at(size_t index) const
+    Block Chunk::get_block_at(const size_t index) const
     {
         return m_blocks[index];
     }
 
-    void Chunk::set_block_at(size_t index, Block block)
+    void Chunk::set_block_at(const size_t index, const Block block)
     {
         assert(index < m_blocks.size());
 
-//        const Block previous_block = m_blocks[index];
         m_blocks[index] = block;
 
         // TODO: Check if the block is valid
 
         if (block != Block::Air)
             m_is_empty = false;
-        // m_is_empty = m_is_empty || (block != Block::Air);
 
-//        if (m_voxel_module->get_block_preset_data(block.id).value_or(BlockPresetFlags{}).should_tick)
-//        {
-//            m_blocks_to_tick.insert(index);
-//        }
-//        else
-//        {
-//            m_blocks_to_tick.erase(index);
-//        }
+        if (block.id == 5)
+        {
+            // Temp light block
+            const v3i block_pos = to_block_pos(index);
+            voxel_utils::for_v3i(
+                block_pos - v3i{ voxel_constants::max_light_level },
+                block_pos + v3i{ voxel_constants::max_light_level + 1 },
+                [&](const v3i& offset_block_pos)
+                {
+                    if (is_valid_pos(offset_block_pos))
+                        set_light_level_at(offset_block_pos, voxel_constants::max_light_level - glm::clamp(i32(glm::distance(v3{ block_pos }, v3{ offset_block_pos })), 0, i32(voxel_constants::max_light_level)));
+                }
+            );
+        }
     }
 }
