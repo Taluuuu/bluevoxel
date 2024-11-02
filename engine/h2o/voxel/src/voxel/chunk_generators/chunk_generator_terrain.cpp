@@ -1,6 +1,7 @@
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
 
 #include "voxel/chunk_region.h"
+#include "voxel/chunk_view.h"
 #include "voxel/voxel_constants.h"
 
 #include <FastNoise/FastNoise.h>
@@ -28,7 +29,7 @@ namespace h2o
     {
     }
 
-    void ChunkGenerator_Terrain::gen_blocks(ChunkRegionView& region_view) const
+    void ChunkGenerator_Terrain::gen_blocks(ChunkView& region_view) const
     {
         // In chunk coordinates
         const v3i region_corner{ region_view.corner_chunk_pos().x, 0, region_view.corner_chunk_pos().z };
@@ -88,7 +89,7 @@ namespace h2o
         }
     }
 
-    std::vector<VoxelStructureInstance> ChunkGenerator_Terrain::gen_structures(const ChunkRegionView& region_view) const
+    std::vector<VoxelStructureInstance> ChunkGenerator_Terrain::gen_structures(const ChunkView& region_view) const
     {
         std::vector<VoxelStructureInstance> structures{};
 

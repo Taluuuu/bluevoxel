@@ -1,7 +1,7 @@
 #pragma once
 
-#include "chunk_view.h"
 #include "structures/voxel_structure_manager.h"
+#include "voxel_constants.h"
 
 #include <vector>
 
@@ -15,8 +15,6 @@ namespace h2o
         voxel_constants::vertical_chunk_count,
         voxel_constants::chunk_region_size
     };
-
-    using ChunkRegionView = ChunkView<ChunkRegionExtents>;
 
     class ChunkRegion
     {

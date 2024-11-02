@@ -174,7 +174,7 @@ namespace h2o
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
         m_chunk_manager->view_for_meshing(chunk_pos,
-            [&](const ChunkMeshingView& view)
+            [&](const ChunkView& view)
             {
                 ChunkMesh chunk_mesh(view, *m_voxel_module);
 

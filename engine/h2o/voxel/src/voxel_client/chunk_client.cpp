@@ -177,10 +177,10 @@ namespace h2o
         net_msg::ChunkFetchRequest chunk_fetch_request{};
 
         m_voxel_bounds.for_each_pos_in_bounds(
-            [&](v2i chunk_column_pos)
+            [&](const v2i chunk_column_pos)
             {
                 m_chunk_mgr.view_chunk_column(chunk_column_pos,
-                    [&](const ChunkColumnView& chunk_column)
+                    [&](const ChunkView& chunk_column)
                     {
                         // TODO: This can probably request the same chunks multiple times
                         if (!chunk_column.is_generated())

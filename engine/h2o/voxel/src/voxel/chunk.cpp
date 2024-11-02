@@ -6,6 +6,8 @@
 #include "voxel/voxel_pack.h"
 #include "voxel/voxel_utils.h"
 
+#include <stack>
+
 namespace h2o
 {
     static size_t to_index(const v3i& local_pos)
@@ -14,6 +16,14 @@ namespace h2o
             local_pos.y * voxel_constants::chunk_area +
             local_pos.x * voxel_constants::chunk_size +
             local_pos.z;
+    }
+
+    static constexpr bool is_valid_pos(const v3i& local_pos)
+    {
+        return
+            local_pos.x >= 0 && local_pos.x < voxel_constants::chunk_size &&
+            local_pos.y >= 0 && local_pos.y < voxel_constants::chunk_size &&
+            local_pos.z >= 0 && local_pos.z < voxel_constants::chunk_size;
     }
 
     static v3i to_block_pos(size_t index)
@@ -99,7 +109,7 @@ namespace h2o
         m_chunk_pos = chunk_pos;
         m_voxel_module = &voxel_module;
 
-        m_light_levels.resize(voxel_constants::chunk_volume, 15);
+        m_light_levels.resize(voxel_constants::chunk_volume, 0);
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
     }
 
@@ -131,20 +141,56 @@ namespace h2o
 
         if (block != Block::Air)
             m_is_empty = false;
+    }
 
-        if (block.id == 5)
+    void Chunk::update_lighting()
+    {
+        std::ranges::fill(m_light_levels, 0);
+
+        std::stack<v3i> light_stack{};
+        for (i32 i = 0; i < voxel_constants::chunk_size; i++)
+        for (i32 j = 0; j < voxel_constants::chunk_size; j++)
+        for (i32 k = 0; k < voxel_constants::chunk_size; k++)
         {
-            // Temp light block
-            const v3i block_pos = to_block_pos(index);
-            voxel_utils::for_v3i(
-                block_pos - v3i{ voxel_constants::max_light_level },
-                block_pos + v3i{ voxel_constants::max_light_level + 1 },
-                [&](const v3i& offset_block_pos)
+            const v3i block_pos{ i, j, k };
+            if (get_block_at(block_pos) == 5)
+            {
+                set_light_level_at(block_pos, voxel_constants::max_light_level);
+                light_stack.emplace(block_pos);
+            }
+        }
+
+        while (!light_stack.empty())
+        {
+            const v3i lit_block_pos = light_stack.top();
+            light_stack.pop();
+
+            static constexpr std::array offsets{
+                v3i{-1, 0, 0 },
+                v3i{ 1, 0, 0 },
+                v3i{ 0,-1, 0 },
+                v3i{ 0, 1, 0 },
+                v3i{ 0, 0,-1 },
+                v3i{ 0, 0, 1 },
+            };
+
+            const u8 light_level = get_light_level_at(lit_block_pos);
+            for (const v3i& offset : offsets)
+            {
+                const v3i adj_block_pos = lit_block_pos + offset;
+                if (!is_valid_pos(adj_block_pos))
+                    continue;
+
+                if (get_block_at(adj_block_pos) != Block::Air)
+                    continue;
+
+                const u8 adj_light_level = get_light_level_at(adj_block_pos);
+                if (adj_light_level < light_level && light_level > 1)
                 {
-                    if (is_valid_pos(offset_block_pos))
-                        set_light_level_at(offset_block_pos, voxel_constants::max_light_level - glm::clamp(i32(glm::distance(v3{ block_pos }, v3{ offset_block_pos })), 0, i32(voxel_constants::max_light_level)));
+                    set_light_level_at(adj_block_pos, light_level - 1);
+                    light_stack.emplace(adj_block_pos);
                 }
-            );
+            }
         }
     }
 }

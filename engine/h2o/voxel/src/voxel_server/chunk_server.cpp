@@ -56,7 +56,7 @@ namespace h2o
 
                 bool was_chunk_sent = false;
                 m_chunk_mgr.view_chunk_column(chunk_pos,
-                    [&](const ChunkColumnView& chunk_column)
+                    [&](const ChunkView& chunk_column)
                     {
                         if (chunk_column.is_generated())
                         {
@@ -97,7 +97,7 @@ namespace h2o
         }
     }
 
-    void ChunkServer::send_chunk_column(const ChunkColumnView& chunk_col, const std::set<PeerID>& client_ids) const
+    void ChunkServer::send_chunk_column(const ChunkView& chunk_col, const std::set<PeerID>& client_ids) const
     {
         // Send chunk column to requesting clients
         std::vector<CompressedChunk> compressed_chunks{};

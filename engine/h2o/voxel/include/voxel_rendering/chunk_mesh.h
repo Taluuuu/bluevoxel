@@ -57,7 +57,7 @@ namespace h2o
     public:
 
         ChunkMesh(
-            const ChunkMeshingView& chunk_view,
+            const ChunkView& chunk_view,
             const VoxelModule& voxel_module);
 
         [[nodiscard]] const v3i& chunk_pos() const { return m_chunk_pos; }
@@ -67,7 +67,7 @@ namespace h2o
     private:
 
         void build_mesh(
-            const ChunkMeshingView& chunk_view,
+            const ChunkView& chunk_view,
             const VoxelModule& voxel_rendering_module);
 
     private:
