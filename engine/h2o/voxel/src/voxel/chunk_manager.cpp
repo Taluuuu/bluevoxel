@@ -152,9 +152,9 @@ namespace h2o
                 const v2i neighbour_col_pos{ neighbour_pos.x, neighbour_pos.z };
                 if (const auto neighbour_col = find_chunk_column(neighbour_col_pos))
                 {
-                    auto& [chunk, chunk_mutex, _] = (*neighbour_col)[neighbour_pos.y];
-                    chunk_view.add_chunk(chunk, neighbour_col);
-                    chunk_locks.emplace_back(chunk_mutex);
+                    auto& chunk_data = (*neighbour_col)[neighbour_pos.y];
+                    chunk_view.add_chunk(chunk_data.chunk, neighbour_col);
+                    chunk_locks.emplace_back(chunk_data.chunk_mutex);
                 }
             };
 
@@ -196,9 +196,12 @@ namespace h2o
         const auto chunk_col = std::make_shared<ChunkColumnData>();
         for (i32 i = 0; i < voxel_constants::vertical_chunk_count; i++)
         {
-            (*chunk_col)[i].chunk.init(
+            auto& chunk_data = (*chunk_col)[i];
+            chunk_data.chunk.init(
                 { chunk_column_pos.x, i, chunk_column_pos.y },
                 g_engine->get_module_checked<VoxelModule>());
+
+            chunk_data.chunk_lighting.init();
         }
 
         return chunk_col;
@@ -276,7 +279,6 @@ namespace h2o
         const v3i& view_size,
         const std::function<void(ChunkView&)>& function)
     {
-        // TODO: Could this be a stack-allocated array ?
         std::vector< std::unique_lock<std::shared_mutex> > chunk_locks{};
         chunk_locks.reserve(view_size.x * view_size.y * view_size.z);
 
@@ -293,9 +295,9 @@ namespace h2o
                 if (!is_valid_chunk_y(j))
                     continue;
 
-                auto& [chunk, chunk_mutex, _] = (*chunk_col)[j];
-                chunk_view.add_chunk(chunk, chunk_col);
-                chunk_locks.emplace_back(chunk_mutex);
+                auto& chunk_data = (*chunk_col)[j];
+                chunk_view.add_chunk(chunk_data.chunk, chunk_col);
+                chunk_locks.emplace_back(chunk_data.chunk_mutex);
             }
         }
 
@@ -333,9 +335,9 @@ namespace h2o
                 if (!is_valid_chunk_y(j))
                     continue;
 
-                auto& [chunk, chunk_mutex, _] = (*chunk_col)[j];
-                chunk_view.add_chunk(chunk, chunk_col);
-                chunk_locks.emplace_back(chunk_mutex);
+                auto& chunk_data = (*chunk_col)[j];
+                chunk_view.add_chunk(chunk_data.chunk, chunk_col);
+                chunk_locks.emplace_back(chunk_data.chunk_mutex);
             }
         }
 
@@ -373,9 +375,9 @@ namespace h2o
                 if (!is_valid_chunk_y(j))
                     continue;
 
-                auto& [chunk, chunk_mutex, _] = (*chunk_col)[j];
-                chunk_view.add_chunk(chunk, chunk_col);
-                chunk_locks.emplace_back(chunk_mutex);
+                auto& chunk_data = (*chunk_col)[j];
+                chunk_view.add_chunk(chunk_data.chunk, chunk_col);
+                chunk_locks.emplace_back(chunk_data.chunk_mutex);
             }
         }
 
