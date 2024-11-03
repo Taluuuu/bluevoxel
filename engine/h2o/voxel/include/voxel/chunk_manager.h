@@ -2,6 +2,8 @@
 
 #include "chunk_column_data.h"
 
+#include "voxel/grid/grid_3d.h"
+
 #include <glm/gtx/hash.hpp>
 #include <memory>
 #include <mutex>
