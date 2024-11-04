@@ -22,8 +22,8 @@ namespace h2o
 
     bool ChunkManager::set_block_at(const v3i& block_pos, Block block)
     {
-        ChunkManager2 test{};
-        test.get<Chunk>();
+        // ChunkManager2 test{};
+        // test.get<Chunk>();
 
         bool success = false;
         fetch_chunk_mut(voxel_utils::block_to_chunk_pos(block_pos),
