@@ -2,8 +2,6 @@
 
 #include "chunk_column_data.h"
 
-#include "voxel/grid/grid_3d.h"
-
 #include <glm/gtx/hash.hpp>
 #include <memory>
 #include <mutex>
@@ -16,6 +14,21 @@ namespace h2o
     struct ChunksDeletedEvent { const std::unordered_set<v2i>& deleted_chunk_columns{}; };
 
     class ChunkView;
+
+    using ChunkManager2 = Grid3D<voxel_constants::vertical_chunk_count, Chunk>;
+    namespace voxel
+    {
+        [[nodiscard]] std::optional<Block> get_block_at(
+            const ChunkManager2::View<Chunk>& view,
+            const v3i& block_pos,
+            EViewRelativeTo relative_to = EViewRelativeTo::World);
+
+        static bool set_block_at(
+            ChunkManager2::View<Chunk>& view,
+            const v3i& block_pos,
+            Block block,
+            EViewRelativeTo relative_to = EViewRelativeTo::World);
+    }
 
     class ChunkManager
     {

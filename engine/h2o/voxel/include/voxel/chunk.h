@@ -3,6 +3,7 @@
 #include "block.h"
 #include "core/handle_types.h"
 #include "core/types.h"
+#include "grid/grid_3d.h"
 #include "voxel/direction.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_module.h"
@@ -17,13 +18,15 @@ namespace h2o
     class VoxelModule;
     struct VoxelStructureInstance;
 
-    class Chunk
+    class Chunk : public IGrid3DCell
     {
     public:
 
         Chunk() = default;
 
-        void init(const v3i& chunk_pos, const VoxelModule& voxel_module);
+        // IGrid3DCell interface
+        void init(const v3i& position) override;
+
         void tick();
 
         [[nodiscard]] Block get_block_at(const v3i& local_pos) const;

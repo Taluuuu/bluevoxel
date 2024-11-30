@@ -1,5 +1,6 @@
 #include "voxel/chunk.h"
 
+#include "core/engine.h"
 #include "voxel/structures/voxel_structure_manager.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_module.h"
@@ -104,10 +105,10 @@ namespace h2o
         );
     }
 
-    void Chunk::init(const v3i& chunk_pos, const VoxelModule& voxel_module)
+    void Chunk::init(const v3i& position)
     {
-        m_chunk_pos = chunk_pos;
-        m_voxel_module = &voxel_module;
+        m_chunk_pos = position;
+        m_voxel_module = &g_engine->get_module_checked<VoxelModule>();
 
         m_light_levels.resize(voxel_constants::chunk_volume, 0);
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);

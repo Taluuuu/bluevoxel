@@ -4,6 +4,8 @@
 #include "core/utils.h"
 #include "voxel_constants.h"
 
+#include <functional>
+
 namespace h2o::voxel_utils
 {
     constexpr v3i world_to_block_pos(const v3& world_pos)

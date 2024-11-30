@@ -6,6 +6,32 @@
 
 namespace h2o
 {
+    std::optional<Block> voxel::get_block_at(
+        const ChunkManager2::View<Chunk>& view,
+        const v3i& block_pos,
+        const EViewRelativeTo relative_to)
+    {
+        if (const Chunk* chunk = view.get_cell(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
+            return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
+
+        return std::nullopt;
+    }
+
+    bool voxel::set_block_at(
+        ChunkManager2::View<Chunk>& view,
+        const v3i& block_pos,
+        const Block block,
+        const EViewRelativeTo relative_to)
+    {
+        if (Chunk* chunk = view.get_cell(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
+        {
+            chunk->set_block_at(voxel_utils::block_pos_to_within_chunk(block_pos), block);
+            return true;
+        }
+
+        return false;
+    }
+
     Block ChunkManager::get_block_at(const v3i& block_pos) const
     {
         Block block = Block::Air;
@@ -22,9 +48,6 @@ namespace h2o
 
     bool ChunkManager::set_block_at(const v3i& block_pos, Block block)
     {
-        // ChunkManager2 test{};
-        // test.get<Chunk>();
-
         bool success = false;
         fetch_chunk_mut(voxel_utils::block_to_chunk_pos(block_pos),
             [&](Chunk* chunk)
@@ -200,9 +223,7 @@ namespace h2o
         for (i32 i = 0; i < voxel_constants::vertical_chunk_count; i++)
         {
             auto& chunk_data = (*chunk_col)[i];
-            chunk_data.chunk.init(
-                { chunk_column_pos.x, i, chunk_column_pos.y },
-                g_engine->get_module_checked<VoxelModule>());
+            chunk_data.chunk.init({ chunk_column_pos.x, i, chunk_column_pos.y });
 
             chunk_data.chunk_lighting.init();
         }
@@ -246,7 +267,7 @@ namespace h2o
             for (const v3i& chunk_pos : updated_chunks)
             {
                 erase_if(m_deleted_chunk_columns,
-                    [&](v2i chunk_col_pos)
+                    [&](const v2i chunk_col_pos)
                     {
                         return chunk_pos.x == chunk_col_pos.x && chunk_pos.z == chunk_col_pos.y;
                     }

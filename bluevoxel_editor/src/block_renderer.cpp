@@ -16,18 +16,18 @@ namespace bluevoxel
         : m_voxel_world_renderer(owner, m_chunk_manager, h2o::ChunkRenderMode::DrawAllChunks)
     {}
 
-    void BlockRenderer::set_block(h2o::Block block)
+    void BlockRenderer::set_block(const h2o::Block block)
     {
-        m_chunk_manager.fetch_or_create_chunk_mut(v3i{0},
-            [&](h2o::Chunk* chunk)
-            {
-                if (chunk)
-                {
-                    chunk->set_block_at(v3i{0}, block);
-                    chunk->mark_generated();
-                }
-            }
-        );
+        // m_chunk_manager.fetch_mut<h2o::Chunk>(v3i{0},
+        //     [&](h2o::Chunk* chunk)
+        //     {
+        //         if (chunk)
+        //         {
+        //             chunk->set_block_at(v3i{0}, block);
+        //             chunk->mark_generated();
+        //         }
+        //     }, true
+        // );
 
         m_chunk_manager.broadcast_events();
     }
