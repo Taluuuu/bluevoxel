@@ -1,13 +1,12 @@
 #include "voxel/chunk_region_manager.h"
 
 #include "core/engine.h"
-#include "voxel/chunk_manager.h"
+#include "voxel/chunk_generators/chunk_generator_base.h"
 #include "voxel/chunk_region.h"
 #include "voxel/voxel_utils.h"
+#include "voxel_server/chunk_server.h"
 
 #include <mutex>
-#include <voxel/chunk_generators/chunk_generator_base.h>
-#include <voxel_server/chunk_server.h>
 
 namespace h2o
 {
@@ -15,7 +14,7 @@ namespace h2o
         : m_chunk_server(&chunk_server)
     {}
 
-    void ChunkRegionManager::generate_regions_for_chunk(v2i chunk_pos)
+    void ChunkRegionManager::generate_regions_for_chunk(const v2i chunk_pos)
     {
         std::vector<v2i> regions_to_generate{};
 
@@ -131,7 +130,7 @@ namespace h2o
                 assert(region->generation_state == ChunkRegion::GenerationState::Pending);
 
                 const v2i corner = voxel_utils::region_to_chunk_pos(region_pos);
-                m_chunk_server->chunk_mgr().view_or_create_mut(
+                m_chunk_server->chunk_mgr().view_mut<Chunk>(
                     { corner.x, 0, corner.y }, ChunkRegionExtents,
                     [&](ChunkView& region_view)
                     {
@@ -140,7 +139,7 @@ namespace h2o
                             chunk_generator->gen_blocks(region_view);
                             region->register_structures(chunk_generator->gen_structures(region_view));
                         }
-                    }
+                    }, true
                 );
 
                 region->generation_state = ChunkRegion::GenerationState::Terrain;
@@ -193,12 +192,12 @@ namespace h2o
                 continue;
 
             const v2i offset_region_corner = voxel_utils::region_to_chunk_pos(offset_region_pos);
-            m_chunk_server->chunk_mgr().view_mut(
+            m_chunk_server->chunk_mgr().view_mut<Chunk>(
                 { offset_region_corner.x, 0, offset_region_corner.y }, ChunkRegionExtents,
                 [&](ChunkView& region_view)
                 {
-                    region_view.for_each_chunk(
-                        [&](Chunk& chunk)
+                    region_view.for_each_cell(
+                        [&](Chunk& chunk, const v3i&)
                         {
                             for (const auto& structure : *structures)
                                 chunk.place_structure(structure);

@@ -3,10 +3,10 @@
 #include "chunk_mesh_pool.h"
 #include "core/events.h"
 #include "core/tickable.h"
+#include "voxel/chunk_manager.h"
 
 namespace h2o
 {
-    class ChunkManager;
     class RenderingModule;
     class VoxelModule;
 

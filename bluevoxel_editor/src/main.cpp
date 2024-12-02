@@ -10,29 +10,19 @@
 #include "voxel/voxel_module.h"
 #include "windowing/windowing_module.h"
 
-#include <tuple>
-
-template<class... Args>
-void testttt()
-{
-    std::tuple<Args...> t1;
-}
-
 int main()
 {
-    testttt<int, double>();
+    h2o::Engine engine { { "BlueVoxel Editor" } };
 
-    // h2o::Engine engine { { "BlueVoxel Editor" } };
-    //
-    // engine
-    //     .add_module<h2o::WindowingModule>()
-    //     .add_module<h2o::RenderingModule>()
-    //     .add_module<h2o::UIModule>()
-    //     .add_module<h2o::NetworkingModule>()
-    //     .add_module<h2o::InputModule>()
-    //     .add_module<h2o::SceneModule>()
-    //     .add_module<h2o::VoxelModule>()
-    //     .add_module<h2o::GameFrameworkModule>()
-    //     .add_module<bluevoxel::BlueVoxelEditorModule>()
-    //     .run();
+    engine
+        .add_module<h2o::WindowingModule>()
+        .add_module<h2o::RenderingModule>()
+        .add_module<h2o::UIModule>()
+        .add_module<h2o::NetworkingModule>()
+        .add_module<h2o::InputModule>()
+        .add_module<h2o::SceneModule>()
+        .add_module<h2o::VoxelModule>()
+        .add_module<h2o::GameFrameworkModule>()
+        .add_module<bluevoxel::BlueVoxelEditorModule>()
+        .run();
 }

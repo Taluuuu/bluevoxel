@@ -2,7 +2,7 @@
 
 #include "core/types.h"
 #include "rendering/vertex_array.h"
-#include "voxel/chunk_view.h"
+#include "voxel/chunk_manager.h"
 
 #include <vector>
 

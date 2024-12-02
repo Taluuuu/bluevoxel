@@ -13,29 +13,50 @@ namespace h2o
     struct ChunksUpdatedEvent { const std::unordered_set<v3i>& updated_chunks{}; };
     struct ChunksDeletedEvent { const std::unordered_set<v2i>& deleted_chunk_columns{}; };
 
-    class ChunkView;
-
-    using ChunkManager2 = Grid3D<voxel_constants::vertical_chunk_count, Chunk>;
-    namespace voxel
-    {
-        [[nodiscard]] std::optional<Block> get_block_at(
-            const ChunkManager2::View<Chunk>& view,
-            const v3i& block_pos,
-            EViewRelativeTo relative_to = EViewRelativeTo::World);
-
-        static bool set_block_at(
-            ChunkManager2::View<Chunk>& view,
-            const v3i& block_pos,
-            Block block,
-            EViewRelativeTo relative_to = EViewRelativeTo::World);
-    }
-
-    class ChunkManager
+    class ChunkManager : public Grid3D<voxel_constants::vertical_chunk_count, Chunk>
     {
     public:
 
-        ChunkManager() = default;
-        ~ChunkManager() = default;
+        [[nodiscard]] Block get_block_at(const v3i& block_pos) const;
+        bool set_block_at(const v3i& block_pos, Block block);
+
+        void view_for_meshing(
+            const v3i& chunk_pos,
+            const std::function<void(const View<Chunk>&)>& function) const;
+
+    };
+
+    using ChunkView = ChunkManager::View<Chunk>;
+
+    namespace voxel
+    {
+        [[nodiscard]] std::optional<Block> get_block_at(
+            const ChunkManager::View<Chunk>& view,
+            const v3i& block_pos,
+            EViewRelativeTo relative_to = EViewRelativeTo::World);
+
+        bool set_block_at(
+            ChunkManager::View<Chunk>& view,
+            const v3i& block_pos,
+            Block block,
+            EViewRelativeTo relative_to = EViewRelativeTo::World);
+
+        // Loop through all blocks that are not air
+        void for_each_block(
+            const ChunkManager::View<Chunk>& view,
+            const std::function<void(const v3i&, const Block&)>& function);
+
+        [[nodiscard]] bool is_generated(const ChunkManager::View<Chunk>& view);
+
+    }
+
+    class ChunkView_OLD;
+    class ChunkManager_OLD
+    {
+    public:
+
+        ChunkManager_OLD() = default;
+        ~ChunkManager_OLD() = default;
 
         [[nodiscard]] Block get_block_at(const v3i& block_pos) const;
         bool set_block_at(const v3i& block_pos, Block block);
@@ -49,19 +70,19 @@ namespace h2o
         void fetch_chunk(const v3i& chunk_pos, const std::function<void(const Chunk*)>& function) const;
 
         // Chunk column access
-        void view_or_create_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkView&)>& function);
-        void view_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkView&)>& function);
-        void view_chunk_column(v2i chunk_column_pos, const std::function<void(const ChunkView&)>& function) const;
+        void view_or_create_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkView_OLD&)>& function);
+        void view_chunk_column_mut(v2i chunk_column_pos, const std::function<void(ChunkView_OLD&)>& function);
+        void view_chunk_column(v2i chunk_column_pos, const std::function<void(const ChunkView_OLD&)>& function) const;
 
         void remove_all_chunk_columns(const std::function<bool(v2i)>& condition);
 
         // Open a temporary view into a cubic region of chunks, mutable or otherwise
-        void view_or_create_mut(const v3i& corner, const v3i& view_size, const std::function<void(ChunkView&)>& function);
-        void view_mut(const v3i& corner, const v3i& view_size, const std::function<void(ChunkView&)>& function);
-        void view(const v3i& corner, const v3i& view_size, const std::function<void(const ChunkView&)>& function) const;
+        void view_or_create_mut(const v3i& corner, const v3i& view_size, const std::function<void(ChunkView_OLD&)>& function);
+        void view_mut(const v3i& corner, const v3i& view_size, const std::function<void(ChunkView_OLD&)>& function);
+        void view(const v3i& corner, const v3i& view_size, const std::function<void(const ChunkView_OLD&)>& function) const;
 
         // A 3x3x3 view containing only chunks where sides touch directly the center chunk
-        void view_for_meshing(const v3i& chunk_pos, const std::function<void(const ChunkView&)>& function) const;
+        void view_for_meshing(const v3i& chunk_pos, const std::function<void(const ChunkView_OLD&)>& function) const;
 
         void broadcast_events();
 

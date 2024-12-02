@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/events.h"
 #include "core/types.h"
 #include "voxel/voxel_utils.h"
 
@@ -16,8 +17,9 @@
 
 namespace h2o
 {
-    enum class EViewRelativeTo
-    { ViewCenter, ViewCorner, World };
+    enum class EViewRelativeTo { ViewCenter, ViewCorner, World };
+    struct CellsUpdatedEvent { const std::unordered_set<v3i>& updated_cells{}; };
+    struct CellsDeletedEvent { const std::unordered_set<v2i>& deleted_cell_columns{}; };
 
     class IGrid3DCell
     {
@@ -57,6 +59,7 @@ namespace h2o
             // Cell, cell position in world space
             void for_each_cell(const std::function<void(CellType&, const v3i&)>& function);
             void for_each_cell(const std::function<void(const CellType&, const v3i&)>& function) const;
+            bool any_matches(const std::function<bool(const CellType*)>& condition) const;
 
             [[nodiscard]] v3i center_cell_pos() const { return m_view_min + v3i{ m_view_size } / 2; }
             [[nodiscard]] v3i corner_cell_pos() const { return m_view_min; }
@@ -108,10 +111,45 @@ namespace h2o
             const std::function<void(View<CellType>&)>& function,
             bool create_if_missing = false);
 
+        template<class CellType>
+        void view_column(
+            v2i cell_column_pos,
+            const std::function<void(const View<CellType>&)>& function) const;
+
+        template<class CellType>
+        void view_column_mut(
+            v2i cell_column_pos,
+            const std::function<void(View<CellType>&)>& function,
+            bool create_if_missing = false);
+
+        [[nodiscard]] bool cell_column_exists(v2i cell_column_pos) const;
+        [[nodiscard]] bool cell_exists(const v3i& cell_pos) const;
+
+        void remove_all(const std::function<bool(v2i)>& condition);
+
+        void broadcast_events();
+        Event<CellsUpdatedEvent> on_cells_updated{}; // First update is creation
+        Event<CellsDeletedEvent> on_cells_deleted{};
+
     protected:
 
         static constexpr bool is_valid_cell_y(const i32 cell_y)
         { return cell_y >= 0 && cell_y < VerticalCellCount; }
+
+        template<class CellType>
+        void view_impl(
+            const v3i& view_min,
+            const v3i& view_size,
+            const std::function<bool(const v3i&)>& should_add_cell,
+            const std::function<void(View<CellType>&)>& function) const;
+
+        template<class CellType>
+        void view_mut_impl(
+            const v3i& view_min,
+            const v3i& view_size,
+            const std::function<bool(const v3i&)>& should_add_cell,
+            const std::function<void(View<CellType>&)>& function,
+            bool create_if_missing = false);
 
     private:
 
@@ -133,6 +171,7 @@ namespace h2o
 
         // These are stored to ensure events are called on the correct thread.
         // TODO: Make sure nothing bad happens if a cell is updated and deleted on the same frame
+        // TODO: Make an instance of this per type in the tuple
         std::mutex m_updated_cells_mutex{};
         std::unordered_set<v3i> m_updated_cells{};
         std::mutex m_deleted_cell_columns_mutex{};
@@ -175,6 +214,20 @@ namespace h2o
                     function(*cell, cell_pos);
             }
         );
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    bool Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::any_matches(
+        const std::function<bool(const CellType*)>& condition) const
+    {
+        for (const auto cell : m_cells)
+        {
+            if (condition(cell))
+                return true;
+        }
+
+        return false;
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
@@ -257,10 +310,10 @@ namespace h2o
         const v3i& position,
         const std::function<void(const CellType*)>& function) const
     {
-        view(position, v3i{1},
+        view<CellType>(position, v3i{1},
             [&](const View<CellType>& view)
             {
-                function(view.get_cell(position));
+                function(view.get(position));
             }
         );
     }
@@ -272,10 +325,10 @@ namespace h2o
         const std::function<void(CellType*)>& function,
         const bool create_if_missing)
     {
-        view_mut(position, v3i{1},
+        view_mut<CellType>(position, v3i{1},
             [&](View<CellType>& view)
             {
-                function(view.get_cell(position));
+                function(view.get(position));
             }, create_if_missing
         );
     }
@@ -286,6 +339,119 @@ namespace h2o
         const v3i& view_min,
         const v3i& view_size,
         const std::function<void(const View<CellType>&)>& function) const
+    {
+        view_impl<CellType>(view_min, view_size, [](const v3i&) { return true; }, function);
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    void Grid3D<VerticalCellCount, CellTypes...>::view_mut(
+        const v3i& view_min,
+        const v3i& view_size,
+        const std::function<void(View<CellType>&)>& function,
+        const bool create_if_missing)
+    {
+        view_mut_impl<CellType>(view_min, view_size, [](const v3i&) { return true; }, function, create_if_missing);
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    void Grid3D<VerticalCellCount, CellTypes...>::view_column(
+        const v2i cell_column_pos,
+        const std::function<void(const View<CellType>&)>& function) const
+    {
+        view<CellType>(
+            v3i{ cell_column_pos.x, 0, cell_column_pos.y },
+            v3i{ 1, VerticalCellCount, 1 },
+            function
+        );
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    void Grid3D<VerticalCellCount, CellTypes...>::view_column_mut(
+        const v2i cell_column_pos,
+        const std::function<void(View<CellType>&)>& function,
+        const bool create_if_missing)
+    {
+        view_mut<CellType>(
+            v3i{ cell_column_pos.x, 0, cell_column_pos.y },
+            v3i{ 1, VerticalCellCount, 1 },
+            function,
+            create_if_missing
+        );
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    bool Grid3D<VerticalCellCount, CellTypes...>::cell_column_exists(const v2i cell_column_pos) const
+    {
+        return find_cell_column(cell_column_pos) != nullptr;
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    bool Grid3D<VerticalCellCount, CellTypes...>::cell_exists(const v3i& cell_pos) const
+    {
+        if (cell_pos.y >= 0 && cell_pos.y < VerticalCellCount)
+            return cell_column_exists({ cell_pos.x, cell_pos.z });
+
+        return false;
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    void Grid3D<VerticalCellCount, CellTypes...>::remove_all(const std::function<bool(v2i)>& condition)
+    {
+        std::vector<v2i> cell_columns_to_delete{};
+
+        {
+            const std::shared_lock loaded_cells_lock{ m_cells_mutex };
+            for (const auto& [cell_col_pos, _] : m_cells)
+            {
+                if (condition(cell_col_pos))
+                    cell_columns_to_delete.push_back(cell_col_pos);
+            }
+        }
+
+        if (cell_columns_to_delete.empty())
+            return;
+
+        add_to_deleted_cells_list(cell_columns_to_delete);
+
+        {
+            const std::unique_lock loaded_cells_lock{ m_cells_mutex };
+            for (const v2i cell_col_pos : cell_columns_to_delete)
+                m_cells.erase(cell_col_pos);
+        }
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    void Grid3D<VerticalCellCount, CellTypes...>::broadcast_events()
+    {
+        {
+            const std::unique_lock lock{ m_deleted_cell_columns_mutex };
+            if (!m_deleted_cell_columns.empty())
+            {
+                on_cells_deleted.broadcast({ m_deleted_cell_columns });
+                m_deleted_cell_columns.clear();
+            }
+        }
+
+        {
+            const std::unique_lock lock{ m_updated_cells_mutex };
+            if (!m_updated_cells.empty())
+            {
+                on_cells_updated.broadcast({ m_updated_cells });
+                m_updated_cells.clear();
+            }
+        }
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    void Grid3D<VerticalCellCount, CellTypes...>::view_impl(
+        const v3i& view_min,
+        const v3i& view_size,
+        const std::function<bool(const v3i&)>& should_add_cell,
+        const std::function<void(View<CellType>&)>& function) const
     {
         std::vector< std::shared_lock<std::shared_mutex> > locks{};
         locks.reserve(view_size.x * view_size.y * view_size.z);
@@ -301,11 +467,12 @@ namespace h2o
 
             for (i32 j = view_min.y; j < view_min.y + view_size.y; j++)
             {
-                if (!is_valid_cell_y(j))
+                const v3i cell_pos{ i, j, k };
+                if (!should_add_cell(cell_pos) || !is_valid_cell_y(j))
                     continue;
 
                 auto& [cell, mutex] = std::get<CellData<CellType>>((*cell_column)[j]);
-                view.add_cell(v3i{ i, j, k }, cell, cell_column);
+                view.add_cell(cell_pos, cell, cell_column);
                 locks.emplace_back(mutex);
             }
         }
@@ -315,9 +482,10 @@ namespace h2o
 
     template<u32 VerticalCellCount, class... CellTypes>
     template<class CellType>
-    void Grid3D<VerticalCellCount, CellTypes...>::view_mut(
+    void Grid3D<VerticalCellCount, CellTypes...>::view_mut_impl(
         const v3i& view_min,
         const v3i& view_size,
+        const std::function<bool(const v3i&)>& should_add_cell,
         const std::function<void(View<CellType>&)>& function,
         const bool create_if_missing)
     {
@@ -338,11 +506,12 @@ namespace h2o
 
             for (i32 j = view_min.y; j < view_min.y + view_size.y; j++)
             {
-                if (!is_valid_cell_y(j))
+                const v3i cell_pos{ i, j, k };
+                if (!should_add_cell(cell_pos) || !is_valid_cell_y(j))
                     continue;
 
                 auto& [cell, mutex] = std::get<CellData<CellType>>((*cell_column)[j]);
-                view.add_cell(v3i{ i, j, k }, cell, cell_column);
+                view.add_cell(cell_pos, cell, cell_column);
                 locks.emplace_back(mutex);
             }
         }
@@ -441,7 +610,7 @@ namespace h2o
         }
     }
 
-    template<u32 VerticalCellCount, class ... CellTypes>
+    template<u32 VerticalCellCount, class... CellTypes>
     void Grid3D<VerticalCellCount, CellTypes...>::add_to_deleted_cells_list(const std::vector<v2i>& deleted_cells)
     {
         {

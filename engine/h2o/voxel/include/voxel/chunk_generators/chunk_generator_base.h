@@ -1,13 +1,12 @@
 #pragma once
 
+#include "voxel/chunk_manager.h"
 #include "voxel/structures/voxel_structure_manager.h"
 
 #include <vector>
 
 namespace h2o
 {
-    class ChunkView;
-
     class ChunkGenerator_Base
     {
     public:

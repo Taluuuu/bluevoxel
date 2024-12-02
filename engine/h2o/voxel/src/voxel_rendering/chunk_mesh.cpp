@@ -19,10 +19,10 @@ namespace h2o
 
     void ChunkMesh::build_mesh(const ChunkView& chunk_view, const VoxelModule& voxel_module)
     {
-        m_chunk_pos = chunk_view.center_chunk_pos();
+        m_chunk_pos = chunk_view.center_cell_pos();
         m_vertices.clear();
 
-        const Chunk* chunk = chunk_view.get_chunk_at(m_chunk_pos);
+        const Chunk* chunk = chunk_view.get(m_chunk_pos);
         if (!chunk)
             return;
 
@@ -76,9 +76,14 @@ namespace h2o
                     const v3i offset = voxel::to_vec3(dir);
                     const v3i adjacent_block_pos = pos + offset;
 
-                    const auto block_tuple = chunk_view
-                        .get_block_and_light_level_at(adjacent_block_pos, ViewRelativeTo::ViewCenter)
-                        .value_or(std::tuple{ Block::Air, 15 });
+                    // const auto block_tuple = chunk_view
+                    //     .get_block_and_light_level_at(adjacent_block_pos, ViewRelativeTo::ViewCenter)
+                    //     .value_or(std::tuple{ Block::Air, 15 });
+
+                    const std::tuple<Block, u8> block_tuple{
+                        voxel::get_block_at(chunk_view, adjacent_block_pos, EViewRelativeTo::ViewCenter).value_or(Block::Air),
+                        15
+                    };
 
                     const auto [adj_block, adj_light_level] = block_tuple;
                     if (voxel_module.is_transparent(adj_block.id))
@@ -88,7 +93,7 @@ namespace h2o
                 }
             );
 
-            const u8 light_level = chunk->get_light_level_at(pos);
+            const u8 light_level = 15;//chunk->get_light_level_at(pos);
             append_side(pos, *texture_ids, model->unoccluded_triangles, light_level);
         }
     }

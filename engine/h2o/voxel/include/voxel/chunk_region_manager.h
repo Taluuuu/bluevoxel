@@ -2,6 +2,7 @@
 
 #include "chunk_region.h"
 #include "core/types.h"
+#include "voxel/chunk_manager.h"
 
 #include <functional>
 #include <glm/gtx/hash.hpp>
@@ -35,7 +36,7 @@ namespace h2o
 
         struct ChunkRegionData
         {
-            explicit ChunkRegionData(v2i region_pos = {})
+            explicit ChunkRegionData(const v2i region_pos = {})
                 : chunk_region(region_pos) {}
 
             ChunkRegion chunk_region;

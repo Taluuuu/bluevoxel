@@ -2,14 +2,14 @@
 
 namespace h2o
 {
-    ChunkView::ChunkView(const v3i& corner, const v3i& view_size)
+    ChunkView_OLD::ChunkView_OLD(const v3i& corner, const v3i& view_size)
         : m_corner(corner), m_view_size(view_size)
     {
         assert(view_size.x > 0 && view_size.y > 0 && view_size.z > 0);
         m_chunks.resize(view_size.x * view_size.y * view_size.z, nullptr);
     }
 
-    void ChunkView::for_each_chunk(const std::function<void(Chunk&)>& function)
+    void ChunkView_OLD::for_each_chunk(const std::function<void(Chunk&)>& function)
     {
         for (Chunk* chunk : m_chunks)
         {
@@ -18,7 +18,7 @@ namespace h2o
         }
     }
 
-    void ChunkView::for_each_chunk(const std::function<void(const Chunk&)>& function) const
+    void ChunkView_OLD::for_each_chunk(const std::function<void(const Chunk&)>& function) const
     {
         for (const Chunk* chunk : m_chunks)
         {
@@ -27,7 +27,7 @@ namespace h2o
         }
     }
 
-    void ChunkView::for_each_block(const std::function<void(const v3i&, const Block&)>& function) const
+    void ChunkView_OLD::for_each_block(const std::function<void(const v3i&, const Block&)>& function) const
     {
         for (const Chunk* chunk : m_chunks)
         {
@@ -47,7 +47,7 @@ namespace h2o
         }
     }
 
-    std::optional<Block> ChunkView::get_block_at(const v3i& block_pos, const ViewRelativeTo relative_to) const
+    std::optional<Block> ChunkView_OLD::get_block_at(const v3i& block_pos, const ViewRelativeTo relative_to) const
     {
         if (const Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
             return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
@@ -55,7 +55,7 @@ namespace h2o
         return std::nullopt;
     }
 
-    bool ChunkView::set_block_at(const v3i& block_pos, const Block block, const ViewRelativeTo relative_to)
+    bool ChunkView_OLD::set_block_at(const v3i& block_pos, const Block block, const ViewRelativeTo relative_to)
     {
         if (Chunk* chunk = get_chunk_at(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
         {
@@ -66,7 +66,7 @@ namespace h2o
         return false;
     }
 
-    std::optional<std::tuple<Block, u8>> ChunkView::get_block_and_light_level_at(
+    std::optional<std::tuple<Block, u8>> ChunkView_OLD::get_block_and_light_level_at(
         const v3i& block_pos,
         const ViewRelativeTo relative_to) const
     {
@@ -82,7 +82,7 @@ namespace h2o
         return std::nullopt;
     }
 
-    Chunk* ChunkView::get_chunk_at(const v3i& relative_chunk_pos, const ViewRelativeTo relative_to)
+    Chunk* ChunkView_OLD::get_chunk_at(const v3i& relative_chunk_pos, const ViewRelativeTo relative_to)
     {
         const v3i offset = get_relative_to_chunk_pos(relative_to) - m_corner;
         const v3i local_chunk_pos = relative_chunk_pos + offset;
@@ -93,7 +93,7 @@ namespace h2o
         return m_chunks[to_index(local_chunk_pos)];
     }
 
-    const Chunk* ChunkView::get_chunk_at(const v3i& relative_chunk_pos, const ViewRelativeTo relative_to) const
+    const Chunk* ChunkView_OLD::get_chunk_at(const v3i& relative_chunk_pos, const ViewRelativeTo relative_to) const
     {
         const v3i offset = get_relative_to_chunk_pos(relative_to) - m_corner;
         const v3i local_chunk_pos = relative_chunk_pos + offset;
@@ -104,7 +104,7 @@ namespace h2o
         return m_chunks[to_index(local_chunk_pos)];
     }
 
-    bool ChunkView::is_generated() const
+    bool ChunkView_OLD::is_generated() const
     {
         for (const auto& chunk : m_chunks)
         {
@@ -115,7 +115,7 @@ namespace h2o
         return true;
     }
 
-    void ChunkView::add_chunk(Chunk& chunk, const std::shared_ptr<ChunkColumnData>& chunk_column)
+    void ChunkView_OLD::add_chunk(Chunk& chunk, const std::shared_ptr<ChunkColumnData>& chunk_column)
     {
         const v3i local_chunk_pos = chunk.chunk_pos() - m_corner;
         assert(in_bounds(local_chunk_pos));
@@ -124,7 +124,7 @@ namespace h2o
         m_chunk_columns.insert(chunk_column);
     }
 
-    v3i ChunkView::get_relative_to_chunk_pos(const ViewRelativeTo relative_to) const
+    v3i ChunkView_OLD::get_relative_to_chunk_pos(const ViewRelativeTo relative_to) const
     {
         switch (relative_to)
         {
@@ -138,7 +138,7 @@ namespace h2o
         }
     }
 
-    bool ChunkView::in_bounds(const v3i& local_chunk_pos) const
+    bool ChunkView_OLD::in_bounds(const v3i& local_chunk_pos) const
     {
         return
             local_chunk_pos.x >= 0 && local_chunk_pos.x < m_view_size.x &&
@@ -146,7 +146,7 @@ namespace h2o
             local_chunk_pos.z >= 0 && local_chunk_pos.z < m_view_size.z;
     }
 
-    size_t ChunkView::to_index(const v3i& local_chunk_pos) const
+    size_t ChunkView_OLD::to_index(const v3i& local_chunk_pos) const
     {
         assert(in_bounds(local_chunk_pos));
 

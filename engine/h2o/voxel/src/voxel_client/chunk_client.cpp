@@ -28,7 +28,7 @@ namespace h2o
         INetPeer& client)
         : SceneSystem(system_initializer)
         , m_voxel_world_renderer(*this, m_chunk_mgr)
-        , m_voxel_bounds(v2i{}, 8)
+        , m_voxel_bounds(v2i{}, 3)
         , m_client(&client)
     {
         set_tick_phases(TickPhase::Update);
@@ -61,12 +61,12 @@ namespace h2o
                         for (const auto& compressed_chunk : compressed_chunks)
                         {
                             const v3i chunk_pos = compressed_chunk.chunk_pos();
-                            m_chunk_mgr.fetch_or_create_chunk_mut(chunk_pos,
+                            m_chunk_mgr.fetch_mut<Chunk>(chunk_pos,
                                 [&](Chunk* chunk)
                                 {
                                     assert(chunk != nullptr);
                                     compressed_chunk.decompress(*chunk);
-                                }
+                                }, true
                             );
                         }
 
@@ -124,7 +124,7 @@ namespace h2o
 
     void ChunkClient::reload_all()
     {
-        m_chunk_mgr.remove_all_chunk_columns([](v2i){ return true; });
+        m_chunk_mgr.remove_all([](v2i){ return true; });
         request_chunk_loads();
     }
 
@@ -154,8 +154,8 @@ namespace h2o
         {
             m_previous_player_chunk_col_pos = player_chunk_col_pos;
 
-            m_chunk_mgr.remove_all_chunk_columns(
-                [&](v2i chunk_column_pos) -> bool
+            m_chunk_mgr.remove_all(
+                [&](const v2i chunk_column_pos) -> bool
                 {
                     return !m_voxel_bounds.in_bounds(chunk_column_pos);
                 }
@@ -179,11 +179,11 @@ namespace h2o
         m_voxel_bounds.for_each_pos_in_bounds(
             [&](const v2i chunk_column_pos)
             {
-                m_chunk_mgr.view_chunk_column(chunk_column_pos,
+                m_chunk_mgr.view_column<Chunk>(chunk_column_pos,
                     [&](const ChunkView& chunk_column)
                     {
                         // TODO: This can probably request the same chunks multiple times
-                        if (!chunk_column.is_generated())
+                        if (!voxel::is_generated(chunk_column))
                             chunk_fetch_request.requested_chunks.push_back(chunk_column_pos);
                     }
                 );

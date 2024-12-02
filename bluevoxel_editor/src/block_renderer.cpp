@@ -18,16 +18,16 @@ namespace bluevoxel
 
     void BlockRenderer::set_block(const h2o::Block block)
     {
-        // m_chunk_manager.fetch_mut<h2o::Chunk>(v3i{0},
-        //     [&](h2o::Chunk* chunk)
-        //     {
-        //         if (chunk)
-        //         {
-        //             chunk->set_block_at(v3i{0}, block);
-        //             chunk->mark_generated();
-        //         }
-        //     }, true
-        // );
+        m_chunk_manager.fetch_mut<h2o::Chunk>(v3i{0},
+            [&](h2o::Chunk* chunk)
+            {
+                if (chunk)
+                {
+                    chunk->set_block_at(v3i{0}, block);
+                    chunk->mark_generated();
+                }
+            }, true
+        );
 
         m_chunk_manager.broadcast_events();
     }

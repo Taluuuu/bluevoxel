@@ -15,11 +15,11 @@ namespace h2o
     enum class ViewRelativeTo
     { ViewCenter, ViewCorner, World };
 
-    class ChunkView
+    class ChunkView_OLD
     {
     public:
 
-        explicit ChunkView(const v3i& corner, const v3i& view_size);
+        explicit ChunkView_OLD(const v3i& corner, const v3i& view_size);
 
         void for_each_chunk(const std::function<void(Chunk&)>& function);
         void for_each_chunk(const std::function<void(const Chunk&)>& function) const;
@@ -42,7 +42,7 @@ namespace h2o
 
     private:
 
-        friend class ChunkManager;
+        friend class ChunkManager_OLD;
         // The chunk must be from the chunk column to ensure thread-safety (see comment below)
         void add_chunk(Chunk& chunk, const std::shared_ptr<ChunkColumnData>& chunk_column);
 

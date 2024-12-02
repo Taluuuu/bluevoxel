@@ -110,7 +110,7 @@ namespace h2o
         m_chunk_pos = position;
         m_voxel_module = &g_engine->get_module_checked<VoxelModule>();
 
-        m_light_levels.resize(voxel_constants::chunk_volume, 0);
+        // m_light_levels.resize(voxel_constants::chunk_volume, 0);
         m_blocks.resize(voxel_constants::chunk_volume, Block::Air);
     }
 

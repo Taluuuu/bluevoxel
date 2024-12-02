@@ -43,7 +43,7 @@ namespace h2o
 
     void ChunkServer::regenerate()
     {
-        m_chunk_mgr.remove_all_chunk_columns([](v2i){ return true; });
+        m_chunk_mgr.remove_all([](v2i){ return true; });
         m_chunk_region_mgr.clear();
     }
 
@@ -55,10 +55,10 @@ namespace h2o
                 const auto [chunk_pos, client_id] = chunk_pos_peer_pair;
 
                 bool was_chunk_sent = false;
-                m_chunk_mgr.view_chunk_column(chunk_pos,
+                m_chunk_mgr.view_column<Chunk>(chunk_pos,
                     [&](const ChunkView& chunk_column)
                     {
-                        if (chunk_column.is_generated())
+                        if (voxel::is_generated(chunk_column))
                         {
                             send_chunk_column(chunk_column, { client_id });
                             was_chunk_sent = true;
@@ -103,18 +103,18 @@ namespace h2o
         std::vector<CompressedChunk> compressed_chunks{};
         compressed_chunks.reserve(voxel_constants::vertical_chunk_count);
 
-        chunk_col.for_each_chunk(
-            [&](const Chunk& chunk)
+        chunk_col.for_each_cell(
+            [&](const Chunk& chunk, const v3i&)
             {
                 compressed_chunks.emplace_back(chunk);
             }
         );
 
         const v2i chunk_column_pos{
-            chunk_col.corner_chunk_pos().x,
-            chunk_col.corner_chunk_pos().z };
+            chunk_col.corner_cell_pos().x,
+            chunk_col.corner_cell_pos().z };
 
-        for (PeerID client : client_ids)
+        for (const PeerID client : client_ids)
         {
             m_server->send_message(client,
                 net_msg::ChunkFetchResult{

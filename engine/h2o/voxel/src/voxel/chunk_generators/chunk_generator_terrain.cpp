@@ -32,7 +32,7 @@ namespace h2o
     void ChunkGenerator_Terrain::gen_blocks(ChunkView& region_view) const
     {
         // In chunk coordinates
-        const v3i region_corner{ region_view.corner_chunk_pos().x, 0, region_view.corner_chunk_pos().z };
+        const v3i region_corner{ region_view.corner_cell_pos().x, 0, region_view.corner_cell_pos().z };
         const v3i region_size = region_view.size();
 
         // In block coordinates
@@ -56,7 +56,7 @@ namespace h2o
             if (noise_val < air_threshold)
             {
                 const Block block = 3;
-                region_view.set_block_at({ x, y, z }, block, ViewRelativeTo::ViewCorner);
+                voxel::set_block_at(region_view, { x, y, z }, block, EViewRelativeTo::ViewCorner);
             }
         }
 
@@ -67,7 +67,7 @@ namespace h2o
             i32 num_blocks_under_air = 0;
             for (i32 y = region_size_blocks.y; y >= 0; --y)
             {
-                const auto block = region_view.get_block_at({ x, y, z }, ViewRelativeTo::ViewCorner);
+                const auto block = voxel::get_block_at(region_view, { x, y, z }, EViewRelativeTo::ViewCorner);
                 if (block == Block::Air)
                 {
                     num_blocks_under_air = 0;
@@ -76,11 +76,11 @@ namespace h2o
                 {
                     if (num_blocks_under_air == 0)
                     {
-                        region_view.set_block_at({ x, y, z }, Block{ 1 }, ViewRelativeTo::ViewCorner);
+                        voxel::set_block_at(region_view, { x, y, z }, Block{ 1 }, EViewRelativeTo::ViewCorner);
                     }
                     else if (num_blocks_under_air < 5)
                     {
-                        region_view.set_block_at({ x, y, z }, Block{ 2 }, ViewRelativeTo::ViewCorner);
+                        voxel::set_block_at(region_view, { x, y, z }, Block{ 2 }, EViewRelativeTo::ViewCorner);
                     }
 
                     num_blocks_under_air++;
@@ -93,13 +93,13 @@ namespace h2o
     {
         std::vector<VoxelStructureInstance> structures{};
 
-        const v3i corner = region_view.corner_chunk_pos() * voxel_constants::chunk_size;
+        const v3i corner = region_view.corner_cell_pos() * voxel_constants::chunk_size;
 
         srand(corner.x ^ corner.z);
         for (i32 i = 0; i < voxel_constants::chunk_region_block_count; i++)
         for (i32 j = 0; j < voxel_constants::chunk_region_block_count; j++)
         {
-            const f32 random_float = f32(rand()) / std::numeric_limits<i32>::max();
+            const f32 random_float = static_cast<f32>(rand()) / std::numeric_limits<i32>::max();
 
             const f32 tree_threshold = 0.01f;
             const f32 house_threshold = 0.00005f;
@@ -111,7 +111,7 @@ namespace h2o
             i32 ground_level = voxel_constants::vertical_block_count - 1;
             for (; ground_level >= 0; --ground_level)
             {
-                const auto block = region_view.get_block_at({ i, ground_level, j }, ViewRelativeTo::ViewCorner);
+                const auto block = voxel::get_block_at(region_view, { i, ground_level, j }, EViewRelativeTo::ViewCorner);
                 if (block != Block::Air)
                     break;
             }

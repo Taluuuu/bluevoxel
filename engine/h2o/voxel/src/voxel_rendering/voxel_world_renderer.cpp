@@ -13,25 +13,25 @@ namespace h2o
 {
     VoxelWorldRenderer::VoxelWorldRenderer(Tickable& owner, ChunkManager& chunk_manager, ChunkRenderMode chunk_render_mode)
         : Tickable(&owner)
+        , m_render_mode(chunk_render_mode)
         , m_chunk_manager(&chunk_manager)
         , m_rendering_module(&g_engine->get_module_checked<RenderingModule>())
         , m_voxel_module(&g_engine->get_module_checked<VoxelModule>())
-        , m_render_mode(chunk_render_mode)
     {
         set_tick_phases(TickPhase::Update | TickPhase::PreRender | TickPhase::Render);
 
-        chunk_manager.on_chunks_updated.add_listener(m_on_chunk_updated_handle,
-            [this](const ChunksUpdatedEvent& event)
+        chunk_manager.on_cells_updated.add_listener(m_on_chunk_updated_handle,
+            [this](const CellsUpdatedEvent& event)
             {
-                for (const v3i& chunk_pos : event.updated_chunks)
+                for (const v3i& chunk_pos : event.updated_cells)
                     queue_chunk_remesh(chunk_pos);
             }
         );
 
-        chunk_manager.on_chunks_deleted.add_listener(m_on_chunk_deleted_handle,
-            [this](const ChunksDeletedEvent& event)
+        chunk_manager.on_cells_deleted.add_listener(m_on_chunk_deleted_handle,
+            [this](const CellsDeletedEvent& event)
             {
-                for (const v2i chunk_column_pos : event.deleted_chunk_columns)
+                for (const v2i chunk_column_pos : event.deleted_cell_columns)
                 {
                     for (i32 i = 0; i < voxel_constants::vertical_chunk_count; i++)
                     {
@@ -67,7 +67,7 @@ namespace h2o
 
                     for (const v2i offset : offsets)
                     {
-                        if (!m_chunk_manager->chunk_column_exists(offset + v2i{ chunk_pos.x, chunk_pos.z }))
+                        if (!m_chunk_manager->cell_column_exists(offset + v2i{ chunk_pos.x, chunk_pos.z }))
                             return false;
                     }
                 }
@@ -109,7 +109,7 @@ namespace h2o
 
                 // Make sure the chunk did not get deleted between the time its mesh was queued
                 // for rebuild and now
-                if (!m_chunk_manager->chunk_exists(chunk_mesh.chunk_pos()))
+                if (!m_chunk_manager->cell_exists(chunk_mesh.chunk_pos()))
                     continue;
 
                 auto& mesh_data = m_chunk_mesh_pool.fetch_or_create_mesh(chunk_mesh.chunk_pos());
