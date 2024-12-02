@@ -1,7 +1,6 @@
 #pragma once
 
 #include "voxel/chunk_manager.h"
-#include "voxel/chunk_view.h"
 #include "voxel_rendering/voxel_world_renderer.h"
 
 namespace bluevoxel

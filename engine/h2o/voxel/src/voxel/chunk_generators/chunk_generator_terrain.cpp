@@ -1,7 +1,6 @@
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
 
 #include "voxel/chunk_region.h"
-#include "voxel/chunk_view.h"
 #include "voxel/voxel_constants.h"
 
 #include <FastNoise/FastNoise.h>

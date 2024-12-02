@@ -2,13 +2,9 @@
 
 #include "core/engine.h"
 #include "rendering/pipeline.h"
-#include "rendering/renderer.h"
-#include "rendering/texture_array.h"
 #include "voxel/chunk.h"
-#include "voxel/chunk_view.h"
 #include "voxel/voxel_bounds.h"
 #include "voxel/voxel_module.h"
-#include "voxel_rendering/chunk_mesh_pool.h"
 
 namespace bluevoxel
 {
