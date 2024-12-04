@@ -43,9 +43,9 @@ namespace h2o
             std::shared_mutex mutex{};
         };
 
-        // TODO: Replace this with a tuple of arrays for better cache performance
-        using CellTuple = std::tuple<CellData<CellTypes>...>;
-        using CellTupleColumn = std::array<CellTuple, VerticalCellCount>;
+        template<class CellType>
+        using CellColumn = std::array<CellData<CellType>, VerticalCellCount>;
+        using CellColumnTuple = std::tuple<CellColumn<CellTypes>...>;
 
     public:
 
@@ -71,7 +71,7 @@ namespace h2o
         private:
 
             friend class Grid3D;
-            void add_cell(const v3i& cell_pos, CellType& cell, const std::shared_ptr<CellTupleColumn>& cell_column);
+            void add_cell(const v3i& cell_pos, CellType& cell, const std::shared_ptr<CellColumnTuple>& cell_column);
 
             [[nodiscard]] v3i get_relative_to_cell_pos(EViewRelativeTo relative_to) const;
             [[nodiscard]] bool in_bounds(const v3i& local_cell_pos) const;
@@ -81,7 +81,7 @@ namespace h2o
 
             std::vector<CellType*> m_cells{};
 
-            std::unordered_set< std::shared_ptr<CellTupleColumn> > m_cell_columns{};
+            std::unordered_set< std::shared_ptr<CellColumnTuple> > m_cell_columns{};
 
             v3i m_view_min{}, m_view_size{};
 
@@ -153,20 +153,20 @@ namespace h2o
 
     private:
 
-        [[nodiscard]] std::shared_ptr<CellTupleColumn> find_cell_column(v2i cell_column_pos) const;
-        [[nodiscard]] std::shared_ptr<CellTupleColumn> find_or_create_cell_column(v2i cell_column_pos);
+        [[nodiscard]] std::shared_ptr<CellColumnTuple> find_cell_column(v2i cell_column_pos) const;
+        [[nodiscard]] std::shared_ptr<CellColumnTuple> find_or_create_cell_column(v2i cell_column_pos);
 
         template<class T>
-        static void init_cell_element(T& element, const v3i& cell_pos);
+        static void init_cell_column(CellColumn<T>& cell_column, v2i column_pos);
 
-        [[nodiscard]] static std::shared_ptr<CellTupleColumn> create_cell_column(v2i cell_column_pos);
+        [[nodiscard]] static std::shared_ptr<CellColumnTuple> create_cell_column(v2i cell_column_pos);
 
         void add_to_updated_cells_list(const std::vector<v3i>& updated_cells);
         void add_to_deleted_cells_list(const std::vector<v2i>& deleted_cells);
 
     private:
 
-        std::unordered_map<v2i, std::shared_ptr<CellTupleColumn>> m_cells{};
+        std::unordered_map<v2i, std::shared_ptr<CellColumnTuple>> m_cells{};
         mutable std::shared_mutex m_cells_mutex{};
 
         // These are stored to ensure events are called on the correct thread.
@@ -256,7 +256,7 @@ namespace h2o
     template<class CellType>
     void Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::add_cell(
         const v3i& cell_pos, CellType& cell,
-        const std::shared_ptr<CellTupleColumn>& cell_column)
+        const std::shared_ptr<CellColumnTuple>& cell_column)
     {
         const v3i local_cell_pos = cell_pos - m_view_min;
         assert(in_bounds(local_cell_pos));
@@ -471,7 +471,7 @@ namespace h2o
                 if (!should_add_cell(cell_pos) || !is_valid_cell_y(j))
                     continue;
 
-                auto& [cell, mutex] = std::get<CellData<CellType>>((*cell_column)[j]);
+                auto& [cell, mutex] = std::get<CellColumn<CellType>>(*cell_column)[j];
                 view.add_cell(cell_pos, cell, cell_column);
                 locks.emplace_back(mutex);
             }
@@ -510,7 +510,7 @@ namespace h2o
                 if (!should_add_cell(cell_pos) || !is_valid_cell_y(j))
                     continue;
 
-                auto& [cell, mutex] = std::get<CellData<CellType>>((*cell_column)[j]);
+                auto& [cell, mutex] = std::get<CellColumn<CellType>>(*cell_column)[j];
                 view.add_cell(cell_pos, cell, cell_column);
                 locks.emplace_back(mutex);
             }
@@ -529,7 +529,7 @@ namespace h2o
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
-    std::shared_ptr<typename Grid3D<VerticalCellCount, CellTypes...>::CellTupleColumn>
+    std::shared_ptr<typename Grid3D<VerticalCellCount, CellTypes...>::CellColumnTuple>
         Grid3D<VerticalCellCount, CellTypes...>::find_cell_column(const v2i cell_column_pos) const
     {
         const std::shared_lock lock { m_cells_mutex };
@@ -540,7 +540,7 @@ namespace h2o
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
-    std::shared_ptr<typename Grid3D<VerticalCellCount, CellTypes...>::CellTupleColumn>
+    std::shared_ptr<typename Grid3D<VerticalCellCount, CellTypes...>::CellColumnTuple>
         Grid3D<VerticalCellCount, CellTypes...>::find_or_create_cell_column(const v2i cell_column_pos)
     {
         if (const auto cell_column = find_cell_column(cell_column_pos))
@@ -557,34 +557,31 @@ namespace h2o
 
     template<u32 VerticalCellCount, class... CellTypes>
     template<class T>
-    void Grid3D<VerticalCellCount, CellTypes...>::init_cell_element(T& element, const v3i& cell_pos)
+    void Grid3D<VerticalCellCount, CellTypes...>::init_cell_column(CellColumn<T>& cell_column, const v2i column_pos)
     {
         if constexpr (std::is_base_of_v<IGrid3DCell, T>)
         {
-            auto& grid_cell = static_cast<IGrid3DCell&>(element);
-            grid_cell.init(cell_pos);
+            for (i32 i = 0; i < VerticalCellCount; i++)
+            {
+                auto& grid_cell = static_cast<IGrid3DCell&>(cell_column[i].cell);
+                grid_cell.init(v3i{ column_pos.x, i, column_pos.y });
+            }
         }
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
-    std::shared_ptr<typename Grid3D<VerticalCellCount, CellTypes...>::CellTupleColumn>
+    std::shared_ptr<typename Grid3D<VerticalCellCount, CellTypes...>::CellColumnTuple>
         Grid3D<VerticalCellCount, CellTypes...>::create_cell_column(const v2i cell_column_pos)
     {
-        const auto cell_column = std::make_shared<CellTupleColumn>();
-        for (i32 i = 0; i < VerticalCellCount; i++)
-        {
-            const v3i cell_pos = v3i{ cell_column_pos.x, i, cell_column_pos.y };
-            auto& cell_tuple = (*cell_column)[i];
+        const auto cell_column_tuple = std::make_shared<CellColumnTuple>();
+        std::apply(
+            [&](auto&&... cell_columns)
+            {
+                (init_cell_column(cell_columns, cell_column_pos), ...);
+            }, *cell_column_tuple
+        );
 
-            std::apply(
-                [&](auto&&... args)
-                {
-                    (init_cell_element(args.cell, cell_pos), ...);
-                }, cell_tuple
-            );
-        }
-
-        return cell_column;
+        return cell_column_tuple;
     }
 
     template<u32 VerticalCellCount, class... CellTypes>

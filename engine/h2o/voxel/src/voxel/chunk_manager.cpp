@@ -38,7 +38,7 @@ namespace h2o
 
     void ChunkManager::view_for_meshing(const v3i& chunk_pos, const std::function<void(const View<Chunk>&)>& function) const
     {
-        view_impl<Chunk>(chunk_pos, v3i{1},
+        view_impl<Chunk>(chunk_pos - v3i{1}, v3i{3},
             [&](const v3i& chunk_pos_to_check) -> bool
             {
                 // Only allow directly adjacent
