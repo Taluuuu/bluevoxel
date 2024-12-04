@@ -35,8 +35,11 @@ namespace h2o
         set_tick_phases(TickPhase::Update);
     }
 
-    void FpsCharacterActor::update(const f32 delta_time)
+    void FpsCharacterActor::update(f32 delta_time)
     {
+        // Limit movement in a lag spike
+        delta_time = glm::clamp(delta_time, 0.0f, 0.1f);
+
         // if (g_engine->layer_stack().top_layer() != Layer::Game)
         //     return;
 

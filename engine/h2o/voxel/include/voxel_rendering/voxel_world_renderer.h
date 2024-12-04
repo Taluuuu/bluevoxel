@@ -42,6 +42,7 @@ namespace h2o
         void render() override;
 
         void queue_chunk_remesh(const v3i& chunk_pos);
+        void update_chunk_lighting(const ChunkView& chunk_view);
         void remesh_chunk_immediate(const v3i& chunk_pos);
 
     private:
@@ -59,7 +60,7 @@ namespace h2o
         EventHandle m_on_chunk_updated_handle{};
         EventHandle m_on_chunk_deleted_handle{};
 
-        const ChunkManager* m_chunk_manager = nullptr;
+        ChunkManager* m_chunk_manager = nullptr;
         const RenderingModule* m_rendering_module = nullptr;
         const VoxelModule* m_voxel_module = nullptr;
 

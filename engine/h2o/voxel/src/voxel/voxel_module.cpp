@@ -113,7 +113,7 @@ namespace h2o
         return std::nullopt;
     }
 
-    bool VoxelModule::is_transparent(BlockID id) const
+    bool VoxelModule::is_transparent(const BlockID id) const
     {
         if (m_voxel_pack)
         {

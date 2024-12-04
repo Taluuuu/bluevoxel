@@ -171,15 +171,44 @@ namespace h2o
             m_chunks_pending_remesh.insert(chunk_pos);
     }
 
+    void VoxelWorldRenderer::update_chunk_lighting(const ChunkView& chunk_view)
+    {
+        const v3i chunk_pos = chunk_view.center_cell_pos();
+        m_chunk_manager->view_mut<ChunkLighting>(chunk_pos, v3i{1},
+            [&](ChunkLightingView& lighting_view)
+            {
+                if (ChunkLighting* chunk_lighting = lighting_view.get(chunk_pos))
+                {
+                    chunk_lighting->update_lighting(
+                        [&](const v3i& block_pos)
+                        {
+                            return voxel::get_block_at(chunk_view, block_pos, EViewRelativeTo::ViewCenter).value_or(Block::Air);
+                        }
+                    );
+                }
+            }
+        );
+    }
+
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
         m_chunk_manager->view_for_meshing(chunk_pos,
             [&](const ChunkView& view)
             {
-                ChunkMesh chunk_mesh(view, *m_voxel_module);
+                update_chunk_lighting(view);
 
-                const std::unique_lock lock{ m_pending_built_meshes_mutex };
-                m_pending_built_meshes.emplace_back(std::move(chunk_mesh));
+                m_chunk_manager->view<ChunkLighting>(chunk_pos, v3i{1},
+                    [&](const ChunkLightingView& lighting_view)
+                    {
+                        if (const ChunkLighting* chunk_lighting = lighting_view.get(chunk_pos))
+                        {
+                            ChunkMesh chunk_mesh(view, *chunk_lighting, *m_voxel_module);
+
+                            const std::unique_lock lock{ m_pending_built_meshes_mutex };
+                            m_pending_built_meshes.emplace_back(std::move(chunk_mesh));
+                        }
+                    }
+                );
             }
         );
     }

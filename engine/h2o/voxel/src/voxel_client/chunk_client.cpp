@@ -37,7 +37,7 @@ namespace h2o
         m_refresh_chunk_requests = true;
 
         m_client->handle_message<net_msg::ChunkFetchResult>(m_on_fetched_chunk_handle,
-            [&](PeerID client_id, const net_msg::ChunkFetchResult& chunk_fetch_result)
+            [&](PeerID, const net_msg::ChunkFetchResult& chunk_fetch_result)
             {
                 auto& [compressed_chunks, chunk_column_pos] = chunk_fetch_result;
 

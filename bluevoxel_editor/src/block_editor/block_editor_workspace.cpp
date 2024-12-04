@@ -55,7 +55,7 @@ namespace bluevoxel
         set_tick_phases(h2o::TickPhase::Update | h2o::TickPhase::Render);
     }
 
-    void BlockEditorWorkspace::select_block(u32 block_id)
+    void BlockEditorWorkspace::select_block(const u32 block_id)
     {
         m_selected_block_id = block_id;
         m_block_renderer->set_block(h2o::Block{ static_cast<h2o::BlockID>(block_id) });
