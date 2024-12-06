@@ -20,7 +20,7 @@ namespace h2o
     {
         set_tick_phases(TickPhase::Update | TickPhase::PreRender | TickPhase::Render);
 
-        chunk_manager.on_cells_updated.add_listener(m_on_chunk_updated_handle,
+        chunk_manager.cells_updated_event<Chunk>().add_listener(m_on_chunk_updated_handle,
             [this](const CellsUpdatedEvent& event)
             {
                 for (const v3i& chunk_pos : event.updated_cells)
@@ -28,7 +28,7 @@ namespace h2o
             }
         );
 
-        chunk_manager.on_cells_deleted.add_listener(m_on_chunk_deleted_handle,
+        chunk_manager.cells_deleted_event().add_listener(m_on_chunk_deleted_handle,
             [this](const CellsDeletedEvent& event)
             {
                 for (const v2i chunk_column_pos : event.deleted_cell_columns)
@@ -174,6 +174,7 @@ namespace h2o
     void VoxelWorldRenderer::update_chunk_lighting(const ChunkView& chunk_view)
     {
         const v3i chunk_pos = chunk_view.center_cell_pos();
+        // Calling this freezes cuz the delegate is called when editing something that is not a chunk
         m_chunk_manager->view_mut<ChunkLighting>(chunk_pos, v3i{1},
             [&](ChunkLightingView& lighting_view)
             {

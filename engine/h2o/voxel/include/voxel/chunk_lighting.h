@@ -22,7 +22,15 @@ namespace h2o
 
     private:
 
-        std::vector<u8> m_light_levels{};
+        struct LightLevel
+        {
+            u8 light    : 4 = 0;
+            u8 sunlight : 4 = 0;
+
+            [[nodiscard]] u8 calc() const { return glm::max(light, sunlight); }
+        };
+
+        std::vector<LightLevel> m_light_levels{};
 
     };
 }

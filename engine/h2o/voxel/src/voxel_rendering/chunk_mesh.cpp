@@ -83,7 +83,10 @@ namespace h2o
                     const v3i adjacent_block_pos = pos + offset;
 
                     const Block adj_block = voxel::get_block_at(chunk_view, adjacent_block_pos, EViewRelativeTo::ViewCenter).value_or(Block::Air);
-                    const u8 adj_light_level = chunk_lighting.get_light_level(adjacent_block_pos);
+
+                    u8 adj_light_level = 0;
+                    if (Chunk::is_valid_pos(adjacent_block_pos))
+                        adj_light_level = chunk_lighting.get_light_level(adjacent_block_pos);
 
                     if (voxel_module.is_transparent(adj_block.id))
                         append_side(pos, *texture_ids, model->occluded_triangles_per_side[dir_index], adj_light_level);

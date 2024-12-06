@@ -18,6 +18,7 @@
 namespace h2o
 {
     enum class EViewRelativeTo { ViewCenter, ViewCorner, World };
+
     struct CellsUpdatedEvent { const std::unordered_set<v3i>& updated_cells{}; };
     struct CellsDeletedEvent { const std::unordered_set<v2i>& deleted_cell_columns{}; };
 
@@ -127,11 +128,17 @@ namespace h2o
 
         void remove_all(const std::function<bool(v2i)>& condition);
 
+        template<class CellType>
+        [[nodiscard]] Event<CellsUpdatedEvent>& cells_updated_event();
+        [[nodiscard]] Event<CellsDeletedEvent>& cells_deleted_event();
+
         void broadcast_events();
-        Event<CellsUpdatedEvent> on_cells_updated{}; // First update is creation
-        Event<CellsDeletedEvent> on_cells_deleted{};
 
     protected:
+
+        template<class CellType>
+        void add_to_updated_cells_list(const std::vector<v3i>& updated_cells);
+        void add_to_deleted_cells_list(const std::vector<v2i>& deleted_cells);
 
         static constexpr bool is_valid_cell_y(const i32 cell_y)
         { return cell_y >= 0 && cell_y < VerticalCellCount; }
@@ -161,21 +168,33 @@ namespace h2o
 
         [[nodiscard]] static std::shared_ptr<CellColumnTuple> create_cell_column(v2i cell_column_pos);
 
-        void add_to_updated_cells_list(const std::vector<v3i>& updated_cells);
-        void add_to_deleted_cells_list(const std::vector<v2i>& deleted_cells);
+        // These events are stored to ensure events are called on the correct thread.
+        struct CellsUpdateEventData
+        {
+            Event<CellsUpdatedEvent> cells_update_event{};
+
+            std::mutex updated_cells_mutex{};
+            std::unordered_set<v3i> updated_cells{};
+        };
+
+        struct CellsDeletedEventData
+        {
+            Event<CellsDeletedEvent> cells_deleted_event{};
+
+            std::mutex deleted_cell_columns_mutex{};
+            std::unordered_set<v2i> deleted_cell_columns{};
+        };
+
+        template<class CellType>
+        [[nodiscard]] CellsUpdateEventData& get_cells_update_event_data();
 
     private:
 
         std::unordered_map<v2i, std::shared_ptr<CellColumnTuple>> m_cells{};
         mutable std::shared_mutex m_cells_mutex{};
 
-        // These are stored to ensure events are called on the correct thread.
-        // TODO: Make sure nothing bad happens if a cell is updated and deleted on the same frame
-        // TODO: Make an instance of this per type in the tuple
-        std::mutex m_updated_cells_mutex{};
-        std::unordered_set<v3i> m_updated_cells{};
-        std::mutex m_deleted_cell_columns_mutex{};
-        std::unordered_set<v2i> m_deleted_cell_columns{};
+        std::array<CellsUpdateEventData, sizeof...(CellTypes)> m_cells_update_events_data;
+        CellsDeletedEventData m_cells_deleted_event_data;
 
     };
 
@@ -424,23 +443,39 @@ namespace h2o
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    Event<CellsUpdatedEvent>& Grid3D<VerticalCellCount, CellTypes...>::cells_updated_event()
+    {
+        return get_cells_update_event_data<CellType>().cells_update_event;
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    Event<CellsDeletedEvent>& Grid3D<VerticalCellCount, CellTypes...>::cells_deleted_event()
+    {
+        return m_cells_deleted_event_data.cells_deleted_event;
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
     void Grid3D<VerticalCellCount, CellTypes...>::broadcast_events()
     {
+        for (auto& [event, mutex, cells] : m_cells_update_events_data)
         {
-            const std::unique_lock lock{ m_deleted_cell_columns_mutex };
-            if (!m_deleted_cell_columns.empty())
+            const std::unique_lock lock { mutex };
+            if (!cells.empty())
             {
-                on_cells_deleted.broadcast({ m_deleted_cell_columns });
-                m_deleted_cell_columns.clear();
+                event.broadcast({ cells });
+                cells.clear();
             }
         }
 
         {
-            const std::unique_lock lock{ m_updated_cells_mutex };
-            if (!m_updated_cells.empty())
+            auto& [event, mutex, cells] = m_cells_deleted_event_data;
+
+            const std::unique_lock lock { mutex };
+            if (!cells.empty())
             {
-                on_cells_updated.broadcast({ m_updated_cells });
-                m_updated_cells.clear();
+                event.broadcast({ cells });
+                cells.clear();
             }
         }
     }
@@ -525,7 +560,7 @@ namespace h2o
                 updated_cells.push_back(cell_pos);
             }
         );
-        add_to_updated_cells_list(updated_cells);
+        add_to_updated_cells_list<CellType>(updated_cells);
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
@@ -585,19 +620,31 @@ namespace h2o
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    typename Grid3D<VerticalCellCount, CellTypes...>::CellsUpdateEventData&
+        Grid3D<VerticalCellCount, CellTypes...>::get_cells_update_event_data()
+    {
+        const size_t event_index = utils::index_in_template_list<CellType, CellTypes...>();
+        return m_cells_update_events_data[event_index];
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
     void Grid3D<VerticalCellCount, CellTypes...>::add_to_updated_cells_list(const std::vector<v3i>& updated_cells)
     {
         {
-            const std::unique_lock lock{ m_updated_cells_mutex };
+            CellsUpdateEventData& event_data = get_cells_update_event_data<CellType>();
+
+            const std::unique_lock lock{ event_data.updated_cells_mutex };
             for (const v3i cell_col_pos : updated_cells)
-                m_updated_cells.insert(cell_col_pos);
+                event_data.updated_cells.insert(cell_col_pos);
         }
 
         {
-            const std::unique_lock lock{ m_deleted_cell_columns_mutex };
+            const std::unique_lock lock{ m_cells_deleted_event_data.deleted_cell_columns_mutex };
             for (const v3i& cell_pos : updated_cells)
             {
-                erase_if(m_deleted_cell_columns,
+                erase_if(m_cells_deleted_event_data.deleted_cell_columns,
                     [&](const v2i cell_col_pos)
                     {
                         return cell_pos.x == cell_col_pos.x && cell_pos.z == cell_col_pos.y;
@@ -611,21 +658,25 @@ namespace h2o
     void Grid3D<VerticalCellCount, CellTypes...>::add_to_deleted_cells_list(const std::vector<v2i>& deleted_cells)
     {
         {
-            const std::unique_lock lock{ m_deleted_cell_columns_mutex };
+            const std::unique_lock lock{ m_cells_deleted_event_data.deleted_cell_columns_mutex };
             for (const v2i cell_col_pos : deleted_cells)
-                m_deleted_cell_columns.insert(cell_col_pos);
+                m_cells_deleted_event_data.deleted_cell_columns.insert(cell_col_pos);
         }
 
         {
-            const std::unique_lock lock{ m_updated_cells_mutex };
             for (const v2i cell_col_pos : deleted_cells)
             {
-                erase_if(m_updated_cells,
-                    [&](const v3i& cell_pos)
-                    {
-                        return cell_pos.x == cell_col_pos.x && cell_pos.z == cell_col_pos.y;
-                    }
-                );
+                for (CellsUpdateEventData& event_data : m_cells_update_events_data)
+                {
+                    const std::unique_lock lock{ event_data.updated_cells_mutex };
+
+                    erase_if(event_data.updated_cells,
+                        [&](const v3i& cell_pos)
+                        {
+                            return cell_pos.x == cell_col_pos.x && cell_pos.z == cell_col_pos.y;
+                        }
+                    );
+                }
             }
         }
     }

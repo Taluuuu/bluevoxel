@@ -26,4 +26,18 @@ namespace h2o::utils
         i32 r = x % m;
         return r + m * (r < 0);
     }
+
+    // https://stackoverflow.com/questions/15014096/c-index-of-type-during-variadic-template-expansion
+    template<class Target, class ListHead, class... ListTails>
+    [[nodiscard]] constexpr size_t index_in_template_list()
+    {
+        if constexpr (std::is_same_v<Target, ListHead>)
+        {
+            return 0;
+        }
+        else
+        {
+            return 1 + index_in_template_list<Target, ListTails...>();
+        }
+    }
 }

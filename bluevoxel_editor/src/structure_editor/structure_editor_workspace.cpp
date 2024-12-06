@@ -24,7 +24,7 @@ namespace bluevoxel
         , m_structure_gizmo(owner, m_selection_mgr)
         , m_rendering_module(&g_engine->get_module_checked<h2o::RenderingModule>())
     {
-        m_chunk_manager.on_cells_updated.add_listener(m_on_chunks_updated_handle,
+        m_chunk_manager.cells_updated_event<h2o::Chunk>().add_listener(m_on_chunks_updated_handle,
             [this](const h2o::CellsUpdatedEvent&)
             {
                 m_extents = calc_extents();
