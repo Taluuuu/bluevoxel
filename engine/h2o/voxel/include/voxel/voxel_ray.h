@@ -34,7 +34,7 @@ namespace h2o
         VoxelRay(
             const v3& origin,
             const v3& end,
-            const ChunkManager& chunk_manager);
+            ChunkManager& chunk_manager);
 
         [[nodiscard]] operator bool() const { return has_hit(); }
         [[nodiscard]] bool has_hit()  const { return m_has_hit; }

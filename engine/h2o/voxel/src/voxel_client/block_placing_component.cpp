@@ -87,7 +87,7 @@ namespace h2o
             i32(selected_index.value_or(0)) - i32(ImGui::GetIO().MouseWheel),
             i32(m_hotbar_inventory->num_items_per_row()));
 
-        const auto& chunk_mgr = block_placeable->chunk_mgr();
+        auto& chunk_mgr = block_placeable->chunk_mgr();
 
         const v3 front = m_camera->camera().front();
         const v3 origin = owner()->transform.position;

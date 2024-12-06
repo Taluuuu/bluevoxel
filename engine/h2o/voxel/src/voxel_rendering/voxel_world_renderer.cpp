@@ -171,12 +171,12 @@ namespace h2o
             m_chunks_pending_remesh.insert(chunk_pos);
     }
 
-    void VoxelWorldRenderer::update_chunk_lighting(const ChunkView& chunk_view)
+    void VoxelWorldRenderer::update_chunk_lighting(const ChunkManager::View<const Chunk>& chunk_view)
     {
         const v3i chunk_pos = chunk_view.center_cell_pos();
-        // Calling this freezes cuz the delegate is called when editing something that is not a chunk
-        m_chunk_manager->view_mut<ChunkLighting>(chunk_pos, v3i{1},
-            [&](ChunkLightingView& lighting_view)
+
+        m_chunk_manager->view<ChunkLighting>(chunk_pos, v3i{1},
+            [&](const ChunkManager::View<ChunkLighting>& lighting_view)
             {
                 if (ChunkLighting* chunk_lighting = lighting_view.get(chunk_pos))
                 {
@@ -194,12 +194,12 @@ namespace h2o
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
         m_chunk_manager->view_for_meshing(chunk_pos,
-            [&](const ChunkView& view)
+            [&](const ChunkManager::View<const Chunk>& view)
             {
                 update_chunk_lighting(view);
 
-                m_chunk_manager->view<ChunkLighting>(chunk_pos, v3i{1},
-                    [&](const ChunkLightingView& lighting_view)
+                m_chunk_manager->view<const ChunkLighting>(chunk_pos, v3i{1},
+                    [&](const ChunkManager::View<const ChunkLighting>& lighting_view)
                     {
                         if (const ChunkLighting* chunk_lighting = lighting_view.get(chunk_pos))
                         {

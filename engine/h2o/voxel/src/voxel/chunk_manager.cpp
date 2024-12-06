@@ -5,10 +5,10 @@
 
 namespace h2o
 {
-    Block ChunkManager::get_block_at(const v3i& block_pos) const
+    Block ChunkManager::get_block_at(const v3i& block_pos)
     {
         Block block = Block::Air;
-        fetch<Chunk>(voxel_utils::block_to_chunk_pos(block_pos),
+        fetch<const Chunk>(voxel_utils::block_to_chunk_pos(block_pos),
             [&](const Chunk* chunk)
             {
                 if (chunk)
@@ -22,7 +22,7 @@ namespace h2o
     bool ChunkManager::set_block_at(const v3i& block_pos, const Block block)
     {
         bool success = false;
-        fetch_mut<Chunk>(voxel_utils::block_to_chunk_pos(block_pos),
+        fetch<Chunk>(voxel_utils::block_to_chunk_pos(block_pos),
             [&](Chunk* chunk)
             {
                 if (chunk)
@@ -36,9 +36,9 @@ namespace h2o
         return success;
     }
 
-    void ChunkManager::view_for_meshing(const v3i& chunk_pos, const std::function<void(const View<Chunk>&)>& function) const
+    void ChunkManager::view_for_meshing(const v3i& chunk_pos, const std::function<void(const View<const Chunk>&)>& function)
     {
-        view_impl<Chunk>(chunk_pos - v3i{1}, v3i{3},
+        view_impl<const Chunk>(chunk_pos - v3i{1}, v3i{3},
             [&](const v3i& chunk_pos_to_check) -> bool
             {
                 // Only allow directly adjacent
@@ -48,11 +48,11 @@ namespace h2o
         );
     }
 
-    bool ChunkManager::is_chunk_column_generated(const v2i chunk_column_pos) const
+    bool ChunkManager::is_chunk_column_generated(const v2i chunk_column_pos)
     {
         bool is_generated = false;
-        view_column<Chunk>(chunk_column_pos,
-            [&](const ChunkView& chunk_column)
+        view_column<const Chunk>(chunk_column_pos,
+            [&](const ChunkManager::View<const Chunk>& chunk_column)
             {
                 chunk_column.for_each_cell(
                     [&](const Chunk& chunk, const v3i&)
@@ -68,7 +68,7 @@ namespace h2o
     }
 
     std::optional<Block> voxel::get_block_at(
-        const ChunkManager::View<Chunk>& view,
+        const ChunkManager::View<const Chunk>& view,
         const v3i& block_pos,
         const EViewRelativeTo relative_to)
     {
@@ -78,8 +78,19 @@ namespace h2o
         return std::nullopt;
     }
 
+    std::optional<Block> voxel::get_block_at(
+        const ChunkManager::View<Chunk>& view,
+        const v3i& block_pos,
+        EViewRelativeTo relative_to)
+    {
+        if (const Chunk* chunk = view.get(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
+            return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
+
+        return std::nullopt;
+    }
+
     bool voxel::set_block_at(
-        ChunkManager::View<Chunk>& view,
+        const ChunkManager::View<Chunk>& view,
         const v3i& block_pos,
         const Block block,
         const EViewRelativeTo relative_to)
@@ -94,7 +105,7 @@ namespace h2o
     }
 
     void voxel::for_each_block(
-        const ChunkManager::View<Chunk>& view,
+        const ChunkManager::View<const Chunk>& view,
         const std::function<void(const v3i&, const Block&)>& function)
     {
         view.for_each_cell(
@@ -117,8 +128,16 @@ namespace h2o
         );
     }
 
-    bool voxel::is_generated(const ChunkManager::View<Chunk>& view)
+    bool voxel::is_generated(const ChunkManager::View<const Chunk>& view)
     {
         return !view.any_matches([](const Chunk* chunk) { return !chunk || !chunk->is_generated(); });
+    }
+
+    void voxel::update_lighting(
+        const ChunkManager::View<ChunkLighting>& lighting_view,
+        const ChunkManager::View<const Chunk>& chunk_view)
+    {
+        // assert()
+        // lighting_view.
     }
 }

@@ -60,7 +60,7 @@ namespace h2o
                         for (const auto& compressed_chunk : compressed_chunks)
                         {
                             const v3i chunk_pos = compressed_chunk.chunk_pos();
-                            m_chunk_mgr.fetch_mut<Chunk>(chunk_pos,
+                            m_chunk_mgr.fetch<Chunk>(chunk_pos,
                                 [&](Chunk* chunk)
                                 {
                                     assert(chunk != nullptr);
@@ -178,8 +178,8 @@ namespace h2o
         m_voxel_bounds.for_each_pos_in_bounds(
             [&](const v2i chunk_column_pos)
             {
-                m_chunk_mgr.view_column<Chunk>(chunk_column_pos,
-                    [&](const ChunkView& chunk_column)
+                m_chunk_mgr.view_column<const Chunk>(chunk_column_pos,
+                    [&](const ChunkManager::View<const Chunk>& chunk_column)
                     {
                         // TODO: This can probably request the same chunks multiple times
                         if (!voxel::is_generated(chunk_column))

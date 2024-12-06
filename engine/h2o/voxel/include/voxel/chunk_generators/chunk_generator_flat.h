@@ -14,8 +14,8 @@ namespace h2o
         ChunkGenerator_Flat() = default;
 
         // ChunkGenerator_Base interface
-        void gen_blocks(ChunkView& region_view) const override;
-        [[nodiscard]] std::vector<VoxelStructureInstance> gen_structures(const ChunkView& region_view) const override;
+        void gen_blocks(const ChunkManager::View<Chunk>& region_view) const override;
+        [[nodiscard]] std::vector<VoxelStructureInstance> gen_structures(const ChunkManager::View<const Chunk>& region_view) const override;
 
     public:
 

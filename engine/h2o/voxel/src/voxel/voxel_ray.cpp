@@ -7,7 +7,7 @@ namespace h2o
 {
     // Based on http://www.cse.yorku.ca/~amana/research/grid.pdf
     // A Fast Voxel Traversal Algorithm for Ray Tracing
-    VoxelRay::VoxelRay(const v3& origin, const v3& end, const ChunkManager& chunk_manager)
+    VoxelRay::VoxelRay(const v3& origin, const v3& end, ChunkManager& chunk_manager)
     {
         const v3 to_end = end - origin;
         const v3 direction = glm::normalize(to_end);

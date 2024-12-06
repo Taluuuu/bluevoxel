@@ -44,7 +44,7 @@ namespace bluevoxel
         void open_rename_structure_popup();
         void open_delete_structure_popup();
 
-        [[nodiscard]] v3i calc_extents() const;
+        [[nodiscard]] v3i calc_extents();
 
         [[nodiscard]] static h2o::VoxelPack& get_voxel_pack();
         [[nodiscard]] static h2o::VoxelStructureManager& get_structure_mgr();

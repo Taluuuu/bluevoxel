@@ -20,39 +20,42 @@ namespace h2o
     {
     public:
 
-        [[nodiscard]] Block get_block_at(const v3i& block_pos) const;
+        [[nodiscard]] Block get_block_at(const v3i& block_pos);
         bool set_block_at(const v3i& block_pos, Block block);
 
         void view_for_meshing(
             const v3i& chunk_pos,
-            const std::function<void(const View<Chunk>&)>& function) const;
+            const std::function<void(const View<const Chunk>&)>& function);
 
-        [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos) const;
+        [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos);
 
     };
 
-    using ChunkView = ChunkManager::View<Chunk>;
-    using ChunkLightingView = ChunkManager::View<ChunkLighting>;
+    // TODO: using CM = ChunkManager ? or
+    // template<class CellType>
+    // using CMView = ChunkManager::View<CellType>;
 
     namespace voxel
     {
-        [[nodiscard]] std::optional<Block> get_block_at(
-            const ChunkManager::View<Chunk>& view,
-            const v3i& block_pos,
-            EViewRelativeTo relative_to = EViewRelativeTo::World);
+        [[nodiscard]] std::optional<Block> get_block_at(const ChunkManager::View<const Chunk>& view, const v3i& block_pos, EViewRelativeTo relative_to = EViewRelativeTo::World);
+        [[nodiscard]] std::optional<Block> get_block_at(const ChunkManager::View<Chunk>& view, const v3i& block_pos, EViewRelativeTo relative_to = EViewRelativeTo::World);
 
         bool set_block_at(
-            ChunkManager::View<Chunk>& view,
+            const ChunkManager::View<Chunk>& view,
             const v3i& block_pos,
             Block block,
             EViewRelativeTo relative_to = EViewRelativeTo::World);
 
         // Loop through all blocks that are not air
         void for_each_block(
-            const ChunkManager::View<Chunk>& view,
+            const ChunkManager::View<const Chunk>& view,
             const std::function<void(const v3i&, const Block&)>& function);
 
-        [[nodiscard]] bool is_generated(const ChunkManager::View<Chunk>& view);
+        [[nodiscard]] bool is_generated(const ChunkManager::View<const Chunk>& view);
+
+        void update_lighting(
+            const ChunkManager::View<ChunkLighting>& lighting_view,
+            const ChunkManager::View<const Chunk>& chunk_view);
 
     }
 }

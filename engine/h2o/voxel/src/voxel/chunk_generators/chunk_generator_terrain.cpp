@@ -28,7 +28,7 @@ namespace h2o
     {
     }
 
-    void ChunkGenerator_Terrain::gen_blocks(ChunkView& region_view) const
+    void ChunkGenerator_Terrain::gen_blocks(const ChunkManager::View<Chunk>& region_view) const
     {
         // In chunk coordinates
         const v3i region_corner{ region_view.corner_cell_pos().x, 0, region_view.corner_cell_pos().z };
@@ -88,7 +88,7 @@ namespace h2o
         }
     }
 
-    std::vector<VoxelStructureInstance> ChunkGenerator_Terrain::gen_structures(const ChunkView& region_view) const
+    std::vector<VoxelStructureInstance> ChunkGenerator_Terrain::gen_structures(const ChunkManager::View<const Chunk>& region_view) const
     {
         std::vector<VoxelStructureInstance> structures{};
 
