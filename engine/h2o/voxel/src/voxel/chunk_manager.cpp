@@ -48,6 +48,25 @@ namespace h2o
         );
     }
 
+    bool ChunkManager::is_chunk_column_generated(const v2i chunk_column_pos) const
+    {
+        bool is_generated = false;
+        view_column<Chunk>(chunk_column_pos,
+            [&](const ChunkView& chunk_column)
+            {
+                chunk_column.for_each_cell(
+                    [&](const Chunk& chunk, const v3i&)
+                    {
+                        // TODO: Check all/only one of the chunks in the column, idk
+                        is_generated = is_generated || chunk.is_generated();
+                    }
+                );
+            }
+        );
+
+        return is_generated;
+    }
+
     std::optional<Block> voxel::get_block_at(
         const ChunkManager::View<Chunk>& view,
         const v3i& block_pos,

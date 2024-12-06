@@ -67,7 +67,7 @@ namespace h2o
 
                     for (const v2i offset : offsets)
                     {
-                        if (!m_chunk_manager->cell_column_exists(offset + v2i{ chunk_pos.x, chunk_pos.z }))
+                        if (!m_chunk_manager->is_chunk_column_generated(offset + v2i{ chunk_pos.x, chunk_pos.z }))
                             return false;
                     }
                 }

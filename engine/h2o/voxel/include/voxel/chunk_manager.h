@@ -27,6 +27,8 @@ namespace h2o
             const v3i& chunk_pos,
             const std::function<void(const View<Chunk>&)>& function) const;
 
+        [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos) const;
+
     };
 
     using ChunkView = ChunkManager::View<Chunk>;
