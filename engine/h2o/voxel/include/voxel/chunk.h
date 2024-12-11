@@ -3,7 +3,7 @@
 #include "block.h"
 #include "core/handle_types.h"
 #include "core/types.h"
-#include "grid/grid_3d.h"
+#include "grid/grid_view_3d.h"
 #include "voxel/direction.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_module.h"
@@ -23,6 +23,15 @@ namespace h2o
     public:
 
         Chunk() = default;
+
+        class ViewType : public View<Chunk>
+        {
+        public:
+
+            ViewType(const v3i& view_min, const v3i& view_size)
+                : View(view_min, view_size) {}
+
+        };
 
         // IGrid3DCell interface
         void init(const v3i& position) override;

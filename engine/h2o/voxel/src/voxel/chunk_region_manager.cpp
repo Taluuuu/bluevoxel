@@ -97,7 +97,7 @@ namespace h2o
         m_chunk_regions.clear();
     }
 
-    void ChunkRegionManager::fetch_region_data(v2i region_pos, const std::function<void(const ChunkRegionData*)>& function) const
+    void ChunkRegionManager::fetch_region_data(const v2i region_pos, const std::function<void(const ChunkRegionData*)>& function) const
     {
         const ChunkRegionData* region_data = nullptr;
         {
@@ -109,7 +109,7 @@ namespace h2o
         function(region_data);
     }
 
-    void ChunkRegionManager::fetch_region_data_mut(v2i region_pos, const std::function<void(ChunkRegionData*)>& function)
+    void ChunkRegionManager::fetch_region_data_mut(const v2i region_pos, const std::function<void(ChunkRegionData*)>& function)
     {
         ChunkRegionData* region_data = nullptr;
         {
@@ -130,9 +130,9 @@ namespace h2o
                 assert(region->generation_state == ChunkRegion::GenerationState::Pending);
 
                 const v2i corner = voxel_utils::region_to_chunk_pos(region_pos);
-                m_chunk_server->chunk_mgr().view<Chunk>(
+                m_chunk_server->chunk_mgr().view_mut<Chunk>(
                     { corner.x, 0, corner.y }, ChunkRegionExtents,
-                    [&](const ChunkManager::View<Chunk>& region_view)
+                    [&](View<Chunk>& region_view)
                     {
                         if (const auto chunk_generator = m_chunk_server->chunk_generator())
                         {
@@ -141,15 +141,15 @@ namespace h2o
                     }, true
                 );
 
-                m_chunk_server->chunk_mgr().view<const Chunk>(
+                m_chunk_server->chunk_mgr().view<Chunk>(
                     { corner.x, 0, corner.y }, ChunkRegionExtents,
-                    [&](const ChunkManager::View<const Chunk>& region_view)
+                    [&](const View<Chunk>& region_view)
                     {
                         if (const auto chunk_generator = m_chunk_server->chunk_generator())
                         {
                             region->register_structures(chunk_generator->gen_structures(region_view));
                         }
-                    }, true
+                    }
                 );
 
                 region->generation_state = ChunkRegion::GenerationState::Terrain;
@@ -202,9 +202,9 @@ namespace h2o
                 continue;
 
             const v2i offset_region_corner = voxel_utils::region_to_chunk_pos(offset_region_pos);
-            m_chunk_server->chunk_mgr().view<Chunk>(
+            m_chunk_server->chunk_mgr().view_mut<Chunk>(
                 { offset_region_corner.x, 0, offset_region_corner.y }, ChunkRegionExtents,
-                [&](const ChunkManager::View<Chunk>& region_view)
+                [&](View<Chunk>& region_view)
                 {
                     region_view.for_each_cell(
                         [&](Chunk& chunk, const v3i&)

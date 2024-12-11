@@ -171,35 +171,13 @@ namespace h2o
             m_chunks_pending_remesh.insert(chunk_pos);
     }
 
-    void VoxelWorldRenderer::update_chunk_lighting(const ChunkManager::View<const Chunk>& chunk_view)
-    {
-        const v3i chunk_pos = chunk_view.center_cell_pos();
-
-        m_chunk_manager->view<ChunkLighting>(chunk_pos, v3i{1},
-            [&](const ChunkManager::View<ChunkLighting>& lighting_view)
-            {
-                if (ChunkLighting* chunk_lighting = lighting_view.get(chunk_pos))
-                {
-                    chunk_lighting->update_lighting(
-                        [&](const v3i& block_pos)
-                        {
-                            return voxel::get_block_at(chunk_view, block_pos, EViewRelativeTo::ViewCenter).value_or(Block::Air);
-                        }
-                    );
-                }
-            }
-        );
-    }
-
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
-        m_chunk_manager->view_for_meshing(chunk_pos,
-            [&](const ChunkManager::View<const Chunk>& view)
+        m_chunk_manager->view_for_meshing<Chunk>(chunk_pos,
+            [&](const View<Chunk>& view)
             {
-                update_chunk_lighting(view);
-
-                m_chunk_manager->view<const ChunkLighting>(chunk_pos, v3i{1},
-                    [&](const ChunkManager::View<const ChunkLighting>& lighting_view)
+                m_chunk_manager->view_for_meshing<ChunkLighting>(chunk_pos,
+                    [&](const View<ChunkLighting>& lighting_view)
                     {
                         if (const ChunkLighting* chunk_lighting = lighting_view.get(chunk_pos))
                         {

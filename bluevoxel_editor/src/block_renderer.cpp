@@ -14,7 +14,7 @@ namespace bluevoxel
 
     void BlockRenderer::set_block(const h2o::Block block)
     {
-        m_chunk_manager.fetch<h2o::Chunk>(v3i{0},
+        m_chunk_manager.fetch_mut<h2o::Chunk>(v3i{0},
             [&](h2o::Chunk* chunk)
             {
                 if (chunk)

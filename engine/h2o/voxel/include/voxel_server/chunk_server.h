@@ -45,7 +45,7 @@ namespace h2o
             PeerID request_sender,
             const net_msg::BlockPlaceRequest& block_place_request);
 
-        void send_chunk_column(const ChunkManager::View<const Chunk>& chunk_col, const std::set<PeerID>& client_ids) const;
+        void send_chunk_column(const View<Chunk>& chunk_col, const std::set<PeerID>& client_ids) const;
 
     private:
 

@@ -13,7 +13,7 @@
 namespace h2o
 {
     ChunkMesh::ChunkMesh(
-        const ChunkManager::View<const Chunk>& chunk_view,
+        const View<Chunk>& chunk_view,
         const ChunkLighting& chunk_lighting,
         const VoxelModule& voxel_module)
     {
@@ -21,7 +21,7 @@ namespace h2o
     }
 
     void ChunkMesh::build_mesh(
-        const ChunkManager::View<const Chunk>& chunk_view,
+        const View<Chunk>& chunk_view,
         const ChunkLighting& chunk_lighting,
         const VoxelModule& voxel_module)
     {

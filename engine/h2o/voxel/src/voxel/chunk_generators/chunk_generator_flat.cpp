@@ -4,7 +4,7 @@
 
 namespace h2o
 {
-    void ChunkGenerator_Flat::gen_blocks(const ChunkManager::View<Chunk>& region_view) const
+    void ChunkGenerator_Flat::gen_blocks(View<Chunk>& region_view) const
     {
         for (i32 x = 0; x < voxel_constants::chunk_region_block_count; x++)
         for (i32 z = 0; z < voxel_constants::chunk_region_block_count; z++)
@@ -21,7 +21,7 @@ namespace h2o
         // region_view.set_block_at({ 0, block_layers.size(), 0 }, { 2 }, ViewRelativeTo::ViewCorner);
     }
 
-    std::vector<VoxelStructureInstance> ChunkGenerator_Flat::gen_structures(const ChunkManager::View<const Chunk>& region_view) const
+    std::vector<VoxelStructureInstance> ChunkGenerator_Flat::gen_structures(const View<Chunk>& region_view) const
     {
         std::vector<VoxelStructureInstance> structures{};
 

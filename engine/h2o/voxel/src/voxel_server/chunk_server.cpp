@@ -55,8 +55,8 @@ namespace h2o
                 const auto [chunk_pos, client_id] = chunk_pos_peer_pair;
 
                 bool was_chunk_sent = false;
-                m_chunk_mgr.view_column<const Chunk>(chunk_pos,
-                    [&](const ChunkManager::View<const Chunk>& chunk_column)
+                m_chunk_mgr.view_column<Chunk>(chunk_pos,
+                    [&](const View<Chunk>& chunk_column)
                     {
                         if (voxel::is_generated(chunk_column))
                         {
@@ -97,7 +97,7 @@ namespace h2o
         }
     }
 
-    void ChunkServer::send_chunk_column(const ChunkManager::View<const Chunk>& chunk_col, const std::set<PeerID>& client_ids) const
+    void ChunkServer::send_chunk_column(const View<Chunk>& chunk_col, const std::set<PeerID>& client_ids) const
     {
         // Send chunk column to requesting clients
         std::vector<CompressedChunk> compressed_chunks{};

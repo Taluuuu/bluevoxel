@@ -14,12 +14,12 @@ namespace h2o
         virtual ~ChunkGenerator_Base() = default;
 
         // Generate blocks for a whole chunk region
-        virtual void gen_blocks(const ChunkManager::View<Chunk>& region_view) const = 0;
+        virtual void gen_blocks(View<Chunk>& region_view) const = 0;
 
         // Generate the structure instances for a whole chunk region.
         // These structures can span multiple regions.
         // This assumes the blocks are already generated.
-        [[nodiscard]] virtual std::vector<VoxelStructureInstance> gen_structures(const ChunkManager::View<const Chunk>& region_view) const = 0;
+        [[nodiscard]] virtual std::vector<VoxelStructureInstance> gen_structures(const View<Chunk>& region_view) const = 0;
 
     };
 }

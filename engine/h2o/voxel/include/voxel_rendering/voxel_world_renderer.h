@@ -42,7 +42,6 @@ namespace h2o
         void render() override;
 
         void queue_chunk_remesh(const v3i& chunk_pos);
-        void update_chunk_lighting(const ChunkManager::View<const Chunk>& chunk_view);
         void remesh_chunk_immediate(const v3i& chunk_pos);
 
     private:

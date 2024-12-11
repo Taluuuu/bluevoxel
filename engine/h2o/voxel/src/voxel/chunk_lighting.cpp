@@ -24,12 +24,17 @@ namespace h2o
         m_light_levels[Chunk::to_index(local_block_pos)].light = light_level;
     }
 
+    void ChunkLighting::reset()
+    {
+        std::ranges::fill(m_light_levels, LightLevel{0, 2});
+    }
+
     void ChunkLighting::update_lighting(const std::function<Block(const v3i&)>& get_block_function)
     {
         // TODO: Maybe figure some better place for this
         const VoxelModule& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
-        std::ranges::fill(m_light_levels, LightLevel{0, 2});
+        reset();
         std::queue<v3i> propagation_queue{};
         for (i32 i = 0; i < voxel_constants::chunk_size; i++)
         for (i32 j = 0; j < voxel_constants::chunk_size; j++)

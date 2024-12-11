@@ -2,6 +2,7 @@
 
 #include "core/events.h"
 #include "core/types.h"
+#include "voxel/grid/grid_view_3d.h"
 #include "voxel/voxel_utils.h"
 
 #include <array>
@@ -17,20 +18,11 @@
 
 namespace h2o
 {
-    enum class EViewRelativeTo { ViewCenter, ViewCorner, World };
-
     struct CellsUpdatedEvent { const std::unordered_set<v3i>& updated_cells{}; };
     struct CellsDeletedEvent { const std::unordered_set<v2i>& deleted_cell_columns{}; };
 
-    class IGrid3DCell
-    {
-    public:
-
-        virtual ~IGrid3DCell() = default;
-
-        virtual void init(const v3i& position) = 0;
-
-    };
+    template<typename CellType>
+    concept HasViewType = requires { typename CellType::ViewType; };
 
     template<u32 VerticalCellCount, class... CellTypes>
     class Grid3D
@@ -48,44 +40,25 @@ namespace h2o
         using CellColumn = std::array<CellData<CellType>, VerticalCellCount>;
         using CellColumnTuple = std::tuple<CellColumn<CellTypes>...>;
 
+        template<typename CellType, bool = HasViewType<CellType>>
+        struct CellViewTypeHelper
+        { using type = typename CellType::ViewType; };
+        // Fallback for cell types without ViewType
+        template<typename CellType>
+        struct CellViewTypeHelper<CellType, false>
+        { using type = View<CellType>; };
+        template<typename CellType>
+        using ViewType = typename CellViewTypeHelper<CellType>::type;
+
     public:
 
         template<class CellType>
-        class View
-        {
-        public:
-
-            View(const v3i& view_min, const v3i& view_size);
-
-            // Cell, cell position in world space
-            void for_each_cell(const std::function<void(CellType&, const v3i&)>& function) const;
-            bool any_matches(const std::function<bool(const CellType*)>& condition) const;
-
-            [[nodiscard]] v3i center_cell_pos() const { return m_view_min + v3i{ m_view_size } / 2; }
-            [[nodiscard]] v3i corner_cell_pos() const { return m_view_min; }
-            [[nodiscard]] v3i size() const { return m_view_size; }
-            [[nodiscard]] CellType* get(const v3i& position, EViewRelativeTo relative_to = EViewRelativeTo::World) const;
-
-            void add_cell(const v3i& cell_pos, CellType& cell, const std::shared_ptr<CellColumnTuple>& cell_column);
-
-        private:
-
-            [[nodiscard]] v3i get_relative_to_cell_pos(EViewRelativeTo relative_to) const;
-            [[nodiscard]] bool in_bounds(const v3i& local_cell_pos) const;
-            [[nodiscard]] size_t to_index(const v3i& local_cell_pos) const;
-
-        private:
-
-            std::vector<CellType*> m_cells{};
-
-            std::unordered_set< std::shared_ptr<CellColumnTuple> > m_cell_columns{};
-
-            v3i m_view_min{}, m_view_size{};
-
-        };
+        void fetch(
+            const v3i& position,
+            const std::function<void(const CellType*)>& function) const;
 
         template<class CellType>
-        void fetch(
+        void fetch_mut(
             const v3i& position,
             const std::function<void(CellType*)>& function,
             bool create_if_missing = false);
@@ -94,13 +67,24 @@ namespace h2o
         void view(
             const v3i& view_min,
             const v3i& view_size,
-            const std::function<void(const View<CellType>&)>& function,
+            const std::function<void(const ViewType<CellType>&)>& function) const;
+
+        template<class CellType>
+        void view_mut(
+            const v3i& view_min,
+            const v3i& view_size,
+            const std::function<void(ViewType<CellType>&)>& function,
             bool create_if_missing = false);
 
         template<class CellType>
         void view_column(
             v2i cell_column_pos,
-            const std::function<void(const View<CellType>&)>& function,
+            const std::function<void(const ViewType<CellType>&)>& function) const;
+
+        template<class CellType>
+        void view_column_mut(
+            v2i cell_column_pos,
+            const std::function<void(ViewType<CellType>&)>& function,
             bool create_if_missing = false);
 
         [[nodiscard]] bool cell_column_exists(v2i cell_column_pos) const;
@@ -128,7 +112,14 @@ namespace h2o
             const v3i& view_min,
             const v3i& view_size,
             const std::function<bool(const v3i&)>& should_add_cell,
-            const std::function<void(const View<CellType>&)>& function,
+            const std::function<void(const ViewType<CellType>&)>& function) const;
+
+        template<class CellType>
+        void view_impl_mut(
+            const v3i& view_min,
+            const v3i& view_size,
+            const std::function<bool(const v3i&)>& should_add_cell,
+            const std::function<void(ViewType<CellType>&)>& function,
             bool create_if_missing = false);
 
     private:
@@ -173,113 +164,27 @@ namespace h2o
 
     template<u32 VerticalCellCount, class... CellTypes>
     template<class CellType>
-    Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::View(const v3i& view_min, const v3i& view_size)
-        : m_view_min(view_min), m_view_size(view_size)
+    void Grid3D<VerticalCellCount, CellTypes...>::fetch(
+        const v3i& position,
+        const std::function<void(const CellType*)>& function) const
     {
-        assert(view_size.x > 0 && view_size.y > 0 && view_size.z > 0);
-        m_cells.resize(view_size.x * view_size.y * view_size.z, nullptr);
-    }
-
-    template<u32 VerticalCellCount, class... CellTypes>
-    template<class CellType>
-    void Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::for_each_cell(
-        const std::function<void(CellType&, const v3i&)>& function) const
-    {
-        voxel_utils::for_v3i(m_view_min, m_view_min + m_view_size,
-            [&](const v3i& cell_pos)
+        view<CellType>(position, v3i{1},
+            [&](const ViewType<CellType>& view)
             {
-                if (CellType* cell = get(cell_pos))
-                    function(*cell, cell_pos);
+                function(view.get(position));
             }
         );
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
     template<class CellType>
-    bool Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::any_matches(
-        const std::function<bool(const CellType*)>& condition) const
-    {
-        for (const auto cell : m_cells)
-        {
-            if (condition(cell))
-                return true;
-        }
-
-        return false;
-    }
-
-    template<u32 VerticalCellCount, class... CellTypes>
-    template<class CellType>
-    CellType* Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::get(
-        const v3i& position,
-        const EViewRelativeTo relative_to) const
-    {
-        const v3i offset = get_relative_to_cell_pos(relative_to) - m_view_min;
-        const v3i local_pos = position + offset;
-        return in_bounds(local_pos) ? m_cells[to_index(local_pos)] : nullptr;
-    }
-
-    template<u32 VerticalCellCount, class... CellTypes>
-    template<class CellType>
-    void Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::add_cell(
-        const v3i& cell_pos, CellType& cell,
-        const std::shared_ptr<CellColumnTuple>& cell_column)
-    {
-        const v3i local_cell_pos = cell_pos - m_view_min;
-        assert(in_bounds(local_cell_pos));
-
-        m_cells[to_index(local_cell_pos)] = &cell;
-        m_cell_columns.insert(cell_column);
-    }
-
-    template<u32 VerticalCellCount, class... CellTypes>
-    template<class CellType>
-    v3i Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::get_relative_to_cell_pos(
-        const EViewRelativeTo relative_to) const
-    {
-        switch (relative_to)
-        {
-        case EViewRelativeTo::ViewCenter:
-            return center_cell_pos();
-        case EViewRelativeTo::ViewCorner:
-            return m_view_min;
-        default:
-        case EViewRelativeTo::World:
-            return v3i{ 0 };
-        }
-    }
-
-    template<u32 VerticalCellCount, class... CellTypes>
-    template<class CellType>
-    bool Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::in_bounds(const v3i& local_cell_pos) const
-    {
-        return
-            local_cell_pos.x >= 0 && local_cell_pos.x < m_view_size.x &&
-            local_cell_pos.y >= 0 && local_cell_pos.y < m_view_size.y &&
-            local_cell_pos.z >= 0 && local_cell_pos.z < m_view_size.z;
-    }
-
-    template<u32 VerticalCellCount, class... CellTypes>
-    template<class CellType>
-    size_t Grid3D<VerticalCellCount, CellTypes...>::View<CellType>::to_index(const v3i& local_cell_pos) const
-    {
-        assert(in_bounds(local_cell_pos));
-
-        return
-            local_cell_pos.z * m_view_size.x * m_view_size.y +
-            local_cell_pos.y * m_view_size.x +
-            local_cell_pos.x;
-    }
-
-    template<u32 VerticalCellCount, class... CellTypes>
-    template<class CellType>
-    void Grid3D<VerticalCellCount, CellTypes...>::fetch(
+    void Grid3D<VerticalCellCount, CellTypes...>::fetch_mut(
         const v3i& position,
         const std::function<void(CellType*)>& function,
         const bool create_if_missing)
     {
-        view<CellType>(position, v3i{1},
-            [&](const View<CellType>& view)
+        view_mut<CellType>(position, v3i{1},
+            [&](ViewType<CellType>& view)
             {
                 function(view.get(position));
             }, create_if_missing
@@ -291,20 +196,43 @@ namespace h2o
     void Grid3D<VerticalCellCount, CellTypes...>::view(
         const v3i& view_min,
         const v3i& view_size,
-        const std::function<void(const View<CellType>&)>& function,
+        const std::function<void(const ViewType<CellType>&)>& function) const
+    {
+        view_impl<CellType>(view_min, view_size, [](const v3i&) { return true; }, function);
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    void Grid3D<VerticalCellCount, CellTypes...>::view_mut(
+        const v3i& view_min,
+        const v3i& view_size,
+        const std::function<void(ViewType<CellType>&)>& function,
         const bool create_if_missing)
     {
-        view_impl<CellType>(view_min, view_size, [](const v3i&) { return true; }, function, create_if_missing);
+        view_impl_mut<CellType>(view_min, view_size, [](const v3i&) { return true; }, function, create_if_missing);
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
     template<class CellType>
     void Grid3D<VerticalCellCount, CellTypes...>::view_column(
         const v2i cell_column_pos,
-        const std::function<void(const View<CellType>&)>& function,
-        const bool create_if_missing)
+        const std::function<void(const ViewType<CellType>&)>& function) const
     {
         view<CellType>(
+            v3i{ cell_column_pos.x, 0, cell_column_pos.y },
+            v3i{ 1, VerticalCellCount, 1 },
+            function
+        );
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    void Grid3D<VerticalCellCount, CellTypes...>::view_column_mut(
+        const v2i cell_column_pos,
+        const std::function<void(ViewType<CellType>&)>& function,
+        const bool create_if_missing)
+    {
+        view_mut<CellType>(
             v3i{ cell_column_pos.x, 0, cell_column_pos.y },
             v3i{ 1, VerticalCellCount, 1 },
             function,
@@ -388,61 +316,6 @@ namespace h2o
                 event.broadcast({ cells });
                 cells.clear();
             }
-        }
-    }
-
-    template<u32 VerticalCellCount, class... CellTypes>
-    template<class CellType>
-    void Grid3D<VerticalCellCount, CellTypes...>::view_impl(
-        const v3i& view_min,
-        const v3i& view_size,
-        const std::function<bool(const v3i&)>& should_add_cell,
-        const std::function<void(const View<CellType>&)>& function,
-        const bool create_if_missing)
-    {
-        using LockType = std::conditional_t<std::is_const_v<CellType>,
-            std::shared_lock<std::shared_mutex>,
-            std::unique_lock<std::shared_mutex>>;
-
-        std::vector<LockType> locks{};
-        locks.reserve(view_size.x * view_size.y * view_size.z);
-
-        View<CellType> view(view_min, view_size);
-
-        for (i32 i = view_min.x; i < view_min.x + view_size.x; i++)
-        for (i32 k = view_min.z; k < view_min.z + view_size.z; k++)
-        {
-            const auto cell_column = create_if_missing ?
-                find_or_create_cell_column({ i, k }) :
-                find_cell_column({ i, k });
-
-            if (!cell_column)
-                continue;
-
-            for (i32 j = view_min.y; j < view_min.y + view_size.y; j++)
-            {
-                const v3i cell_pos{ i, j, k };
-                if (!should_add_cell(cell_pos) || !is_valid_cell_y(j))
-                    continue;
-
-                auto& [cell, mutex] = std::get<CellColumn< std::remove_const_t<CellType>> >(*cell_column)[j];
-                view.add_cell(cell_pos, cell, cell_column);
-                locks.emplace_back(mutex);
-            }
-        }
-
-        function(view);
-
-        if constexpr (!std::is_const_v<CellType>)
-        {
-            std::vector<v3i> updated_cells{};
-            view.for_each_cell(
-                [&](const CellType&, const v3i& cell_pos)
-                {
-                    updated_cells.push_back(cell_pos);
-                }
-            );
-            add_to_updated_cells_list<CellType>(updated_cells);
         }
     }
 
@@ -562,5 +435,116 @@ namespace h2o
                 }
             }
         }
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    void Grid3D<VerticalCellCount, CellTypes...>::view_impl(
+        const v3i& view_min,
+        const v3i& view_size,
+        const std::function<bool(const v3i&)>& should_add_cell,
+        const std::function<void(const ViewType<CellType>&)>& function) const
+    {
+        static_assert(std::is_base_of_v<View<CellType>, ViewType<CellType>>, "ViewType must inherit View<CellType>.");
+
+        std::vector<std::shared_lock<std::shared_mutex>> locks{};
+        locks.reserve(view_size.x * view_size.y * view_size.z);
+
+        ViewType<CellType> view(view_min, view_size);
+
+        // Make sure cell columns stay allocated while the view is in use
+        std::vector< std::shared_ptr<CellColumnTuple> > cell_columns{};
+        cell_columns.reserve(view_size.x * view_size.z);
+
+        for (i32 i = view_min.x; i < view_min.x + view_size.x; i++)
+        for (i32 k = view_min.z; k < view_min.z + view_size.z; k++)
+        {
+            const auto cell_column = find_cell_column({ i, k });
+            if (!cell_column)
+                continue;
+
+            bool is_cell_column_used = false;
+            for (i32 j = view_min.y; j < view_min.y + view_size.y; j++)
+            {
+                const v3i cell_pos{ i, j, k };
+                if (!should_add_cell(cell_pos) || !is_valid_cell_y(j))
+                    continue;
+
+                auto& [cell, mutex] = std::get<CellColumn<CellType>>(*cell_column)[j];
+                view.add_cell(cell_pos, cell);
+                locks.emplace_back(mutex);
+
+                is_cell_column_used = true;
+            }
+
+            if (is_cell_column_used)
+                cell_columns.emplace_back(cell_column);
+        }
+
+        function(view);
+    }
+
+    template<u32 VerticalCellCount, class... CellTypes>
+    template<class CellType>
+    void Grid3D<VerticalCellCount, CellTypes...>::view_impl_mut(
+        const v3i& view_min,
+        const v3i& view_size,
+        const std::function<bool(const v3i&)>& should_add_cell,
+        const std::function<void(ViewType<CellType>&)>& function,
+        const bool create_if_missing)
+    {
+        static_assert(std::is_base_of_v<View<CellType>, ViewType<CellType>>, "ViewType must inherit View<CellType>.");
+
+        std::vector<v3i> updated_cells{};
+
+        {
+            std::vector<std::unique_lock<std::shared_mutex>> locks{};
+            locks.reserve(view_size.x * view_size.y * view_size.z);
+
+            ViewType<CellType> view(view_min, view_size);
+
+            // Make sure cell columns stay allocated while the view is in use
+            std::vector< std::shared_ptr<CellColumnTuple> > cell_columns{};
+            cell_columns.reserve(view_size.x * view_size.z);
+
+            for (i32 i = view_min.x; i < view_min.x + view_size.x; i++)
+            for (i32 k = view_min.z; k < view_min.z + view_size.z; k++)
+            {
+                const auto cell_column = create_if_missing ?
+                    find_or_create_cell_column({ i, k }) :
+                    find_cell_column({ i, k });
+
+                if (!cell_column)
+                    continue;
+
+                bool is_cell_column_used = false;
+                for (i32 j = view_min.y; j < view_min.y + view_size.y; j++)
+                {
+                    const v3i cell_pos{ i, j, k };
+                    if (!should_add_cell(cell_pos) || !is_valid_cell_y(j))
+                        continue;
+
+                    auto& [cell, mutex] = std::get<CellColumn<CellType> >(*cell_column)[j];
+                    view.add_cell(cell_pos, cell);
+                    locks.emplace_back(mutex);
+
+                    is_cell_column_used = true;
+                }
+
+                if (is_cell_column_used)
+                    cell_columns.emplace_back(cell_column);
+            }
+
+            function(view);
+
+            view.for_each_cell(
+                [&](const CellType&, const v3i& cell_pos)
+                {
+                    updated_cells.push_back(cell_pos);
+                }
+            );
+        }
+
+        add_to_updated_cells_list<CellType>(updated_cells);
     }
 }
