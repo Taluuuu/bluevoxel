@@ -56,9 +56,9 @@ namespace h2o
 
                 bool was_chunk_sent = false;
                 m_chunk_mgr.view_column<Chunk>(chunk_pos,
-                    [&](const View<Chunk>& chunk_column)
+                    [&](const Chunk::ViewType& chunk_column)
                     {
-                        if (voxel::is_generated(chunk_column))
+                        if (chunk_column.is_generated())
                         {
                             send_chunk_column(chunk_column, { client_id });
                             was_chunk_sent = true;

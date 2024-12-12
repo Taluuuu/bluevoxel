@@ -121,7 +121,7 @@ namespace h2o
         function(region_data);
     }
 
-    void ChunkRegionManager::generate_region_terrain(v2i region_pos)
+    void ChunkRegionManager::generate_region_terrain(const v2i region_pos)
     {
         fetch_region_mut(region_pos,
             [&](ChunkRegion* region)
@@ -132,7 +132,7 @@ namespace h2o
                 const v2i corner = voxel_utils::region_to_chunk_pos(region_pos);
                 m_chunk_server->chunk_mgr().view_mut<Chunk>(
                     { corner.x, 0, corner.y }, ChunkRegionExtents,
-                    [&](View<Chunk>& region_view)
+                    [&](Chunk::ViewType& region_view)
                     {
                         if (const auto chunk_generator = m_chunk_server->chunk_generator())
                         {
@@ -143,7 +143,7 @@ namespace h2o
 
                 m_chunk_server->chunk_mgr().view<Chunk>(
                     { corner.x, 0, corner.y }, ChunkRegionExtents,
-                    [&](const View<Chunk>& region_view)
+                    [&](const Chunk::ViewType& region_view)
                     {
                         if (const auto chunk_generator = m_chunk_server->chunk_generator())
                         {
@@ -157,7 +157,7 @@ namespace h2o
         );
     }
 
-    void ChunkRegionManager::update_chunk_generation_states(v2i region_pos)
+    void ChunkRegionManager::update_chunk_generation_states(const v2i region_pos)
     {
         // Returns structures that should be placed in the region at region_pos, or nullopt if
         // not all regions neighbouring this one are generated.

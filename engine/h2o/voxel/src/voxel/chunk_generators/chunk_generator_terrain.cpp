@@ -28,7 +28,7 @@ namespace h2o
     {
     }
 
-    void ChunkGenerator_Terrain::gen_blocks(View<Chunk>& region_view) const
+    void ChunkGenerator_Terrain::gen_blocks(Chunk::ViewType& region_view) const
     {
         // In chunk coordinates
         const v3i region_corner{ region_view.corner_cell_pos().x, 0, region_view.corner_cell_pos().z };
@@ -55,7 +55,7 @@ namespace h2o
             if (noise_val < air_threshold)
             {
                 const Block block = 3;
-                voxel::set_block_at(region_view, { x, y, z }, block, EViewRelativeTo::ViewCorner);
+                region_view.set_block_at({ x, y, z }, block, EViewRelativeTo::ViewCorner);
             }
         }
 
@@ -66,7 +66,7 @@ namespace h2o
             i32 num_blocks_under_air = 0;
             for (i32 y = region_size_blocks.y; y >= 0; --y)
             {
-                const auto block = voxel::get_block_at(region_view, { x, y, z }, EViewRelativeTo::ViewCorner);
+                const auto block = region_view.get_block_at({ x, y, z }, EViewRelativeTo::ViewCorner);
                 if (block == Block::Air)
                 {
                     num_blocks_under_air = 0;
@@ -75,11 +75,11 @@ namespace h2o
                 {
                     if (num_blocks_under_air == 0)
                     {
-                        voxel::set_block_at(region_view, { x, y, z }, Block{ 1 }, EViewRelativeTo::ViewCorner);
+                        region_view.set_block_at({ x, y, z }, Block{ 1 }, EViewRelativeTo::ViewCorner);
                     }
                     else if (num_blocks_under_air < 5)
                     {
-                        voxel::set_block_at(region_view, { x, y, z }, Block{ 2 }, EViewRelativeTo::ViewCorner);
+                        region_view.set_block_at({ x, y, z }, Block{ 2 }, EViewRelativeTo::ViewCorner);
                     }
 
                     num_blocks_under_air++;
@@ -88,7 +88,7 @@ namespace h2o
         }
     }
 
-    std::vector<VoxelStructureInstance> ChunkGenerator_Terrain::gen_structures(const View<Chunk>& region_view) const
+    std::vector<VoxelStructureInstance> ChunkGenerator_Terrain::gen_structures(const Chunk::ViewType& region_view) const
     {
         std::vector<VoxelStructureInstance> structures{};
 
@@ -110,8 +110,7 @@ namespace h2o
             i32 ground_level = voxel_constants::vertical_block_count - 1;
             for (; ground_level >= 0; --ground_level)
             {
-                const auto block = voxel::get_block_at(region_view, { i, ground_level, j }, EViewRelativeTo::ViewCorner);
-                if (block != Block::Air)
+                if (region_view.get_block_at({ i, ground_level, j }, EViewRelativeTo::ViewCorner) != Block::Air)
                     break;
             }
 

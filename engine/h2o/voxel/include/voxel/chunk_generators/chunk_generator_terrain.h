@@ -13,8 +13,8 @@ namespace h2o
          ChunkGenerator_Terrain();
 
          // ChunkGenerator_Base interface
-         void gen_blocks(View<Chunk>& region_view) const override;
-         [[nodiscard]] std::vector<VoxelStructureInstance> gen_structures(const View<Chunk>& region_view) const override;
+         void gen_blocks(Chunk::ViewType& region_view) const override;
+         [[nodiscard]] std::vector<VoxelStructureInstance> gen_structures(const Chunk::ViewType& region_view) const override;
 
          // Serialization
          void save(const fs::path& path) const;

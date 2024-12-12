@@ -13,16 +13,16 @@
 namespace h2o
 {
     ChunkMesh::ChunkMesh(
-        const View<Chunk>& chunk_view,
-        const ChunkLighting& chunk_lighting,
+        const Chunk::ViewType& chunk_view,
+        const ChunkLighting::ViewType& lighting_view,
         const VoxelModule& voxel_module)
     {
-        build_mesh(chunk_view, chunk_lighting, voxel_module);
+        build_mesh(chunk_view, lighting_view, voxel_module);
     }
 
     void ChunkMesh::build_mesh(
-        const View<Chunk>& chunk_view,
-        const ChunkLighting& chunk_lighting,
+        const Chunk::ViewType& chunk_view,
+        const ChunkLighting::ViewType& lighting_view,
         const VoxelModule& voxel_module)
     {
         m_chunk_pos = chunk_view.center_cell_pos();
@@ -82,11 +82,8 @@ namespace h2o
                     const v3i offset = voxel::to_vec3(dir);
                     const v3i adjacent_block_pos = pos + offset;
 
-                    const Block adj_block = voxel::get_block_at(chunk_view, adjacent_block_pos, EViewRelativeTo::ViewCenter).value_or(Block::Air);
-
-                    u8 adj_light_level = 0;
-                    if (Chunk::is_valid_pos(adjacent_block_pos))
-                        adj_light_level = chunk_lighting.get_light_level(adjacent_block_pos);
+                    const Block adj_block = chunk_view.get_block_at(adjacent_block_pos, EViewRelativeTo::ViewCenter);
+                    const u8 adj_light_level = lighting_view.get_light_level(adjacent_block_pos, EViewRelativeTo::ViewCenter);
 
                     if (voxel_module.is_transparent(adj_block.id))
                         append_side(pos, *texture_ids, model->occluded_triangles_per_side[dir_index], adj_light_level);
@@ -95,7 +92,7 @@ namespace h2o
                 }
             );
 
-            const u8 light_level = chunk_lighting.get_light_level(pos);
+            const u8 light_level = lighting_view.get_light_level(pos, EViewRelativeTo::ViewCenter);
             append_side(pos, *texture_ids, model->unoccluded_triangles, light_level);
         }
     }

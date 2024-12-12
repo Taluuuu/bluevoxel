@@ -31,6 +31,14 @@ namespace h2o
             ViewType(const v3i& view_min, const v3i& view_size)
                 : View(view_min, view_size) {}
 
+            [[nodiscard]] Block get_block_at(const v3i& block_pos, EViewRelativeTo relative_to = EViewRelativeTo::World) const;
+            bool set_block_at(const v3i& block_pos, Block block, EViewRelativeTo relative_to = EViewRelativeTo::World);
+
+            // Loop through all blocks that are not air
+            void for_each_block(const std::function<void(const v3i&, const Block&)>& function) const;
+
+            [[nodiscard]] bool is_generated() const;
+
         };
 
         // IGrid3DCell interface

@@ -243,9 +243,9 @@ namespace bluevoxel
 
             constexpr v3i max_size_chunks = h2o::voxel_constants::max_structure_size_chunks;
             m_chunk_manager.view<h2o::Chunk>(v3i{0}, max_size_chunks,
-                [&](const h2o::View<h2o::Chunk>& view)
+                [&](const h2o::Chunk::ViewType& view)
                 {
-                    h2o::voxel::for_each_block(view,
+                    view.for_each_block(
                         [&](const v3i& block_pos, const h2o::Block& block)
                         {
                             structure->set_block(block_pos, block);
@@ -276,9 +276,9 @@ namespace bluevoxel
 
         constexpr v3i max_size_chunks = h2o::voxel_constants::max_structure_size_chunks;
         m_chunk_manager.view<h2o::Chunk>(v3i{0}, max_size_chunks,
-            [&](const h2o::View<h2o::Chunk>& view)
+            [&](const h2o::Chunk::ViewType& view)
             {
-                h2o::voxel::for_each_block(view,
+                view.for_each_block(
                     [&](const v3i& block_pos, const h2o::Block&)
                     {
                         extents = glm::max(block_pos + v3i{1}, extents);

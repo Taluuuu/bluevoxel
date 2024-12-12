@@ -4,7 +4,7 @@
 
 namespace h2o
 {
-    void ChunkGenerator_Flat::gen_blocks(View<Chunk>& region_view) const
+    void ChunkGenerator_Flat::gen_blocks(Chunk::ViewType& region_view) const
     {
         for (i32 x = 0; x < voxel_constants::chunk_region_block_count; x++)
         for (i32 z = 0; z < voxel_constants::chunk_region_block_count; z++)
@@ -12,7 +12,7 @@ namespace h2o
             i32 y = 0;
             for (const Block& layer : block_layers)
             {
-                voxel::set_block_at(region_view, {x, y, z}, layer, EViewRelativeTo::ViewCorner);
+                region_view.set_block_at({ x, y, z }, layer, EViewRelativeTo::ViewCorner);
                 y++;
             }
         }
@@ -21,7 +21,7 @@ namespace h2o
         // region_view.set_block_at({ 0, block_layers.size(), 0 }, { 2 }, ViewRelativeTo::ViewCorner);
     }
 
-    std::vector<VoxelStructureInstance> ChunkGenerator_Flat::gen_structures(const View<Chunk>& region_view) const
+    std::vector<VoxelStructureInstance> ChunkGenerator_Flat::gen_structures(const Chunk::ViewType& region_view) const
     {
         std::vector<VoxelStructureInstance> structures{};
 
@@ -39,8 +39,7 @@ namespace h2o
             i32 ground_level = 0;
             for (; ground_level < voxel_constants::vertical_block_count; ground_level++)
             {
-                const auto block = voxel::get_block_at(region_view, { i, ground_level, j }, EViewRelativeTo::ViewCorner);
-                if (!block || block == Block::Air)
+                if (region_view.get_block_at({ i, ground_level, j }, EViewRelativeTo::ViewCorner) == Block::Air)
                     break;
             }
 

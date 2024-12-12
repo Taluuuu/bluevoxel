@@ -60,6 +60,52 @@ namespace h2o
         );
     }
 
+    Block Chunk::ViewType::get_block_at(const v3i& block_pos, const EViewRelativeTo relative_to) const
+    {
+        if (const Chunk* chunk = get(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
+            return chunk->get_block_at(voxel_utils::block_pos_to_within_chunk(block_pos));
+
+        return Block::Air;
+    }
+
+    bool Chunk::ViewType::set_block_at(const v3i& block_pos, Block block, EViewRelativeTo relative_to)
+    {
+        if (Chunk* chunk = get(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
+        {
+            chunk->set_block_at(voxel_utils::block_pos_to_within_chunk(block_pos), block);
+            return true;
+        }
+
+        return false;
+    }
+
+    void Chunk::ViewType::for_each_block(const std::function<void(const v3i&, const Block&)>& function) const
+    {
+        for_each_cell(
+            [&](const Chunk& chunk, const v3i&)
+            {
+                if (chunk.is_empty())
+                    return;
+
+                const v3i chunk_corner_pos = chunk.chunk_pos() * voxel_constants::chunk_size;
+                for (i32 i = 0; i < voxel_constants::chunk_size; i++)
+                for (i32 j = 0; j < voxel_constants::chunk_size; j++)
+                for (i32 k = 0; k < voxel_constants::chunk_size; k++)
+                {
+                    const v3i local_block_pos{ i, j, k };
+                    const v3i world_block_pos = chunk_corner_pos + local_block_pos;
+                    if (const auto block = chunk.get_block_at(local_block_pos); block != Block::Air)
+                        function(world_block_pos, block);
+                }
+            }
+        );
+    }
+
+    bool Chunk::ViewType::is_generated() const
+    {
+        return !any_matches([](const Chunk* chunk) { return !chunk || !chunk->is_generated(); });
+    }
+
     void Chunk::init(const v3i& position)
     {
         m_chunk_pos = position;

@@ -179,10 +179,10 @@ namespace h2o
             [&](const v2i chunk_column_pos)
             {
                 m_chunk_mgr.view_column<Chunk>(chunk_column_pos,
-                    [&](const View<Chunk>& chunk_column)
+                    [&](const Chunk::ViewType& chunk_column)
                     {
                         // TODO: This can probably request the same chunks multiple times
-                        if (!voxel::is_generated(chunk_column))
+                        if (!chunk_column.is_generated())
                             chunk_fetch_request.requested_chunks.push_back(chunk_column_pos);
                     }
                 );

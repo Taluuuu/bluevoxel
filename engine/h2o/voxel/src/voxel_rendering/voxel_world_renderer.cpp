@@ -24,7 +24,17 @@ namespace h2o
             [this](const CellsUpdatedEvent& event)
             {
                 for (const v3i& chunk_pos : event.updated_cells)
+                {
                     queue_chunk_remesh(chunk_pos);
+
+                    voxel_utils::for_v3i(chunk_pos - v3i{1}, chunk_pos + v3i{1},
+                        [&](const v3i& adj_chunk_pos)
+                        {
+                            if (adj_chunk_pos != chunk_pos)
+                                queue_chunk_remesh(adj_chunk_pos);
+                        }
+                    );
+                }
             }
         );
 
@@ -173,19 +183,29 @@ namespace h2o
 
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
+        m_chunk_manager->view<Chunk>(chunk_pos - v3i{1}, v3i{3},
+            [&](const Chunk::ViewType& chunk_view)
+            {
+                m_chunk_manager->fetch_mut<ChunkLighting>(chunk_pos,
+                    [&](ChunkLighting* lighting)
+                    {
+                        if (lighting)
+                            chunk_lighting::update_lighting(*lighting, chunk_view);
+                    }
+                );
+            }
+        );
+
         m_chunk_manager->view_for_meshing<Chunk>(chunk_pos,
-            [&](const View<Chunk>& view)
+            [&](const Chunk::ViewType& view)
             {
                 m_chunk_manager->view_for_meshing<ChunkLighting>(chunk_pos,
-                    [&](const View<ChunkLighting>& lighting_view)
+                    [&](const ChunkLighting::ViewType& lighting_view)
                     {
-                        if (const ChunkLighting* chunk_lighting = lighting_view.get(chunk_pos))
-                        {
-                            ChunkMesh chunk_mesh(view, *chunk_lighting, *m_voxel_module);
+                        ChunkMesh chunk_mesh(view, lighting_view, *m_voxel_module);
 
-                            const std::unique_lock lock{ m_pending_built_meshes_mutex };
-                            m_pending_built_meshes.emplace_back(std::move(chunk_mesh));
-                        }
+                        const std::unique_lock lock{ m_pending_built_meshes_mutex };
+                        m_pending_built_meshes.emplace_back(std::move(chunk_mesh));
                     }
                 );
             }
