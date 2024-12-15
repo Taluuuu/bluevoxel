@@ -20,20 +20,20 @@ namespace h2o
     {
         set_tick_phases(TickPhase::Update | TickPhase::PreRender | TickPhase::Render);
 
-        chunk_manager.cells_updated_event<Chunk>().add_listener(m_on_chunk_updated_handle,
+        chunk_manager.cells_updated_event<ChunkLighting>().add_listener(m_on_chunk_updated_handle,
             [this](const CellsUpdatedEvent& event)
             {
                 for (const v3i& chunk_pos : event.updated_cells)
                 {
                     queue_chunk_remesh(chunk_pos);
 
-                    voxel_utils::for_v3i(chunk_pos - v3i{1}, chunk_pos + v3i{1},
-                        [&](const v3i& adj_chunk_pos)
-                        {
-                            if (adj_chunk_pos != chunk_pos)
-                                queue_chunk_remesh(adj_chunk_pos);
-                        }
-                    );
+                    // voxel_utils::for_v3i(chunk_pos - v3i{1}, chunk_pos + v3i{1},
+                    //     [&](const v3i& adj_chunk_pos)
+                    //     {
+                    //         if (adj_chunk_pos != chunk_pos)
+                    //             queue_chunk_remesh(adj_chunk_pos);
+                    //     }
+                    // );
                 }
             }
         );
@@ -78,7 +78,7 @@ namespace h2o
                     for (const v2i offset : offsets)
                     {
                         if (!m_chunk_manager->is_chunk_column_generated(offset + v2i{ chunk_pos.x, chunk_pos.z }))
-                            return false;
+                            return true;
                     }
                 }
 
@@ -183,18 +183,18 @@ namespace h2o
 
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
-        m_chunk_manager->view<Chunk>(chunk_pos - v3i{1}, v3i{3},
-            [&](const Chunk::ViewType& chunk_view)
-            {
-                m_chunk_manager->fetch_mut<ChunkLighting>(chunk_pos,
-                    [&](ChunkLighting* lighting)
-                    {
-                        if (lighting)
-                            chunk_lighting::update_lighting(*lighting, chunk_view);
-                    }
-                );
-            }
-        );
+        // m_chunk_manager->view<Chunk>(chunk_pos - v3i{1}, v3i{3},
+        //     [&](const Chunk::ViewType& chunk_view)
+        //     {
+        //         m_chunk_manager->fetch_mut<ChunkLighting>(chunk_pos,
+        //             [&](ChunkLighting* lighting)
+        //             {
+        //                 if (lighting)
+        //                     chunk_lighting::update_lighting(*lighting, chunk_view);
+        //             }
+        //         );
+        //     }
+        // );
 
         m_chunk_manager->view_for_meshing<Chunk>(chunk_pos,
             [&](const Chunk::ViewType& view)

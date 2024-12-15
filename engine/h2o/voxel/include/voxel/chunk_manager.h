@@ -32,7 +32,19 @@ namespace h2o
 
         [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos);
 
+        void broadcast_events() override;
+
     private:
+
+        void on_chunks_updated(const CellsUpdatedEvent& event);
+
+    private:
+
+        std::mutex m_chunk_positions_pending_lighting_update_mutex{};
+        std::unordered_set<v3i> m_chunk_positions_pending_lighting_update{};
+
+        std::mutex m_chunk_positions_after_lighting_update_mutex{};
+        std::unordered_set<v3i > m_chunk_positions_after_lighting_update{};
 
         EventHandle m_chunks_updated_handle{};
 

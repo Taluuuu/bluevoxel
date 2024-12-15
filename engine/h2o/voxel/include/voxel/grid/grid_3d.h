@@ -61,7 +61,8 @@ namespace h2o
         void fetch_mut(
             const v3i& position,
             const std::function<void(CellType*)>& function,
-            bool create_if_missing = false);
+            bool create_if_missing = false,
+            bool broadcast_update_event = true);
 
         template<class CellType>
         void view(
@@ -74,7 +75,8 @@ namespace h2o
             const v3i& view_min,
             const v3i& view_size,
             const std::function<void(ViewType<CellType>&)>& function,
-            bool create_if_missing = false);
+            bool create_if_missing = false,
+            bool broadcast_update_event = true);
 
         template<class CellType>
         void view_column(
@@ -85,7 +87,8 @@ namespace h2o
         void view_column_mut(
             v2i cell_column_pos,
             const std::function<void(ViewType<CellType>&)>& function,
-            bool create_if_missing = false);
+            bool create_if_missing = false,
+            bool broadcast_update_event = true);
 
         [[nodiscard]] bool cell_column_exists(v2i cell_column_pos) const;
         [[nodiscard]] bool cell_exists(const v3i& cell_pos) const;
@@ -96,7 +99,7 @@ namespace h2o
         [[nodiscard]] Event<CellsUpdatedEvent>& cells_updated_event();
         [[nodiscard]] Event<CellsDeletedEvent>& cells_deleted_event();
 
-        void broadcast_events();
+        virtual void broadcast_events();
 
     protected:
 
@@ -120,7 +123,8 @@ namespace h2o
             const v3i& view_size,
             const std::function<bool(const v3i&)>& should_add_cell,
             const std::function<void(ViewType<CellType>&)>& function,
-            bool create_if_missing = false);
+            bool create_if_missing = false,
+            bool broadcast_update_event = true);
 
     private:
 
@@ -181,13 +185,14 @@ namespace h2o
     void Grid3D<VerticalCellCount, CellTypes...>::fetch_mut(
         const v3i& position,
         const std::function<void(CellType*)>& function,
-        const bool create_if_missing)
+        const bool create_if_missing,
+        const bool broadcast_update_event)
     {
         view_mut<CellType>(position, v3i{1},
             [&](ViewType<CellType>& view)
             {
                 function(view.get(position));
-            }, create_if_missing
+            }, create_if_missing, broadcast_update_event
         );
     }
 
@@ -207,9 +212,17 @@ namespace h2o
         const v3i& view_min,
         const v3i& view_size,
         const std::function<void(ViewType<CellType>&)>& function,
-        const bool create_if_missing)
+        const bool create_if_missing,
+        const bool broadcast_update_event)
     {
-        view_impl_mut<CellType>(view_min, view_size, [](const v3i&) { return true; }, function, create_if_missing);
+        view_impl_mut<CellType>(
+            view_min,
+            view_size,
+            [](const v3i&) { return true; },
+            function,
+            create_if_missing,
+            broadcast_update_event
+        );
     }
 
     template<u32 VerticalCellCount, class... CellTypes>
@@ -230,13 +243,15 @@ namespace h2o
     void Grid3D<VerticalCellCount, CellTypes...>::view_column_mut(
         const v2i cell_column_pos,
         const std::function<void(ViewType<CellType>&)>& function,
-        const bool create_if_missing)
+        const bool create_if_missing,
+        const bool broadcast_update_event)
     {
         view_mut<CellType>(
             v3i{ cell_column_pos.x, 0, cell_column_pos.y },
             v3i{ 1, VerticalCellCount, 1 },
             function,
-            create_if_missing
+            create_if_missing,
+            broadcast_update_event
         );
     }
 
@@ -491,7 +506,8 @@ namespace h2o
         const v3i& view_size,
         const std::function<bool(const v3i&)>& should_add_cell,
         const std::function<void(ViewType<CellType>&)>& function,
-        const bool create_if_missing)
+        const bool create_if_missing,
+        const bool broadcast_update_event)
     {
         static_assert(std::is_base_of_v<View<CellType>, ViewType<CellType>>, "ViewType must inherit View<CellType>.");
 
@@ -537,14 +553,18 @@ namespace h2o
 
             function(view);
 
-            view.for_each_cell(
-                [&](const CellType&, const v3i& cell_pos)
-                {
-                    updated_cells.push_back(cell_pos);
-                }
-            );
+            if (broadcast_update_event)
+            {
+                view.for_each_cell(
+                    [&](const CellType&, const v3i& cell_pos)
+                    {
+                        updated_cells.push_back(cell_pos);
+                    }
+                );
+            }
         }
 
-        add_to_updated_cells_list<CellType>(updated_cells);
+        if (broadcast_update_event)
+            add_to_updated_cells_list<CellType>(updated_cells);
     }
 }

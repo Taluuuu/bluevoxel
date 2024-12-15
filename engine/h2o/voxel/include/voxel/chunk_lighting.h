@@ -32,9 +32,6 @@ namespace h2o
 
         void reset();
 
-        // Can't use ChunkView directly here since chunk_manager.h includes this file
-        void update_lighting(const std::function<Block(const v3i&)>& get_block_function);
-
     private:
 
         struct LightLevel

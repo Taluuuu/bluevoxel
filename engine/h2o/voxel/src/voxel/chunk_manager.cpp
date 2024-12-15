@@ -7,15 +7,12 @@ namespace h2o
 {
     ChunkManager::ChunkManager()
     {
-        // cells_updated_event<Chunk>().add_listener(m_chunks_updated_handle,
-        //     [this](const CellsUpdatedEvent& event)
-        //     {
-        //         for (const v3i& chunk_pos : event.updated_cells)
-        //         {
-        //
-        //         }
-        //     }
-        // );
+        cells_updated_event<Chunk>().add_listener(m_chunks_updated_handle,
+            [this](const CellsUpdatedEvent& event)
+            {
+                on_chunks_updated(event);
+            }
+        );
     }
 
     Block ChunkManager::get_block_at(const v3i& block_pos)
@@ -66,6 +63,90 @@ namespace h2o
         );
 
         return is_generated;
+    }
+
+    void ChunkManager::broadcast_events()
+    {
+        Grid3D::broadcast_events();
+
+        // Manually broadcast chunk lighting update event
+        {
+            const std::unique_lock lock{ m_chunk_positions_after_lighting_update_mutex };
+
+            cells_updated_event<ChunkLighting>().broadcast(
+                CellsUpdatedEvent{ m_chunk_positions_after_lighting_update });
+
+            m_chunk_positions_after_lighting_update.clear();
+        }
+    }
+
+    void ChunkManager::on_chunks_updated(const CellsUpdatedEvent& event)
+    {
+        // Update lighting on all chunks surrounding updated chunks
+        std::unordered_set<v3i> chunks_to_update_lighting{};
+        for (const v3i& chunk_pos : event.updated_cells)
+        {
+            voxel_utils::for_v3i(chunk_pos - v3i{1}, chunk_pos + v3i{2},
+                [&](const v3i& adj_chunk_pos)
+                {
+                    chunks_to_update_lighting.insert(adj_chunk_pos);
+                }
+            );
+        }
+
+        bool should_queue_job = false;
+        {
+            const std::unique_lock lock{ m_chunk_positions_pending_lighting_update_mutex };
+            should_queue_job =
+                m_chunk_positions_pending_lighting_update.empty() &&
+                !chunks_to_update_lighting.empty();
+
+            m_chunk_positions_pending_lighting_update.insert(
+                chunks_to_update_lighting.begin(),
+                chunks_to_update_lighting.end());
+        }
+
+        if (should_queue_job)
+        {
+            g_engine->thread_pool().queue_job(0.0f,
+                [this]
+                {
+                    std::unordered_set<v3i> chunk_positions_to_update_lighting{};
+                    {
+                        const std::unique_lock lock{ m_chunk_positions_pending_lighting_update_mutex };
+                        chunk_positions_to_update_lighting =
+                            std::move(m_chunk_positions_pending_lighting_update);
+                    }
+
+                    for (const v3i& chunk_pos : chunk_positions_to_update_lighting)
+                    {
+                        view<Chunk>(chunk_pos - v3i{1}, v3i{3},
+                            [&](const Chunk::ViewType& chunk_view)
+                            {
+                                fetch_mut<ChunkLighting>(chunk_pos,
+                                    [&](ChunkLighting* lighting)
+                                    {
+                                        if (lighting)
+                                            chunk_lighting::update_lighting(*lighting, chunk_view);
+                                    }, false, false
+                                );
+                            }
+                        );
+                    }
+
+                    {
+                        const std::unique_lock lock{ m_chunk_positions_after_lighting_update_mutex };
+
+                        // Haven't decided if this is too hacky just yet.
+                        // Make sure chunks start rebuilding their mesh once their lightings
+                        // are ALL rebuilt.
+                        m_chunk_positions_after_lighting_update.insert(
+                            chunk_positions_to_update_lighting.begin(),
+                            chunk_positions_to_update_lighting.end());
+                    }
+                }
+            );
+        }
     }
 
     void chunk_lighting::update_lighting(
