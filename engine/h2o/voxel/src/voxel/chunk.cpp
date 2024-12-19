@@ -138,6 +138,15 @@ namespace h2o
 
         m_blocks[index] = block;
 
+        if (block.id == 5)
+        {
+            m_light_emitting_blocks.insert(index);
+        }
+        else
+        {
+            m_light_emitting_blocks.erase(index);
+        }
+
         // TODO: Check if the block is valid
 
         if (block != Block::Air)

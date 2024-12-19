@@ -103,7 +103,7 @@ namespace h2o
             // Draw selection highlight
             renderer.draw_cube(v3{pos} - v3{0.005f}, v3{1.01f}, line_color);
 
-            if (layer_stack.top_layer() == Layer::Game)
+            if (true)//layer_stack.top_layer() == Layer::Game)
             {
                 if (m_input->mouse_button_state(MouseButton::Left).pressed_this_frame)
                     block_placeable->set_block_at(hit_voxel.pos, Block::Air);

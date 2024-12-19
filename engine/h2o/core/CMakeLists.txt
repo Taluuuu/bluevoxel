@@ -8,6 +8,7 @@ add_library(h2o_core STATIC
     src/debug_infos.cpp
     src/engine.cpp
     src/layers.cpp
+    src/profiling/scope_timer.cpp
     src/resources.cpp
     src/text_file.cpp
     src/thread_pool.cpp

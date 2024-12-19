@@ -61,6 +61,8 @@ namespace h2o
         [[nodiscard]] bool is_generated() const { return m_is_generated; }
         void mark_generated() { m_is_generated = true; }
 
+        [[nodiscard]] const std::unordered_set<u32>& light_emitting_blocks() const { return m_light_emitting_blocks; }
+
         static constexpr size_t to_index(const v3i& local_pos);
         static constexpr bool is_valid_pos(const v3i& local_pos);
         static constexpr v3i to_block_pos(size_t index);
@@ -72,6 +74,8 @@ namespace h2o
     private:
 
         std::vector<Block> m_blocks{};
+
+        std::unordered_set<u32> m_light_emitting_blocks{};
 
         // Stores the indices of blocks to tick
         std::unordered_set<u32> m_blocks_to_tick{};

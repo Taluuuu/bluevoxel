@@ -1,7 +1,10 @@
 #include "voxel/chunk_manager.h"
 
 #include "core/engine.h"
+#include "core/profiling/scope_timer.h"
 #include "voxel/voxel_utils.h"
+
+#include <stack>
 
 namespace h2o
 {
@@ -153,6 +156,8 @@ namespace h2o
         ChunkLighting& chunk_lighting,
         const Chunk::ViewType& chunk_view)
     {
+        ScopeTimer scope_timer("Lighting Update");
+
         // TODO: Maybe figure some better place for this
         const VoxelModule& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
@@ -179,24 +184,25 @@ namespace h2o
 
         chunk_lighting.reset();
 
-        std::queue<v3i> propagation_queue{};
-        voxel_utils::for_v3i(
-            -v3i{voxel_constants::max_light_level},
-            v3i{voxel_constants::max_light_level + voxel_constants::chunk_size},
-            [&](const v3i& block_pos)
+        std::stack<v3i> propagation_stack{};
+        chunk_view.for_each_cell(
+            [&](const Chunk& chunk, const v3i& chunk_pos)
             {
-                if (chunk_view.get_block_at(block_pos, EViewRelativeTo::ViewCenter) == 5)
+                for (const u32 block_index : chunk.light_emitting_blocks())
                 {
+                    const v3i chunk_offset = chunk_pos - chunk_view.center_cell_pos();
+                    const v3i block_pos = Chunk::to_block_pos(block_index) + chunk_offset * voxel_constants::chunk_size;
+
                     lighting_view.set_light_level(block_pos, voxel_constants::max_light_level, EViewRelativeTo::ViewCenter);
-                    propagation_queue.push(block_pos);
+                    propagation_stack.push(block_pos);
                 }
             }
         );
 
-        while (!propagation_queue.empty())
+        while (!propagation_stack.empty())
         {
-            const v3i lit_block_pos = propagation_queue.front();
-            propagation_queue.pop();
+            const v3i lit_block_pos = propagation_stack.top();
+            propagation_stack.pop();
 
             static constexpr std::array offsets{
                 v3i{-1, 0, 0 },
@@ -211,8 +217,6 @@ namespace h2o
             for (const v3i& offset : offsets)
             {
                 const v3i adj_block_pos = lit_block_pos + offset;
-                // if (!Chunk::is_valid_pos(adj_block_pos))
-                //     continue;
 
                 const Block block = chunk_view.get_block_at(adj_block_pos, EViewRelativeTo::ViewCenter);
                 if (!voxel_module.is_transparent(block.id))
@@ -222,7 +226,7 @@ namespace h2o
                 if (adj_light_level < (light_level - 1) && light_level > 1)
                 {
                     lighting_view.set_light_level(adj_block_pos, light_level - 1, EViewRelativeTo::ViewCenter);
-                    propagation_queue.push(adj_block_pos);
+                    propagation_stack.push(adj_block_pos);
                 }
             }
         }

@@ -40,10 +40,11 @@ namespace h2o
         // Should not be used outside of Grid3D
         void add_cell(const v3i& cell_pos, CellType& cell);
 
-    private:
-
         [[nodiscard]] v3i get_relative_to_cell_pos(EViewRelativeTo relative_to) const;
         [[nodiscard]] bool in_bounds(const v3i& local_cell_pos) const;
+
+    private:
+
         [[nodiscard]] size_t to_index(const v3i& local_cell_pos) const;
 
     private:
@@ -122,8 +123,7 @@ namespace h2o
     }
 
     template<class CellType>
-    v3i View<CellType>::get_relative_to_cell_pos(
-        const EViewRelativeTo relative_to) const
+    v3i View<CellType>::get_relative_to_cell_pos(const EViewRelativeTo relative_to) const
     {
         switch (relative_to)
         {
