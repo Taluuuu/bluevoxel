@@ -1,13 +1,12 @@
 #include "voxel/chunk.h"
 
 #include "core/engine.h"
+#include "voxel/chunk_column_heightmap.h"
 #include "voxel/structures/voxel_structure_manager.h"
 #include "voxel/voxel_constants.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
 #include "voxel/voxel_utils.h"
-
-#include <stack>
 
 namespace h2o
 {
@@ -147,9 +146,15 @@ namespace h2o
             m_light_emitting_blocks.erase(index);
         }
 
-        // TODO: Check if the block is valid
+        if (m_chunk_column_heightmap)
+            m_chunk_column_heightmap->update(*this, to_block_pos(index));
 
         if (block != Block::Air)
             m_is_empty = false;
+    }
+
+    void Chunk::set_heightmap(const std::shared_ptr<ChunkColumnHeightmap>& heightmap)
+    {
+        m_chunk_column_heightmap = heightmap;
     }
 }

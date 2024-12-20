@@ -41,16 +41,16 @@ namespace h2o
         using CellColumnTuple = std::tuple<CellColumn<CellTypes>...>;
 
         template<typename CellType, bool = HasViewType<CellType>>
-        struct CellViewTypeHelper
-        { using type = typename CellType::ViewType; };
-        // Fallback for cell types without ViewType
-        template<typename CellType>
-        struct CellViewTypeHelper<CellType, false>
-        { using type = View<CellType>; };
+        struct CellViewTypeHelper { using type = typename CellType::ViewType; };
+        template<typename CellType> // Fallback for cell types without ViewType
+        struct CellViewTypeHelper<CellType, false> { using type = View<CellType>; };
         template<typename CellType>
         using ViewType = typename CellViewTypeHelper<CellType>::type;
 
     public:
+
+        Grid3D() = default;
+        virtual ~Grid3D() = default;
 
         template<class CellType>
         void fetch(
@@ -126,6 +126,8 @@ namespace h2o
             bool create_if_missing = false,
             bool broadcast_update_event = true);
 
+        [[nodiscard]] virtual std::shared_ptr<CellColumnTuple> create_cell_column(v2i cell_column_pos);
+
     private:
 
         [[nodiscard]] std::shared_ptr<CellColumnTuple> find_cell_column(v2i cell_column_pos) const;
@@ -133,8 +135,6 @@ namespace h2o
 
         template<class T>
         static void init_cell_column(CellColumn<T>& cell_column, v2i column_pos);
-
-        [[nodiscard]] static std::shared_ptr<CellColumnTuple> create_cell_column(v2i cell_column_pos);
 
         // These events are stored to ensure events are called on the correct thread.
         struct CellsUpdateEventData

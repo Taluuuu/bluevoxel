@@ -15,6 +15,7 @@
 
 namespace h2o
 {
+    class ChunkColumnHeightmap;
     class VoxelModule;
     struct VoxelStructureInstance;
 
@@ -63,6 +64,9 @@ namespace h2o
 
         [[nodiscard]] const std::unordered_set<u32>& light_emitting_blocks() const { return m_light_emitting_blocks; }
 
+        void set_heightmap(const std::shared_ptr<ChunkColumnHeightmap>& heightmap);
+        [[nodiscard]] const std::shared_ptr<ChunkColumnHeightmap>& column_heightmap() const { return m_chunk_column_heightmap; }
+
         static constexpr size_t to_index(const v3i& local_pos);
         static constexpr bool is_valid_pos(const v3i& local_pos);
         static constexpr v3i to_block_pos(size_t index);
@@ -76,6 +80,8 @@ namespace h2o
         std::vector<Block> m_blocks{};
 
         std::unordered_set<u32> m_light_emitting_blocks{};
+
+        std::shared_ptr<ChunkColumnHeightmap> m_chunk_column_heightmap = nullptr;
 
         // Stores the indices of blocks to tick
         std::unordered_set<u32> m_blocks_to_tick{};

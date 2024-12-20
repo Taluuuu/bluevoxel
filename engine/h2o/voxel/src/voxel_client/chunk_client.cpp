@@ -10,8 +10,9 @@
 #include "rendering/texture_array.h"
 #include "scene/scene.h"
 #include "scene_rendering/rendering_scene_system.h"
-#include "voxel/compressed_chunk.h"
+#include "voxel/chunk_column_heightmap.h"
 #include "voxel/chunk_region.h"
+#include "voxel/compressed_chunk.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_net_messages.h"
 #include "voxel/voxel_ray.h"
@@ -169,6 +170,26 @@ namespace h2o
             "voxels", "chunk columns pending decompress", m_num_chunk_columns_pending_decompress);
 
         m_chunk_mgr.broadcast_events();
+
+        // Heightmap debug if ever needed
+        // m_chunk_mgr.fetch<Chunk>(v3i{0},
+        //     [&](const Chunk* chunk)
+        //     {
+        //         if (!chunk)
+        //             return;
+        //
+        //         const auto& heightmap = chunk->column_heightmap();
+        //         if (!heightmap)
+        //             return;
+        //
+        //         for (i32 i = 0; i < 32; i++)
+        //         for (i32 j = 0; j < 32; j++)
+        //         {
+        //             const u32 height = heightmap->get_height({ i, j });
+        //             m_rendering_module->renderer().draw_sphere(v3{ i, height, j } + v3{ 0.5f, 0.0f, 0.5f }, 0.2f, v4{1.0f});
+        //         }
+        //     }
+        // );
     }
 
     void ChunkClient::request_chunk_loads()

@@ -34,6 +34,11 @@ namespace h2o
 
         void broadcast_events() override;
 
+    protected:
+
+        // Grid3D interface
+        std::shared_ptr<CellColumnTuple> create_cell_column(v2i cell_column_pos) override;
+
     private:
 
         void on_chunks_updated(const CellsUpdatedEvent& event);

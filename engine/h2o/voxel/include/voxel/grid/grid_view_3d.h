@@ -23,7 +23,7 @@ namespace h2o
     public:
 
         View(const v3i& view_min, const v3i& view_size);
-        virtual ~View() {}
+        virtual ~View() = default;
 
         [[nodiscard]] v3i center_cell_pos() const { return m_view_min + v3i{ m_view_size } / 2; }
         [[nodiscard]] v3i corner_cell_pos() const { return m_view_min; }
@@ -37,7 +37,7 @@ namespace h2o
         [[nodiscard]] const CellType* get(const v3i& position, EViewRelativeTo relative_to = EViewRelativeTo::World) const;
         [[nodiscard]] CellType* get(const v3i& position, EViewRelativeTo relative_to = EViewRelativeTo::World);
 
-        // Should not be used outside of Grid3D
+        // Should not be used outside Grid3D
         void add_cell(const v3i& cell_pos, CellType& cell);
 
         [[nodiscard]] v3i get_relative_to_cell_pos(EViewRelativeTo relative_to) const;
