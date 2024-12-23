@@ -28,7 +28,7 @@ namespace h2o
         INetPeer& client)
         : SceneSystem(system_initializer)
         , m_voxel_world_renderer(*this, m_chunk_mgr)
-        , m_voxel_bounds(v2i{}, 3)
+        , m_voxel_bounds(v2i{}, 6)
         , m_client(&client)
     {
         set_tick_phases(TickPhase::Update);
@@ -52,12 +52,15 @@ namespace h2o
 
                 // Decompressing a chunk is slow. Run it on a thread.
                 v2 player_pos_2d{ m_player_pos.x, m_player_pos.z };
+                log::info("QUEUE JOB 'DECOMPRESS CHUNKS'");
                 g_engine->thread_pool().queue_job(glm::distance(player_pos_2d, voxel_utils::chunk_to_world_pos(chunk_column_pos)),
                     [this, compressed_chunks, chunk_column_pos]()
                     {
                         // TODO: A vector of compressed chunks is always a chunk column, so the class
                         //       should be CompressedChunkColumn instead so I don't have to fetch the
                         //       column at every iteration
+
+                        std::unordered_set<v3i> updated_chunks{};
                         for (const auto& compressed_chunk : compressed_chunks)
                         {
                             const v3i chunk_pos = compressed_chunk.chunk_pos();
@@ -66,9 +69,12 @@ namespace h2o
                                 {
                                     assert(chunk != nullptr);
                                     compressed_chunk.decompress(*chunk);
-                                }, true
+                                    updated_chunks.insert(chunk_pos);
+                                }, true, false
                             );
                         }
+
+                        m_chunk_mgr.cells_updated_event<Chunk>().broadcast({ updated_chunks });
 
                         --m_num_chunk_columns_pending_decompress;
                     }

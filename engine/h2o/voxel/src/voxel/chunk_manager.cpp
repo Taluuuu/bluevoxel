@@ -125,6 +125,7 @@ namespace h2o
 
         if (should_queue_job)
         {
+            log::info("QUEUE JOB 'UPDATE LIGHTING'");
             g_engine->thread_pool().queue_job(0.0f,
                 [this]
                 {
@@ -184,7 +185,7 @@ namespace h2o
         temporary_chunk_lightings.reserve(3 * 3 * 3 - 1);
 
         {
-            ScopeTimer scope_timer("A");
+            // ScopeTimer scope_timer("A");
 
             voxel_utils::for_v3i(corner_chunk_pos, corner_chunk_pos + v3i{ 3 },
                 [&](const v3i& chunk_pos)
@@ -204,7 +205,7 @@ namespace h2o
 
         std::array<std::vector<v3i>, voxel_constants::max_light_level + 1> propagation_stacks{};
         {
-            ScopeTimer scope_timer("B");
+            // ScopeTimer scope_timer("B");
 
             chunk_view.for_each_cell(
                 [&](const Chunk& chunk, const v3i& chunk_pos)
@@ -221,11 +222,11 @@ namespace h2o
             );
         }
 
+        constexpr v3i min_block{ -i32(voxel_constants::max_light_level) };
+        constexpr v3i max_block{ voxel_constants::chunk_size + voxel_constants::max_light_level };
+
         {
             ScopeTimer scope_timer("C");
-
-            const v3i min_block{ -i32(voxel_constants::max_light_level) };
-            const v3i max_block{ voxel_constants::chunk_size + voxel_constants::max_light_level };
 
             for (i32 i = -1; i <= 1; i++)
             for (i32 j = -1; j <= 1; j++)
@@ -241,15 +242,48 @@ namespace h2o
                 for (i32 height_x = 0; height_x < voxel_constants::chunk_size; height_x++)
                 for (i32 height_z = 0; height_z < voxel_constants::chunk_size; height_z++)
                 {
+                    v3i block_pos{
+                        height_x + i * voxel_constants::chunk_size, 0,
+                        height_z + j * voxel_constants::chunk_size
+                    };
+
+                    if (block_pos.x <  min_block.x || block_pos.z <  min_block.z ||
+                        block_pos.x >= max_block.x || block_pos.z >= max_block.z)
+                        continue;
+
                     const u32 height = heightmap->get_height({ height_x, height_z });
                     const i32 height_relative_to_center = i32(height) - center_chunk_pos.y * voxel_constants::chunk_size;
-                    const v3i block_pos{ height_x + i * voxel_constants::chunk_size, height_relative_to_center, height_z + j * voxel_constants::chunk_size };
 
-                    if (block_pos.x >= min_block.x && block_pos.y >= min_block.y && block_pos.z >= min_block.z &&
-                        block_pos.x <  max_block.x && block_pos.y <  max_block.y && block_pos.z <  max_block.z)
+                    static constexpr std::array offsets
                     {
+                        v2i{-1, 0 },
+                        v2i{ 1, 0 },
+                        v2i{ 0,-1 },
+                        v2i{ 0, 1 },
+                    };
+
+                    u32 max_adj_height = 0;
+                    for (const v2i offset : offsets)
+                    {
+                        const v2i adj_pos = offset + v2i{ height_x, height_z };
+                        const bool is_adj_pos_valid =
+                            adj_pos.x >= 0 && adj_pos.x < voxel_constants::chunk_size &&
+                            adj_pos.y >= 0 && adj_pos.y < voxel_constants::chunk_size;
+
+                        max_adj_height = glm::max(max_adj_height, is_adj_pos_valid ?
+                            heightmap->get_height(adj_pos) : voxel_constants::vertical_block_count);
+                    }
+
+                    block_pos.y = height_relative_to_center;
+                    for (; block_pos.y < max_block.y; block_pos.y++)
+                    {
+                        if (block_pos.y < min_block.y)
+                            continue;
+
                         lighting_view.set_light_level(block_pos, voxel_constants::max_light_level, EViewRelativeTo::ViewCenter);
-                        propagation_stacks[voxel_constants::max_light_level].push_back(block_pos);
+
+                        if (block_pos.y <= max_adj_height)
+                            propagation_stacks[voxel_constants::max_light_level].push_back(block_pos);
                     }
                 }
             }
@@ -257,6 +291,7 @@ namespace h2o
 
         {
             ScopeTimer scope_timer("D");
+            // log::info("{}", propagation_stacks[15].size());
 
             for (auto it = propagation_stacks.rbegin(); it != propagation_stacks.rend(); ++it)
             {
@@ -276,8 +311,13 @@ namespace h2o
                     {
                         const v3i adj_block_pos = lit_block_pos + offset;
 
-                        const Block block = chunk_view.get_block_at(adj_block_pos, EViewRelativeTo::ViewCenter);
-                        if (!voxel_module.is_transparent(block.id))
+                        if (adj_block_pos.x < min_block.x || adj_block_pos.x >= max_block.x ||
+                            adj_block_pos.y < min_block.y || adj_block_pos.y >= max_block.y ||
+                            adj_block_pos.z < min_block.z || adj_block_pos.z >= max_block.z)
+                            continue;
+
+                        const Block adj_block = chunk_view.get_block_at(adj_block_pos, EViewRelativeTo::ViewCenter);
+                        if (!voxel_module.is_transparent(adj_block.id))
                             continue;
 
                         const u8 adj_light_level = lighting_view.get_light_level(adj_block_pos, EViewRelativeTo::ViewCenter);

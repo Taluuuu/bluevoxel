@@ -28,7 +28,7 @@ namespace h2o
         if (!m_input)
             return;
 
-        g_engine->layer_stack().push_layer(Layer::Game, LayerData { true, false });
+        // g_engine->layer_stack().push_layer(Layer::Game, LayerData { true, false });
 
         const v3 cam_input {
             m_input->get_axis("cam_x"),

@@ -45,6 +45,7 @@ namespace h2o
                 {
                     region = std::make_shared<ChunkRegionData>(region_pos);
 
+                    log::info("QUEUE JOB 'GENERATE REGION'");
                     g_engine->thread_pool().queue_job(0.0f,
                         [this, region_pos]
                         {
