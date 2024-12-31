@@ -1,8 +1,9 @@
 #include "core/engine.h"
 
+#include "core/core_interfaces.h"
 #include "core/log.h"
 #include "core/module.h"
-#include "core/core_interfaces.h"
+#include "core/time_provider_chrono.h"
 
 #include <algorithm>
 #include <magic_enum.hpp>
@@ -38,6 +39,12 @@ namespace h2o
         g_engine = nullptr;
     }
 
+    const ITimeProvider& Engine::time_provider() const
+    {
+        assert(m_time_provider != nullptr);
+        return *m_time_provider;
+    }
+
     void Engine::run()
     {
         // Fixes output in debug in CLion
@@ -45,6 +52,9 @@ namespace h2o
 
         if (!init_modules())
             return;
+
+        if (!m_time_provider)
+            m_time_provider = std::make_shared<TimeProvider_Chrono>();
 
         m_thread_pool.start();
 
@@ -61,16 +71,9 @@ namespace h2o
         if (m_input_module)
             m_input_module->prepare();
 
-        // TODO: Make these work without a window
-        f32 delta_time = 0.0f;
-        if (m_window_module)
-        {
-            m_window_module->poll_events();
-            delta_time = static_cast<f32>(m_window_module->delta_time());
-            m_current_time = static_cast<f32>(m_window_module->time());
-        }
+        run_frame_start();
 
-        run_frame_start(delta_time);
+        const f32 delta_time = m_time_provider->delta_time();
 
         m_time_since_network_update += delta_time;
         if (m_time_since_network_update > m_time_between_network_updates)
@@ -85,18 +88,15 @@ namespace h2o
 
         // General engine stats
         m_debug_infos.update_debug_statistic("engine", "queued job count",
-            i32(m_thread_pool.job_count()));
+            static_cast<i32>(m_thread_pool.job_count()));
         m_debug_infos.update_debug_statistic("engine", "thread count",
-            i32(m_thread_pool.thread_count()));
+            static_cast<i32>(m_thread_pool.thread_count()));
 
         run_pre_render();
         run_render();
         run_post_render();
 
         run_frame_end(delta_time);
-
-        if (m_window_module)
-            m_window_module->swap_buffers(60.0);
     }
 
     bool Engine::init_modules()
@@ -186,12 +186,6 @@ namespace h2o
         for (const auto& [_, module] : m_initialized_modules)
         {
             // Query interfaces...
-            // TODO: These should go, modules should do stuff by themselves.
-            if (auto window_module = dynamic_cast<IWindowModule*>(module))
-            {
-                assert(!m_window_module);
-                m_window_module = window_module;
-            }
             if (auto input_module = dynamic_cast<IInputModule*>(module))
             {
                 assert(!m_input_module);

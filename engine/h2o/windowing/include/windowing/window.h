@@ -61,7 +61,7 @@ namespace h2o
 
         /**
          * @brief Get the time since the last frame in seconds
-         * 
+         *
          * @return The time since the last frame in seconds
          */
         [[nodiscard]] virtual f64 delta_time() const = 0;
@@ -76,12 +76,6 @@ namespace h2o
         [[nodiscard]] virtual bool should_close() const = 0;
 
         /**
-         * @brief Poll the window for events
-         * 
-         */
-        virtual void poll_events() const = 0;
-
-        /**
          * @brief Get this window's wrapped instance pointer. With a GLFW
          *        window, this is the GLFWwindow* pointer.
          * 
@@ -91,10 +85,8 @@ namespace h2o
 
         /**
          * @brief Swap the window's buffers
-         * 
-         * @param max_fps The fps lock
          */
-        virtual void swap_buffers(f64 max_fps) = 0;
+        virtual void swap_buffers() = 0;
 
         virtual void set_capture_mouse(bool capture) = 0;
         [[nodiscard]] virtual bool is_mouse_captured() const = 0;

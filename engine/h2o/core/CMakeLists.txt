@@ -13,6 +13,7 @@ add_library(h2o_core STATIC
     src/text_file.cpp
     src/thread_pool.cpp
     src/tickable.cpp
+    src/time_provider_chrono.cpp
     src/utils.cpp
 )
 

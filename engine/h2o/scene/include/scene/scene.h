@@ -64,6 +64,12 @@ namespace h2o
 
         void tag_actor(const WeakHandle<Actor>& actor, ActorTag tag);
 
+        [[nodiscard]] INetPeer* net_peer() const { return m_net_peer; }
+
+    protected:
+
+        [[nodiscard]] SceneSystemInitializer make_system_initializer();
+
     private:
 
         std::unordered_map< ActorID, OwningHandle<Actor> > m_actor_map{};
@@ -153,12 +159,7 @@ namespace h2o
             return nullptr;
         }
 
-        SceneSystemInitializer system_initializer
-        {
-            .owning_scene = *this
-        };
-
-        OwningHandle<T> system = oup::make_observable_unique<T>(system_initializer, args...);
+        OwningHandle<T> system = oup::make_observable_unique<T>(make_system_initializer(), args...);
         WeakHandle<T> weak_system_handle = system;
 
         m_system_map.insert({ typeid(T), std::move(system) });

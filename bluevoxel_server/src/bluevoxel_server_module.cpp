@@ -9,6 +9,7 @@
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_server/chunk_server.h"
+#include "weather/weather_system.h"
 
 #include <vector>
 
@@ -39,6 +40,7 @@ namespace bluevoxel
         // auto chunk_generator = std::make_shared<h2o::ChunkGenerator_Flat>();
         // chunk_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
         m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::Server&>(m_server);
+        m_scene->add_system<h2o::WeatherSystem>();
 
         m_server.on_player_joined.add_listener(m_player_joined_event_handle,
             [&](const h2o::Server::PlayerConnectionChangedEvent& event)

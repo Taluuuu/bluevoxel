@@ -15,6 +15,10 @@ namespace h2o
         glfwTerminate();
     }
 
+    WindowingModule::WindowingModule()
+        : Tickable(g_engine)
+    {}
+
     bool WindowingModule::init(Engine& engine)
     {
         if (!glfwInit())
@@ -29,6 +33,8 @@ namespace h2o
             glfwTerminate();
             return false;
         }
+
+        set_tick_phases(TickPhase::FrameStart | TickPhase::FrameEnd);
 
         return true;
     }
@@ -45,24 +51,23 @@ namespace h2o
         return m_window->time();
     }
 
-    void WindowingModule::poll_events() const
-    {
-        assert(m_window != nullptr);
-        glfwPollEvents();
-        m_window->poll_events();
-
-        g_engine->should_close = m_window->should_close();
-    }
-
-    void WindowingModule::swap_buffers(f64 max_fps) const
-    {
-        assert(m_window != nullptr);
-        m_window->swap_buffers(max_fps);
-    }
-
     IWindow& WindowingModule::window() const
     {
         assert(m_window != nullptr);
         return *m_window;
+    }
+
+    void WindowingModule::frame_start()
+    {
+        assert(m_window != nullptr);
+        glfwPollEvents();
+
+        g_engine->should_close = m_window->should_close();
+    }
+
+    void WindowingModule::frame_end(const f32 delta_time)
+    {
+        assert(m_window != nullptr);
+        m_window->swap_buffers();
     }
 }

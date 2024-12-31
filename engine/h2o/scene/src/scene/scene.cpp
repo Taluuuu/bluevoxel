@@ -86,4 +86,13 @@ namespace h2o
 
         actor->m_actor_tag = tag;
     }
+
+    SceneSystemInitializer Scene::make_system_initializer()
+    {
+        return SceneSystemInitializer
+        {
+            .owning_scene = *this,
+            .is_host = m_net_peer ? m_net_peer->is_host() : true
+        };
+    }
 }

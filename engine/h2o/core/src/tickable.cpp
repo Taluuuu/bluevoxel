@@ -30,7 +30,7 @@ namespace h2o
         m_pending_children.erase(&tickable);
     }
 
-    void Tickable::run_frame_start(f32 delta_time)
+    void Tickable::run_frame_start()
     {
         for (Tickable* tickable : m_pending_children)
             m_children.emplace(tickable);
@@ -40,10 +40,10 @@ namespace h2o
         if (is_enabled())
         {
             if (m_tick_phases & TickPhase::FrameStart)
-                frame_start(delta_time);
+                frame_start();
 
             for (Tickable* child: m_children)
-                child->run_frame_start(delta_time);
+                child->run_frame_start();
         }
     }
 

@@ -18,6 +18,7 @@
 #include "voxel/voxel_pack.h"
 #include "voxel_client/chunk_client.h"
 #include "voxel_client/block_placing_component.h"
+#include "weather/weather_system.h"
 
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -158,6 +159,7 @@ namespace bluevoxel
         m_scene->add_system<h2o::RenderingSystem>();
         m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
+        m_scene->add_system<h2o::WeatherSystem>();
 
         spawn_local_player();
     }

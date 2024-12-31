@@ -36,6 +36,7 @@ namespace h2o
         // NetPeer interface
         [[nodiscard]] const std::unordered_set<PeerID>& peers() const override;
         [[nodiscard]] bool is_connected() const override { return m_connection_state == ConnectionState::Connected; }
+        [[nodiscard]] bool is_host() const override { return false; }
         void stop() final;
     protected:
         void send_message_internal(PeerID client_id, const void* data, size_t size) override;

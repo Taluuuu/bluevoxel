@@ -27,7 +27,7 @@ namespace h2o::gfx
         bool init(IWindow& window, const GameInfo& game_info) override;
         void cleanup() override;
         void start_frame() override;
-        void end_frame() override;
+        void post_render() override;
         u32 allocate_vertex_array() override;
         void destroy_vertex_array(u32 vertex_array_id) override;
         void attach_vertex_buffer(u32 vertex_array_id, const Buffer& buffer, u32 binding_index, i64 offset, i32 stride) override;

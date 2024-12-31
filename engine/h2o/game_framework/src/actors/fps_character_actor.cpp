@@ -139,7 +139,7 @@ namespace h2o
             delta_time);
 
         // Jump
-        const f32 current_time = g_engine->current_time();
+        const f32 current_time = g_engine->time_provider().time();
         if (m_input->key_state(Key::Space).held && current_time > m_last_jump_time + min_time_between_jumps)
         {
             m_last_jump_time = current_time;

@@ -22,7 +22,7 @@ namespace h2o
     {
         m_input_module = &engine.get_module_checked<InputModule>();
 
-        set_tick_phases(TickPhase::PostUpdate | TickPhase::FrameEnd);
+        set_tick_phases(TickPhase::PostUpdate | TickPhase::PostRender);
 
         return true;
     }
@@ -76,7 +76,7 @@ namespace h2o
         }
     }
 
-    void UIModule::frame_end(f32 delta_time)
+    void UIModule::post_render()
     {
         auto& layer_stack = g_engine->layer_stack();
         const auto& layer_data = layer_stack.top_layer_data();

@@ -82,7 +82,7 @@ namespace h2o
                     }
                 }
 
-                log::info("QUEUE JOB 'REMESH CHUNK'");
+                // log::info("QUEUE JOB 'REMESH CHUNK'");
                 g_engine->thread_pool().queue_job(glm::distance(player_pos, voxel_utils::chunk_to_world_pos(chunk_pos)),
                     [this, chunk_pos]
                     {

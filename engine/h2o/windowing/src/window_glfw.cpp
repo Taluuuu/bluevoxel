@@ -1,12 +1,13 @@
 #include "window_glfw.h"
 
+#include "core/engine.h"
 #include "core/log.h"
 
 #include <GLFW/glfw3.h>
 
 namespace h2o
 {
-    Window_GLFW* Window_GLFW::create(const std::string_view& title, v2i size)
+    Window_GLFW* Window_GLFW::create(const std::string_view& title, const v2i size)
     {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
@@ -38,19 +39,20 @@ namespace h2o
         glfwSetCursorPosCallback(m_handle, mouse_moved_callback);
         glfwSetScrollCallback(m_handle, mouse_scroll_callback);
 
-        // TODO: Investigate why setting this to 1 halves the fucking
-        //       mouse sensitivity
         glfwSwapInterval(0);
 
         if (glfwRawMouseMotionSupported())
             glfwSetInputMode(m_handle, GLFW_RAW_MOUSE_MOTION, GL_TRUE);
     }
 
-    Window_GLFW::Window_GLFW(Window_GLFW&& other) noexcept
-    {
-        m_handle = other.m_handle;
-        other.m_handle = nullptr;
-    }
+    // Window_GLFW::Window_GLFW(Window_GLFW&& other)
+    //     : Tickable(g_engine)
+    // {
+    //     m_handle = other.m_handle;
+    //     other.m_handle = nullptr;
+    //
+    //     set_tick_phases(TickPhase::FrameEnd);
+    // }
 
     Window_GLFW::~Window_GLFW()
     {
@@ -87,29 +89,19 @@ namespace h2o
         return m_previous_time;
     }
 
-    void Window_GLFW::poll_events() const
-    {
-        // Managing window input?
-    }
-
     void *Window_GLFW::handle() const
     {
         return m_handle;
     }
 
-    void Window_GLFW::swap_buffers(f64 max_fps)
+    void Window_GLFW::swap_buffers()
     {
         glfwSwapBuffers(m_handle);
 
-        f64 curTime = glfwGetTime();
+        const f64 current_time = glfwGetTime();
 
-        // Apply framerate lock
-        // f64 targetTime = m_previous_time + (1.0 / max_fps);
-        // while(curTime < targetTime)
-        //     curTime = glfwGetTime();
-
-        m_delta_time = curTime - m_previous_time;
-        m_previous_time = curTime;
+        m_delta_time = current_time - m_previous_time;
+        m_previous_time = current_time;
     }
 
     void Window_GLFW::set_capture_mouse(bool capture)
@@ -345,6 +337,5 @@ namespace h2o
         assert(window);
 
         window->m_mouse_scroll_event.broadcast({{ static_cast<f32>(xoffset), static_cast<f32>(yoffset) }});
-
     }
 }

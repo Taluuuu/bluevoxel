@@ -146,7 +146,6 @@ namespace h2o::gfx
         // Init ImGui
         ImGui::CreateContext();
 
-        // TODO: Move this to windowing module ??
         if (!ImGui_ImplGlfw_InitForOpenGL(static_cast<GLFWwindow*>(window.handle()), true))
         {
             log::error("Failed to initialize ImGui GLFW.");
@@ -180,13 +179,13 @@ namespace h2o::gfx
         Renderer_Base::start_frame();
     }
 
-    void Renderer_OpenGL::end_frame()
+    void Renderer_OpenGL::post_render()
     {
         ImGui::Render();
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-        Renderer_Base::end_frame();
+        Renderer_Base::post_render();
     }
 
     void Renderer_OpenGL::set_clear_color(const v4& color)

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/tickable.h"
 #include "core/types.h"
 #include "windowing/window.h"
 
@@ -23,7 +24,7 @@ namespace h2o
     public:
 
         Window_GLFW(const Window_GLFW&) = delete;
-        Window_GLFW(Window_GLFW&& other) noexcept;
+        // Window_GLFW(Window_GLFW&& other) noexcept;
         ~Window_GLFW() override;
 
         // IWindow interface
@@ -32,9 +33,8 @@ namespace h2o
         [[nodiscard]] bool should_close() const override;
         [[nodiscard]] f64 delta_time() const override;
         [[nodiscard]] f64 time() const override;
-        void poll_events() const override;
         [[nodiscard]] void* handle() const override;
-        void swap_buffers(f64 max_fps) override;
+        void swap_buffers() override;
         void set_capture_mouse(bool capture) override;
         [[nodiscard]] bool is_mouse_captured() const override;
         Event<WindowResizeEvent>& resize_event() override;

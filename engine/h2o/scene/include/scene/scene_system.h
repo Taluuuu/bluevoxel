@@ -9,6 +9,7 @@ namespace h2o
     struct SceneSystemInitializer
     {
         Scene& owning_scene;
+        bool is_host = true;
     };
 
     class SceneSystem : public Tickable

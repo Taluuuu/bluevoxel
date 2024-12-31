@@ -3,30 +3,24 @@ cmake_minimum_required(VERSION 3.20)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
-add_executable(bluevoxel_server
-    src/bluevoxel_server_module.cpp
-    src/main.cpp
+add_library(h2o_weather STATIC
+    src/weather.cpp
+    src/weather_system.cpp
 )
 
-target_link_libraries(bluevoxel_server
+target_link_libraries(h2o_weather
     PRIVATE
         h2o_core
-        h2o_graph
         h2o_networking
         h2o_scene
-        h2o_voxel
-        h2o_weather
 )
 
-target_include_directories(bluevoxel_server
+target_include_directories(h2o_weather
     PUBLIC
         include/
 
     PRIVATE
         h2o_core
-        h2o_graph
         h2o_networking
         h2o_scene
-        h2o_voxel
-        h2o_weather
 )

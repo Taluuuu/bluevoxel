@@ -37,6 +37,7 @@ namespace h2o
 
         [[nodiscard]] virtual const std::unordered_set<PeerID>& peers() const = 0;
         [[nodiscard]] virtual bool is_connected() const = 0;
+        [[nodiscard]] virtual bool is_host() const { return true; }
 
     protected:
 

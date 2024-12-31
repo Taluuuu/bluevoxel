@@ -52,7 +52,7 @@ namespace h2o
 
         void set_tick_phases(TickPhase::Type tick_phases) { m_tick_phases = tick_phases; }
 
-        void run_frame_start(f32 delta_time);
+        void run_frame_start();
         void run_update(f32 delta_time);
         void run_physics_update(f32 delta_time);
         void run_post_update(f32 delta_time);
@@ -62,7 +62,7 @@ namespace h2o
         void run_post_render();
         void run_frame_end(f32 delta_time);
 
-        virtual void frame_start(f32 delta_time)    { assert(false); }
+        virtual void frame_start()                  { assert(false); }
         virtual void update(f32 delta_time)         { assert(false); }
         virtual void physics_update(f32 delta_time) { assert(false); }
         virtual void post_update(f32 delta_time)    { assert(false); }

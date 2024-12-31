@@ -125,7 +125,7 @@ namespace h2o
 
         if (should_queue_job)
         {
-            log::info("QUEUE JOB 'UPDATE LIGHTING'");
+            // log::info("QUEUE JOB 'UPDATE LIGHTING'");
             g_engine->thread_pool().queue_job(0.0f,
                 [this]
                 {
@@ -226,7 +226,7 @@ namespace h2o
         constexpr v3i max_block{ voxel_constants::chunk_size + voxel_constants::max_light_level };
 
         {
-            ScopeTimer scope_timer("C");
+            // ScopeTimer scope_timer("C");
 
             for (i32 i = -1; i <= 1; i++)
             for (i32 j = -1; j <= 1; j++)
@@ -290,7 +290,7 @@ namespace h2o
         }
 
         {
-            ScopeTimer scope_timer("D");
+            // ScopeTimer scope_timer("D");
             // log::info("{}", propagation_stacks[15].size());
 
             for (auto it = propagation_stacks.rbegin(); it != propagation_stacks.rend(); ++it)

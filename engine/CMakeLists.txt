@@ -49,6 +49,7 @@ add_subdirectory(lib/FastNoise2)
 
 # Engine libraries
 add_subdirectory(h2o/core)
+add_subdirectory(h2o/weather)
 add_subdirectory(h2o/input)
 add_subdirectory(h2o/windowing)
 add_subdirectory(h2o/rendering)

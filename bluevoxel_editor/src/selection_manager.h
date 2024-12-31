@@ -59,7 +59,7 @@ namespace bluevoxel
 
     protected:
 
-        void frame_start(f32 delta_time) override;
+        void frame_start() override;
         void post_update(f32 delta_time) override;
 
     private:

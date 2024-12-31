@@ -4,15 +4,18 @@
 
 namespace h2o::msg_ids
 {
-    const MsgID test = 100;
+    constexpr MsgID test = 100;
 
     // Scene replication
-    const MsgID player_join = 200;
-    const MsgID transform_update = 201;
-    const MsgID actor_destroyed = 202;
+    constexpr MsgID player_join = 200;
+    constexpr MsgID transform_update = 201;
+    constexpr MsgID actor_destroyed = 202;
 
     // Voxels
-    const MsgID chunk_fetch_request = 300;
-    const MsgID chunk_fetch_result = 301;
-    const MsgID block_placed = 302;
+    constexpr MsgID chunk_fetch_request = 300;
+    constexpr MsgID chunk_fetch_result = 301;
+    constexpr MsgID block_placed = 302;
+
+    // Weather
+    constexpr MsgID time_changed = 400;
 }

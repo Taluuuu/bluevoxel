@@ -73,7 +73,7 @@ namespace bluevoxel
         primitives.clear();
     }
 
-    void SelectionManager::frame_start(f32 delta_time)
+    void SelectionManager::frame_start()
     {
         const auto& window = m_window_module->window();
         const auto& renderer = m_rendering_module->renderer();

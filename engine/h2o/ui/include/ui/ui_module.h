@@ -31,7 +31,7 @@ namespace h2o
 
         // Tickable interface
         void post_update(f32 delta_time) override;
-        void frame_end(f32 delta_time) override;
+        void post_render() override;
 
     private:
 

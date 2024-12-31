@@ -21,6 +21,7 @@ target_link_libraries(bluevoxel_client
         h2o_scene
         h2o_ui
         h2o_voxel
+        h2o_weather
         h2o_windowing
 )
 
@@ -37,5 +38,6 @@ target_include_directories(bluevoxel_client
         h2o_scene
         h2o_ui
         h2o_voxel
+        h2o_weather
         h2o_windowing
 )

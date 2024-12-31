@@ -52,7 +52,7 @@ namespace h2o
 
                 // Decompressing a chunk is slow. Run it on a thread.
                 v2 player_pos_2d{ m_player_pos.x, m_player_pos.z };
-                log::info("QUEUE JOB 'DECOMPRESS CHUNKS'");
+                // log::info("QUEUE JOB 'DECOMPRESS CHUNKS'");
                 g_engine->thread_pool().queue_job(glm::distance(player_pos_2d, voxel_utils::chunk_to_world_pos(chunk_column_pos)),
                     [this, compressed_chunks, chunk_column_pos]()
                     {
