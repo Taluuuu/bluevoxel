@@ -11,6 +11,7 @@
 #include "ui/imgui.h"
 #include "voxel/voxel_pack.h"
 #include "voxel_client/block_placing_component.h"
+#include "weather/weather_system.h"
 
 namespace bluevoxel
 {
@@ -34,6 +35,7 @@ namespace bluevoxel
 
         m_scene = std::make_shared<h2o::Scene>("editor_scene", nullptr);
         m_scene->add_system<h2o::RenderingSystem>();
+        m_scene->add_system<h2o::WeatherSystem>();
 
         const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
 

@@ -33,6 +33,7 @@ target_link_libraries(bluevoxel_editor
         h2o_ui
         h2o_voxel
         h2o_windowing
+        h2o_weather
 )
 
 target_include_directories(bluevoxel_editor
@@ -51,4 +52,5 @@ target_include_directories(bluevoxel_editor
         h2o_ui
         h2o_voxel
         h2o_windowing
+        h2o_weather
 )

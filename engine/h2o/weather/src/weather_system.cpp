@@ -37,16 +37,17 @@ namespace h2o
 
     void WeatherSystem::network_update(const f32 delta_time)
     {
-        if (const auto net_peer = m_scene->net_peer())
-        {
-            if (net_peer->is_host())
-            {
-                m_current_time++;
+        // TODO: Clearly I can come up with a better system for this...
+        const auto net_peer = m_scene->net_peer();
 
-                const net_msg::TimeChanged time_changed_msg{ m_current_time };
-                for (const auto peer : net_peer->peers())
-                    net_peer->send_message(peer, time_changed_msg);
-            }
+        if (!net_peer || net_peer->is_host())
+            m_current_time++;
+
+        if (net_peer && net_peer->is_host())
+        {
+            const net_msg::TimeChanged time_changed_msg{ m_current_time };
+            for (const auto peer : net_peer->peers())
+                net_peer->send_message(peer, time_changed_msg);
         }
     }
 
