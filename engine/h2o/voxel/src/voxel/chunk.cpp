@@ -105,6 +105,11 @@ namespace h2o
         return !any_matches([](const Chunk* chunk) { return !chunk || !chunk->is_generated(); });
     }
 
+    // void Chunk::ViewType::add_cell(const v3i& cell_pos, Chunk& cell)
+    // {
+    //     View::add_cell(cell_pos, cell);
+    // }
+
     void Chunk::init(const v3i& position)
     {
         m_chunk_pos = position;

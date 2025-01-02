@@ -167,14 +167,12 @@ namespace h2o
         }
     }
 
-    void chunk_lighting::update_lighting(
-        ChunkLighting& chunk_lighting,
-        const Chunk::ViewType& chunk_view)
+    void chunk_lighting::update_lighting(ChunkLighting& chunk_lighting, const Chunk::ViewType& chunk_view)
     {
-        // ScopeTimer scope_timer("Lighting Update");
+        chunk_lighting.reset();
 
-        // TODO: Maybe figure some better place for this
-        const VoxelModule& voxel_module = g_engine->get_module_checked<VoxelModule>();
+        constexpr v3i min_block{ -i32(voxel_constants::max_light_level) };
+        constexpr v3i max_block{ voxel_constants::chunk_size + voxel_constants::max_light_level };
 
         const v3i center_chunk_pos = chunk_view.center_cell_pos();
         const v3i corner_chunk_pos = chunk_view.corner_cell_pos();
@@ -184,29 +182,21 @@ namespace h2o
         std::vector<ChunkLighting> temporary_chunk_lightings{};
         temporary_chunk_lightings.reserve(3 * 3 * 3 - 1);
 
-        {
-            // ScopeTimer scope_timer("A");
-
-            voxel_utils::for_v3i(corner_chunk_pos, corner_chunk_pos + v3i{ 3 },
-                [&](const v3i& chunk_pos)
+        voxel_utils::for_v3i(corner_chunk_pos, corner_chunk_pos + v3i{ 3 },
+            [&](const v3i& chunk_pos)
+            {
+                if (chunk_pos == center_chunk_pos)
                 {
-                    if (chunk_pos == center_chunk_pos)
-                    {
-                        lighting_view.add_cell(chunk_pos, chunk_lighting);
-                        return;
-                    }
-
-                    lighting_view.add_cell(chunk_pos, temporary_chunk_lightings.emplace_back());
+                    lighting_view.add_cell(chunk_pos, chunk_lighting);
+                    return;
                 }
-            );
 
-            chunk_lighting.reset();
-        }
+                lighting_view.add_cell(chunk_pos, temporary_chunk_lightings.emplace_back());
+            }
+        );
 
-        std::array<std::vector<v3i>, voxel_constants::max_light_level + 1> propagation_stacks{};
         {
-            // ScopeTimer scope_timer("B");
-
+            std::vector<v3i> light_sources{};
             chunk_view.for_each_cell(
                 [&](const Chunk& chunk, const v3i& chunk_pos)
                 {
@@ -215,18 +205,17 @@ namespace h2o
                         const v3i chunk_offset = chunk_pos - chunk_view.center_cell_pos();
                         const v3i block_pos = Chunk::to_block_pos(block_index) + chunk_offset * voxel_constants::chunk_size;
 
-                        lighting_view.set_light_level(block_pos, voxel_constants::max_light_level, EViewRelativeTo::ViewCenter);
-                        propagation_stacks[voxel_constants::max_light_level].push_back(block_pos);
+                        lighting_view.set_light_level(block_pos, voxel_constants::max_light_level, ChunkLightingType::Light, EViewRelativeTo::ViewCenter);
+                        light_sources.push_back(block_pos);
                     }
                 }
             );
+
+            propagate_lighting(lighting_view, chunk_view, ChunkLightingType::Light, light_sources);
         }
 
-        constexpr v3i min_block{ -i32(voxel_constants::max_light_level) };
-        constexpr v3i max_block{ voxel_constants::chunk_size + voxel_constants::max_light_level };
-
         {
-            // ScopeTimer scope_timer("C");
+            std::vector<v3i> light_sources{};
 
             for (i32 i = -1; i <= 1; i++)
             for (i32 j = -1; j <= 1; j++)
@@ -280,52 +269,70 @@ namespace h2o
                         if (block_pos.y < min_block.y)
                             continue;
 
-                        lighting_view.set_light_level(block_pos, voxel_constants::max_light_level, EViewRelativeTo::ViewCenter);
+                        lighting_view.set_light_level(block_pos, voxel_constants::max_light_level, ChunkLightingType::Sunlight, EViewRelativeTo::ViewCenter);
 
                         if (block_pos.y <= max_adj_height)
-                            propagation_stacks[voxel_constants::max_light_level].push_back(block_pos);
+                            light_sources.push_back(block_pos);
                     }
                 }
             }
+
+            propagate_lighting(lighting_view, chunk_view, ChunkLightingType::Sunlight, light_sources);
         }
+    }
 
+    void chunk_lighting::propagate_lighting(
+        ChunkLighting::ViewType& lighting_view,
+        const Chunk::ViewType& chunk_view,
+        const ChunkLightingType lighting_type,
+        const std::vector<v3i>& light_sources)
+    {
+        const auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
+
+        std::array<std::vector<v3i>, voxel_constants::max_light_level + 1> propagation_stacks{};
+        propagation_stacks[voxel_constants::max_light_level] = light_sources;
+
+        constexpr v3i min_block{ -i32(voxel_constants::max_light_level) };
+        constexpr v3i max_block{ voxel_constants::chunk_size + voxel_constants::max_light_level };
+
+        for (auto it = propagation_stacks.rbegin(); it != propagation_stacks.rend(); ++it)
         {
-            // ScopeTimer scope_timer("D");
-            // log::info("{}", propagation_stacks[15].size());
-
-            for (auto it = propagation_stacks.rbegin(); it != propagation_stacks.rend(); ++it)
+            for (const v3i& lit_block_pos : *it)
             {
-                for (const v3i& lit_block_pos : *it)
+                static constexpr std::array offsets{
+                    v3i{-1, 0, 0 },
+                    v3i{ 1, 0, 0 },
+                    v3i{ 0,-1, 0 },
+                    v3i{ 0, 1, 0 },
+                    v3i{ 0, 0,-1 },
+                    v3i{ 0, 0, 1 },
+                };
+
+                const u8 light_level = lighting_view
+                    .get_light_level(lit_block_pos, EViewRelativeTo::ViewCenter)
+                    .get(lighting_type);
+
+                for (const v3i& offset : offsets)
                 {
-                    static constexpr std::array offsets{
-                        v3i{-1, 0, 0 },
-                        v3i{ 1, 0, 0 },
-                        v3i{ 0,-1, 0 },
-                        v3i{ 0, 1, 0 },
-                        v3i{ 0, 0,-1 },
-                        v3i{ 0, 0, 1 },
-                    };
+                    const v3i adj_block_pos = lit_block_pos + offset;
 
-                    const u8 light_level = lighting_view.get_light_level(lit_block_pos, EViewRelativeTo::ViewCenter);
-                    for (const v3i& offset : offsets)
+                    if (adj_block_pos.x < min_block.x || adj_block_pos.x >= max_block.x ||
+                        adj_block_pos.y < min_block.y || adj_block_pos.y >= max_block.y ||
+                        adj_block_pos.z < min_block.z || adj_block_pos.z >= max_block.z)
+                        continue;
+
+                    const Block adj_block = chunk_view.get_block_at(adj_block_pos, EViewRelativeTo::ViewCenter);
+                    if (!voxel_module.is_transparent(adj_block.id))
+                        continue;
+
+                    const u8 adj_light_level = lighting_view
+                        .get_light_level(adj_block_pos, EViewRelativeTo::ViewCenter)
+                        .get(lighting_type);
+
+                    if (adj_light_level < (light_level - 1) && light_level > 1)
                     {
-                        const v3i adj_block_pos = lit_block_pos + offset;
-
-                        if (adj_block_pos.x < min_block.x || adj_block_pos.x >= max_block.x ||
-                            adj_block_pos.y < min_block.y || adj_block_pos.y >= max_block.y ||
-                            adj_block_pos.z < min_block.z || adj_block_pos.z >= max_block.z)
-                            continue;
-
-                        const Block adj_block = chunk_view.get_block_at(adj_block_pos, EViewRelativeTo::ViewCenter);
-                        if (!voxel_module.is_transparent(adj_block.id))
-                            continue;
-
-                        const u8 adj_light_level = lighting_view.get_light_level(adj_block_pos, EViewRelativeTo::ViewCenter);
-                        if (adj_light_level < (light_level - 1) && light_level > 1)
-                        {
-                            lighting_view.set_light_level(adj_block_pos, light_level - 1, EViewRelativeTo::ViewCenter);
-                            propagation_stacks[light_level - 1].push_back(adj_block_pos);
-                        }
+                        lighting_view.set_light_level(adj_block_pos, light_level - 1, lighting_type, EViewRelativeTo::ViewCenter);
+                        propagation_stacks[light_level - 1].push_back(adj_block_pos);
                     }
                 }
             }

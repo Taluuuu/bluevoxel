@@ -75,25 +75,28 @@ namespace h2o
 
         if (!sky_color_by_sun_angle.empty())
         {
-            AngleColorPair current_color_pair = sky_color_by_sun_angle[0];
-            AngleColorPair next_color_pair = sky_color_by_sun_angle[0];
+            LightingData current_color_pair = sky_color_by_sun_angle[0];
+            LightingData next_color_pair = sky_color_by_sun_angle[0];
+            
             for (i32 i = 0; i < sky_color_by_sun_angle.size(); i++)
             {
                 current_color_pair = next_color_pair;
                 next_color_pair = sky_color_by_sun_angle[(i + 1) % sky_color_by_sun_angle.size()];
 
-                if (current_color_pair.first <= sun_angle_degrees && sun_angle_degrees < next_color_pair.first)
+                if (current_color_pair.sun_angle <= sun_angle_degrees && sun_angle_degrees < next_color_pair.sun_angle)
                     break;
             }
 
             // Make sure the next color's angle is greater than the current's for interpolation
-            if (next_color_pair.first < current_color_pair.first)
-                next_color_pair.first += 360.0f;
+            if (next_color_pair.sun_angle < current_color_pair.sun_angle)
+                next_color_pair.sun_angle += 360.0f;
 
-            const f32 angular_range = next_color_pair.first - current_color_pair.first;
-            const f32 angular_dist = sun_angle_degrees - current_color_pair.first;
+            const f32 angular_range = next_color_pair.sun_angle - current_color_pair.sun_angle;
+            const f32 angular_dist = sun_angle_degrees - current_color_pair.sun_angle;
 
-            const v3 final_sky_color = glm::mix(current_color_pair.second, next_color_pair.second, angular_dist / angular_range);
+            const v3 final_sky_color = glm::mix(current_color_pair.sky_color, next_color_pair.sky_color, angular_dist / angular_range);
+
+            world_brightness = glm::mix(current_color_pair.brightness, next_color_pair.brightness, angular_dist / angular_range);
 
             renderer.set_clear_color(v4{ final_sky_color, 1.0f });
         }

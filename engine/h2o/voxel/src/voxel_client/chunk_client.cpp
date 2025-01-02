@@ -17,6 +17,7 @@
 #include "voxel/voxel_net_messages.h"
 #include "voxel/voxel_ray.h"
 #include "voxel/voxel_utils.h"
+#include "weather/weather_system.h"
 
 #include <glm/gtx/norm.hpp>
 #include <magic_enum_all.hpp>
@@ -176,6 +177,9 @@ namespace h2o
             "voxels", "chunk columns pending decompress", m_num_chunk_columns_pending_decompress);
 
         m_chunk_mgr.broadcast_events();
+
+        // Garbage, move this to the time changed event
+        m_voxel_world_renderer.sun_brightness = m_scene->get_system<WeatherSystem>()->world_brightness;
 
         // Heightmap debug if ever needed
         // m_chunk_mgr.fetch<Chunk>(v3i{0},

@@ -21,15 +21,24 @@ namespace h2o
         f32 sun_radius = 30.0f;
         v4 sun_color{ 0.98f, 0.95f, 0.82f, 1.0f };
 
-        using AngleColorPair = std::pair<f32, v3>;
-        std::vector<AngleColorPair> sky_color_by_sun_angle
+        f32 world_brightness = 0.0f;
+
+        struct LightingData
         {
-            { 0.0f,   v3{ 255, 172, 77  } / 255.0f },
-            { 20.0f,  v3{ 135, 207, 235 } / 255.0f },
-            { 160.0f, v3{ 135, 207, 235 } / 255.0f },
-            { 180.0f, v3{ 255, 172, 77  } / 255.0f },
-            { 200.0f, v3{ 18,  17,  26  } / 255.0f },
-            { 340.0f, v3{ 18,  17,  26  } / 255.0f },
+            f32 sun_angle = 0.0f;
+
+            v3 sky_color{};
+            f32 brightness = 0.0f;
+        };
+
+        std::vector<LightingData> sky_color_by_sun_angle
+        {
+            { 0.0f,   v3{ 255, 172, 77  } / 255.0f, 0.5f },
+            { 20.0f,  v3{ 135, 207, 235 } / 255.0f, 1.0f },
+            { 160.0f, v3{ 135, 207, 235 } / 255.0f, 1.0f },
+            { 180.0f, v3{ 255, 172, 77  } / 255.0f, 0.5f },
+            { 200.0f, v3{ 18,  17,  26  } / 255.0f, 0.1f },
+            { 340.0f, v3{ 18,  17,  26  } / 255.0f, 0.1f },
         };
 
     private:

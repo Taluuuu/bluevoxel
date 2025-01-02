@@ -31,6 +31,7 @@ namespace h2o
         v3 light_dir { 0.18f, -1.0f, 0.492f };
         v3 light_color { 1.0f, 1.0f, 1.0f };
         f32 ambient_strength = 0.714f;
+        f32 sun_brightness = 1.0f;
 
         v3 player_pos{};
 

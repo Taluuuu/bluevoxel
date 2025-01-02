@@ -38,7 +38,7 @@ namespace h2o
         [[nodiscard]] CellType* get(const v3i& position, EViewRelativeTo relative_to = EViewRelativeTo::World);
 
         // Should not be used outside Grid3D
-        void add_cell(const v3i& cell_pos, CellType& cell);
+        virtual void add_cell(const v3i& cell_pos, CellType& cell);
 
         [[nodiscard]] v3i get_relative_to_cell_pos(EViewRelativeTo relative_to) const;
         [[nodiscard]] bool in_bounds(const v3i& local_cell_pos) const;

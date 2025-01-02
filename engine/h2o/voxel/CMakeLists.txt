@@ -28,6 +28,7 @@ target_link_libraries(h2o_voxel
         h2o_rendering
         h2o_ui
         h2o_scene
+        h2o_weather
 
         magic_enum
 )
@@ -50,6 +51,7 @@ target_include_directories(h2o_voxel
         h2o_rendering
         h2o_ui
         h2o_scene
+        h2o_weather
 
         magic_enum
 )

@@ -150,6 +150,7 @@ namespace h2o
         pipeline->set_uniform_vec3(3, glm::normalize(light_dir));
         pipeline->set_uniform_vec3(4, light_color);
         pipeline->set_uniform_float(5, ambient_strength);
+        pipeline->set_uniform_float(6, sun_brightness);
 
         m_chunk_mesh_pool.for_each_chunk_mesh(
             [&](const ChunkMeshRenderData& mesh_data)

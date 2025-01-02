@@ -49,7 +49,7 @@ namespace h2o
         std::unordered_set<v3i> m_chunk_positions_pending_lighting_update{};
 
         std::mutex m_chunk_positions_after_lighting_update_mutex{};
-        std::unordered_set<v3i > m_chunk_positions_after_lighting_update{};
+        std::unordered_set<v3i> m_chunk_positions_after_lighting_update{};
 
         EventHandle m_chunks_updated_handle{};
 
@@ -57,9 +57,13 @@ namespace h2o
 
     namespace chunk_lighting
     {
-        void update_lighting(
-            ChunkLighting& chunk_lighting,
-            const Chunk::ViewType& chunk_view);
+        void update_lighting(ChunkLighting& chunk_lighting, const Chunk::ViewType& chunk_view);
+
+        void propagate_lighting(
+            ChunkLighting::ViewType& lighting_view,
+            const Chunk::ViewType& chunk_view,
+            ChunkLightingType lighting_type,
+            const std::vector<v3i>& light_sources);
     }
 
     template<class CellType>

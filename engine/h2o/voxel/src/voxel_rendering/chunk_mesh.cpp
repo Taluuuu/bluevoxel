@@ -36,7 +36,7 @@ namespace h2o
             [&](const v3i& pos,
                 const std::vector<u32>& textures,
                 const std::vector<BlockModel::Triangle>& side,
-                const u8 light_level)
+                const ChunkLightLevel light_level)
             {
                 for (const auto& triangle : side)
                 {
@@ -49,7 +49,8 @@ namespace h2o
                         // Left is texture index relative to all textures; right is the face index.
                         vertex.tex_idx = textures[vertex.tex_idx];
 
-                        vertex.light_level = light_level;
+                        vertex.light_level = light_level.light;
+                        vertex.sunlight_level = light_level.sunlight;
 
                         const auto temp = vertex.to_array();
                         for (const u32 data : temp)
@@ -83,7 +84,7 @@ namespace h2o
                     const v3i adjacent_block_pos = pos + offset;
 
                     const Block adj_block = chunk_view.get_block_at(adjacent_block_pos, EViewRelativeTo::ViewCenter);
-                    const u8 adj_light_level = lighting_view.get_light_level(adjacent_block_pos, EViewRelativeTo::ViewCenter);
+                    const auto adj_light_level = lighting_view.get_light_level(adjacent_block_pos, EViewRelativeTo::ViewCenter);
 
                     if (voxel_module.is_transparent(adj_block.id))
                         append_side(pos, *texture_ids, model->occluded_triangles_per_side[dir_index], adj_light_level);
@@ -92,7 +93,7 @@ namespace h2o
                 }
             );
 
-            const u8 light_level = lighting_view.get_light_level(pos, EViewRelativeTo::ViewCenter);
+            const auto light_level = lighting_view.get_light_level(pos, EViewRelativeTo::ViewCenter);
             append_side(pos, *texture_ids, model->unoccluded_triangles, light_level);
         }
     }

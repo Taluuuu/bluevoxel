@@ -40,6 +40,9 @@ namespace h2o
 
             [[nodiscard]] bool is_generated() const;
 
+            // // View<Chunk> interface
+            // void add_cell(const v3i& cell_pos, Chunk& cell) override;
+
         };
 
         // IGrid3DCell interface
@@ -65,7 +68,8 @@ namespace h2o
         [[nodiscard]] const std::unordered_set<u32>& light_emitting_blocks() const { return m_light_emitting_blocks; }
 
         void set_heightmap(const std::shared_ptr<ChunkColumnHeightmap>& heightmap);
-        [[nodiscard]] const std::shared_ptr<ChunkColumnHeightmap>& column_heightmap() const { return m_chunk_column_heightmap; }
+        [[nodiscard]] const ChunkColumnHeightmap* column_heightmap() const { return m_chunk_column_heightmap.get(); }
+        [[nodiscard]] ChunkColumnHeightmap* column_heightmap() { return m_chunk_column_heightmap.get(); }
 
         static constexpr size_t to_index(const v3i& local_pos);
         static constexpr bool is_valid_pos(const v3i& local_pos);

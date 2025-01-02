@@ -20,6 +20,7 @@ layout(location = 1) uniform ivec3 chunk_pos;
 out vec2 pass_uv;
 out vec3 pass_normal;
 out float pass_light_level;
+out float pass_sunlight_level;
 flat out uint pass_tex_index;
 
 void main()
@@ -59,4 +60,5 @@ void main()
     );
 
     pass_light_level = float(bitfieldExtract(vertex_data_1, 9, 4)) / 15.0f;
+    pass_sunlight_level = float(bitfieldExtract(vertex_data_1, 13, 4)) / 15.0f;
 }
