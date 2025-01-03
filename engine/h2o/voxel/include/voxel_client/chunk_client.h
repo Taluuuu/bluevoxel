@@ -60,6 +60,7 @@ namespace h2o
         EventHandle m_on_testing_collisions_handle{};
         EventHandle m_on_raycasting_handle{};
         EventHandle m_on_block_placed_handle{};
+        EventHandle m_on_time_changed_handle{};
 
         VoxelBounds m_voxel_bounds;
         v2i m_previous_player_chunk_col_pos{};

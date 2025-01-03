@@ -157,9 +157,9 @@ namespace bluevoxel
         m_scene = std::make_shared<h2o::Scene>("client_scene", &m_client);
         m_scene->add_system<h2o::PhysicsSystem>();
         m_scene->add_system<h2o::RenderingSystem>();
-        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
         m_scene->add_system<h2o::WeatherSystem>();
+        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
         spawn_local_player();
     }

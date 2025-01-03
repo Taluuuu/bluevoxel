@@ -23,11 +23,10 @@ namespace h2o
         // virtual void begin_play() {} // TODO
         // virtual void end_play() {} // TODO
 
-    protected:
+    public:
 
-        // The lifetime of a system is strictly inferior to its
-        // owning scene, so a raw pointer here is fine
-        Scene* const m_scene = nullptr;
+        // The lifetime of a system is strictly inferior to its owning scene
+        Scene& scene;
 
     };
 }

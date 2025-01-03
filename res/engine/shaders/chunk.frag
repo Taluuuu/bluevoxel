@@ -21,7 +21,6 @@ void main()
         discard;
 
     const vec3 ambient = light_color * ambient_strength;
-
     const vec3 diffuse = light_color * max(dot(pass_normal, -light_dir), 0.0f);
 
     frag_color = vec4(clamp(ambient + diffuse, 0.0f, 1.0f), 0.0f) * albedo * max(pass_light_level, pass_sunlight_level * sun_brightness);

@@ -1,35 +1,36 @@
 #include "weather/weather_system.h"
 
-#include <core/engine.h>
-
-#include "../../rendering/include/rendering/camera.h"
-#include "../../rendering/include/rendering/renderer.h"
-#include "../../rendering/include/rendering/rendering_module.h"
+#include "core/engine.h"
 #include "networking/net_peer.h"
+#include "rendering/camera.h"
+#include "rendering/renderer.h"
+#include "rendering/rendering_module.h"
 #include "scene/scene.h"
 #include "scene_rendering/rendering_scene_system.h"
 #include "weather/weather_net_messages.h"
+
+#include <glm/gtx/rotate_vector.hpp>
 
 namespace h2o
 {
     WeatherSystem::WeatherSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
     {
-        if (const auto net_peer = m_scene->net_peer())
+        if (const auto net_peer = scene.net_peer())
         {
             if (!net_peer->is_host())
             {
                 net_peer->handle_message<net_msg::TimeChanged>(m_time_changed_handle,
                     [this](PeerID, const net_msg::TimeChanged& time_changed)
                     {
-                        m_current_time = time_changed.new_time;
+                        set_time(time_changed.new_time);
                     }
                 );
             }
         }
 
         TickPhase::Type tick_phases = TickPhase::NetworkUpdate;
-        if (m_scene->get_system<RenderingSystem>() != nullptr)
+        if (scene.get_system<RenderingSystem>() != nullptr)
             tick_phases = tick_phases | TickPhase::Render;
 
         set_tick_phases(tick_phases);
@@ -38,10 +39,10 @@ namespace h2o
     void WeatherSystem::network_update(const f32 delta_time)
     {
         // TODO: Clearly I can come up with a better system for this...
-        const auto net_peer = m_scene->net_peer();
+        const auto net_peer = scene.net_peer();
 
         if (!net_peer || net_peer->is_host())
-            m_current_time++;
+            set_time(m_current_time + 1);
 
         if (net_peer && net_peer->is_host())
         {
@@ -53,7 +54,7 @@ namespace h2o
 
     void WeatherSystem::render()
     {
-        const auto rendering_system = m_scene->get_system<RenderingSystem>();
+        const auto rendering_system = scene.get_system<RenderingSystem>();
         if (!rendering_system)
             return;
 
@@ -63,42 +64,54 @@ namespace h2o
 
         auto& renderer = g_engine->get_module_checked<RenderingModule>().renderer();
 
-        const f32 sun_angle_degrees = fmodf(static_cast<f32>(m_current_time) * 1.0f, 360.0f);
-        const f32 sun_angle_radians = glm::radians(sun_angle_degrees);
-        const v3 sun_unit_pos{ glm::cos(sun_angle_radians), glm::sin(sun_angle_radians), 0.0f };
-
         renderer.draw_sphere(
-            camera->position() + sun_unit_pos * sun_distance,
+            camera->position() + m_sun_direction * sun_distance,
             sun_radius,
-            sun_color
+            v4{ current_lighting_settings().light_color, 1.0f }
         );
 
-        if (!sky_color_by_sun_angle.empty())
-        {
-            LightingData current_color_pair = sky_color_by_sun_angle[0];
-            LightingData next_color_pair = sky_color_by_sun_angle[0];
-            
-            for (i32 i = 0; i < sky_color_by_sun_angle.size(); i++)
-            {
-                current_color_pair = next_color_pair;
-                next_color_pair = sky_color_by_sun_angle[(i + 1) % sky_color_by_sun_angle.size()];
+        renderer.set_clear_color(v4{ m_current_lighting_settings.sky_color, 1.0f });
+    }
 
-                if (current_color_pair.sun_angle <= sun_angle_degrees && sun_angle_degrees < next_color_pair.sun_angle)
+    void WeatherSystem::set_time(const i64 time)
+    {
+        m_current_time = time;
+
+        const f32 sun_angle_degrees = fmodf(static_cast<f32>(m_current_time) * sun_speed, 360.0f);
+        const f32 sun_angle_radians = glm::radians(sun_angle_degrees);
+        m_sun_direction = v3{ glm::cos(sun_angle_radians), glm::sin(sun_angle_radians), 0.0f };
+        m_sun_direction = glm::rotateY(m_sun_direction, glm::radians(30.0f));
+
+        if (!lighting_settings.empty())
+        {
+            LightingSettings current_lighting_settings = lighting_settings[0];
+            LightingSettings next_lighting_settings = lighting_settings[0];
+
+            for (i32 i = 0; i < lighting_settings.size(); i++)
+            {
+                current_lighting_settings = next_lighting_settings;
+                next_lighting_settings = lighting_settings[(i + 1) % lighting_settings.size()];
+
+                if (current_lighting_settings.sun_angle <= sun_angle_degrees && sun_angle_degrees < next_lighting_settings.sun_angle)
                     break;
             }
 
             // Make sure the next color's angle is greater than the current's for interpolation
-            if (next_color_pair.sun_angle < current_color_pair.sun_angle)
-                next_color_pair.sun_angle += 360.0f;
+            if (next_lighting_settings.sun_angle < current_lighting_settings.sun_angle)
+                next_lighting_settings.sun_angle += 360.0f;
 
-            const f32 angular_range = next_color_pair.sun_angle - current_color_pair.sun_angle;
-            const f32 angular_dist = sun_angle_degrees - current_color_pair.sun_angle;
+            const f32 angular_range = next_lighting_settings.sun_angle - current_lighting_settings.sun_angle;
+            const f32 angular_dist = sun_angle_degrees - current_lighting_settings.sun_angle;
+            const f32 t = angular_dist / angular_range;
 
-            const v3 final_sky_color = glm::mix(current_color_pair.sky_color, next_color_pair.sky_color, angular_dist / angular_range);
-
-            world_brightness = glm::mix(current_color_pair.brightness, next_color_pair.brightness, angular_dist / angular_range);
-
-            renderer.set_clear_color(v4{ final_sky_color, 1.0f });
+            m_current_lighting_settings = LightingSettings {
+                .sun_angle = sun_angle_degrees,
+                .sky_color = glm::mix(current_lighting_settings.sky_color, next_lighting_settings.sky_color, t),
+                .light_color = glm::mix(current_lighting_settings.light_color, next_lighting_settings.light_color, t),
+                .brightness = glm::mix(current_lighting_settings.brightness, next_lighting_settings.brightness, t)
+            };
         }
+
+        on_time_changed.broadcast(m_current_time);
     }
 }

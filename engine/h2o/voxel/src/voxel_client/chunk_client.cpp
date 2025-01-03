@@ -91,7 +91,7 @@ namespace h2o
         );
 
         // TODO: Move these in a common server/client base class, as they will certainly be needed server-side as well
-        if (const auto physics_system = m_scene->get_system<PhysicsSystem>())
+        if (const auto physics_system = scene.get_system<PhysicsSystem>())
         {
             physics_system->on_testing_collisions.add_listener(m_on_testing_collisions_handle,
                 [this](const TestingCollisionEvent& event)
@@ -127,6 +127,27 @@ namespace h2o
                 }
             );
         }
+
+        // TODO: This should not be necessary to bridge between the voxel world renderer and the weather system.
+        if (const auto weather_system = scene.get_system<WeatherSystem>())
+        {
+            weather_system->on_time_changed.add_listener(m_on_time_changed_handle,
+                [this](const i64)
+                {
+                    if (const auto weather_system = scene.get_system<WeatherSystem>())
+                    {
+                        m_voxel_world_renderer.sun_brightness = weather_system->current_lighting_settings().brightness;
+                        m_voxel_world_renderer.light_color = weather_system->current_lighting_settings().light_color;
+
+                        // Make sure light_dir.y is always negative for a better looking night-time
+                        v3 light_dir = -weather_system->sun_direction();
+                        light_dir.y = glm::min(-0.5f, light_dir.y);
+                        light_dir = glm::normalize(light_dir);
+                        m_voxel_world_renderer.light_dir = light_dir;
+                    }
+                }
+            );
+        }
     }
 
     void ChunkClient::reload_all()
@@ -146,7 +167,7 @@ namespace h2o
         if (!m_client->is_connected())
             return;
 
-        auto player = m_scene->get_actor_by_tag(ActorTag::LocalPlayer);
+        auto player = scene.get_actor_by_tag(ActorTag::LocalPlayer);
         if (!player)
             return;
 
@@ -177,9 +198,6 @@ namespace h2o
             "voxels", "chunk columns pending decompress", m_num_chunk_columns_pending_decompress);
 
         m_chunk_mgr.broadcast_events();
-
-        // Garbage, move this to the time changed event
-        m_voxel_world_renderer.sun_brightness = m_scene->get_system<WeatherSystem>()->world_brightness;
 
         // Heightmap debug if ever needed
         // m_chunk_mgr.fetch<Chunk>(v3i{0},

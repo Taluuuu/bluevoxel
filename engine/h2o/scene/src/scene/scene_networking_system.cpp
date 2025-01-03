@@ -16,7 +16,7 @@ namespace h2o
         m_client->handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
             [&](h2o::PeerID client_id, const h2o::net_msg::TransformUpdate& transform_update)
             {
-                if (auto actor = m_scene->get_actor(transform_update.actor_id))
+                if (auto actor = scene.get_actor(transform_update.actor_id))
                     actor->transform = transform_update.transform;
             }
         );

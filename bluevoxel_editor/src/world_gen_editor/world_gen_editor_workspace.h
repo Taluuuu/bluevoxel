@@ -6,7 +6,6 @@
 
 #include <memory>
 
-
 namespace h2o
 {
     class ChunkClient;
