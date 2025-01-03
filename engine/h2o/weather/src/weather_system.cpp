@@ -70,6 +70,12 @@ namespace h2o
             v4{ current_lighting_settings().light_color, 1.0f }
         );
 
+        renderer.draw_sphere(
+            camera->position() - m_sun_direction * moon_distance,
+            moon_radius,
+            v4{ moon_color, 1.0f }
+        );
+
         renderer.set_clear_color(v4{ m_current_lighting_settings.sky_color, 1.0f });
     }
 
@@ -80,7 +86,7 @@ namespace h2o
         const f32 sun_angle_degrees = fmodf(static_cast<f32>(m_current_time) * sun_speed, 360.0f);
         const f32 sun_angle_radians = glm::radians(sun_angle_degrees);
         m_sun_direction = v3{ glm::cos(sun_angle_radians), glm::sin(sun_angle_radians), 0.0f };
-        m_sun_direction = glm::rotateY(m_sun_direction, glm::radians(30.0f));
+        m_sun_direction = glm::rotateY(m_sun_direction, glm::radians(sun_angle_y));
 
         if (!lighting_settings.empty())
         {
