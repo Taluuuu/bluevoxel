@@ -58,7 +58,7 @@ namespace bluevoxel
         set_tick_phases(h2o::TickPhase::Update | h2o::TickPhase::Render);
     }
 
-    void StructureEditorWorkspace::set_block_at(const v3i& block_pos, h2o::Block block)
+    void StructureEditorWorkspace::set_block_at(const v3i& block_pos, const h2o::Block block)
     {
         m_chunk_manager.set_block_at(block_pos, block);
         m_chunk_manager.broadcast_events();
@@ -107,6 +107,8 @@ namespace bluevoxel
 
         if (m_extents == v3i{0})
             set_block_at(v3i{0}, default_block);
+
+        m_chunk_manager.broadcast_events();
     }
 
     void StructureEditorWorkspace::render()

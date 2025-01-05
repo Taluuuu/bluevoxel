@@ -28,9 +28,10 @@ namespace h2o
         template<class CellType>
         void view_for_meshing(
             const v3i& chunk_pos,
-            const std::function<void(const ViewType<CellType>&)>& function);
+            const std::function<void(const ViewType<CellType>&)>& function) const;
 
-        [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos);
+        [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos) const;
+        [[nodiscard]] bool is_ready_for_meshing(const v3i& chunk_pos) const;
 
         void broadcast_events() override;
 
@@ -69,7 +70,7 @@ namespace h2o
     template<class CellType>
     void ChunkManager::view_for_meshing(
         const v3i& chunk_pos,
-        const std::function<void(const ViewType<CellType>&)>& function)
+        const std::function<void(const ViewType<CellType>&)>& function) const
     {
         view_impl<CellType>(chunk_pos - v3i{1}, v3i{3},
             [&](const v3i& chunk_pos_to_check) -> bool

@@ -57,8 +57,14 @@ namespace h2o
 
         i64 m_current_time = 0;
 
-        LightingSettings m_current_lighting_settings{};
-        v3 m_sun_direction{};
+        LightingSettings m_current_lighting_settings{
+            90.0f,
+            v3{ 135, 207, 235 } / 255.0f,
+            v3{ 250, 242, 209 } / 255.0f,
+            1.0f
+        };
+
+        v3 m_sun_direction{ 0.0f, -1.0f, 0.0f };
 
         EventHandle m_time_changed_handle{};
 

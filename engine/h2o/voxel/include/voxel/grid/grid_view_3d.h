@@ -32,7 +32,7 @@ namespace h2o
         // Cell, cell position in world space
         void for_each_cell(const std::function<void(const CellType&, const v3i&)>& function) const;
         void for_each_cell(const std::function<void(CellType&, const v3i&)>& function);
-        [[nodiscard]] bool any_matches(const std::function<bool(const CellType*)>& condition) const;
+        [[nodiscard]] bool any_matches(const std::function<bool(const CellType*, const v3i&)>& condition) const;
 
         [[nodiscard]] const CellType* get(const v3i& position, EViewRelativeTo relative_to = EViewRelativeTo::World) const;
         [[nodiscard]] CellType* get(const v3i& position, EViewRelativeTo relative_to = EViewRelativeTo::World);
@@ -88,11 +88,14 @@ namespace h2o
     }
 
     template<class CellType>
-    bool View<CellType>::any_matches(const std::function<bool(const CellType*)>& condition) const
+    bool View<CellType>::any_matches(const std::function<bool(const CellType*, const v3i&)>& condition) const
     {
-        for (const auto cell : m_cells)
+        for (i32 i = m_view_min.x; i < m_view_min.x + m_view_size.x; i++)
+        for (i32 j = m_view_min.y; j < m_view_min.y + m_view_size.y; j++)
+        for (i32 k = m_view_min.z; k < m_view_min.z + m_view_size.z; k++)
         {
-            if (condition(cell))
+            const v3i cell_pos{ i, j, k };
+            if (condition(get(cell_pos), cell_pos))
                 return true;
         }
 

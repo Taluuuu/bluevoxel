@@ -102,7 +102,7 @@ namespace h2o
 
     bool Chunk::ViewType::is_generated() const
     {
-        return !any_matches([](const Chunk* chunk) { return !chunk || !chunk->is_generated(); });
+        return !any_matches([](const Chunk* chunk, const v3i&) { return !chunk || !chunk->is_generated(); });
     }
 
     // void Chunk::ViewType::add_cell(const v3i& cell_pos, Chunk& cell)

@@ -62,37 +62,22 @@ namespace h2o
     {
         const std::unique_lock lock{ m_chunks_pending_remesh_mutex };
 
-        erase_if(m_chunks_pending_remesh,
-            [&](const v3i& chunk_pos) -> bool
+        for (const v3i& chunk_pos : m_chunks_pending_remesh)
+        {
+            if (m_render_mode == ChunkRenderMode::DrawAllChunks ||
+                m_chunk_manager->is_ready_for_meshing(chunk_pos))
             {
-                if (m_render_mode == ChunkRenderMode::DrawChunksWithAdjacentChunks)
-                {
-                    static constexpr std::array offsets{
-                        v2i{ 0, 0 },
-                        v2i{ 1, 0 },
-                        v2i{-1, 0 },
-                        v2i{ 0, 1 },
-                        v2i{ 0,-1 },
-                    };
-
-                    for (const v2i offset : offsets)
-                    {
-                        if (!m_chunk_manager->is_chunk_column_generated(offset + v2i{ chunk_pos.x, chunk_pos.z }))
-                            return true;
-                    }
-                }
-
-                // log::info("QUEUE JOB 'REMESH CHUNK'");
-                g_engine->thread_pool().queue_job(glm::distance(player_pos, voxel_utils::chunk_to_world_pos(chunk_pos)),
+                const f32 priority = glm::distance(player_pos, voxel_utils::chunk_to_world_pos(chunk_pos));
+                g_engine->thread_pool().queue_job(priority,
                     [this, chunk_pos]
                     {
                         remesh_chunk_immediate(chunk_pos);
                     }
                 );
-
-                return true;
             }
-        );
+        }
+
+        m_chunks_pending_remesh.clear();
     }
 
     void VoxelWorldRenderer::pre_render()

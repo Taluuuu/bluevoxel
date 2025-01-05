@@ -50,7 +50,7 @@ namespace h2o
         return success;
     }
 
-    bool ChunkManager::is_chunk_column_generated(const v2i chunk_column_pos)
+    bool ChunkManager::is_chunk_column_generated(const v2i chunk_column_pos) const
     {
         bool is_generated = false;
         view_column<Chunk>(chunk_column_pos,
@@ -67,6 +67,27 @@ namespace h2o
         );
 
         return is_generated;
+    }
+
+    bool ChunkManager::is_ready_for_meshing(const v3i& chunk_pos) const
+    {
+        bool result = false;
+        view_for_meshing<Chunk>(chunk_pos,
+            [&](const View<Chunk>& chunk_view)
+            {
+                result = !chunk_view.any_matches(
+                    [&](const Chunk* chunk, const v3i& adj_pos) -> bool
+                    {
+                        if (adj_pos.y >= 0 && adj_pos.y < voxel_constants::vertical_chunk_count)
+                            return !chunk || !chunk->is_generated();
+
+                        return false;
+                    }
+                );
+            }
+        );
+
+        return result;
     }
 
     void ChunkManager::broadcast_events()
@@ -106,6 +127,7 @@ namespace h2o
             voxel_utils::for_v3i(chunk_pos - v3i{1}, chunk_pos + v3i{2},
                 [&](const v3i& adj_chunk_pos)
                 {
+
                     chunks_to_update_lighting.insert(adj_chunk_pos);
                 }
             );

@@ -227,14 +227,8 @@ namespace h2o
         m_voxel_bounds.for_each_pos_in_bounds(
             [&](const v2i chunk_column_pos)
             {
-                m_chunk_mgr.view_column<Chunk>(chunk_column_pos,
-                    [&](const Chunk::ViewType& chunk_column)
-                    {
-                        // TODO: This can probably request the same chunks multiple times
-                        if (!chunk_column.is_generated())
-                            chunk_fetch_request.requested_chunks.push_back(chunk_column_pos);
-                    }
-                );
+                if (!m_chunk_mgr.cell_column_exists(chunk_column_pos))
+                    chunk_fetch_request.requested_chunks.push_back(chunk_column_pos);
             }
         );
 
