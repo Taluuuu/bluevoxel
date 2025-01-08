@@ -20,7 +20,7 @@ namespace h2o
     {
         set_tick_phases(TickPhase::Update | TickPhase::PreRender | TickPhase::Render);
 
-        chunk_manager.cells_updated_event<Chunk>().add_listener(m_on_chunk_updated_handle,
+        chunk_manager.cells_updated_event<ChunkLighting>().add_listener(m_on_chunk_updated_handle,
             [this](const CellsUpdatedEvent& event)
             {
                 for (const v3i& chunk_pos : event.updated_cells)
@@ -189,6 +189,11 @@ namespace h2o
 
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
+        // static std::unordered_set<v3i> test{};
+        // if (test.contains(chunk_pos))
+        //     log::info("HAAAAAAAAAAAAAAA");
+        // test.insert(chunk_pos);
+
         m_chunk_manager->view_for_meshing<Chunk>(chunk_pos,
             [&](const Chunk::ViewType& view)
             {

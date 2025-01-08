@@ -314,11 +314,6 @@ namespace h2o
         const v3i center_chunk_pos = chunk_view.center_cell_pos();
         const v3i corner_chunk_pos = chunk_view.corner_cell_pos();
 
-        static std::unordered_set<v3i> test{};
-        if (test.contains(center_chunk_pos))
-            log::info("HAAAAAAAAAAAAAAA");
-        test.insert(center_chunk_pos);
-
         ChunkLighting::ViewType lighting_view{ corner_chunk_pos, v3i{ 3 } };
 
         std::vector<ChunkLighting> temporary_chunk_lightings{};
