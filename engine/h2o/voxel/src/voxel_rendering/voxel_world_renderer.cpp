@@ -11,7 +11,7 @@
 
 namespace h2o
 {
-    VoxelWorldRenderer::VoxelWorldRenderer(Tickable& owner, ChunkManager& chunk_manager, ChunkRenderMode chunk_render_mode)
+    VoxelWorldRenderer::VoxelWorldRenderer(Tickable& owner, ChunkManager& chunk_manager, const ChunkRenderMode chunk_render_mode)
         : Tickable(&owner)
         , m_render_mode(chunk_render_mode)
         , m_chunk_manager(&chunk_manager)
@@ -20,20 +20,12 @@ namespace h2o
     {
         set_tick_phases(TickPhase::Update | TickPhase::PreRender | TickPhase::Render);
 
-        chunk_manager.cells_updated_event<ChunkLighting>().add_listener(m_on_chunk_updated_handle,
+        chunk_manager.cells_updated_event<Chunk>().add_listener(m_on_chunk_updated_handle,
             [this](const CellsUpdatedEvent& event)
             {
                 for (const v3i& chunk_pos : event.updated_cells)
                 {
                     queue_chunk_remesh(chunk_pos);
-
-                    // voxel_utils::for_v3i(chunk_pos - v3i{1}, chunk_pos + v3i{1},
-                    //     [&](const v3i& adj_chunk_pos)
-                    //     {
-                    //         if (adj_chunk_pos != chunk_pos)
-                    //             queue_chunk_remesh(adj_chunk_pos);
-                    //     }
-                    // );
                 }
             }
         );
@@ -62,22 +54,60 @@ namespace h2o
     {
         const std::unique_lock lock{ m_chunks_pending_remesh_mutex };
 
-        for (const v3i& chunk_pos : m_chunks_pending_remesh)
-        {
-            if (m_render_mode == ChunkRenderMode::DrawAllChunks ||
-                m_chunk_manager->is_ready_for_meshing(chunk_pos))
+        erase_if(m_chunks_pending_remesh,
+            [&](const v3i& chunk_pos)
             {
+                if (m_render_mode != ChunkRenderMode::DrawAllChunks &&
+                    !m_chunk_manager->is_ready_for_meshing(chunk_pos))
+                {
+                    return false;
+                }
+
                 const f32 priority = glm::distance(player_pos, voxel_utils::chunk_to_world_pos(chunk_pos));
                 g_engine->thread_pool().queue_job(priority,
                     [this, chunk_pos]
                     {
+                        if (m_render_mode != ChunkRenderMode::DrawAllChunks &&
+                            !m_chunk_manager->is_ready_for_meshing(chunk_pos))
+                        {
+                            return;
+                        }
+
                         remesh_chunk_immediate(chunk_pos);
                     }
                 );
-            }
-        }
 
-        m_chunks_pending_remesh.clear();
+                return true;
+            }
+        );
+
+        // std::unordered_set<v3i> chunks_pending_remesh{};
+        // for (const v3i& chunk_pos : m_chunks_pending_remesh)
+        // {
+        //     // if (m_chunk_manager->is_pending_lighting_update(chunk_pos))
+        //     // {
+        //     //     chunks_pending_remesh.insert(chunk_pos);
+        //     //     continue;
+        //     // }
+        //
+        //     if (m_render_mode == ChunkRenderMode::DrawAllChunks ||
+        //         m_chunk_manager->is_ready_for_meshing(chunk_pos))
+        //     {
+        //         const f32 priority = glm::distance(player_pos, voxel_utils::chunk_to_world_pos(chunk_pos));
+        //         g_engine->thread_pool().queue_job(priority,
+        //             [this, chunk_pos]
+        //             {
+        //                 remesh_chunk_immediate(chunk_pos);
+        //             }
+        //         );
+        //     }
+        //     else
+        //     {
+        //         chunks_pending_remesh.insert(chunk_pos);
+        //     }
+        // }
+        //
+        // m_chunks_pending_remesh = std::move(chunks_pending_remesh);
     }
 
     void VoxelWorldRenderer::pre_render()
@@ -152,17 +182,6 @@ namespace h2o
 
     void VoxelWorldRenderer::queue_chunk_remesh(const v3i& chunk_pos)
     {
-        // bool is_chunk_empty = true;
-        // m_chunk_manager->fetch_chunk(chunk_pos,
-        //     [&](const Chunk* chunk)
-        //     {
-        //         is_chunk_empty = !chunk || chunk->is_empty();
-        //     }
-        // );
-        //
-        // if (is_chunk_empty)
-        //     return;
-
         std::unique_lock lock{ m_chunks_pending_remesh_mutex };
         if (!m_chunks_pending_remesh.contains(chunk_pos))
             m_chunks_pending_remesh.insert(chunk_pos);
@@ -170,19 +189,6 @@ namespace h2o
 
     void VoxelWorldRenderer::remesh_chunk_immediate(const v3i& chunk_pos)
     {
-        // m_chunk_manager->view<Chunk>(chunk_pos - v3i{1}, v3i{3},
-        //     [&](const Chunk::ViewType& chunk_view)
-        //     {
-        //         m_chunk_manager->fetch_mut<ChunkLighting>(chunk_pos,
-        //             [&](ChunkLighting* lighting)
-        //             {
-        //                 if (lighting)
-        //                     chunk_lighting::update_lighting(*lighting, chunk_view);
-        //             }
-        //         );
-        //     }
-        // );
-
         m_chunk_manager->view_for_meshing<Chunk>(chunk_pos,
             [&](const Chunk::ViewType& view)
             {

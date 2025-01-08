@@ -4,6 +4,7 @@
 #include "chunk_lighting.h"
 #include "grid/grid_3d.h"
 
+#include <atomic>
 #include <glm/gtx/hash.hpp>
 #include <memory>
 #include <mutex>
@@ -32,6 +33,8 @@ namespace h2o
 
         [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos) const;
         [[nodiscard]] bool is_ready_for_meshing(const v3i& chunk_pos) const;
+        [[nodiscard]] bool is_ready_for_lighting_update(const v3i& chunk_pos) const;
+        [[nodiscard]] bool is_pending_lighting_update(const v3i& chunk_pos) const;
 
         void broadcast_events() override;
 
@@ -43,16 +46,28 @@ namespace h2o
     private:
 
         void on_chunks_updated(const CellsUpdatedEvent& event);
+        void on_chunks_deleted(const CellsDeletedEvent& event);
 
     private:
 
-        std::mutex m_chunk_positions_pending_lighting_update_mutex{};
+        // Chunk lightings that are waiting to be updated
+        mutable std::shared_mutex m_chunk_positions_pending_lighting_update_mutex{};
         std::unordered_set<v3i> m_chunk_positions_pending_lighting_update{};
 
-        std::mutex m_chunk_positions_after_lighting_update_mutex{};
+        // Chunk lightings that are waiting to be broadcast as updated
+        mutable std::shared_mutex m_chunk_positions_after_lighting_update_mutex{};
         std::unordered_set<v3i> m_chunk_positions_after_lighting_update{};
 
+        // Chunk lightings that were updated at least one
+        mutable std::shared_mutex m_built_chunk_lightings_mutex{};
+        std::unordered_set<v3i> m_built_chunk_lightings{};
+
+        // Chunks that were updated at least one
+        mutable std::shared_mutex m_generated_chunks_mutex{};
+        std::unordered_set<v3i> m_generated_chunks{};
+
         EventHandle m_chunks_updated_handle{};
+        EventHandle m_chunks_deleted_handle{};
 
     };
 
