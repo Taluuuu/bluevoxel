@@ -31,6 +31,8 @@ namespace h2o
             const v3i& chunk_pos,
             const std::function<void(const ViewType<CellType>&)>& function) const;
 
+        void set_player_positions(const std::vector<v3>& player_positions);
+
         [[nodiscard]] bool is_chunk_column_generated(v2i chunk_column_pos) const;
         [[nodiscard]] bool is_ready_for_meshing(const v3i& chunk_pos) const;
         [[nodiscard]] bool is_ready_for_lighting_update(const v3i& chunk_pos) const;
@@ -42,6 +44,8 @@ namespace h2o
 
         // Grid3D interface
         std::shared_ptr<CellColumnTuple> create_cell_column(v2i cell_column_pos) override;
+
+        void request_lighting_update(std::unordered_set<v3i> chunks_to_update_lighting, f32 priority_override = -1.0f);
 
     private:
 
@@ -65,6 +69,9 @@ namespace h2o
         // Chunks that were updated at least one
         mutable std::shared_mutex m_generated_chunks_mutex{};
         std::unordered_set<v3i> m_generated_chunks{};
+
+        mutable std::shared_mutex m_player_positions_mutex{};
+        std::vector<v3> m_player_positions{};
 
         EventHandle m_chunks_updated_handle{};
         EventHandle m_chunks_deleted_handle{};

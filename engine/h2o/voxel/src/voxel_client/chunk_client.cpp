@@ -171,6 +171,8 @@ namespace h2o
         if (!player)
             return;
 
+        m_chunk_mgr.set_player_positions({ player->transform.position });
+
         m_player_pos = player->transform.position;
         const v3i player_chunk_pos = voxel_utils::world_to_chunk_pos(m_player_pos);
         const v2i player_chunk_col_pos { player_chunk_pos.x, player_chunk_pos.z };

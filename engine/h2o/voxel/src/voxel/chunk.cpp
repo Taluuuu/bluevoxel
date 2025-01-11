@@ -105,6 +105,32 @@ namespace h2o
         return !any_matches([](const Chunk* chunk, const v3i&) { return !chunk || !chunk->is_generated(); });
     }
 
+    i32 Chunk::ViewType::max_neighbour_height(const v2i block_pos) const
+    {
+        static constexpr std::array offsets
+        {
+            v2i{-1, 0 },
+            v2i{ 1, 0 },
+            v2i{ 0,-1 },
+            v2i{ 0, 1 },
+        };
+
+        u32 max_adj_height = 0;
+        for (const v2i offset : offsets)
+        {
+            const v2i adj_block_pos = block_pos + offset;
+            const v2i adj_chunk_pos = voxel_utils::block_to_chunk_pos(adj_block_pos);
+
+            if (const Chunk* chunk = get({ adj_chunk_pos.x, 0, adj_chunk_pos.y }, EViewRelativeTo::ViewCenter))
+            {
+                max_adj_height = glm::max(max_adj_height,
+                    chunk->column_heightmap()->get_height(voxel_utils::block_pos_to_within_chunk(adj_block_pos)));
+            }
+        }
+
+        return max_adj_height;
+    }
+
     // void Chunk::ViewType::add_cell(const v3i& cell_pos, Chunk& cell)
     // {
     //     View::add_cell(cell_pos, cell);

@@ -28,7 +28,7 @@ namespace h2o::voxel_utils
         };
     }
 
-    constexpr v2i block_to_chunk_pos(const v2i& block_pos)
+    constexpr v2i block_to_chunk_pos(const v2i block_pos)
     {
         return
         {
@@ -49,6 +49,15 @@ namespace h2o::voxel_utils
             utils::non_stupid_mod(block_pos.x, voxel_constants::chunk_size),
             utils::non_stupid_mod(block_pos.y, voxel_constants::chunk_size),
             utils::non_stupid_mod(block_pos.z, voxel_constants::chunk_size)
+        };
+    }
+
+    constexpr v2i block_pos_to_within_chunk(const v2i& block_pos)
+    {
+        return
+        {
+            utils::non_stupid_mod(block_pos.x, voxel_constants::chunk_size),
+            utils::non_stupid_mod(block_pos.y, voxel_constants::chunk_size)
         };
     }
 

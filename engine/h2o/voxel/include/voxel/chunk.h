@@ -40,6 +40,9 @@ namespace h2o
 
             [[nodiscard]] bool is_generated() const;
 
+            // Relative to center chunk
+            [[nodiscard]] i32 max_neighbour_height(v2i block_pos) const;
+
             // // View<Chunk> interface
             // void add_cell(const v3i& cell_pos, Chunk& cell) override;
 

@@ -32,7 +32,7 @@ namespace h2o
 
         f32 sun_distance = 300.0f;
         f32 sun_radius = 30.0f;
-        f32 sun_speed = 0.01f;
+        f32 sun_speed = 1.0f;//0.01f;
         f32 sun_angle_y = 30.0f; // in degrees
 
         f32 moon_distance = 300.0f;

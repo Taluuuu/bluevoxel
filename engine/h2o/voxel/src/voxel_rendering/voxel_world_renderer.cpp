@@ -67,7 +67,7 @@ namespace h2o
                 g_engine->thread_pool().queue_job(priority,
                     [this, chunk_pos]
                     {
-                        if (m_render_mode != ChunkRenderMode::DrawAllChunks &&
+                        if (m_render_mode == ChunkRenderMode::DrawChunksWithAdjacentChunks &&
                             !m_chunk_manager->is_ready_for_meshing(chunk_pos))
                         {
                             return;

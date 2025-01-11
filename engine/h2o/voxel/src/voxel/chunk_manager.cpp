@@ -43,7 +43,9 @@ namespace h2o
     bool ChunkManager::set_block_at(const v3i& block_pos, const Block block)
     {
         bool success = false;
-        fetch_mut<Chunk>(voxel_utils::block_to_chunk_pos(block_pos),
+
+        const v3i chunk_pos = voxel_utils::block_to_chunk_pos(block_pos);
+        fetch_mut<Chunk>(chunk_pos,
             [&](Chunk* chunk)
             {
                 if (chunk)
@@ -51,10 +53,27 @@ namespace h2o
                     chunk->set_block_at(voxel_utils::block_pos_to_within_chunk(block_pos), block);
                     success = true;
                 }
-            }
+            }, false, false
         );
 
+        request_lighting_update({ chunk_pos }, 0.0f);
+
+        for (i32 i = -1; i <= 1; i++)
+        for (i32 j = -1; j <= 1; j++)
+        for (i32 k = -1; k <= 1; k++)
+        {
+            const v3i adj_chunk_pos = chunk_pos + v3i{ i, j, k };
+            if (adj_chunk_pos != chunk_pos)
+                request_lighting_update({ adj_chunk_pos }, 1.0f);
+        }
+
         return success;
+    }
+
+    void ChunkManager::set_player_positions(const std::vector<v3>& player_positions)
+    {
+        const std::unique_lock lock{ m_player_positions_mutex };
+        m_player_positions = player_positions;
     }
 
     bool ChunkManager::is_chunk_column_generated(const v2i chunk_column_pos) const
@@ -104,25 +123,6 @@ namespace h2o
 
     bool ChunkManager::is_ready_for_lighting_update(const v3i& chunk_pos) const
     {
-        // bool result = false;
-        //
-        // view<Chunk>(chunk_pos - v3i{1}, v3i{3},
-        //     [&](const View<Chunk>& chunk_view)
-        //     {
-        //         result = !chunk_view.any_matches(
-        //             [&](const Chunk* chunk, const v3i& adj_pos) -> bool
-        //             {
-        //                 if (adj_pos.y >= 0 && adj_pos.y < voxel_constants::vertical_chunk_count)
-        //                     return !chunk || !chunk->is_generated();
-        //
-        //                 return false;
-        //             }
-        //         );
-        //     }
-        // );
-        //
-        // return result;
-
         const std::shared_lock lock{ m_generated_chunks_mutex };
 
         for (i32 i = -1; i <= 1; i++)
@@ -176,6 +176,84 @@ namespace h2o
         return chunk_column_tuple;
     }
 
+    void ChunkManager::request_lighting_update(std::unordered_set<v3i> chunks_to_update_lighting, const f32 priority_override)
+    {
+        {
+            const std::unique_lock lock{ m_chunk_positions_pending_lighting_update_mutex };
+
+            for (const v3i& chunk_pos : m_chunk_positions_pending_lighting_update)
+                chunks_to_update_lighting.erase(chunk_pos);
+
+            m_chunk_positions_pending_lighting_update.insert(
+                chunks_to_update_lighting.begin(),
+                chunks_to_update_lighting.end());
+        }
+
+        if (chunks_to_update_lighting.empty())
+            return;
+
+        f32 priority = FLT_MAX;
+        if (priority_override < 0.0f)
+        {
+            const std::shared_lock lock{ m_player_positions_mutex };
+            for (const v3i& chunk_pos : chunks_to_update_lighting)
+            {
+                const v3 chunk_world_pos = voxel_utils::chunk_to_world_pos(chunk_pos);
+                for (const v3& player_pos : m_player_positions)
+                {
+                    const f32 player_distance = glm::distance(player_pos, chunk_world_pos);
+                    priority = glm::min(priority, player_distance);
+                }
+            }
+        }
+        else
+        {
+            priority = priority_override;
+        }
+
+        g_engine->thread_pool().queue_job(priority,
+            [this, chunks_to_update_lighting]
+            {
+                for (const v3i& chunk_pos : chunks_to_update_lighting)
+                {
+                    view<Chunk>(chunk_pos - v3i{1}, v3i{3},
+                        [&](const Chunk::ViewType& chunk_view)
+                        {
+                            fetch_mut<ChunkLighting>(chunk_pos,
+                                [&](ChunkLighting* lighting)
+                                {
+                                    if (lighting)
+                                        chunk_lighting::update_lighting(*lighting, chunk_view);
+
+                                    {
+                                        const std::unique_lock lock{ m_chunk_positions_pending_lighting_update_mutex };
+                                        m_chunk_positions_pending_lighting_update.erase(chunk_pos);
+                                    }
+
+                                    {
+                                        const std::unique_lock lock{ m_built_chunk_lightings_mutex };
+                                        m_built_chunk_lightings.insert(chunk_pos);
+                                    }
+                                }, false, false
+                            );
+                        }
+                    );
+                }
+
+                {
+                    const std::unique_lock lock{ m_chunk_positions_after_lighting_update_mutex };
+
+                    // Haven't decided if this is too hacky just yet.
+                    // Make sure chunks start rebuilding their mesh once their lightings
+                    // are ALL rebuilt.
+                    m_chunk_positions_after_lighting_update.insert(
+                        chunks_to_update_lighting.begin(),
+                        chunks_to_update_lighting.end());
+                }
+            }
+        );
+    }
+
     void ChunkManager::on_chunks_updated(const CellsUpdatedEvent& event)
     {
         {
@@ -197,68 +275,7 @@ namespace h2o
             );
         }
 
-        {
-            const std::unique_lock lock{ m_chunk_positions_pending_lighting_update_mutex };
-
-            for (const v3i& chunk_pos : m_chunk_positions_pending_lighting_update)
-                chunks_to_update_lighting.erase(chunk_pos);
-
-            m_chunk_positions_pending_lighting_update.insert(
-                chunks_to_update_lighting.begin(),
-                chunks_to_update_lighting.end());
-        }
-
-        if (!chunks_to_update_lighting.empty())
-        {
-            g_engine->thread_pool().queue_job(0.0f,
-                [this, chunks_to_update_lighting]
-                {
-                    // std::unordered_set<v3i> chunk_positions_to_update_lighting{};
-                    // {
-                    //     const std::unique_lock lock{ m_chunk_positions_pending_lighting_update_mutex };
-                    //     chunk_positions_to_update_lighting = m_chunk_positions_pending_lighting_update;
-                    //         // std::move(m_chunk_positions_pending_lighting_update);
-                    // }
-
-                    for (const v3i& chunk_pos : chunks_to_update_lighting)
-                    {
-                        view<Chunk>(chunk_pos - v3i{1}, v3i{3},
-                            [&](const Chunk::ViewType& chunk_view)
-                            {
-                                fetch_mut<ChunkLighting>(chunk_pos,
-                                    [&](ChunkLighting* lighting)
-                                    {
-                                        if (lighting)
-                                            chunk_lighting::update_lighting(*lighting, chunk_view);
-
-                                        {
-                                            const std::unique_lock lock{ m_chunk_positions_pending_lighting_update_mutex };
-                                            m_chunk_positions_pending_lighting_update.erase(chunk_pos);
-                                        }
-
-                                        {
-                                            const std::unique_lock lock{ m_built_chunk_lightings_mutex };
-                                            m_built_chunk_lightings.insert(chunk_pos);
-                                        }
-                                    }, false, false
-                                );
-                            }
-                        );
-                    }
-
-                    {
-                        const std::unique_lock lock{ m_chunk_positions_after_lighting_update_mutex };
-
-                        // Haven't decided if this is too hacky just yet.
-                        // Make sure chunks start rebuilding their mesh once their lightings
-                        // are ALL rebuilt.
-                        m_chunk_positions_after_lighting_update.insert(
-                            chunks_to_update_lighting.begin(),
-                            chunks_to_update_lighting.end());
-                    }
-                }
-            );
-        }
+        request_lighting_update(chunks_to_update_lighting);
     }
 
     void ChunkManager::on_chunks_deleted(const CellsDeletedEvent& event)
@@ -301,6 +318,28 @@ namespace h2o
                 for (i32 i = 0; i < voxel_constants::vertical_chunk_count; i++)
                     m_generated_chunks.erase(v3i{ column_pos.x, i, column_pos.y });
             }
+        }
+    }
+
+    namespace lighting_util
+    {
+        static constexpr i32 distance_from_chunk_one_axis(const i32 pos)
+        {
+            if (pos < 0)
+                return glm::abs(pos);
+
+            if (pos >= voxel_constants::chunk_size)
+                return pos - voxel_constants::chunk_size + 1;
+
+            return 0;
+        }
+
+        static constexpr i32 distance_from_chunk_three_axes(const v3i& pos)
+        {
+            return
+                distance_from_chunk_one_axis(pos.x) +
+                distance_from_chunk_one_axis(pos.y) +
+                distance_from_chunk_one_axis(pos.z);
         }
     }
 
@@ -348,68 +387,76 @@ namespace h2o
                 }
             );
 
-            propagate_lighting(lighting_view, chunk_view, ChunkLightingType::Light, light_sources);
+            if (!light_sources.empty())
+                propagate_lighting(lighting_view, chunk_view, ChunkLightingType::Light, light_sources);
         }
 
         {
             std::vector<v3i> light_sources{};
 
-            for (i32 i = -1; i <= 1; i++)
-            for (i32 j = -1; j <= 1; j++)
             {
-                const auto chunk = chunk_view.get({i, 0, j}, EViewRelativeTo::ViewCenter);
-                if (!chunk)
-                    continue;
+                ScopeTimer timer{ "UPDATE_LIGHTING::FETCH" };
 
-                const auto& heightmap = chunk->column_heightmap();
-                if (!heightmap)
-                    continue;
-
-                for (i32 height_x = 0; height_x < voxel_constants::chunk_size; height_x++)
-                for (i32 height_z = 0; height_z < voxel_constants::chunk_size; height_z++)
+                for (i32 i = -1; i <= 1; i++)
+                for (i32 j = -1; j <= 1; j++)
                 {
-                    v3i block_pos{
-                        height_x + i * voxel_constants::chunk_size, 0,
-                        height_z + j * voxel_constants::chunk_size
-                    };
-
-                    if (block_pos.x <  min_block.x || block_pos.z <  min_block.z ||
-                        block_pos.x >= max_block.x || block_pos.z >= max_block.z)
+                    const auto chunk = chunk_view.get({i, 0, j}, EViewRelativeTo::ViewCenter);
+                    if (!chunk)
                         continue;
 
-                    const u32 height = heightmap->get_height({ height_x, height_z });
-                    const i32 height_relative_to_center = i32(height) - center_chunk_pos.y * voxel_constants::chunk_size;
+                    const auto& heightmap = chunk->column_heightmap();
+                    if (!heightmap)
+                        continue;
 
-                    static constexpr std::array offsets
+                    for (i32 height_x = 0; height_x < voxel_constants::chunk_size; height_x++)
+                    for (i32 height_z = 0; height_z < voxel_constants::chunk_size; height_z++)
                     {
-                        v2i{-1, 0 },
-                        v2i{ 1, 0 },
-                        v2i{ 0,-1 },
-                        v2i{ 0, 1 },
-                    };
+                        v3i block_pos{
+                            height_x + i * voxel_constants::chunk_size, 0,
+                            height_z + j * voxel_constants::chunk_size
+                        };
 
-                    u32 max_adj_height = 0;
-                    for (const v2i offset : offsets)
-                    {
-                        const v2i adj_pos = offset + v2i{ height_x, height_z };
-                        const bool is_adj_pos_valid =
-                            adj_pos.x >= 0 && adj_pos.x < voxel_constants::chunk_size &&
-                            adj_pos.y >= 0 && adj_pos.y < voxel_constants::chunk_size;
-
-                        max_adj_height = glm::max(max_adj_height, is_adj_pos_valid ?
-                            heightmap->get_height(adj_pos) : voxel_constants::vertical_block_count);
-                    }
-
-                    block_pos.y = height_relative_to_center;
-                    for (; block_pos.y < max_block.y; block_pos.y++)
-                    {
-                        if (block_pos.y < min_block.y)
+                        if (block_pos.x <  min_block.x || block_pos.z <  min_block.z ||
+                            block_pos.x >= max_block.x || block_pos.z >= max_block.z)
                             continue;
 
-                        lighting_view.set_light_level(block_pos, voxel_constants::max_light_level, ChunkLightingType::Sunlight, EViewRelativeTo::ViewCenter);
+                        const u32 height = heightmap->get_height({ height_x, height_z });
+                        const i32 height_relative_to_center = i32(height) - center_chunk_pos.y * voxel_constants::chunk_size;
 
-                        if (block_pos.y <= max_adj_height)
-                            light_sources.push_back(block_pos);
+                        // static constexpr std::array offsets
+                        // {
+                        //     v2i{-1, 0 },
+                        //     v2i{ 1, 0 },
+                        //     v2i{ 0,-1 },
+                        //     v2i{ 0, 1 },
+                        // };
+                        //
+                        // u32 max_adj_height = 0;
+                        // for (const v2i offset : offsets)
+                        // {
+                        //     const v2i adj_pos = offset + v2i{ height_x, height_z };
+                        //     const bool is_adj_pos_valid =
+                        //         adj_pos.x >= 0 && adj_pos.x < voxel_constants::chunk_size &&
+                        //         adj_pos.y >= 0 && adj_pos.y < voxel_constants::chunk_size;
+                        //
+                        //     max_adj_height = glm::max(max_adj_height, is_adj_pos_valid ?
+                        //         heightmap->get_height(adj_pos) : voxel_constants::vertical_block_count);
+                        // }
+                        // u32 max_adj_height_relative_to_center = i32(max_adj_height) - center_chunk_pos.y * voxel_constants::chunk_size;
+
+                        u32 max_adj_height_relative_to_center = chunk_view.max_neighbour_height({ block_pos.x, block_pos.z }) - center_chunk_pos.y * voxel_constants::chunk_size;
+
+                        block_pos.y = height_relative_to_center;
+                        for (; block_pos.y < max_block.y; block_pos.y++)
+                        {
+                            if (block_pos.y < min_block.y)
+                                continue;
+
+                            lighting_view.set_light_level(block_pos, voxel_constants::max_light_level, ChunkLightingType::Sunlight, EViewRelativeTo::ViewCenter);
+
+                            if (block_pos.y <= max_adj_height_relative_to_center)
+                                light_sources.push_back(block_pos);
+                        }
                     }
                 }
             }
@@ -424,6 +471,8 @@ namespace h2o
         const ChunkLightingType lighting_type,
         const std::vector<v3i>& light_sources)
     {
+        ScopeTimer timer{ "UPDATE_LIGHTING::PROPAGATE" };
+
         const auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
         std::array<std::vector<v3i>, voxel_constants::max_light_level + 1> propagation_stacks{};
@@ -468,11 +517,17 @@ namespace h2o
 
                     if (adj_light_level < (light_level - 1) && light_level > 1)
                     {
-                        lighting_view.set_light_level(adj_block_pos, light_level - 1, lighting_type, EViewRelativeTo::ViewCenter);
-                        propagation_stacks[light_level - 1].push_back(adj_block_pos);
+                        const i32 distance_from_chunk = lighting_util::distance_from_chunk_three_axes(adj_block_pos);
+                        if (light_level > distance_from_chunk)
+                        {
+                            lighting_view.set_light_level(adj_block_pos, light_level - 1, lighting_type, EViewRelativeTo::ViewCenter);
+                            propagation_stacks[light_level - 1].push_back(adj_block_pos);
+                        }
                     }
                 }
             }
         }
+
+        log::info("{}", light_sources.size());
     }
 }

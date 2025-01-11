@@ -8,7 +8,7 @@
 
 namespace h2o
 {
-    static std::vector<f32> gen_noise(const v3i& corner, const v3i& size, const f32 frequency)
+    static std::vector<f32> gen_noise(const v3i& corner, const v3i& size, const f32 frequency, const i32 seed)
     {
         const auto generator = FastNoise::New<FastNoise::FractalFBm>();
         generator->SetSource(FastNoise::New<FastNoise::Simplex>());
@@ -18,7 +18,7 @@ namespace h2o
         generator->GenUniformGrid3D(noise_outputs.data(),
             corner.x, corner.y, corner.z,
             size.x, size.y, size.z,
-            frequency, 0);
+            frequency, seed);
 
         return noise_outputs;
     }
@@ -26,6 +26,7 @@ namespace h2o
     ChunkGenerator_Terrain::ChunkGenerator_Terrain()
         : m_graph(v2{0.0f}, v2{ voxel_constants::vertical_block_count, 1.0f })
     {
+        m_seed = time(nullptr);
     }
 
     void ChunkGenerator_Terrain::gen_blocks(Chunk::ViewType& region_view) const
@@ -38,7 +39,7 @@ namespace h2o
         const v3i region_corner_blocks = region_corner * v3i{ voxel_constants::chunk_size };
         const v3i region_size_blocks = region_size * v3i{ voxel_constants::chunk_size };
 
-        const std::vector<f32> noise_outputs = gen_noise(region_corner_blocks, region_size_blocks, 0.002f);
+        const std::vector<f32> noise_outputs = gen_noise(region_corner_blocks, region_size_blocks, 0.002f, m_seed);
 
         for (i32 z = 0; z < region_size_blocks.z; z++)
         for (i32 y = 0; y < region_size_blocks.y; y++)
