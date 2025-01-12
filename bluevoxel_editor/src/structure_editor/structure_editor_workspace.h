@@ -54,7 +54,7 @@ namespace bluevoxel
 
         static constexpr h2o::Block default_block = 3;
 
-        h2o::ChunkManager m_chunk_manager{};
+        h2o::ChunkManager m_chunk_manager{ h2o::ChunkRenderMode::DrawAllChunks };
         h2o::VoxelWorldRenderer m_voxel_world_renderer;
 
         u32 m_selected_structure_id = 0;

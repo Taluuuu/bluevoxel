@@ -17,11 +17,17 @@ namespace h2o
     struct ChunksUpdatedEvent { const std::unordered_set<v3i>& updated_chunks{}; };
     struct ChunksDeletedEvent { const std::unordered_set<v2i>& deleted_chunk_columns{}; };
 
+    enum class ChunkRenderMode
+    {
+        DrawAllChunks,
+        RequireAdjacentChunks
+    };
+
     class ChunkManager : public Grid3D<voxel_constants::vertical_chunk_count, Chunk, ChunkLighting>
     {
     public:
 
-        ChunkManager();
+        ChunkManager(ChunkRenderMode chunk_render_mode);
 
         [[nodiscard]] Block get_block_at(const v3i& block_pos);
         bool set_block_at(const v3i& block_pos, Block block);
@@ -75,6 +81,8 @@ namespace h2o
 
         EventHandle m_chunks_updated_handle{};
         EventHandle m_chunks_deleted_handle{};
+
+        ChunkRenderMode m_chunk_render_mode = ChunkRenderMode::DrawAllChunks;
 
     };
 

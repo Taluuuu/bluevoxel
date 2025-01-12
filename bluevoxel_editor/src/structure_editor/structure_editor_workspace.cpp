@@ -234,8 +234,8 @@ namespace bluevoxel
             );
         }
 
-        m_extents = calc_extents();
         m_chunk_manager.broadcast_events();
+        m_extents = calc_extents();
     }
 
     void StructureEditorWorkspace::save_structure()

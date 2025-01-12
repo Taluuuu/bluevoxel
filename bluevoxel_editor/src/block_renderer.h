@@ -15,7 +15,7 @@ namespace bluevoxel
 
     private:
 
-        h2o::ChunkManager m_chunk_manager{};
+        h2o::ChunkManager m_chunk_manager{ h2o::ChunkRenderMode::DrawAllChunks };
         h2o::VoxelWorldRenderer m_voxel_world_renderer;
 
     };

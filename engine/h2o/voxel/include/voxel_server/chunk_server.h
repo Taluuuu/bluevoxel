@@ -61,7 +61,7 @@ namespace h2o
         std::vector< std::pair<v2i, PeerID> > m_chunks_pending_send{};
 
         // Storage
-        ChunkManager m_chunk_mgr{};
+        ChunkManager m_chunk_mgr{ ChunkRenderMode::RequireAdjacentChunks };
         ChunkRegionManager m_chunk_region_mgr;
 
     };

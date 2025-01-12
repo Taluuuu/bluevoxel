@@ -9,7 +9,8 @@
 
 namespace h2o
 {
-    ChunkManager::ChunkManager()
+    ChunkManager::ChunkManager(ChunkRenderMode chunk_render_mode)
+        : m_chunk_render_mode(chunk_render_mode)
     {
         cells_updated_event<Chunk>().add_listener(m_chunks_updated_handle,
             [this](const CellsUpdatedEvent& event)
@@ -53,7 +54,7 @@ namespace h2o
                     chunk->set_block_at(voxel_utils::block_pos_to_within_chunk(block_pos), block);
                     success = true;
                 }
-            }, false, false
+            }, false, true
         );
 
         request_lighting_update({ chunk_pos }, 0.0f);
@@ -103,9 +104,11 @@ namespace h2o
         const std::shared_lock pending_lock{ m_chunk_positions_pending_lighting_update_mutex };
         const std::shared_lock built_lock{ m_built_chunk_lightings_mutex };
 
-        for (i32 i = -1; i <= 1; i++)
-        for (i32 j = -1; j <= 1; j++)
-        for (i32 k = -1; k <= 1; k++)
+        const i32 check_limit = m_chunk_render_mode == ChunkRenderMode::DrawAllChunks ? 0 : 1;
+
+        for (i32 i = -check_limit; i <= check_limit; i++)
+        for (i32 j = -check_limit; j <= check_limit; j++)
+        for (i32 k = -check_limit; k <= check_limit; k++)
         {
             const v3i adj_chunk_pos = chunk_pos + v3i{ i, j, k };
             if (adj_chunk_pos.y >= 0 && adj_chunk_pos.y < voxel_constants::vertical_chunk_count)
@@ -125,9 +128,11 @@ namespace h2o
     {
         const std::shared_lock lock{ m_generated_chunks_mutex };
 
-        for (i32 i = -1; i <= 1; i++)
-        for (i32 j = -1; j <= 1; j++)
-        for (i32 k = -1; k <= 1; k++)
+        const i32 check_limit = m_chunk_render_mode == ChunkRenderMode::DrawAllChunks ? 0 : 1;
+
+        for (i32 i = -check_limit; i <= check_limit; i++)
+        for (i32 j = -check_limit; j <= check_limit; j++)
+        for (i32 k = -check_limit; k <= check_limit; k++)
         {
             const v3i adj_chunk_pos = chunk_pos + v3i{ i, j, k };
             if (adj_chunk_pos.y >= 0 && adj_chunk_pos.y < voxel_constants::vertical_chunk_count)
@@ -395,7 +400,7 @@ namespace h2o
             std::vector<v3i> light_sources{};
 
             {
-                ScopeTimer timer{ "UPDATE_LIGHTING::FETCH" };
+                // ScopeTimer timer{ "UPDATE_LIGHTING::FETCH" };
 
                 for (i32 i = -1; i <= 1; i++)
                 for (i32 j = -1; j <= 1; j++)
@@ -471,7 +476,7 @@ namespace h2o
         const ChunkLightingType lighting_type,
         const std::vector<v3i>& light_sources)
     {
-        ScopeTimer timer{ "UPDATE_LIGHTING::PROPAGATE" };
+        // ScopeTimer timer{ "UPDATE_LIGHTING::PROPAGATE" };
 
         const auto& voxel_module = g_engine->get_module_checked<VoxelModule>();
 
@@ -528,6 +533,6 @@ namespace h2o
             }
         }
 
-        log::info("{}", light_sources.size());
+        // log::info("{}", light_sources.size());
     }
 }

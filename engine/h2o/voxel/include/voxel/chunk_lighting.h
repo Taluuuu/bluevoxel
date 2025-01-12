@@ -58,7 +58,7 @@ namespace h2o
                 if (const ChunkLighting* chunk_lighting = get(voxel_utils::block_to_chunk_pos(block_pos), relative_to))
                     return chunk_lighting->get_light_level(voxel_utils::block_pos_to_within_chunk(block_pos));
 
-                return {};
+                return { voxel_constants::max_light_level, voxel_constants::max_light_level };
             }
 
             void set_light_level(const v3i& block_pos, const u8 light_level, const ChunkLightingType type, const EViewRelativeTo relative_to = EViewRelativeTo::World)

@@ -46,7 +46,7 @@ namespace h2o
 
     private:
 
-        ChunkManager m_chunk_mgr{};
+        ChunkManager m_chunk_mgr{ ChunkRenderMode::RequireAdjacentChunks };
         VoxelWorldRenderer m_voxel_world_renderer;
 
         bool m_refresh_chunk_requests = false;
