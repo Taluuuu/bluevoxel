@@ -1,46 +1,26 @@
 #pragma once
 
-#include <fmt/color.h>
-#include <fmt/core.h>
+#include <format>
+#include <print>
 
 namespace h2o::log
 {
-    /**
-     * @brief Log an error message
-     * 
-     * @param format_str An fmt formatted string
-     * @param args Message arguments
-     */
-    template<typename S, typename... Args>
-    void error(const S& format_str, const Args&... args)
+    template<typename... Args>
+    void error(std::format_string<Args...> fmt, Args&&... args)
     {
-        auto prefixed = fmt::format("[Error] {}\n", format_str);
-        fmt::print(fg(fmt::color::red), prefixed, args...);
+        // We format the user's message first, then print it with the prefix
+        std::println("[Error] {}", std::format(fmt, std::forward<Args>(args)...));
     }
 
-    /**
-     * @brief Log a warning
-     * 
-     * @param format_str An fmt formatted string
-     * @param args Message arguments
-     */
-    template<typename S, typename... Args>
-    void warn(const S& format_str, const Args&... args)
+    template<typename... Args>
+    void warn(std::format_string<Args...> fmt, Args&&... args)
     {
-        auto prefixed = fmt::format("[Warn] {}\n", format_str);
-        fmt::print(fg(fmt::color::yellow), prefixed, args...);
+        std::println("[Warn]  {}", std::format(fmt, std::forward<Args>(args)...));
     }
-    
-    /**
-     * @brief Log an info message
-     * 
-     * @param format_str An fmt formatted string
-     * @param args Message arguments
-     */
-    template<typename S, typename... Args>
-    void info(const S& format_str, const Args&... args)
+
+    template<typename... Args>
+    void info(std::format_string<Args...> fmt, Args&&... args)
     {
-        auto prefixed = fmt::format("[Info] {}\n", format_str);
-        fmt::print(fg(fmt::color::white), prefixed, args...);
+        std::println("[Info]  {}", std::format(fmt, std::forward<Args>(args)...));
     }
 }

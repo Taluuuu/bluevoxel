@@ -15,7 +15,7 @@ set(IMGUI_USE_GLFW True)
 add_subdirectory(lib/imgui)
 
 # GameNetworkingSockets
-find_package(GameNetworkingSockets REQUIRED)
+add_subdirectory(lib/GameNetworkingSockets)
 
 # glm
 add_subdirectory(lib/glm)

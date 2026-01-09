@@ -192,14 +192,14 @@ namespace bluevoxel
             [&](const FaceHandle& face_handle, Face& face)
             {
                 ImGui::BeginChild(
-                    fmt::format("Face {}", face_handle.face_index).c_str(),
+                    std::format("Face {}", face_handle.face_index).c_str(),
                     { 0, 100 }, true);
 
                 ImGui::Text("Face %i", face_handle.face_index);
 
                 ImGui::SameLine();
 
-                if (ImGui::Button(fmt::format("Create Triangle###create_{}", face_handle.face_index).c_str()))
+                if (ImGui::Button(std::format("Create Triangle###create_{}", face_handle.face_index).c_str()))
                 {
                     block_model.add_triangle(face_handle, Triangle{
                         {
@@ -213,7 +213,7 @@ namespace bluevoxel
 
                 ImGui::SameLine();
 
-                if (ImGui::Button(fmt::format("Delete Face###delete_face_{}", face_handle.face_index).c_str()))
+                if (ImGui::Button(std::format("Delete Face###delete_face_{}", face_handle.face_index).c_str()))
                 {
                     if (const auto& voxel_pack = g_engine->get_module_checked<h2o::VoxelModule>().voxel_pack())
                         voxel_pack->remove_face_from_model(block_model.id, face_handle);
@@ -221,7 +221,7 @@ namespace bluevoxel
                     should_rebuild_model = true;
                 }
 
-                if (ImGui::BeginTable(fmt::format("Face {} Triangles", face_handle.face_index).c_str(), 5, ImGuiTableFlags_Borders))
+                if (ImGui::BeginTable(std::format("Face {} Triangles", face_handle.face_index).c_str(), 5, ImGuiTableFlags_Borders))
                 {
                     ImGui::TableNextRow();
 
@@ -235,7 +235,7 @@ namespace bluevoxel
 
                         ImGui::TableNextColumn();
                         ImGui::BeginDisabled(triangle_handle == m_selection.triangle_handle);
-                        if (ImGui::Button(fmt::format("Pick###pick_{}", triangle_index).c_str()))
+                        if (ImGui::Button(std::format("Pick###pick_{}", triangle_index).c_str()))
                         {
                             m_selection.triangle_handle = triangle_handle;
                             m_selection.vertex_indices = {};
@@ -243,18 +243,18 @@ namespace bluevoxel
                         ImGui::EndDisabled();
 
                         ImGui::TableNextColumn();
-                        if (ImGui::Checkbox(fmt::format("Hidden###hidden_{}", triangle_index).c_str(), &triangle.is_hidden))
+                        if (ImGui::Checkbox(std::format("Hidden###hidden_{}", triangle_index).c_str(), &triangle.is_hidden))
                             should_rebuild_model = true;
 
                         ImGui::TableNextColumn();
-                        if (ImGui::Button(fmt::format("Delete###delete_triangle_{}", triangle_index).c_str()))
+                        if (ImGui::Button(std::format("Delete###delete_triangle_{}", triangle_index).c_str()))
                         {
                             block_model.delete_triangle(triangle_handle);
                             should_rebuild_model = true;
                         }
 
                         ImGui::TableNextColumn();
-                        if (ImGui::Button(fmt::format("Up###move_up{}", triangle_index).c_str()))
+                        if (ImGui::Button(std::format("Up###move_up{}", triangle_index).c_str()))
                         {
                             const Triangle triangle_cpy = triangle;
                             if (triangle_index == 0)
@@ -276,7 +276,7 @@ namespace bluevoxel
 
                         ImGui::SameLine();
 
-                        if (ImGui::Button(fmt::format("Down###move_down{}", triangle_index).c_str()))
+                        if (ImGui::Button(std::format("Down###move_down{}", triangle_index).c_str()))
                         {
                             const Triangle triangle_cpy = triangle;
                             if (triangle_index == face.size() - 1)

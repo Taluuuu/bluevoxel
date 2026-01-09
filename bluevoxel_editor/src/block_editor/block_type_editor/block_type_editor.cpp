@@ -56,12 +56,12 @@ namespace bluevoxel
             {
                 ImGui::Text("ID: %i", selected_block_id);
 
-                if (ImGui::Button(fmt::format("Delete '{}'", edited_block_type->name).c_str()))
+                if (ImGui::Button(std::format("Delete '{}'", edited_block_type->name).c_str()))
                     voxel_pack->delete_block_type(selected_block_id);
 
                 ImGui::SameLine();
 
-                if (ImGui::Button(fmt::format("Rename '{}'", edited_block_type->name).c_str()))
+                if (ImGui::Button(std::format("Rename '{}'", edited_block_type->name).c_str()))
                 {
                     m_selected_block_name_edit = edited_block_type->name;
                     ImGui::OpenPopup("Name Selected Block");
@@ -94,7 +94,7 @@ namespace bluevoxel
                     {
                         for (u32 i = 0; i < model->face_count(); i++)
                         {
-                            if (ImGui::Combo(fmt::format("Face {}", i).c_str(), (i32*)(&edited_block_type->texture_ids[i]),
+                            if (ImGui::Combo(std::format("Face {}", i).c_str(), (i32*)(&edited_block_type->texture_ids[i]),
                                 m_texture_names_c_str.data(), m_texture_names_c_str.size()))
                                 voxel_pack->edit_block_type(selected_block_id, *edited_block_type);
                         }

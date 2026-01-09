@@ -31,3 +31,6 @@
 [submodule "engine/lib/imgui"]
 	path = engine/lib/imgui
 	url = https://github.com/Taluuuu/imgui
+[submodule "engine/lib/GameNetworkingSockets"]
+	path = engine/lib/GameNetworkingSockets
+	url = https://github.com/ValveSoftware/GameNetworkingSockets

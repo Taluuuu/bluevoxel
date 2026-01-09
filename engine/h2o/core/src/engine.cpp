@@ -6,7 +6,7 @@
 #include "core/time_provider_chrono.h"
 
 #include <algorithm>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 namespace h2o
 {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cinttypes>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp> // TODO: Smaller includes as this file is included everywhere
 #include <glm/gtc/quaternion.hpp>
 #include <string_view>

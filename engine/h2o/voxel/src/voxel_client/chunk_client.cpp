@@ -20,7 +20,7 @@
 #include "weather/weather_system.h"
 
 #include <glm/gtx/norm.hpp>
-#include <magic_enum_all.hpp>
+#include <magic_enum/magic_enum_all.hpp>
 
 namespace h2o
 {

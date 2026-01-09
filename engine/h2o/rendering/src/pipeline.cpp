@@ -3,7 +3,7 @@
 #include "core/text_file.h"
 #include "rendering/renderer_base.h"
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 
 namespace h2o::gfx
 {

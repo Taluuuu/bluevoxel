@@ -202,7 +202,7 @@ namespace h2o
                 ImGui::SetCursorScreenPos(window_origin + slot_offset);
 
                 if (ImGui::InvisibleButton(
-                    fmt::format("Item({};{})", i, j).c_str(),
+                    std::format("Item({};{})", i, j).c_str(),
                     v2{ item_texture_size },
                     ImGuiButtonFlags_MouseButtonLeft))
                 {
@@ -228,7 +228,7 @@ namespace h2o
                         draw_list->AddText(
                             slot_min,
                             ImColor(1.0f, 1.0f, 1.0f, 1.0f),
-                            fmt::format("x{}", item_stack->count).c_str());
+                            std::format("x{}", item_stack->count).c_str());
                     }
                 }
 
