@@ -15,6 +15,7 @@
 
 namespace h2o
 {
+    class ChunkGenerator_Base;
     class ChunkGenerator_Terrain;
 }
 
@@ -65,7 +66,7 @@ namespace h2o
         VoxelStructureManager& structure_manager() { return m_structure_manager; }
         const VoxelStructureManager& structure_manager() const { return m_structure_manager; }
 
-        [[nodiscard]] const auto& chunk_generator() const { return m_chunk_generator; }
+        [[nodiscard]] const std::shared_ptr<ChunkGenerator_Base>& chunk_generator() const { return m_chunk_generator; }
 
         // Apply local changes
         void save() const;
@@ -103,7 +104,7 @@ namespace h2o
         TextureNameIdMap m_texture_ids{};
 
         VoxelStructureManager m_structure_manager{};
-        std::shared_ptr<ChunkGenerator_Terrain> m_chunk_generator = nullptr;
+        std::shared_ptr<ChunkGenerator_Base> m_chunk_generator = nullptr;
 
         fs::path m_path{};
 

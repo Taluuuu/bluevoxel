@@ -1,17 +1,18 @@
 #include "voxel/voxel_pack.h"
 
 #include "core/engine.h"
+#include "voxel/chunk_generators/chunk_generator_flat.h"
+#include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel/traits/block_trait_rotation.h"
 #include "voxel/voxel_module.h"
 
 #include <fstream>
-#include <voxel/chunk_generators/chunk_generator_terrain.h>
 #include <yaml-cpp/yaml.h>
 
 namespace h2o
 {
     VoxelPack::VoxelPack()
-        : m_chunk_generator(std::make_shared<ChunkGenerator_Terrain>())
+        : m_chunk_generator(std::make_shared<ChunkGenerator_Flat>())
     {}
 
     const BlockType* VoxelPack::get_block_type(BlockID block_id) const

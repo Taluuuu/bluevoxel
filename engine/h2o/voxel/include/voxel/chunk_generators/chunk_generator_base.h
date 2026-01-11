@@ -21,5 +21,9 @@ namespace h2o
         // This assumes the blocks are already generated.
         [[nodiscard]] virtual std::vector<VoxelStructureInstance> gen_structures(const Chunk::ViewType& region_view) const = 0;
 
+        // Serialization
+        virtual void save(const fs::path& path) const {}
+        virtual bool load(const fs::path& path) { return true; }
+
     };
 }
