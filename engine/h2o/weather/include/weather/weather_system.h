@@ -32,7 +32,7 @@ namespace h2o
 
         f32 sun_distance = 300.0f;
         f32 sun_radius = 30.0f;
-        f32 sun_speed = 1.0f;//0.01f;
+        f32 sun_speed = 0.01f;
         f32 sun_angle_y = 30.0f; // in degrees
 
         f32 moon_distance = 300.0f;
@@ -58,7 +58,7 @@ namespace h2o
         i64 m_current_time = 0;
 
         LightingSettings m_current_lighting_settings{
-            90.0f,
+            150.0f,
             v3{ 135, 207, 235 } / 255.0f,
             v3{ 250, 242, 209 } / 255.0f,
             1.0f

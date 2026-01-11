@@ -19,6 +19,7 @@ namespace h2o
 
         [[nodiscard]] bool in_bounds(v2i chunk_pos) const;
         [[nodiscard]] i32 bounds_distance() const { return m_bounds_distance; }
+        [[nodiscard]] v2i min() const { return m_center - v2i{ m_bounds_distance, m_bounds_distance }; }
 
     private:
 

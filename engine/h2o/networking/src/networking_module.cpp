@@ -29,6 +29,11 @@ namespace h2o
 
         SteamNetworkingUtils()->SetDebugOutputFunction(k_ESteamNetworkingSocketsDebugOutputType_Msg, debug_output);
 
+        constexpr i32 min_send_rate = 1 * 1024 * 1024;
+        constexpr i32 max_send_rate = 100 * 1024 * 1024;
+        SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_SendRateMin, min_send_rate);
+        SteamNetworkingUtils()->SetGlobalConfigValueInt32(k_ESteamNetworkingConfig_SendRateMax, max_send_rate);
+
         return true;
     }
 

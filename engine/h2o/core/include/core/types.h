@@ -6,6 +6,7 @@
 #include <glm/gtc/quaternion.hpp>
 #include <string_view>
 #include <array>
+#include <format>
 
 using v2   = glm::vec2;
 using v2i  = glm::ivec2;
@@ -53,3 +54,21 @@ namespace bitsery
     void serialize(S& s, v3& o)
     { s(o.x, o.y, o.z); }
 }
+
+template <glm::length_t L, typename T, glm::qualifier Q>
+struct std::formatter<glm::vec<L, T, Q>> : std::formatter<T>
+{
+    auto format(const glm::vec<L, T, Q>& v, format_context& ctx) const
+    {
+        auto out = ctx.out();
+        out = std::format_to(out, "(");
+        for (glm::length_t i = 0; i < L; ++i)
+        {
+            out = std::formatter<T>::format(v[i], ctx);
+            if (i < L - 1)
+                out = std::format_to(out, ", ");
+        }
+
+        return std::format_to(out, ")");
+    }
+};

@@ -37,8 +37,6 @@ namespace bluevoxel
         // Setup scene
         m_scene = std::make_shared<h2o::Scene>("server_scene", &m_server);
 
-        // auto chunk_generator = std::make_shared<h2o::ChunkGenerator_Flat>();
-        // chunk_generator->block_layers = { 3, 3, 3, 3, 3, 2, 2, 2, 1 };
         m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::Server&>(m_server);
         m_scene->add_system<h2o::WeatherSystem>();
 

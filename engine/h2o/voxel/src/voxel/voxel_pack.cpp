@@ -12,7 +12,7 @@
 namespace h2o
 {
     VoxelPack::VoxelPack()
-        : m_chunk_generator(std::make_shared<ChunkGenerator_Flat>())
+        : m_chunk_generator(std::make_shared<ChunkGenerator_Terrain>())
     {}
 
     const BlockType* VoxelPack::get_block_type(BlockID block_id) const

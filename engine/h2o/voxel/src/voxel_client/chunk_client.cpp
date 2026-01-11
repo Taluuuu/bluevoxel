@@ -1,6 +1,7 @@
 #include "voxel_client/chunk_client.h"
 
 #include "core/engine.h"
+#include "core/profiling/scope_timer.h"
 #include "networking/net_peer.h"
 #include "physics/scene/physics_system.h"
 #include "rendering/camera.h"
@@ -10,6 +11,7 @@
 #include "rendering/texture_array.h"
 #include "scene/scene.h"
 #include "scene_rendering/rendering_scene_system.h"
+#include "ui/imgui.h"
 #include "voxel/chunk_column_heightmap.h"
 #include "voxel/chunk_region.h"
 #include "voxel/compressed_chunk.h"
@@ -29,7 +31,7 @@ namespace h2o
         INetPeer& client)
         : SceneSystem(system_initializer)
         , m_voxel_world_renderer(*this, m_chunk_mgr)
-        , m_voxel_bounds(v2i{}, 8)
+        , m_voxel_bounds(v2i{}, 16)
         , m_client(&client)
     {
         set_tick_phases(TickPhase::Update);
@@ -41,7 +43,9 @@ namespace h2o
         m_client->handle_message<net_msg::ChunkFetchResult>(m_on_fetched_chunk_handle,
             [&](PeerID, const net_msg::ChunkFetchResult& chunk_fetch_result)
             {
+                // ScopeTimer timer("Received chunk column");
                 auto& [compressed_chunks, chunk_column_pos] = chunk_fetch_result;
+                log::info("Received chunk column at {}", chunk_column_pos);
 
                 if (!m_voxel_bounds.in_bounds(chunk_column_pos))
                     return;
@@ -55,7 +59,7 @@ namespace h2o
                 v2 player_pos_2d{ m_player_pos.x, m_player_pos.z };
                 // log::info("QUEUE JOB 'DECOMPRESS CHUNKS'");
                 g_engine->thread_pool().queue_job(glm::distance(player_pos_2d, voxel_utils::chunk_to_world_pos(chunk_column_pos)),
-                    [this, compressed_chunks, chunk_column_pos]()
+                    [this, compressed_chunks]()
                     {
                         // TODO: A vector of compressed chunks is always a chunk column, so the class
                         //       should be CompressedChunkColumn instead so I don't have to fetch the
@@ -220,6 +224,31 @@ namespace h2o
         //         }
         //     }
         // );
+
+        if (ImGui::Begin("Chunk Debug"))
+        {
+            const auto draw_list = ImGui::GetWindowDrawList();
+            m_voxel_bounds.for_each_pos_in_bounds(
+                [&](const v2i chunk_col_pos)
+                {
+                    const bool is_generated = m_chunk_mgr.is_chunk_column_generated(chunk_col_pos);
+                    const bool can_be_meshed = m_chunk_mgr.is_ready_for_meshing({ chunk_col_pos.x, 0, chunk_col_pos.y });
+                    u32 square_color = is_generated ? ImColor(0.0f, 1.0f, 0.0f, 1.0f) : ImColor(1.0f, 0.0f, 0.0f, 1.0f);
+                    if (is_generated && !can_be_meshed)
+                        square_color = ImColor(1.0f, 1.0f, 0.0f, 1.0f);
+
+                    const v2i local_chunk_col_pos = chunk_col_pos - m_voxel_bounds.min();
+                    constexpr f32 square_size = 10.0f;
+                    constexpr f32 square_spacing = 2.0f;
+                    draw_list->AddRectFilled(
+                        v2{ ImGui::GetCursorScreenPos() } + (square_size + square_spacing) * v2{ local_chunk_col_pos },
+                        v2{ ImGui::GetCursorScreenPos() } + (square_size + square_spacing) * v2{ local_chunk_col_pos } + v2{ square_size },
+                        square_color
+                    );
+                }
+            );
+        }
+        ImGui::End();
     }
 
     void ChunkClient::request_chunk_loads()

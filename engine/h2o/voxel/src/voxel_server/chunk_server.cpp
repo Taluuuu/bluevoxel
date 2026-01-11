@@ -2,6 +2,7 @@
 
 #include "core/engine.h"
 #include "core/log.h"
+#include "core/profiling/scope_timer.h"
 #include "networking/server.h"
 #include "scene/scene.h"
 #include "voxel/chunk_generators/chunk_generator_flat.h"
@@ -52,6 +53,7 @@ namespace h2o
         erase_if(m_chunks_pending_send,
             [&](const std::pair<v2i, PeerID>& chunk_pos_peer_pair)
             {
+                // ScopeTimer timer("Sending chunk column");
                 const auto [chunk_pos, client_id] = chunk_pos_peer_pair;
 
                 bool was_chunk_sent = false;

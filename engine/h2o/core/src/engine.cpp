@@ -80,6 +80,7 @@ namespace h2o
         {
             run_network_update(delta_time);
             m_time_since_network_update = 0.0f;
+            // log::info("Network update");
         }
 
         run_update(delta_time);

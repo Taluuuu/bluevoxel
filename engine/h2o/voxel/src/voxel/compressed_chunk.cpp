@@ -1,5 +1,6 @@
 #include "voxel/compressed_chunk.h"
 
+#include "core/log.h"
 #include "voxel/chunk.h"
 
 namespace h2o
@@ -13,7 +14,7 @@ namespace h2o
 
         for (size_t i = 1; i < voxel_constants::chunk_volume; i++)
         {
-            const auto block = chunk.get_block_at(i);
+            const Block block = chunk.get_block_at(i);
             if (current_pair.block == block)
             {
                 current_pair.count++;
