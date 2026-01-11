@@ -1,5 +1,7 @@
 #include "physics/scene/physics_system.h"
 
+#include "core/log.h"
+
 namespace h2o
 {
     PhysicsSystem::PhysicsSystem(const SceneSystemInitializer& system_initializer)

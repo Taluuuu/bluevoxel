@@ -42,9 +42,10 @@ namespace h2o::physics
         if (a_min.x > b_max.x || a_max.x < b_min.x ||
             a_min.y > b_max.y || a_max.y < b_min.y ||
             a_min.z > b_max.z || a_max.z < b_min.z)
-            return v3{0.0f}; // No collision
+            return std::nullopt; // No collision
 
         v3 response{ 0.0f };
+        bool any_response = false;
 
         // Bottom
         if (a_max.y > b_min.y && a_old_max.y <= b_old_min.y)
@@ -53,6 +54,7 @@ namespace h2o::physics
             // Voxel collision test with slightly larger capsule on the y axis to check if on ground
             response += v3(0.0f, b_min.y - a_max.y - 0.001f, 0.0f);
             out_normal = { 0.0f, -1.0f, 0.0f };
+            any_response = true;
         }
 
         // Top
@@ -60,6 +62,7 @@ namespace h2o::physics
         {
             response += v3(0.0f, b_max.y - a_min.y + 0.001f, 0.0f);
             out_normal = { 0.0f, 1.0f, 0.0f };
+            any_response = true;
         }
 
         // X-
@@ -67,6 +70,7 @@ namespace h2o::physics
         {
             response += v3(b_min.x - a_max.x - 0.001f, 0.0f, 0.0f);
             out_normal = { -1.0f, 0.0f, 0.0f };
+            any_response = true;
         }
 
         // X+
@@ -74,6 +78,7 @@ namespace h2o::physics
         {
             response += v3(b_max.x - a_min.x + 0.001f, 0.0f, 0.0f);
             out_normal = { 1.0f, 0.0f, 0.0f };
+            any_response = true;
         }
 
         // Z-
@@ -81,6 +86,7 @@ namespace h2o::physics
         {
             response += v3(0.0f, 0.0f, b_min.z - a_max.z - 0.001f);
             out_normal = { 0.0f, 0.0f, -1.0f };
+            any_response = true;
         }
 
         // Z+
@@ -88,8 +94,12 @@ namespace h2o::physics
         {
             response += v3(0.0f, 0.0f, b_max.z - a_min.z + 0.001f);
             out_normal = { 0.0f, 0.0f, 1.0f };
+            any_response = true;
         }
 
-        return response;
+        if (any_response)
+            return response;
+
+        return std::nullopt;
     }
 }
