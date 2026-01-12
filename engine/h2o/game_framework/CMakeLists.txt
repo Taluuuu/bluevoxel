@@ -5,8 +5,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_game_framework STATIC
     src/game_framework_module.cpp
-    src/actors/fps_character_actor.cpp
+    src/actors/player_character.cpp
     src/components/fps_camera_component.cpp
+    src/components/player_movement_component.cpp
     src/components/third_person_camera_component.cpp
 )
 

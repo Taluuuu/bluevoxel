@@ -2,15 +2,12 @@
 
 #include "block_editor/block_editor_workspace.h"
 #include "core/engine.h"
-#include "input/input_component.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
 #include "ui/imgui.h"
 #include "voxel/voxel_module.h"
 #include "voxel/voxel_pack.h"
-
-#include "fmt/core.h"
 
 namespace bluevoxel
 {

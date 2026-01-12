@@ -12,7 +12,7 @@ namespace h2o
     {
         f32 aspect_ratio = 1.0f;
 
-        const auto& transform = owner()->transform;
+        const auto& transform = owner.transform;
         m_camera = oup::make_observable_unique<gfx::Camera>(
             m_initial_fov,
             aspect_ratio,
@@ -41,7 +41,7 @@ namespace h2o
 
     void CameraComponent::set_as_main_camera() const
     {
-        if (const auto render_system = m_scene->get_system<RenderingSystem>())
+        if (const auto render_system = scene.get_system<RenderingSystem>())
             render_system->set_main_camera(m_camera);
     }
 
@@ -53,11 +53,11 @@ namespace h2o
 
     v3 CameraComponent::camera_location() const
     {
-        return owner()->transform.position;
+        return owner.transform.position;
     }
 
     v3 CameraComponent::camera_rotation() const
     {
-        return owner()->transform.rotation;
+        return owner.transform.rotation;
     }
 }

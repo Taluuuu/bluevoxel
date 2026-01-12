@@ -2,7 +2,6 @@
 
 #include "core/engine.h"
 #include "core/log.h"
-#include "scene/scene_module.h"
 #include "windowing/windowing_module.h"
 #include "windowing/window.h"
 
@@ -60,7 +59,7 @@ namespace h2o
 
     std::vector<std::type_index> InputModule::dependencies() const
     {
-        return { typeid(WindowingModule), typeid(SceneModule) };
+        return { typeid(WindowingModule) };
     }
 
     void InputModule::prepare()

@@ -1,7 +1,8 @@
 #include "world_gen_editor_workspace.h"
 
 #include "core/engine.h"
-#include "game_framework/actors/fps_character_actor.h"
+#include "game_framework/actors/player_character.h"
+#include "game_framework/components/player_movement_component.h"
 #include "graph/graph_ui.h"
 #include "input/input_module.h"
 #include "scene/scene.h"
@@ -25,10 +26,13 @@ namespace bluevoxel
 
         m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::INetPeer&>(m_local_net_peer);
 
-        const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
+        const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
         player->transform.position = { 0.0f, 300.0f, 0.0f };
-        player->fly = true;
+        if (const auto movement_comp = player->get_component<h2o::PlayerMovementComponent>())
+        {
+            movement_comp->fly = true;
+        }
 
         set_tick_phases(h2o::TickPhase::Update);
     }
@@ -61,7 +65,8 @@ namespace bluevoxel
             if (ImGui::Button("Regenerate"))
                 regenerate();
 
-            h2o::graph::draw_ui(voxel_pack->chunk_generator()->m_graph, m_graph_ui_context);
+            if (auto terrain_generator = dynamic_cast<h2o::ChunkGenerator_Terrain*>(voxel_pack->chunk_generator().get()))
+                h2o::graph::draw_ui(terrain_generator->m_graph, m_graph_ui_context);
         }
         ImGui::End();
     }

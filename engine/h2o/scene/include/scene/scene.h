@@ -70,6 +70,8 @@ namespace h2o
 
         [[nodiscard]] SceneSystemInitializer make_system_initializer();
 
+        void frame_start() override;
+
     private:
 
         std::unordered_map< ActorID, OwningHandle<Actor> > m_actor_map{};
@@ -79,6 +81,8 @@ namespace h2o
         std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map{};
 
         std::string m_scene_name{};
+
+        std::vector<WeakHandle<Actor>> m_actors_to_run_start{};
 
         INetPeer* m_net_peer = nullptr;
         EventHandle m_on_object_destroyed_handle{};
@@ -114,6 +118,8 @@ namespace h2o
 
         auto [it, success] = m_actor_map.insert({ actor_id, std::move(actor) });
         assert(success);
+
+        m_actors_to_run_start.push_back(weak_actor);
 
         return weak_actor;
     }

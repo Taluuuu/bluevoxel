@@ -42,7 +42,7 @@ namespace h2o
         GameNetworkingSockets_Kill();
     }
 
-    std::vector<std::type_index> h2o::NetworkingModule::dependencies() const
+    std::vector<std::type_index> NetworkingModule::dependencies() const
     {
         return {};
     }

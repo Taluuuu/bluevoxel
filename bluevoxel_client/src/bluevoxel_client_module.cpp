@@ -1,7 +1,7 @@
 #include "bluevoxel_client_module.h"
 
 #include "core/engine.h"
-#include "game_framework/actors/fps_character_actor.h"
+#include "game_framework/actors/player_character.h"
 #include "input/input_module.h"
 #include "physics/scene/physics_system.h"
 #include "rendering/mesh.h"
@@ -49,8 +49,8 @@ namespace bluevoxel
         m_input_module->register_axis("move_x", h2o::Key::A, h2o::Key::D);
         m_input_module->register_axis("move_y", h2o::Key::S, h2o::Key::W);
         m_input_module->register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
-        m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.0005f, true);
-        m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.0005f, false);
+        m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.001f, true);
+        m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.001f, false);
 
         m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
             [this](h2o::PeerID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
@@ -168,7 +168,7 @@ namespace bluevoxel
     {
         assert(m_scene);
 
-        const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
+        const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();
         player->tag_actor(h2o::ActorTag::LocalPlayer);
 
         {
@@ -180,7 +180,6 @@ namespace bluevoxel
         player->transform.position = { 0.0f, 220.0f, 0.0f };
         player->transform.rotation = { 0.0f, 0.0f, 0.0f};
         player->transform.scale = { 0.28f, 0.28f, 0.28f };
-        player->fly = true;
     }
 
     void BlueVoxelClientModule::spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform)

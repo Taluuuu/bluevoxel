@@ -82,8 +82,8 @@ namespace h2o
         {
             assert(render_comp);
 
-            auto actor = render_comp->owner();
-            m_pipeline->set_uniform_mat4(1, actor->transform.model_matrix());
+            auto& actor = render_comp->owner;
+            m_pipeline->set_uniform_mat4(1, actor.transform.model_matrix());
             m_pipeline->set_uniform_int(2, 0);
 
             if (const auto& mesh = render_comp->mesh())

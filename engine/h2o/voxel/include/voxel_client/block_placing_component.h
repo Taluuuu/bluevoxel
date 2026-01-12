@@ -14,7 +14,7 @@ namespace h2o
     class CameraComponent;
     class ChunkManager;
     class IBlockPlaceable;
-    class InputComponent;
+    class InputModule;
 
     class RenderingModule;
     class VoxelModule;
@@ -35,7 +35,6 @@ namespace h2o
     private:
 
         WeakHandle<CameraComponent> m_camera = nullptr;
-        WeakHandle<InputComponent> m_input = nullptr;
 
         std::shared_ptr< Inventory<Block> > m_inventory = nullptr;
         std::shared_ptr< Inventory<Block> > m_hotbar_inventory = nullptr;
@@ -44,8 +43,9 @@ namespace h2o
         std::shared_ptr<gfx::Texture> m_crosshair_texture = nullptr;
 
         // Module refs
-        RenderingModule* const m_rendering_module = nullptr;
-        VoxelModule* const m_voxel_module = nullptr;
+        InputModule& m_input_module;
+        RenderingModule& m_rendering_module;
+        VoxelModule& m_voxel_module;
 
     };
 }

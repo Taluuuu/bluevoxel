@@ -1,26 +1,20 @@
 #pragma once
 
-#include "core/events.h"
-#include "scene/actor.h"
+#include "physics/scene/physics_system.h"
+#include "scene/component.h"
 
 namespace h2o
 {
     class FpsCameraComponent;
-    class PhysicsSystem;
-}
+    class InputModule;
 
-namespace h2o
-{
-    class InputComponent;
-    class CameraComponent;
-    class ColliderComponent;
-
-    class FpsCharacterActor : public Actor
+    class PlayerMovementComponent : public Component
     {
     public:
 
-        explicit FpsCharacterActor(const ActorInitializer& actor_initializer);
-        ~FpsCharacterActor() override = default;
+        explicit PlayerMovementComponent(const ComponentInitializer& component_initializer);
+
+        void start() override;
 
     public:
 
@@ -44,26 +38,24 @@ namespace h2o
         f32 jump_speed = 8.5f; // m/s
         f32 min_time_between_jumps = 0.25f; // s
 
-        bool fly = false;
+        bool fly = true;
         f32 fly_speed = 20.0f; // m/s
 
         f32 sprint_fov_modifier = 1.1f;
 
     protected:
 
-        // Tickable interface
         void update(f32 delta_time) override;
 
     private:
 
         [[nodiscard]] v3 get_desired_move_dir() const;
         [[nodiscard]] bool touching_grass() const;
+        [[nodiscard]] v3 steered_horizontal_movement(const v3& velocity, f32 accel, f32 decel, f32 max_speed, f32 delta_time) const;
 
         void update_fly(f32 delta_time);
         void update_walk(f32 delta_time);
         void update_fall(f32 delta_time);
-
-        [[nodiscard]] v3 steered_horizontal_movement(const v3& velocity, f32 accel, f32 decel, f32 max_speed, f32 delta_time) const;
 
     private:
 
@@ -73,10 +65,12 @@ namespace h2o
 
         f32 m_last_jump_time = 0.0f;
 
-        WeakHandle<InputComponent> m_input = nullptr;
         WeakHandle<ColliderComponent> m_collider = nullptr;
         WeakHandle<FpsCameraComponent> m_camera = nullptr;
-        WeakHandle<PhysicsSystem> m_physics_system = nullptr;
+
+        InputModule& m_input_module;
+
+        PhysicsSystem& m_physics_system;
 
         EventHandle m_on_collision_handle{};
 

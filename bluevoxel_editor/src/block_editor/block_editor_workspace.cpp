@@ -5,7 +5,6 @@
 #include "block_editor/block_type_editor/block_type_editor.h"
 #include "core/engine.h"
 #include "game_framework/components/third_person_camera_component.h"
-#include "input/input_component.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "scene/scene.h"
@@ -30,7 +29,6 @@ namespace bluevoxel
 
         // Spawn camera
         auto camera = m_scene->spawn_actor();
-        camera->add_component<h2o::InputComponent>();
         auto tps_cam = camera->add_component<h2o::ThirdPersonCameraComponent>();
         tps_cam->rotate_mouse_button = h2o::MouseButton::Right;
         camera->tag_actor(h2o::ActorTag::LocalPlayer);

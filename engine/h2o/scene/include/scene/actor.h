@@ -29,6 +29,9 @@ namespace h2o
         Actor(Actor&&) = delete;
         ~Actor() override = default;
 
+        // Ran before the first update this actor is alive
+        virtual void start();
+
         /**
          * Get the component of type T on this actor
          *
@@ -56,11 +59,12 @@ namespace h2o
 
         void set_replicate_transform(bool replicate);
 
-        Scene& scene() const { assert(m_scene); return *m_scene; }
-
     public:
 
         Transform transform;
+
+        friend class Scene;
+        Scene& scene;
 
     protected:
 
@@ -68,8 +72,6 @@ namespace h2o
 
         const ActorID m_actor_id = 0;
 
-        friend class Scene;
-        Scene* const m_scene;
 
     private:
 

@@ -1,8 +1,8 @@
 #include "structure_editor_workspace.h"
 
 #include "core/engine.h"
-#include "game_framework/actors/fps_character_actor.h"
-#include "input/input_component.h"
+#include "game_framework/actors/player_character.h"
+#include "game_framework/components/player_movement_component.h"
 #include "input/input_module.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
@@ -37,7 +37,7 @@ namespace bluevoxel
         m_scene->add_system<h2o::RenderingSystem>();
         m_scene->add_system<h2o::WeatherSystem>();
 
-        const auto player = m_scene->spawn_actor<h2o::FpsCharacterActor>();
+        const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();
 
         auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
         block_placing_comp->block_placeable = observer_from_this();
@@ -47,8 +47,11 @@ namespace bluevoxel
         player->transform.rotation = { 0.0f, 0.0f, 0.0f };
         player->transform.scale = { 0.5f, 0.5f, 0.5f };
 
-        player->fly = true;
-        player->fly_speed = 10.0f;
+        if (const auto movement_comp = player->get_component<h2o::PlayerMovementComponent>())
+        {
+            movement_comp->fly = true;
+            movement_comp->fly_speed = 10.0f;
+        }
 
         m_structure_gizmo.increment_size = 1.0f;
         m_structure_gizmo.reset_position_on_release = true;

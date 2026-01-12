@@ -22,6 +22,8 @@ namespace h2o
             );
         }
 
+        set_tick_phases(TickPhase::FrameStart);
+
         if (auto scene_module = g_engine->get_module<SceneModule>())
             scene_module->register_scene(*this);
     }
@@ -94,5 +96,12 @@ namespace h2o
             .owning_scene = *this,
             .is_host = m_net_peer ? m_net_peer->is_host() : true
         };
+    }
+
+    void Scene::frame_start()
+    {
+        for (const auto& actor : m_actors_to_run_start)
+            actor->start();
+        m_actors_to_run_start.clear();
     }
 }

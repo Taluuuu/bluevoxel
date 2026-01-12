@@ -31,7 +31,7 @@ namespace h2o
         INetPeer& client)
         : SceneSystem(system_initializer)
         , m_voxel_world_renderer(*this, m_chunk_mgr)
-        , m_voxel_bounds(v2i{}, 16)
+        , m_voxel_bounds(v2i{}, 8)
         , m_client(&client)
     {
         set_tick_phases(TickPhase::Update);

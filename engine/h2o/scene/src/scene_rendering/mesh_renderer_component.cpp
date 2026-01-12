@@ -12,13 +12,13 @@ namespace h2o
     MeshRendererComponent::MeshRendererComponent(const ComponentInitializer& component_initializer)
         : Component(component_initializer)
     {
-        if (auto render_system = m_scene->get_system<RenderingSystem>())
+        if (const auto render_system = scene.get_system<RenderingSystem>())
             render_system->register_component(*this);
     }
 
     MeshRendererComponent::~MeshRendererComponent()
     {
-        if (auto render_system = m_scene->get_system<RenderingSystem>())
+        if (const auto render_system = scene.get_system<RenderingSystem>())
             render_system->unregister_component(*this);
     }
 

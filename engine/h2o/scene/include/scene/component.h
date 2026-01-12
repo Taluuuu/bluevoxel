@@ -26,28 +26,12 @@ namespace h2o
         Component(Component&&) = delete;
         ~Component() override = default;
 
-        /**
-         * Get this component's owner actor
-         *
-         * @tparam T The actor's type
-         * @return A pointer to this component's owner actor
-         */
-        template<class T = Actor>
-        WeakHandle<T> owner() const;
+        virtual void start() {}
 
-    protected:
+    public:
 
-        Scene* const m_scene = nullptr;
-
-    private:
-
-        WeakHandle<Actor> m_owner;
+        Actor& owner;
+        Scene& scene;
 
     };
-
-    template<class T>
-    WeakHandle<T> Component::owner() const
-    {
-        return oup::dynamic_pointer_cast<T>(m_owner);
-    }
 }
