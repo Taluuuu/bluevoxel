@@ -1,6 +1,5 @@
 #include "scene/actor.h"
 
-#include "glm/gtx/range.hpp"
 #include "scene/scene.h"
 #include "scene/component.h"
 #include "scene/scene_networking_system.h"
@@ -11,6 +10,7 @@ namespace h2o
         : Tickable(&actor_initializer.scene)
         , scene(actor_initializer.scene)
         , m_actor_id(actor_initializer.actor_id)
+        , owning_peer_id(actor_initializer.owning_peer_id)
     {}
 
     void Actor::start()

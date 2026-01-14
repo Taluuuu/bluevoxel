@@ -20,6 +20,8 @@ namespace h2o
                     destroy_actor(actor_destroyed_msg.actor_id, false);
                 }
             );
+
+            m_local_peer_id = net_peer->local_peer_id();
         }
 
         set_tick_phases(TickPhase::FrameStart);

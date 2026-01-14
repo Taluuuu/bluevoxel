@@ -1,5 +1,6 @@
 #include "networking/server.h"
 
+#include "welcome_msg.h"
 #include "core/log.h"
 #include "networking/networking_module.h"
 
@@ -14,7 +15,7 @@ namespace h2o
         stop();
     }
 
-    bool Server::start(u16 port, bool allow_only_localhost)
+    bool Server::start(u16 port, const bool allow_only_localhost)
     {
         m_allow_only_localhost = allow_only_localhost;
 
@@ -51,15 +52,22 @@ namespace h2o
         return true;
     }
 
+    std::span<const PeerID> Server::peers() const
+    {
+        return m_peer_id_manager.peers();
+    }
+
     void Server::stop()
     {
         if (!m_is_active)
             return;
 
-        for (const u32 client_id : m_client_ids)
-            m_interface->CloseConnection(client_id, 0, "Server is shutting down.", true);
-
-        m_client_ids.clear();
+        for (const PeerID peer_id : m_peer_id_manager.peers())
+        {
+            if (const auto handle = m_peer_id_manager.get_handle(peer_id))
+                m_interface->CloseConnection(*handle, 0, "Server is shutting down.", true);
+        }
+        m_peer_id_manager.clear();
 
         m_interface->CloseListenSocket(m_listen_socket);
         m_listen_socket = k_HSteamListenSocket_Invalid;
@@ -72,12 +80,12 @@ namespace h2o
         NetPeer_Online::stop();
     }
 
-    void Server::send_message_internal(PeerID client_id, const void* data, size_t size)
+    void Server::send_message_internal(const PeerID client_id, const void* data, const size_t size)
     {
-        if (m_client_ids.contains(client_id))
+        if (const auto handle = m_peer_id_manager.get_handle(client_id))
         {
             m_interface->SendMessageToConnection(
-                client_id,
+                *handle,
                 data,
                 size,
                 k_nSteamNetworkingSend_Reliable,
@@ -85,7 +93,7 @@ namespace h2o
         }
     }
 
-    i32 Server::poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages)
+    i32 Server::poll_messages(ISteamNetworkingMessage** out_messages, const i32 max_messages)
     {
         return m_interface->ReceiveMessagesOnPollGroup(
             m_poll_group,
@@ -116,7 +124,7 @@ namespace h2o
                 log::info("Client disconnected.");
 
                 // Handle disconnect...
-                m_client_ids.erase(info.m_hConn);
+                m_peer_id_manager.remove_peer(info.m_hConn);
 
                 on_player_left.broadcast({info.m_hConn});
             }
@@ -154,16 +162,28 @@ namespace h2o
                 break;
             }
 
-            m_client_ids.insert(info.m_hConn);
             break;
         }
 
         case k_ESteamNetworkingConnectionState_Connected:
-            on_player_joined.broadcast({ info.m_hConn });
+            if (const auto peer_id = m_peer_id_manager.add_peer(info.m_hConn))
+            {
+                send_message<WelcomeMsg>(*peer_id, { *peer_id });
+                on_player_joined.broadcast({ *peer_id });
+            }
+            else
+            {
+                m_interface->CloseConnection(info.m_hConn, 0, nullptr, false);
+            }
             break;
 
         default:
             break;
         }
+    }
+
+    std::optional<PeerID> Server::handle_to_peer_id(const HSteamNetConnection handle) const
+    {
+        return m_peer_id_manager.get_peer_id(handle);
     }
 }

@@ -13,7 +13,8 @@ namespace h2o
         ~NetPeer_Local() override = default;
 
         // INetPeer interface
-        [[nodiscard]] const std::unordered_set<PeerID>& peers() const override;
+        [[nodiscard]] std::span<const PeerID> peers() const override;
+        [[nodiscard]] u32 local_peer_id() const override;
         [[nodiscard]] bool is_connected() const override { return true; }
     protected:
         void send_message_internal(PeerID client_id, const void* data, size_t size) override;

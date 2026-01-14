@@ -20,5 +20,6 @@ namespace h2o
     {
         ActorID actor_id = 0;
         Scene& scene;
+        u32 owning_peer_id = 0;
     };
 }

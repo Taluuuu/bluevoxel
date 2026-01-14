@@ -65,6 +65,7 @@ namespace h2o
         void tag_actor(const WeakHandle<Actor>& actor, ActorTag tag);
 
         [[nodiscard]] INetPeer* net_peer() const { return m_net_peer; }
+        [[nodiscard]] u32 local_peer_id() const { return m_local_peer_id; }
 
     protected:
 
@@ -83,6 +84,8 @@ namespace h2o
         std::string m_scene_name{};
 
         std::vector<WeakHandle<Actor>> m_actors_to_run_start{};
+
+        u32 m_local_peer_id = 0;
 
         INetPeer* m_net_peer = nullptr;
         EventHandle m_on_object_destroyed_handle{};

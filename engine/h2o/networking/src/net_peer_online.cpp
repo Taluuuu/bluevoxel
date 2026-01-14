@@ -79,6 +79,12 @@ namespace h2o
             }
 
             const MsgID msg_id = *static_cast<const MsgID*>(msg_data);
+            const std::optional<PeerID> peer_id = handle_to_peer_id(msg->m_conn);
+            if (!peer_id)
+            {
+                log::warn("Received message from invalid handle '{}'.", msg->m_conn);
+                continue;
+            }
 
             const auto event = get_msg_event(msg_id);
             if (!event)
@@ -92,7 +98,7 @@ namespace h2o
             const u8* msg_end   = msg_start + msg_size - sizeof(MsgID);
             const std::vector<u8> buffer { msg_start, msg_end };
 
-            const ReceivedMessageEvent event_data { msg->m_conn, buffer };
+            const ReceivedMessageEvent event_data { *peer_id, buffer };
             event->broadcast(event_data);
 
             msg->Release();

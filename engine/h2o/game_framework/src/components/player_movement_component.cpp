@@ -14,7 +14,7 @@ namespace h2o
     PlayerMovementComponent::PlayerMovementComponent(const ComponentInitializer& component_initializer)
         : Component(component_initializer)
         , m_input_module(g_engine->get_module_checked<InputModule>())
-        , m_physics_system(*scene.get_system<PhysicsSystem>()) // TODO: Should return a ref
+        , m_physics_system(scene.get_system<PhysicsSystem>()) // TODO: Should return a raw ptr eventually
     {
         set_tick_phases(TickPhase::Update);
     }
@@ -103,7 +103,7 @@ namespace h2o
     bool PlayerMovementComponent::touching_grass() const
     {
         // Test environment collision at the player's feet
-        if (m_collider)
+        if (m_collider && m_physics_system)
         {
             // TODO: Fix this to make the feet collider smaller on the X and Z axes
             //       to prevent climbing walls just by holding space next to them
@@ -115,7 +115,7 @@ namespace h2o
             feet_collider.size.y = 0.1f;
             feet_collider.position.y -= 0.05f;
 
-            return m_physics_system.collides(feet_collider);
+            return m_physics_system->collides(feet_collider);
         }
 
         return false;

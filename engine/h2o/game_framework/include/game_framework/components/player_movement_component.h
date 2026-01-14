@@ -70,7 +70,7 @@ namespace h2o
 
         InputModule& m_input_module;
 
-        PhysicsSystem& m_physics_system;
+        WeakHandle<PhysicsSystem> m_physics_system = nullptr;
 
         EventHandle m_on_collision_handle{};
 

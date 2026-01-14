@@ -6,7 +6,7 @@ namespace h2o
 {
     void NetPeer_Local::send_message_internal(PeerID client_id, const void* data, size_t size)
     {
-        if (!peers().contains(client_id))
+        if (!std::ranges::contains(peers(), client_id))
         {
             log::warn("Invalid client id {} for local net peer.", client_id);
             return;
@@ -41,9 +41,14 @@ namespace h2o
         m_message_received_events[msg_id].add_listener(event_handle, event_lambda);
     }
 
-    const std::unordered_set<PeerID>& NetPeer_Local::peers() const
+    std::span<const PeerID> NetPeer_Local::peers() const
     {
-        static const std::unordered_set<PeerID> local_peers{ 0 };
+        static const std::vector<PeerID> local_peers{ 0 };
         return local_peers;
+    }
+
+    u32 NetPeer_Local::local_peer_id() const
+    {
+        return 0;
     }
 }

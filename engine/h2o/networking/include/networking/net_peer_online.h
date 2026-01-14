@@ -36,15 +36,15 @@ namespace h2o
         [[nodiscard]] virtual i32 poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) = 0;
         [[nodiscard]] virtual bool can_send_messages() const = 0;
         virtual void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) = 0;
+        [[nodiscard]] virtual std::optional<PeerID> handle_to_peer_id(HSteamNetConnection handle) const { return 0; }
 
         [[nodiscard]] Event<ReceivedMessageEvent>* get_msg_event(MsgID id);
 
         static void connection_status_changed_callback(SteamNetConnectionStatusChangedCallback_t* info);
 
-    protected:
-
         // INetPeer interface
         void handle_message_internal(MsgID msg_id, EventHandle& event_handle, const ReceivedMessageLambda& event_lambda) override;
+
 
     protected:
 

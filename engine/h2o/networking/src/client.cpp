@@ -2,12 +2,20 @@
 
 #include "core/engine.h"
 #include "networking/networking_module.h"
+#include "welcome_msg.h"
 
 namespace h2o
 {
     Client::Client(Tickable* owner)
         : NetPeer_Online(owner)
-    {}
+    {
+        handle_message<WelcomeMsg>(m_welcome_msg_handle,
+            [this](PeerID, const WelcomeMsg& welcome_msg)
+            {
+                m_local_peer_id = welcome_msg.assigned_id;
+            }
+        );
+    }
 
     Client::~Client()
     {
@@ -47,9 +55,9 @@ namespace h2o
         return true;
     }
 
-    const std::unordered_set<PeerID>& Client::peers() const
+    std::span<const PeerID> Client::peers() const
     {
-        static const std::unordered_set<PeerID> client_peer { 0 };
+        static const std::vector<PeerID> client_peer { 0 };
         return client_peer;
     }
 

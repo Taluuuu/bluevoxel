@@ -34,13 +34,14 @@ namespace h2o
         Event<ConnectionEvent> on_disconnected_from_server{};
 
         // NetPeer interface
-        [[nodiscard]] const std::unordered_set<PeerID>& peers() const override;
+        [[nodiscard]] std::span<const PeerID> peers() const override;
+        [[nodiscard]] PeerID local_peer_id() const override { return m_local_peer_id; }
         [[nodiscard]] bool is_connected() const override { return m_connection_state == ConnectionState::Connected; }
         [[nodiscard]] bool is_host() const override { return false; }
         void stop() final;
     protected:
         void send_message_internal(PeerID client_id, const void* data, size_t size) override;
-        [[nodiscard]] i32  poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
+        [[nodiscard]] i32 poll_messages(ISteamNetworkingMessage** out_messages, i32 max_messages) override;
         [[nodiscard]] bool can_send_messages() const override;
         void on_connection_status_changed(const SteamNetConnectionStatusChangedCallback_t& info) override;
 
@@ -48,9 +49,13 @@ namespace h2o
 
     private:
 
+        PeerID m_local_peer_id = 0;
+
         ConnectionState m_connection_state = ConnectionState::Disconnected;
 
         HSteamNetConnection m_connection{};
+
+        EventHandle m_welcome_msg_handle{};
 
     };
 }

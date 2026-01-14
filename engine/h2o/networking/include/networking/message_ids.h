@@ -4,6 +4,7 @@
 
 namespace h2o::msg_ids
 {
+    constexpr MsgID welcome = 99;
     constexpr MsgID test = 100;
 
     // Scene replication

@@ -8,6 +8,7 @@ add_library(h2o_networking STATIC
     src/net_peer_local.cpp
     src/net_peer_online.cpp
     src/networking_module.cpp
+    src/peer_id_manager.cpp
     src/server.cpp
 )
 

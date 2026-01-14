@@ -35,7 +35,8 @@ namespace h2o
             EventHandle& event_handle,
             const MsgReceivedEventCallback<MsgType>& callback);
 
-        [[nodiscard]] virtual const std::unordered_set<PeerID>& peers() const = 0;
+        [[nodiscard]] virtual std::span<const PeerID> peers() const = 0;
+        [[nodiscard]] virtual PeerID local_peer_id() const = 0;
         [[nodiscard]] virtual bool is_connected() const = 0;
         [[nodiscard]] virtual bool is_host() const { return true; }
 

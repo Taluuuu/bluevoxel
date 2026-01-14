@@ -53,7 +53,7 @@ namespace bluevoxel
         m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.001f, false);
 
         m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
-            [this](h2o::PeerID client_id, const h2o::net_msg::PlayerJoin& player_join_event)
+            [this](h2o::PeerID, const h2o::net_msg::PlayerJoin& player_join_event)
             {
                 const auto& [actor_id, transform] = player_join_event;
                 spawn_remote_player(actor_id, transform);

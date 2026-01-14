@@ -45,7 +45,7 @@ namespace h2o
             {
                 // ScopeTimer timer("Received chunk column");
                 auto& [compressed_chunks, chunk_column_pos] = chunk_fetch_result;
-                log::info("Received chunk column at {}", chunk_column_pos);
+                // log::info("Received chunk column at {}", chunk_column_pos);
 
                 if (!m_voxel_bounds.in_bounds(chunk_column_pos))
                     return;

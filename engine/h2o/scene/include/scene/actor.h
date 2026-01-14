@@ -66,12 +66,13 @@ namespace h2o
         friend class Scene;
         Scene& scene;
 
+        const u32 owning_peer_id = 0;
+
     protected:
 
         ActorTag m_actor_tag = ActorTag::None;
 
         const ActorID m_actor_id = 0;
-
 
     private:
 
