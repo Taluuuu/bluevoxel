@@ -40,7 +40,7 @@ namespace h2o
          */
         template<class T>
         requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
-        WeakHandle<T> get_component();
+        T* get_component();
 
         /**
          * Add a component of type T to this actor
@@ -52,7 +52,7 @@ namespace h2o
          */
         template<class T, typename... Args>
         requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
-        WeakHandle<T> add_component(Args... args);
+        T* add_component(Args... args);
 
         [[nodiscard]] ActorTag get_tag() const { return m_actor_tag; }
         void tag_actor(ActorTag tag);
@@ -76,34 +76,26 @@ namespace h2o
 
     private:
 
-        std::unordered_map< std::type_index, OwningHandle<Component> > m_components;
+        std::vector<std::unique_ptr<Component>> m_components{};
 
     };
 
     template<class T>
     requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
-    WeakHandle<T> Actor::get_component()
+    T* Actor::get_component()
     {
-        // No clue how slow this is but it is the only way I could find at 2:12 AM to allow getting
-        // a child component and not a component of just type T. I left the old implementation under
-        // for future reference.
-        for (const auto& [_, component] : m_components)
+        for (const auto& component : m_components)
         {
-            if (auto comp = oup::dynamic_pointer_cast<T>(WeakHandle<Component>(component)))
+            if (auto comp = dynamic_cast<T*>(component.get()))
                 return comp;
         }
 
         return nullptr;
-
-//        auto comp_it = m_components.find(typeid(T));
-//        return (comp_it == m_components.end()) ?
-//            nullptr :
-//            oup::dynamic_pointer_cast<T>(WeakHandle<Component>(comp_it->second));
     }
 
     template<class T, typename... Args>
     requires (std::derived_from<T, Component> && !std::same_as<Component, T>)
-    WeakHandle<T> Actor::add_component(Args... args)
+    T* Actor::add_component(Args... args)
     {
         if (auto comp = get_component<T>())
         {
@@ -116,11 +108,9 @@ namespace h2o
             .owner = *this
         };
 
-        OwningHandle<T> new_comp = oup::make_observable_unique<T>(component_initializer, args...);
-        WeakHandle<T> weak_comp_handle = new_comp;
-
-        m_components.insert({ typeid(T), std::move(new_comp) });
-
-        return weak_comp_handle;
+        auto component = std::make_unique<T>(component_initializer, args...);
+        const auto component_ptr = component.get();
+        m_components.emplace_back(std::move(component));
+        return component_ptr;
     }
 }

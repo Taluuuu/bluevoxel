@@ -15,7 +15,7 @@ namespace h2o
 
     void Actor::start()
     {
-        for (const auto& component : m_components | std::views::values)
+        for (const auto& component : m_components)
             component->start();
     }
 

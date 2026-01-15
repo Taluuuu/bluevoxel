@@ -14,9 +14,9 @@ namespace h2o
     PlayerCharacter::PlayerCharacter(const ActorInitializer& actor_initializer)
         : Actor(actor_initializer)
     {
-        m_collider = add_component<ColliderComponent>();
-        m_collider->set_size(v3{ 0.8f, 1.7f, 0.8f });
-        m_collider->set_offset(v3{ -0.4f, -1.5f, -0.4f });
+        const auto collider = add_component<ColliderComponent>();
+        collider->set_size(v3{ 0.8f, 1.7f, 0.8f });
+        collider->set_offset(v3{ -0.4f, -1.5f, -0.4f });
 
         add_component<FpsCameraComponent>();
         add_component<PlayerMovementComponent>();

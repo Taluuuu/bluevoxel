@@ -65,8 +65,8 @@ namespace h2o
 
         f32 m_last_jump_time = 0.0f;
 
-        WeakHandle<ColliderComponent> m_collider = nullptr;
-        WeakHandle<FpsCameraComponent> m_camera = nullptr;
+        ColliderComponent* m_collider = nullptr;
+        FpsCameraComponent* m_camera = nullptr;
 
         InputModule& m_input_module;
 

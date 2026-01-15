@@ -22,9 +22,5 @@ namespace h2o
         explicit PlayerCharacter(const ActorInitializer& actor_initializer);
         ~PlayerCharacter() override = default;
 
-    private:
-
-        WeakHandle<ColliderComponent> m_collider = nullptr;
-
     };
 }

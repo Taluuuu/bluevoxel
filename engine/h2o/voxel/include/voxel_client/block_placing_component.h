@@ -34,7 +34,7 @@ namespace h2o
 
     private:
 
-        WeakHandle<CameraComponent> m_camera = nullptr;
+        CameraComponent* m_camera = nullptr;
 
         std::shared_ptr< Inventory<Block> > m_inventory = nullptr;
         std::shared_ptr< Inventory<Block> > m_hotbar_inventory = nullptr;
