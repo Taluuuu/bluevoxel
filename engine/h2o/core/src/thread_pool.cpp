@@ -39,7 +39,7 @@ namespace h2o
 
     size_t ThreadPool::thread_count() const
     {
-        return static_cast<i32>(std::thread::hardware_concurrency()) / 2;
+        return static_cast<i32>(std::thread::hardware_concurrency()) - 1;
         // return 1;
     }
 

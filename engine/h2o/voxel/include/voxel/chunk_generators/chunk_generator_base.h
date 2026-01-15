@@ -11,10 +11,13 @@ namespace h2o
     {
     public:
 
+        ChunkGenerator_Base();
         virtual ~ChunkGenerator_Base() = default;
 
         // Generate blocks for a whole chunk region
         virtual void gen_blocks(Chunk::ViewType& region_view) const = 0;
+
+        void recreate_seed();
 
         // Generate the structure instances for a whole chunk region.
         // These structures can span multiple regions.
@@ -24,6 +27,10 @@ namespace h2o
         // Serialization
         virtual void save(const fs::path& path) const {}
         virtual bool load(const fs::path& path) { return true; }
+
+    public:
+
+        i32 m_seed{};
 
     };
 }

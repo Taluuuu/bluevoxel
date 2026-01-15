@@ -17,5 +17,5 @@ namespace h2o
 
 namespace h2o::graph
 {
-    void draw_ui(Graph& graph, GraphUIContext& ctx, v2 graph_size = v2{ 250.0f });
+    void draw_ui(Graph& graph, GraphUIContext& ctx, bool flip_axes = false, v2 graph_size = v2{ 250.0f });
 }

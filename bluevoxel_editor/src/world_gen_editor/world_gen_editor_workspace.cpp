@@ -62,18 +62,21 @@ namespace bluevoxel
             if (ImGui::Button("Save"))
                 voxel_pack->save();
 
+            if (ImGui::Button("Update"))
+                regenerate(false);
+
             if (ImGui::Button("Regenerate"))
-                regenerate();
+                regenerate(true);
 
             if (auto terrain_generator = dynamic_cast<h2o::ChunkGenerator_Terrain*>(voxel_pack->chunk_generator().get()))
-                h2o::graph::draw_ui(terrain_generator->m_graph, m_graph_ui_context);
+                h2o::graph::draw_ui(terrain_generator->m_graph, m_graph_ui_context, true);
         }
         ImGui::End();
     }
 
-    void WorldGenEditorWorkspace::regenerate()
+    void WorldGenEditorWorkspace::regenerate(const bool use_new_seed)
     {
-        m_chunk_server->regenerate();
+        m_chunk_server->regenerate(use_new_seed);
         m_chunk_client->reload_all();
     }
 }

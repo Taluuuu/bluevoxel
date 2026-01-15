@@ -42,10 +42,13 @@ namespace h2o
         set_tick_phases(TickPhase::Update);
     }
 
-    void ChunkServer::regenerate()
+    void ChunkServer::regenerate(const bool use_new_seed)
     {
         m_chunk_mgr.remove_all([](v2i){ return true; });
         m_chunk_region_mgr.clear();
+
+        if (m_chunk_generator && use_new_seed)
+            m_chunk_generator->recreate_seed();
     }
 
     void ChunkServer::update(f32 delta_time)

@@ -6,7 +6,7 @@
 
 namespace h2o
 {
-    void graph::draw_ui(Graph& graph, GraphUIContext& ctx, const v2 graph_size)
+    void graph::draw_ui(Graph& graph, GraphUIContext& ctx, const bool flip_axes, const v2 graph_size)
     {
         auto* draw_list = ImGui::GetWindowDrawList();
         if (!draw_list)
@@ -34,17 +34,31 @@ namespace h2o
                     map_val(val.y, a_min.y, a_max.y, b_max.y, b_min.y)};
             };
 
-        const auto to_screen_pos =
-            [&](const v2 graph_pos)
+        const auto to_screen_pos = [&](const v2 graph_pos)
+        {
+            if (flip_axes)
             {
-                return map_vec(graph_pos, graph.graph_min(), graph.graph_max(), cursor_pos, cursor_pos + graph_size);
-            };
+                return v2{
+                    map_val(graph_pos.y, graph.graph_min().y, graph.graph_max().y, cursor_pos.x, cursor_pos.x + graph_size.x),
+                    map_val(graph_pos.x, graph.graph_min().x, graph.graph_max().x, cursor_pos.y + graph_size.y, cursor_pos.y)
+                };
+            }
 
-        const auto to_graph_pos =
-            [&](const v2 screen_pos)
+            return map_vec(graph_pos, graph.graph_min(), graph.graph_max(), cursor_pos, cursor_pos + graph_size);
+        };
+
+        const auto to_graph_pos = [&](const v2 screen_pos)
+        {
+            if (flip_axes)
             {
-                return map_vec(screen_pos, cursor_pos, cursor_pos + graph_size, graph.graph_min(), graph.graph_max());
-            };
+                return v2{
+                    map_val(screen_pos.y, cursor_pos.y + graph_size.y, cursor_pos.y, graph.graph_min().x, graph.graph_max().x),
+                    map_val(screen_pos.x, cursor_pos.x, cursor_pos.x + graph_size.x, graph.graph_min().y, graph.graph_max().y)
+                };
+            }
+
+            return map_vec(screen_pos, cursor_pos, cursor_pos + graph_size, graph.graph_min(), graph.graph_max());
+        };
 
         if (ctx.selected_point_index && ctx.is_selected_point_grabbed)
         {

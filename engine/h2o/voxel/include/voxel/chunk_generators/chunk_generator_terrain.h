@@ -22,7 +22,5 @@ namespace h2o
 
          Graph m_graph;
 
-         i32 m_seed{};
-
      };
 }

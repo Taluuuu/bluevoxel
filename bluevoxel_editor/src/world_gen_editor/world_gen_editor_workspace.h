@@ -26,7 +26,8 @@ namespace bluevoxel
 
         // h2o::Tickable interface
         void update(f32 delta_time) override;
-        void regenerate();
+
+        void regenerate(bool use_new_seed);
 
     private:
 

@@ -25,9 +25,7 @@ namespace h2o
 
     ChunkGenerator_Terrain::ChunkGenerator_Terrain()
         : m_graph(v2{0.0f}, v2{ voxel_constants::vertical_block_count, 1.0f })
-    {
-        m_seed = time(nullptr);
-    }
+    {}
 
     void ChunkGenerator_Terrain::gen_blocks(Chunk::ViewType& region_view) const
     {

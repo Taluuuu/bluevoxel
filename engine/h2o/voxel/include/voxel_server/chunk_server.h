@@ -29,7 +29,7 @@ namespace h2o
         [[nodiscard]] ChunkManager& chunk_mgr() { return m_chunk_mgr; }
         [[nodiscard]] const ChunkGenerator_Base* chunk_generator() const { return m_chunk_generator.get(); }
 
-        void regenerate();
+        void regenerate(bool use_new_seed);
 
     protected:
 
