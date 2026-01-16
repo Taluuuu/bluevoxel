@@ -18,6 +18,10 @@ add_library(h2o_scene STATIC
 )
 
 target_link_libraries(h2o_scene
+    PUBLIC
+        bitsery
+        EnTT::EnTT
+
     PRIVATE
         h2o_core
         h2o_networking
@@ -28,6 +32,9 @@ target_link_libraries(h2o_scene
 target_include_directories(h2o_scene
     PUBLIC
         include/
+
+        bitsery
+        EnTT::EnTT
 
     PRIVATE
         h2o_core

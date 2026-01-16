@@ -3,19 +3,24 @@
 #include "core/engine.h"
 #include "networking/net_peer.h"
 #include "scene/scene_module.h"
+#include "scene/scene_networking_components.h"
 #include "scene/scene_net_messages.h"
+
+#include <utility>
 
 namespace h2o
 {
-    Scene::Scene(const std::string& scene_name, INetPeer* net_peer)
+    Scene::Scene(std::string scene_name, INetPeer* net_peer)
         : Tickable(g_engine)
-        , m_scene_name(scene_name)
+        , m_scene_name(std::move(scene_name))
         , m_net_peer(net_peer)
     {
+        m_registry.on_construct<NetworkSync>().connect<&Scene::on_network_sync_created>(*this);
+
         if (net_peer)
         {
             net_peer->handle_message<net_msg::ActorDestroyed>(m_on_object_destroyed_handle,
-                [&](PeerID peer_id, const net_msg::ActorDestroyed& actor_destroyed_msg)
+                [&](PeerID, const net_msg::ActorDestroyed& actor_destroyed_msg)
                 {
                     destroy_actor(actor_destroyed_msg.actor_id, false);
                 }
@@ -24,7 +29,7 @@ namespace h2o
             m_local_peer_id = net_peer->local_peer_id();
         }
 
-        set_tick_phases(TickPhase::FrameStart);
+        set_tick_phases(TickPhase::FrameStart | TickPhase::NetworkUpdate);
 
         if (auto scene_module = g_engine->get_module<SceneModule>())
             scene_module->register_scene(*this);
@@ -105,5 +110,19 @@ namespace h2o
         for (const auto& actor : m_actors_to_run_start)
             actor->start();
         m_actors_to_run_start.clear();
+    }
+
+    void Scene::network_update(f32 delta_time)
+    {
+        for (const entt::entity entity : m_entities_pending_send)
+        {
+            // m_registry.
+        }
+        m_entities_pending_send.clear();
+    }
+
+    void Scene::on_network_sync_created(entt::entity entity)
+    {
+        m_entities_pending_send.emplace_back(entity);
     }
 }

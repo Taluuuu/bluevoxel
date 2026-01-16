@@ -6,6 +6,7 @@
 #include "core/tickable.h"
 #include "scene_system.h"
 
+#include <entt/entt.hpp>
 #include <unordered_map>
 #include <vector>
 
@@ -19,7 +20,7 @@ namespace h2o
     {
     public:
 
-        Scene(const std::string& scene_name, INetPeer* net_peer);
+        Scene(std::string  scene_name, INetPeer* net_peer);
         Scene(const Scene&) = delete;
 
         // A scene currently registers itself to the SceneModule by its memory address,
@@ -72,8 +73,17 @@ namespace h2o
         [[nodiscard]] SceneSystemInitializer make_system_initializer();
 
         void frame_start() override;
+        void network_update(f32 delta_time) override;
 
     private:
+
+        void on_network_sync_created(entt::entity entity);
+
+    private:
+
+        entt::registry m_registry;
+        // Entities that have been created since last network update that have the NetworkSync component
+        std::vector<entt::entity> m_entities_pending_send{};
 
         std::unordered_map< ActorID, OwningHandle<Actor> > m_actor_map{};
         std::unordered_map< ActorTag, WeakHandle<Actor> > m_actor_tags{};

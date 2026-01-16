@@ -15,6 +15,7 @@ add_library(h2o_networking STATIC
 target_link_libraries(h2o_networking
     PUBLIC
         bitsery
+        EnTT::EnTT
         GameNetworkingSockets::shared
 
     PRIVATE
@@ -26,6 +27,7 @@ target_include_directories(h2o_networking
         include/
 
         bitsery
+        EnTT::EnTT
         GameNetworkingSockets::shared
 
     PRIVATE

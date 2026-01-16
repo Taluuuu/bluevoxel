@@ -47,6 +47,9 @@ find_package(assimp REQUIRED)
 # FastNoise2
 add_subdirectory(lib/FastNoise2)
 
+# entt
+find_package(EnTT REQUIRED)
+
 # Engine libraries
 add_subdirectory(h2o/core)
 add_subdirectory(h2o/weather)
