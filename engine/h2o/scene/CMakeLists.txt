@@ -19,12 +19,13 @@ add_library(h2o_scene STATIC
 
 target_link_libraries(h2o_scene
     PUBLIC
+        h2o_networking # Needed public because of networking_utils being used in scene_module.h
+
         bitsery
         EnTT::EnTT
 
     PRIVATE
         h2o_core
-        h2o_networking
         h2o_rendering
         h2o_windowing
 )
@@ -33,12 +34,13 @@ target_include_directories(h2o_scene
     PUBLIC
         include/
 
+        h2o_networking
+
         bitsery
         EnTT::EnTT
 
     PRIVATE
         h2o_core
-        h2o_networking
         h2o_rendering
         h2o_windowing
 )

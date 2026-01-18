@@ -2,17 +2,10 @@
 
 #include "core/module.h"
 #include "core/tickable.h"
+#include "networking/networking_utils.h"
 
 #include <entt/core/fwd.hpp>
 #include <entt/entity/registry.hpp>
-#include <bitsery/adapter/buffer.h>
-#include <bitsery/bitsery.h>
-#include <bitsery/brief_syntax.h>
-#include <bitsery/common.h>
-#include <bitsery/ext/entropy.h>
-#include <bitsery/ext/pointer.h>
-#include <bitsery/ext/utils/pointer_utils.h>
-#include <bitsery/traits/vector.h>
 #include <set>
 
 namespace h2o
@@ -31,6 +24,9 @@ namespace h2o
         void register_scene(Scene& scene);
         void unregister_scene(Scene& scene);
 
+        [[nodiscard]] entt::entity deserialize_entity(entt::registry& registry, net_utils::Reader& reader) const;
+        void serialize_entity(const entt::registry& registry, entt::entity entity, net_utils::Writer& writer) const;
+
         template<class T>
         void register_component();
 
@@ -38,13 +34,10 @@ namespace h2o
 
         std::set<Scene*> m_scenes{};
 
-        using Buffer = std::vector<u8>;
-        using Reader = bitsery::InputBufferAdapter<Buffer>;
-        using Writer = bitsery::OutputBufferAdapter<Buffer>;
         struct ReplicatedComponent
         {
-            void (*serialize)(entt::registry&, entt::entity, bitsery::Serializer<Writer>&);
-            void (*deserialize)(entt::registry&, entt::entity, bitsery::Deserializer<Reader>&);
+            void (*serialize)(const entt::registry&, entt::entity, net_utils::Writer&);
+            void (*deserialize)(entt::registry&, entt::entity, net_utils::Reader&);
         };
 
         std::unordered_map<entt::id_type, ReplicatedComponent> m_registered_components{};
@@ -58,12 +51,12 @@ namespace h2o
         m_registered_components[type] = ReplicatedComponent
         {
             .serialize =
-                [](entt::registry& registry, entt::entity entity, bitsery::Serializer<Writer>& writer)
+                [](const entt::registry& registry, entt::entity entity, net_utils::Writer& writer)
                 {
                     writer.object(registry.get<T>(entity));
                 },
             .deserialize =
-                [](entt::registry& registry, entt::entity entity, bitsery::Deserializer<Reader>& reader)
+                [](entt::registry& registry, entt::entity entity, net_utils::Reader& reader)
                 {
                     if (!registry.any_of<T>(entity))
                         registry.emplace<T>(entity);
