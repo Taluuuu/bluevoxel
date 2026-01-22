@@ -27,6 +27,7 @@ namespace h2o
         register_component<Rotation>();
         register_component<Scale>();
         register_component<Player>();
+        register_component<Velocity>();
 
         return true;
     }

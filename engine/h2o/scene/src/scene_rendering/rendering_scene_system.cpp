@@ -8,21 +8,21 @@
 #include "rendering/renderer.h"
 #include "rendering/texture.h"
 #include "scene/actor.h"
+#include "scene/scene.h"
+#include "scene_rendering/camera_component.h"
 #include "scene_rendering/mesh_renderer_component.h"
 #include "windowing/windowing_module.h"
 #include "windowing/window.h"
 
 #include <algorithm>
 
-#include "scene/scene.h"
-
 namespace h2o
 {
     RenderingSystem::RenderingSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
+        , m_renderer(g_engine->get_module_checked<RenderingModule>().renderer())
     {
-        auto& rendering_module = g_engine->get_module_checked<RenderingModule>();
-        auto& windowing_module = g_engine->get_module_checked<WindowingModule>();
+        const auto& windowing_module = g_engine->get_module_checked<WindowingModule>();
 
         // Window resize logic
         v2i fb_size = windowing_module.window().framebuffer_size();
@@ -32,16 +32,13 @@ namespace h2o
             [&](const WindowResizeEvent& event)
             {
                 m_aspect_ratio = (f32)event.new_size.x / (f32)event.new_size.y;
-                if (m_main_camera)
-                    m_main_camera->aspect_ratio = m_aspect_ratio;
+                if (const auto camera = find_camera())
+                    camera->camera.aspect_ratio = m_aspect_ratio;
             }
         );
 
-        // Pipeline setup
-        m_renderer = &rendering_module.renderer();
-
         // TODO: Move this to the system's init function
-        m_pipeline = (*m_renderer)
+        m_pipeline = m_renderer
             .create_pipeline()
             .add_shader(gfx::ShaderStage::Vertex,   "engine/shaders/triangle.vert")
             .add_shader(gfx::ShaderStage::Fragment, "engine/shaders/triangle.frag")
@@ -59,19 +56,27 @@ namespace h2o
 
     void RenderingSystem::pre_render()
     {
-        if (m_main_camera)
-            m_renderer->set_camera(*m_main_camera);
+        const auto view = scene.registry().view<CameraComp, Position, Rotation>();
+        const auto entity = view.front();
+        if (entity == entt::null)
+            return;
+
+        auto& camera = view.get<CameraComp>(entity).camera;
+        const auto& position = view.get<Position>(entity).position;
+        const auto& rotation = view.get<Rotation>(entity).rotation;
+
+        log::info("{}", position);
+
+        camera.aspect_ratio = m_aspect_ratio;
+        camera.update(position, rotation);
+        m_renderer.set_camera(camera);
     }
 
     void RenderingSystem::render()
     {
-        // scene.registry().view<CameraComp>();
-
-        // if (!m_main_camera)
-        // {
-        //     log::warn("No main camera is attached to the Rendering Scene System.");
-        //     return;
-        // }
+        const auto camera = find_camera();
+        if (!camera)
+            return;
 
         if (!m_pipeline)
         {
@@ -79,9 +84,9 @@ namespace h2o
             return;
         }
 
-        m_pipeline->set_uniform_mat4(0, m_renderer->proj_view_matrix());
+        m_pipeline->set_uniform_mat4(0, m_renderer.proj_view_matrix());
 
-        m_renderer->bind_pipeline(m_pipeline);
+        m_renderer.bind_pipeline(m_pipeline);
         for (const auto render_comp : m_mesh_renderer_components)
         {
             assert(render_comp);
@@ -95,7 +100,7 @@ namespace h2o
                 if (const auto& texture = render_comp->texture())
                     texture->bind(0);
 
-                m_renderer->draw(*mesh);
+                m_renderer.draw(*mesh);
             }
         }
     }
@@ -120,10 +125,13 @@ namespace h2o
         assert(num_erased == 1);
     }
 
-    void RenderingSystem::set_main_camera(const WeakHandle<gfx::Camera>& camera)
+    CameraComp* RenderingSystem::find_camera() const
     {
-        m_main_camera = camera;
-        if (m_main_camera)
-            m_main_camera->aspect_ratio = m_aspect_ratio;
+        const auto view = scene.registry().view<CameraComp>();
+        const auto entity = view.front();
+        if (entity == entt::null)
+            return nullptr;
+
+        return &view.get<CameraComp>(entity);
     }
 }

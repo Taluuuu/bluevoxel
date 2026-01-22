@@ -58,25 +58,25 @@ namespace h2o
         if (!rendering_system)
             return;
 
-        const auto camera = rendering_system->main_camera();
-        if (!camera)
-            return;
-
-        auto& renderer = g_engine->get_module_checked<RenderingModule>().renderer();
-
-        renderer.draw_sphere(
-            camera->position() + m_sun_direction * sun_distance,
-            sun_radius,
-            v4{ current_lighting_settings().light_color, 1.0f }
-        );
-
-        renderer.draw_sphere(
-            camera->position() - m_sun_direction * moon_distance,
-            moon_radius,
-            v4{ moon_color, 1.0f }
-        );
-
-        renderer.set_clear_color(v4{ m_current_lighting_settings.sky_color, 1.0f });
+        // const auto camera = rendering_system->main_camera();
+        // if (!camera)
+        //     return;
+        //
+        // auto& renderer = g_engine->get_module_checked<RenderingModule>().renderer();
+        //
+        // renderer.draw_sphere(
+        //     camera->position() + m_sun_direction * sun_distance,
+        //     sun_radius,
+        //     v4{ current_lighting_settings().light_color, 1.0f }
+        // );
+        //
+        // renderer.draw_sphere(
+        //     camera->position() - m_sun_direction * moon_distance,
+        //     moon_radius,
+        //     v4{ moon_color, 1.0f }
+        // );
+        //
+        // renderer.set_clear_color(v4{ m_current_lighting_settings.sky_color, 1.0f });
     }
 
     void WeatherSystem::set_time(const i64 time)

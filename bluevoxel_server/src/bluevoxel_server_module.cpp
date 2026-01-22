@@ -52,6 +52,7 @@ namespace bluevoxel
                 registry.emplace<h2o::Position>(player_entity);
                 registry.emplace<h2o::Rotation>(player_entity);
                 registry.emplace<h2o::Scale>(player_entity);
+                registry.emplace<h2o::Velocity>(player_entity);
                 registry.emplace<h2o::Player>(player_entity);
                 registry.emplace<h2o::NetworkSync>(player_entity);
             }

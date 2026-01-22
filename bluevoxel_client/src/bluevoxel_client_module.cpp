@@ -3,6 +3,7 @@
 #include "core/engine.h"
 #include "game_framework/actors/player_character.h"
 #include "game_framework/components/player_movement_component.h"
+#include "game_framework/systems/player_movement_system.h"
 #include "input/input_module.h"
 #include "physics/scene/physics_system.h"
 #include "rendering/mesh.h"
@@ -155,6 +156,7 @@ namespace bluevoxel
         m_scene->add_system<h2o::RenderingSystem>();
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
         m_scene->add_system<h2o::WeatherSystem>();
+        m_scene->add_system<h2o::PlayerMovementSystem>();
         // m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
         m_scene->on_network_sync_entity_created.add_listener(m_on_network_sync_entity_created_handle,
