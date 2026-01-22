@@ -40,7 +40,7 @@ namespace bluevoxel
         // Setup scene
         m_scene = std::make_shared<h2o::Scene>("server_scene", &m_server);
 
-        // m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::Server&>(m_server);
+        m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::Server&>(m_server);
         m_scene->add_system<h2o::WeatherSystem>();
 
         m_server.on_player_joined.add_listener(m_player_joined_event_handle,

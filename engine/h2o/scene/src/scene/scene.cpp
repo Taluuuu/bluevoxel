@@ -160,13 +160,16 @@ namespace h2o
         }
     }
 
-    void Scene::on_network_sync_created(entt::entity entity)
+    void Scene::on_network_sync_created(const entt::entity entity)
     {
         // If server, assign an entity id
         if (m_local_peer_id == 0)
         {
             if (const auto sync = m_registry.try_get<NetworkSync>(entity))
+            {
                 sync->entity_id = m_entity_id_generator++;
+                m_server_to_local[sync->entity_id] = entity;
+            }
         }
 
         m_newly_spawned_entities.emplace_back(entity);

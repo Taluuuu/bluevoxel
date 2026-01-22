@@ -65,8 +65,6 @@ namespace h2o
         const auto& position = view.get<Position>(entity).position;
         const auto& rotation = view.get<Rotation>(entity).rotation;
 
-        log::info("{}", position);
-
         camera.aspect_ratio = m_aspect_ratio;
         camera.update(position, rotation);
         m_renderer.set_camera(camera);
