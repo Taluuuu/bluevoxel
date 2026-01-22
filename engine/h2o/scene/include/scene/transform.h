@@ -34,4 +34,40 @@ namespace h2o
         v3 scale    { 1.0f, 1.0f, 1.0f };
 
     };
+
+    struct Position
+    {
+        v3 position{ 0.0f };
+
+        template<typename S>
+        void serialize(S& s)
+        { s(position); }
+    };
+
+    struct Rotation
+    {
+        v3 rotation{ 0.0f };
+
+        template<typename S>
+        void serialize(S& s)
+        { s(rotation); }
+    };
+
+    struct Scale
+    {
+        v3 scale{ 1.0f };
+
+        template<typename S>
+        void serialize(S& s)
+        { s(scale); }
+    };
+
+    struct Velocity
+    {
+        v3 velocity{ 0.0f };
+
+        template<typename S>
+        void serialize(S& s)
+        { s(velocity); }
+    };
 }

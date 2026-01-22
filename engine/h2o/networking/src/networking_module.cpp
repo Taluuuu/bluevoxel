@@ -10,7 +10,7 @@ namespace h2o
         switch (type)
         {
         case k_ESteamNetworkingSocketsDebugOutputType_Msg:
-            log::info("GameNetworkingSockets Debug: {}", msg);
+            // log::info("GameNetworkingSockets Debug: {}", msg);
             break;
 
         default:

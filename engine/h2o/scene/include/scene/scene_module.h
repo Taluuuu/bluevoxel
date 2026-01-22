@@ -3,6 +3,7 @@
 #include "core/module.h"
 #include "core/tickable.h"
 #include "networking/networking_utils.h"
+#include "scene_networking_components.h"
 
 #include <entt/core/fwd.hpp>
 #include <entt/entity/registry.hpp>
@@ -24,11 +25,16 @@ namespace h2o
         void register_scene(Scene& scene);
         void unregister_scene(Scene& scene);
 
-        [[nodiscard]] entt::entity deserialize_entity(entt::registry& registry, net_utils::Reader& reader) const;
+        entt::entity deserialize_entity(entt::registry& registry, net_utils::Reader& reader) const;
         void serialize_entity(const entt::registry& registry, entt::entity entity, net_utils::Writer& writer) const;
+        void deserialize_component(entt::registry& registry, entt::entity entity, entt::id_type type, net_utils::Reader& reader) const;
+        // Removes Dirty<T> components from the registry
+        void serialize_dirty_components(entt::registry& registry, entt::id_type type, std::vector<u32>& out_entity_ids, net_utils::Writer& writer) const;
 
         template<class T>
         void register_component();
+
+        void for_each_component_type(const std::function<void(entt::id_type)>& function) const;
 
     private:
 
@@ -36,11 +42,12 @@ namespace h2o
 
         struct ReplicatedComponent
         {
-            void (*serialize)(const entt::registry&, entt::entity, net_utils::Writer&);
-            void (*deserialize)(entt::registry&, entt::entity, net_utils::Reader&);
+            std::function<void(entt::registry&, std::vector<u32>&, net_utils::Writer&)> serialize_dirty_components;
+            std::function<void(const entt::registry&, entt::entity, net_utils::Writer&)> serialize;
+            std::function<void(entt::registry&, entt::entity, net_utils::Reader&)> deserialize;
         };
 
-        std::unordered_map<entt::id_type, ReplicatedComponent> m_registered_components{};
+        std::unordered_map<entt::id_type, ReplicatedComponent> m_registered_components_types{};
 
     };
 
@@ -48,20 +55,48 @@ namespace h2o
     void SceneModule::register_component()
     {
         const auto type = entt::type_hash<T>::value();
-        m_registered_components[type] = ReplicatedComponent
+        m_registered_components_types[type] = ReplicatedComponent
         {
-            .serialize =
-                [](const entt::registry& registry, entt::entity entity, net_utils::Writer& writer)
+            .serialize_dirty_components =
+                [](entt::registry& registry, std::vector<u32>& out_entity_ids, net_utils::Writer& writer)
                 {
-                    writer.object(registry.get<T>(entity));
+                    // TODO: Clean this up
+                    if constexpr (std::is_empty_v<T>)
+                    {
+                        registry.view<T, Dirty<T>, NetworkSync>().each(
+                            [&](const entt::entity entity, const NetworkSync& sync)
+                            {
+                                out_entity_ids.push_back(sync.entity_id);
+                                registry.remove<Dirty<T>>(entity);
+                            }
+                        );
+                    }
+                    else
+                    {
+                        registry.view<T, Dirty<T>, NetworkSync>().each(
+                            [&](const entt::entity entity, const T& component, const NetworkSync& sync)
+                            {
+                                out_entity_ids.push_back(sync.entity_id);
+                                writer.object(component);
+                                registry.remove<Dirty<T>>(entity);
+                            }
+                        );
+                    }
+                },
+            .serialize =
+                [](const entt::registry& registry, const entt::entity entity, net_utils::Writer& writer)
+                {
+                    if constexpr (!std::is_empty_v<T>)
+                        writer.object(registry.get<T>(entity));
                 },
             .deserialize =
-                [](entt::registry& registry, entt::entity entity, net_utils::Reader& reader)
+                [](entt::registry& registry, const entt::entity entity, net_utils::Reader& reader)
                 {
                     if (!registry.any_of<T>(entity))
                         registry.emplace<T>(entity);
 
-                    reader.object(registry.get<T>(entity));
+                    if constexpr (!std::is_empty_v<T>)
+                        reader.object(registry.get<T>(entity));
                 }
         };
     }

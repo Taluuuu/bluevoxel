@@ -3,8 +3,11 @@
 #include "core/engine.h"
 #include "networking/networking_module.h"
 #include "networking/networking_utils.h"
+#include "scene/player.h"
 #include "scene/scene.h"
 #include "scene/scene_net_messages.h"
+#include "scene/scene_networking_components.h"
+#include "scene/scene_module.h"
 #include "voxel/chunk_generators/chunk_generator_flat.h"
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel/voxel_pack.h"
@@ -37,69 +40,29 @@ namespace bluevoxel
         // Setup scene
         m_scene = std::make_shared<h2o::Scene>("server_scene", &m_server);
 
-        m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::Server&>(m_server);
+        // m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::Server&>(m_server);
         m_scene->add_system<h2o::WeatherSystem>();
 
         m_server.on_player_joined.add_listener(m_player_joined_event_handle,
             [&](const h2o::Server::PlayerConnectionChangedEvent& event)
             {
-                // Use client id as actor id
-                m_scene->spawn_actor(h2o::Transform{}, event.client_id);
+                auto& registry = m_scene->registry();
 
-                // Send the new client to other connected clients
-                for (h2o::PeerID client_id : m_server.peers())
-                {
-                    if (client_id != event.client_id)
-                    {
-                        m_server.send_message(client_id,
-                            h2o::net_msg::PlayerJoin { event.client_id, h2o::Transform{} });
-                    }
-                }
-
-                // Send existing clients to the client who just joined
-                for (h2o::PeerID client_id : m_server.peers())
-                {
-                    if (client_id == event.client_id)
-                        continue;
-
-                    if (auto player = m_scene->get_actor(client_id))
-                    {
-                        m_server.send_message(event.client_id,
-                            h2o::net_msg::PlayerJoin { client_id, player->transform });
-                    }
-                }
+                const auto player_entity = registry.create();
+                registry.emplace<h2o::Position>(player_entity);
+                registry.emplace<h2o::Rotation>(player_entity);
+                registry.emplace<h2o::Scale>(player_entity);
+                registry.emplace<h2o::Player>(player_entity);
+                registry.emplace<h2o::NetworkSync>(player_entity);
             }
         );
 
-        m_server.on_player_left.add_listener(m_player_left_event_handle,
-            [&](const h2o::Server::PlayerConnectionChangedEvent& event)
-            {
-                assert(m_scene);
-                m_scene->destroy_actor(event.client_id, true);
-            }
-        );
-
-        m_server.handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
-            [&](h2o::PeerID sender_id, const h2o::net_msg::TransformUpdate& transform_update)
-            {
-                assert(m_scene);
-
-                auto actor = m_scene->get_actor(sender_id);
-                if (!actor)
-                    return;
-
-                actor->transform = transform_update.transform;
-
-                for (h2o::PeerID id : m_server.peers())
-                {
-                    if (sender_id != id)
-                    {
-                        m_server.send_message(id,
-                            h2o::net_msg::TransformUpdate { sender_id, actor->transform });
-                    }
-                }
-            }
-        );
+        // m_server.on_player_left.add_listener(m_player_left_event_handle,
+        //     [&](const h2o::Server::PlayerConnectionChangedEvent& event)
+        //     {
+        //
+        //     }
+        // );
 
         return true;
     }
@@ -114,6 +77,7 @@ namespace bluevoxel
     {
         return {
             typeid(h2o::NetworkingModule),
+            typeid(h2o::SceneModule),
             typeid(h2o::VoxelModule)
         };
     }

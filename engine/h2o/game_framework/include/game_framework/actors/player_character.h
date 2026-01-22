@@ -5,16 +5,6 @@
 
 namespace h2o
 {
-    class FpsCameraComponent;
-    class PhysicsSystem;
-}
-
-namespace h2o
-{
-    class InputComponent;
-    class CameraComponent;
-    class ColliderComponent;
-
     class PlayerCharacter : public Actor
     {
     public:

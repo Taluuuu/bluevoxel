@@ -171,13 +171,17 @@ namespace h2o
         if (!m_client->is_connected())
             return;
 
-        auto player = scene.get_actor_by_tag(ActorTag::LocalPlayer);
-        if (!player)
-            return;
+        // TODO: Find easy way to find local player
+        // scene.registry().view<Position, >()...
+        // auto player = scene.get_actor_by_tag(ActorTag::LocalPlayer);
+        // if (!player)
+        //     return;
 
-        m_chunk_mgr.set_player_positions({ player->transform.position });
+        const v3 player_pos{};
 
-        m_player_pos = player->transform.position;
+        m_chunk_mgr.set_player_positions({ player_pos });
+
+        m_player_pos = player_pos;
         const v3i player_chunk_pos = voxel_utils::world_to_chunk_pos(m_player_pos);
         const v2i player_chunk_col_pos { player_chunk_pos.x, player_chunk_pos.z };
         m_voxel_bounds.set_bounds_center(player_chunk_col_pos);

@@ -28,12 +28,12 @@ namespace bluevoxel
         m_scene->add_system<h2o::RenderingSystem>();
 
         // Spawn camera
-        auto camera = m_scene->spawn_actor();
-        auto tps_cam = camera->add_component<h2o::ThirdPersonCameraComponent>();
-        tps_cam->rotate_mouse_button = h2o::MouseButton::Right;
-        camera->tag_actor(h2o::ActorTag::LocalPlayer);
-        camera->transform.position = { 0.5f, 0.5f, 0.5f };
-        camera->transform.rotation = { 0.0f, 0.0f, 0.0f };
+        // auto camera = m_scene->spawn_actor();
+        // auto tps_cam = camera->add_component<h2o::ThirdPersonCameraComponent>();
+        // tps_cam->rotate_mouse_button = h2o::MouseButton::Right;
+        // camera->tag_actor(h2o::ActorTag::LocalPlayer);
+        // camera->transform.position = { 0.5f, 0.5f, 0.5f };
+        // camera->transform.rotation = { 0.0f, 0.0f, 0.0f };
 
         m_block_renderer = std::make_shared<BlockRenderer>(*this);
         m_block_renderer->set_block(h2o::Block{ 0 });

@@ -5,6 +5,7 @@
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/bitsery.h>
 #include <bitsery/brief_syntax.h>
+#include <bitsery/brief_syntax/vector.h>
 #include <bitsery/common.h>
 #include <bitsery/ext/entropy.h>
 #include <bitsery/ext/pointer.h>

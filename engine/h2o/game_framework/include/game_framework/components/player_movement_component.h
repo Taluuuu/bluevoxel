@@ -75,4 +75,34 @@ namespace h2o
         EventHandle m_on_collision_handle{};
 
     };
+
+    struct PlayerMovementComp
+    {
+        f32 acceleration_walk = 12.0f;
+        f32 deceleration_walk = 20.0f;
+        f32 max_speed_walk = 5.0f; // m/s
+        f32 max_speed_walk_sprint = 7.0f; // m/s
+
+        f32 acceleration_fall = 3.0f;
+        f32 deceleration_fall = 1.0f;
+        f32 max_speed_fall = 5.0f; // m/s
+        f32 max_speed_fall_sprint = 8.0f; // m/s
+
+        f32 acceleration_fly = 10.0f;
+        f32 deceleration_fly = 20.0f;
+        f32 max_speed_fly = 20.0f; // m/s
+        f32 max_speed_fly_sprint = 30.0f; // m/s
+
+        f32 gravity = 30.0f; // m/s^2
+
+        f32 jump_speed = 8.5f; // m/s
+        f32 min_time_between_jumps = 0.25f; // s
+
+        bool fly = true;
+        f32 fly_speed = 20.0f; // m/s
+
+        f32 sprint_fov_modifier = 1.1f;
+
+        f32 last_jump_time = 0.0f;
+    };
 }

@@ -12,6 +12,7 @@
 
 namespace h2o
 {
+    class SceneModule;
     class Engine;
     class INetPeer;
     class SceneSystem;
@@ -28,45 +29,18 @@ namespace h2o
         Scene(Scene&&) = delete;
         ~Scene() override;
 
-        bool init();
-        void cleanup();
-
-        /**
-         * Create and store a new actor of type T
-         *
-         * @tparam T The actor's type, must inherit from or be Actor
-         * @param spawn_transform The transform to apply to the actor on spawn
-         * @param actor_id_override An optional override for the actor's id
-         * @return The created actor or nullptr on failure
-         */
-        template<class T = Actor>
-        WeakHandle<T> spawn_actor(const Transform& spawn_transform = Transform{}, ActorID actor_id_override = 0);
-
-        bool destroy_actor(ActorID actor_id, bool replicate = true);
-
-        /**
-         * Get the actor of type T with a name
-         *
-         * @tparam T The actor's type
-         * @param name The actor's unique name
-         * @return The found actor or nullptr on failure
-         */
-        template<class T = Actor>
-        WeakHandle<T> get_actor(ActorID actor_id);
-
-        template<class T = Actor>
-        WeakHandle<T> get_actor_by_tag(ActorTag actor_tag);
-
         template<class T, class... Args>
         WeakHandle<T> add_system(Args... args);
 
         template<class T>
         WeakHandle<T> get_system();
 
-        void tag_actor(const WeakHandle<Actor>& actor, ActorTag tag);
-
         [[nodiscard]] INetPeer* net_peer() const { return m_net_peer; }
         [[nodiscard]] u32 local_peer_id() const { return m_local_peer_id; }
+        [[nodiscard]] entt::registry& registry() { return m_registry; }
+
+        // Called on next network sync so there is time for all components to be added
+        Event<entt::entity> on_network_sync_entity_created{};
 
     protected:
 
@@ -83,11 +57,10 @@ namespace h2o
 
         entt::registry m_registry;
         // Entities that have been created since last network update that have the NetworkSync component
-        std::vector<entt::entity> m_entities_pending_send{};
+        std::vector<entt::entity> m_newly_spawned_entities{};
 
-        std::unordered_map< ActorID, OwningHandle<Actor> > m_actor_map{};
-        std::unordered_map< ActorTag, WeakHandle<Actor> > m_actor_tags{};
-        ActorID m_actor_id_generator = 1;
+        std::unordered_map<u32, entt::entity> m_server_to_local{};
+        u32 m_entity_id_generator = 1;
 
         std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map{};
 
@@ -99,71 +72,13 @@ namespace h2o
 
         INetPeer* m_net_peer = nullptr;
         EventHandle m_on_object_destroyed_handle{};
+        EventHandle m_on_spawn_entity_handle{};
+        EventHandle m_on_update_component_handle{};
+        EventHandle m_on_player_joined_handle{};
+
+        SceneModule& m_scene_module;
 
     };
-
-    template<class T>
-    WeakHandle<T> Scene::spawn_actor(const Transform& spawn_transform, ActorID actor_id_override)
-    {
-        static_assert(
-            std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
-
-        ActorID actor_id = actor_id_override;
-        if (actor_id == 0)
-        {
-            actor_id = m_actor_id_generator++;
-        }
-        else
-        {
-            // fuck fuck fuck fuck
-            if (get_actor(actor_id_override) != nullptr)
-            {
-                assert(false);
-                return nullptr;
-            }
-        }
-
-        const ActorInitializer actor_initializer { actor_id, *this };
-
-        OwningHandle<T> actor = oup::make_observable_unique<T>(actor_initializer);
-        WeakHandle<T> weak_actor = actor;
-        actor->transform = spawn_transform;
-
-        auto [it, success] = m_actor_map.insert({ actor_id, std::move(actor) });
-        assert(success);
-
-        m_actors_to_run_start.push_back(weak_actor);
-
-        return weak_actor;
-    }
-
-    template<class T>
-    WeakHandle<T> Scene::get_actor(ActorID actor_id)
-    {
-        static_assert(
-            std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
-
-        auto actor_it = m_actor_map.find(actor_id);
-        if (actor_it == m_actor_map.end())
-            return nullptr;
-
-        WeakHandle<Actor> actor = actor_it->second;
-        return oup::dynamic_pointer_cast<T>(actor);
-    }
-
-    template<class T>
-    WeakHandle<T> Scene::get_actor_by_tag(ActorTag actor_tag)
-    {
-        static_assert(
-            std::is_base_of_v<Actor, T>, "T must derive from h2o::Actor.");
-
-        auto actor_it = m_actor_tags.find(actor_tag);
-        if (actor_it == m_actor_tags.end())
-            return nullptr;
-
-        WeakHandle<Actor> actor = actor_it->second;
-        return oup::dynamic_pointer_cast<T>(actor);
-    }
 
     template<class T, class... Args>
     WeakHandle<T> Scene::add_system(Args... args)

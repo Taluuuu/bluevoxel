@@ -11,6 +11,8 @@ namespace h2o::msg_ids
     constexpr MsgID player_join = 200;
     constexpr MsgID transform_update = 201;
     constexpr MsgID actor_destroyed = 202;
+    constexpr MsgID spawn_entity = 203;
+    constexpr MsgID update_component = 204;
 
     // Voxels
     constexpr MsgID chunk_fetch_request = 300;

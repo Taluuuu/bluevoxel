@@ -14,6 +14,8 @@
 
 #include <algorithm>
 
+#include "scene/scene.h"
+
 namespace h2o
 {
     RenderingSystem::RenderingSystem(const SceneSystemInitializer& system_initializer)
@@ -63,11 +65,13 @@ namespace h2o
 
     void RenderingSystem::render()
     {
-        if (!m_main_camera)
-        {
-            log::warn("No main camera is attached to the Rendering Scene System.");
-            return;
-        }
+        // scene.registry().view<CameraComp>();
+
+        // if (!m_main_camera)
+        // {
+        //     log::warn("No main camera is attached to the Rendering Scene System.");
+        //     return;
+        // }
 
         if (!m_pipeline)
         {

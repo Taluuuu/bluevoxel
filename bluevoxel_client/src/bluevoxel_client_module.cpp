@@ -2,16 +2,19 @@
 
 #include "core/engine.h"
 #include "game_framework/actors/player_character.h"
+#include "game_framework/components/player_movement_component.h"
 #include "input/input_module.h"
 #include "physics/scene/physics_system.h"
 #include "rendering/mesh.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "rendering/texture.h"
+#include "scene/player.h"
 #include "scene/scene.h"
 #include "scene/scene_module.h"
 #include "scene/scene_networking_system.h"
 #include "scene/scene_net_messages.h"
+#include "scene_rendering/camera_component.h"
 #include "scene_rendering/mesh_renderer_component.h"
 #include "scene_rendering/rendering_scene_system.h"
 #include "ui/ui_module.h"
@@ -51,14 +54,6 @@ namespace bluevoxel
         m_input_module->register_axis("fly", h2o::Key::LeftControl, h2o::Key::Space);
         m_input_module->register_axis("cam_x", h2o::MouseMoveDelta::Y, 0.001f, true);
         m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.001f, false);
-
-        m_client.handle_message<h2o::net_msg::PlayerJoin>(m_on_client_connected_to_server_handle,
-            [this](h2o::PeerID, const h2o::net_msg::PlayerJoin& player_join_event)
-            {
-                const auto& [actor_id, transform] = player_join_event;
-                spawn_remote_player(actor_id, transform);
-            }
-        );
 
         m_client.on_connected_to_server.add_listener(m_on_connected_handle,
             [this](const h2o::Client::ConnectionEvent&)
@@ -159,40 +154,27 @@ namespace bluevoxel
         m_scene->add_system<h2o::RenderingSystem>();
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
         m_scene->add_system<h2o::WeatherSystem>();
-        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
+        // m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
-        spawn_local_player();
-    }
+        m_scene->on_network_sync_entity_created.add_listener(m_on_network_sync_entity_created_handle,
+            [this](const entt::entity entity)
+            {
+                auto& registry = m_scene->registry();
+                if (!registry.any_of<h2o::Player>(entity))
+                    return;
 
-    void BlueVoxelClientModule::spawn_local_player()
-    {
-        assert(m_scene);
+                if (const auto network_sync = registry.try_get<h2o::NetworkSync>(entity))
+                {
+                    if (network_sync->owner == m_scene->local_peer_id())
+                    {
+                        if (!registry.any_of<h2o::PlayerMovementComp>(entity))
+                            registry.emplace<h2o::PlayerMovementComp>(entity);
 
-        const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();
-        player->tag_actor(h2o::ActorTag::LocalPlayer);
-
-        {
-            const auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
-            block_placing_comp->block_placeable = m_chunk_client;
-        }
-
-        player->set_replicate_transform(true);
-        player->transform.position = { 0.0f, 220.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 0.0f, 0.0f};
-        player->transform.scale = { 0.28f, 0.28f, 0.28f };
-    }
-
-    void BlueVoxelClientModule::spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform)
-    {
-        assert(g_engine);
-
-        if (auto remote_player = m_scene->spawn_actor(spawn_transform, actor_id))
-        {
-            auto mesh_renderer = remote_player->add_component<h2o::MeshRendererComponent>();
-            mesh_renderer->set_mesh(
-                g_engine->resource_mgr().fetch<h2o::gfx::Mesh>("bluevoxel/models/robot.fbx"));
-            mesh_renderer->set_texture(
-                g_engine->resource_mgr().fetch<h2o::gfx::Texture>("bluevoxel/textures/robot.png"));
-        }
+                        if (!registry.any_of<h2o::CameraComp>(entity))
+                            registry.emplace<h2o::CameraComp>(entity);
+                    }
+                }
+            }
+        );
     }
 }

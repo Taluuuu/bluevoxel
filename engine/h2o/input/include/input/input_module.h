@@ -33,6 +33,7 @@ namespace h2o
         void register_axis(const std::string_view& name, Key negative, Key positive);
         void register_axis(const std::string_view& name, MouseMoveDelta mouse_delta, f32 sensitivity = 1.0f, bool invert = false);
         void register_axis(const std::string_view& name, MouseScrollDelta scroll_delta, f32 sensitivity = 1.0f, bool invert = false);
+        // TODO: Why no const?
         [[nodiscard]] f32 get_axis(const std::string_view& name);
 
         [[nodiscard]] bool is_mouse_captured() const;

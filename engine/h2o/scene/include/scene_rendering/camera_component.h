@@ -37,4 +37,9 @@ namespace h2o
         OwningHandle<gfx::Camera> m_camera = nullptr;
 
     };
+
+    struct CameraComp
+    {
+        gfx::Camera camera;
+    };
 }

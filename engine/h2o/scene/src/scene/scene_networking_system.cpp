@@ -13,45 +13,45 @@ namespace h2o
     {
         set_tick_phases(TickPhase::NetworkUpdate);
 
-        m_client->handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
-            [&](h2o::PeerID client_id, const h2o::net_msg::TransformUpdate& transform_update)
-            {
-                if (auto actor = scene.get_actor(transform_update.actor_id))
-                    actor->transform = transform_update.transform;
-            }
-        );
+        // m_client->handle_message<h2o::net_msg::TransformUpdate>(m_on_received_transform_update_handle,
+        //     [&](h2o::PeerID client_id, const h2o::net_msg::TransformUpdate& transform_update)
+        //     {
+        //         if (auto actor = scene.get_actor(transform_update.actor_id))
+        //             actor->transform = transform_update.transform;
+        //     }
+        // );
     }
 
     void SceneNetworkingSystem::network_update(f32 delta_time)
     {
-        if (!m_client || !m_client->is_connected())
-            return;
-
-        for (const auto& actor : m_replicated_actors)
-        {
-            if (actor)
-            {
-                // TODO: TEMPORARY
-                // This code is only meant to make other players rotate fine
-                Transform transform = actor->transform;
-
-                transform.rotation.x = 0.0f;
-                transform.rotation.z = 0.0f;
-                transform.rotation.y -= glm::half_pi<f32>();
-                transform.rotation.y *= -1.0f;
-
-                m_client->send_message(0, net_msg::TransformUpdate { 0, transform });
-            }
-        }
+        // if (!m_client || !m_client->is_connected())
+        //     return;
+        //
+        // for (const auto& actor : m_replicated_actors)
+        // {
+        //     if (actor)
+        //     {
+        //         // TODO: TEMPORARY
+        //         // This code is only meant to make other players rotate fine
+        //         Transform transform = actor->transform;
+        //
+        //         transform.rotation.x = 0.0f;
+        //         transform.rotation.z = 0.0f;
+        //         transform.rotation.y -= glm::half_pi<f32>();
+        //         transform.rotation.y *= -1.0f;
+        //
+        //         m_client->send_message(0, net_msg::TransformUpdate { 0, transform });
+        //     }
+        // }
     }
 
     void SceneNetworkingSystem::replicate_actor_transform(const WeakHandle<Actor>& actor)
     {
-        m_replicated_actors.push_back(actor);
+        // m_replicated_actors.push_back(actor);
     }
 
     void SceneNetworkingSystem::stop_replicating_actor_transform(const WeakHandle<Actor>& actor)
     {
-        std::erase(m_replicated_actors, actor);
+        // std::erase(m_replicated_actors, actor);
     }
 }

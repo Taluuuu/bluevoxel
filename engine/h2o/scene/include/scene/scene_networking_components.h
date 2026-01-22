@@ -4,22 +4,16 @@
 
 namespace h2o
 {
-    using SerializeFn   = void(*)(entt::registry&, entt::entity, net_utils::Writer&);
-    using DeserializeFn = void(*)(entt::registry&, entt::entity, net_utils::Reader&);
-
-    struct ReplicatedComponentDesc
-    {
-        entt::id_type type;
-        SerializeFn serialize;
-        DeserializeFn deserialize;
-    };
-
     struct NetworkSync
     {
         PeerID owner{};
+        u32 entity_id{};
 
         template<typename S>
         void serialize(S& s)
-        { s(owner); }
+        { s(entity_id, owner); }
     };
+
+    template<class T>
+    struct Dirty {};
 }

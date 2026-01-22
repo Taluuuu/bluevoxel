@@ -26,13 +26,13 @@ namespace bluevoxel
 
         m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::INetPeer&>(m_local_net_peer);
 
-        const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();
-        player->tag_actor(h2o::ActorTag::LocalPlayer);
-        player->transform.position = { 0.0f, 300.0f, 0.0f };
-        if (const auto movement_comp = player->get_component<h2o::PlayerMovementComponent>())
-        {
-            movement_comp->fly = true;
-        }
+        // const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();
+        // player->tag_actor(h2o::ActorTag::LocalPlayer);
+        // player->transform.position = { 0.0f, 300.0f, 0.0f };
+        // if (const auto movement_comp = player->get_component<h2o::PlayerMovementComponent>())
+        // {
+        //     movement_comp->fly = true;
+        // }
 
         set_tick_phases(h2o::TickPhase::Update);
     }

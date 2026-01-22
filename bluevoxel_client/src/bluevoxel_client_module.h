@@ -41,8 +41,6 @@ namespace bluevoxel
     private:
 
         void create_scene();
-        void spawn_local_player();
-        void spawn_remote_player(h2o::ActorID actor_id, const h2o::Transform& spawn_transform);
 
     private:
 
@@ -58,6 +56,7 @@ namespace bluevoxel
         h2o::EventHandle m_on_client_connected_to_server_handle{};
         h2o::EventHandle m_on_connected_handle{};
         h2o::EventHandle m_on_disconnected_handle{};
+        h2o::EventHandle m_on_network_sync_entity_created_handle{};
 
         h2o::InputModule* m_input_module = nullptr;
 

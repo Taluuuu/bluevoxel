@@ -37,21 +37,21 @@ namespace bluevoxel
         m_scene->add_system<h2o::RenderingSystem>();
         m_scene->add_system<h2o::WeatherSystem>();
 
-        const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();
-
-        auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
-        block_placing_comp->block_placeable = observer_from_this();
-
-        player->tag_actor(h2o::ActorTag::LocalPlayer);
-        player->transform.position = { -2.0f, 0.0f, 0.0f };
-        player->transform.rotation = { 0.0f, 0.0f, 0.0f };
-        player->transform.scale = { 0.5f, 0.5f, 0.5f };
-
-        if (const auto movement_comp = player->get_component<h2o::PlayerMovementComponent>())
-        {
-            movement_comp->fly = true;
-            movement_comp->fly_speed = 10.0f;
-        }
+        // const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();
+        //
+        // auto block_placing_comp = player->add_component<h2o::BlockPlacingComponent>();
+        // block_placing_comp->block_placeable = observer_from_this();
+        //
+        // player->tag_actor(h2o::ActorTag::LocalPlayer);
+        // player->transform.position = { -2.0f, 0.0f, 0.0f };
+        // player->transform.rotation = { 0.0f, 0.0f, 0.0f };
+        // player->transform.scale = { 0.5f, 0.5f, 0.5f };
+        //
+        // if (const auto movement_comp = player->get_component<h2o::PlayerMovementComponent>())
+        // {
+        //     movement_comp->fly = true;
+        //     movement_comp->fly_speed = 10.0f;
+        // }
 
         m_structure_gizmo.increment_size = 1.0f;
         m_structure_gizmo.reset_position_on_release = true;
