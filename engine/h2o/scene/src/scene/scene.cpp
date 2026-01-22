@@ -26,23 +26,18 @@ namespace h2o
             server->on_player_joined.add_listener(m_on_player_joined_handle,
                 [this](const Server::PlayerConnectionChangedEvent& event)
                 {
-                    net_utils::Buffer buffer{};
-                    net_utils::Writer writer{ buffer };
-
-                    bool spawn_any = false;
                     m_registry.view<NetworkSync>().each(
                         [&](const entt::entity entity, const NetworkSync&)
                         {
+                            net_utils::Buffer buffer{};
+                            net_utils::Writer writer{ buffer };
+
                             m_scene_module.serialize_entity(m_registry, entity, writer);
-                            spawn_any = true;
+
+                            const net_msg::SpawnEntity msg{ buffer };
+                            m_net_peer->send_message(event.client_id, msg);
                         }
                     );
-
-                    if (spawn_any)
-                    {
-                        const net_msg::SpawnEntity msg{ buffer };
-                        m_net_peer->send_message(event.client_id, msg);
-                    }
                 }
             );
         }

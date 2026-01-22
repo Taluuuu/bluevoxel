@@ -56,9 +56,8 @@ namespace bluevoxel
         m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.001f, false);
 
         m_client.on_connected_to_server.add_listener(m_on_connected_handle,
-            [this](const h2o::Client::ConnectionEvent&)
+            [](const h2o::Client::ConnectionEvent&)
             {
-                create_scene();
                 g_engine->layer_stack().pop_layer(h2o::Layer::PauseMenu);
             }
         );
@@ -71,6 +70,8 @@ namespace bluevoxel
         );
 
         g_engine->layer_stack().push_layer(h2o::Layer::PauseMenu, { false, true });
+
+        create_scene();
 
         return true;
     }
