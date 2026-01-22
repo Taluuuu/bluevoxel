@@ -8,6 +8,7 @@
 #include "scene/scene_net_messages.h"
 #include "scene/scene_networking_components.h"
 #include "scene/scene_module.h"
+#include "scene_rendering/mesh_renderer_component.h"
 #include "voxel/chunk_generators/chunk_generator_flat.h"
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
 #include "voxel/voxel_pack.h"
@@ -54,7 +55,8 @@ namespace bluevoxel
                 registry.emplace<h2o::Scale>(player_entity);
                 registry.emplace<h2o::Velocity>(player_entity);
                 registry.emplace<h2o::Player>(player_entity);
-                registry.emplace<h2o::NetworkSync>(player_entity);
+                registry.emplace<h2o::NetworkSync>(player_entity, event.client_id);
+                registry.emplace<h2o::MeshRenderer>(player_entity, "bluevoxel/models/robot.fbx", "bluevoxel/textures/robot.png");
             }
         );
 

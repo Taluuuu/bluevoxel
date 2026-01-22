@@ -36,7 +36,7 @@ namespace h2o
         WeakHandle<T> get_system();
 
         [[nodiscard]] INetPeer* net_peer() const { return m_net_peer; }
-        [[nodiscard]] u32 local_peer_id() const { return m_local_peer_id; }
+        [[nodiscard]] u32 local_peer_id() const;
         [[nodiscard]] entt::registry& registry() { return m_registry; }
 
         // Called on next network sync so there is time for all components to be added
@@ -67,8 +67,6 @@ namespace h2o
         std::string m_scene_name{};
 
         std::vector<WeakHandle<Actor>> m_actors_to_run_start{};
-
-        u32 m_local_peer_id = 0;
 
         INetPeer* m_net_peer = nullptr;
         EventHandle m_on_object_destroyed_handle{};

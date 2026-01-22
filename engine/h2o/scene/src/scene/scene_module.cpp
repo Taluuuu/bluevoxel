@@ -4,6 +4,7 @@
 #include "scene/player.h"
 #include "scene/scene.h"
 #include "scene/scene_networking_components.h"
+#include "scene_rendering/mesh_renderer_component.h"
 
 #include <entt/core/hashed_string.hpp>
 #include <entt/meta/factory.hpp>
@@ -15,6 +16,7 @@
 #include <bitsery/traits/vector.h>
 #include <bitsery/traits/string.h>
 #include <bitsery/brief_syntax.h>
+#include <bitsery/brief_syntax/string.h>
 
 using namespace entt::literals;
 
@@ -28,6 +30,8 @@ namespace h2o
         register_component<Scale>();
         register_component<Player>();
         register_component<Velocity>();
+
+        register_component<MeshRenderer>();
 
         return true;
     }
@@ -62,7 +66,7 @@ namespace h2o
             reader.value4b(type);
 
             if (const auto it = m_registered_components_types.find(type); it != m_registered_components_types.end())
-                it->second.deserialize(registry, entity, reader);
+                it->second.deserialize(registry, entity, reader, false);
         }
 
         return entity;
@@ -96,10 +100,11 @@ namespace h2o
         entt::registry& registry,
         const entt::entity entity,
         const entt::id_type type,
-        net_utils::Reader& reader) const
+        net_utils::Reader& reader,
+        const bool mark_dirty) const
     {
         if (const auto it = m_registered_components_types.find(type); it != m_registered_components_types.end())
-            it->second.deserialize(registry, entity, reader);
+            it->second.deserialize(registry, entity, reader, mark_dirty);
     }
 
     void SceneModule::serialize_dirty_components(entt::registry& registry, const entt::id_type type, std::vector<u32>& out_entity_ids, net_utils::Writer& writer) const

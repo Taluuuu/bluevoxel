@@ -27,7 +27,7 @@ namespace h2o
 
         entt::entity deserialize_entity(entt::registry& registry, net_utils::Reader& reader) const;
         void serialize_entity(const entt::registry& registry, entt::entity entity, net_utils::Writer& writer) const;
-        void deserialize_component(entt::registry& registry, entt::entity entity, entt::id_type type, net_utils::Reader& reader) const;
+        void deserialize_component(entt::registry& registry, entt::entity entity, entt::id_type type, net_utils::Reader& reader, bool mark_dirty) const;
         // Removes Dirty<T> components from the registry
         void serialize_dirty_components(entt::registry& registry, entt::id_type type, std::vector<u32>& out_entity_ids, net_utils::Writer& writer) const;
 
@@ -44,7 +44,7 @@ namespace h2o
         {
             std::function<void(entt::registry&, std::vector<u32>&, net_utils::Writer&)> serialize_dirty_components;
             std::function<void(const entt::registry&, entt::entity, net_utils::Writer&)> serialize;
-            std::function<void(entt::registry&, entt::entity, net_utils::Reader&)> deserialize;
+            std::function<void(entt::registry&, entt::entity, net_utils::Reader&, bool)> deserialize;
         };
 
         std::unordered_map<entt::id_type, ReplicatedComponent> m_registered_components_types{};
@@ -90,13 +90,29 @@ namespace h2o
                         writer.object(registry.get<T>(entity));
                 },
             .deserialize =
-                [](entt::registry& registry, const entt::entity entity, net_utils::Reader& reader)
+                [](entt::registry& registry, const entt::entity entity, net_utils::Reader& reader, const bool mark_dirty)
                 {
-                    if (!registry.any_of<T>(entity))
-                        registry.emplace<T>(entity);
+                    if constexpr (std::is_empty_v<T>)
+                    {
+                        if (!registry.any_of<T>(entity))
+                            registry.emplace<T>(entity);
+                    }
+                    else
+                    {
+                        if (registry.any_of<T>(entity))
+                        {
+                            reader.object(registry.get<T>(entity));
+                        }
+                        else
+                        {
+                            T comp;
+                            reader.object(comp);
+                            registry.emplace<T>(entity, comp);
+                        }
 
-                    if constexpr (!std::is_empty_v<T>)
-                        reader.object(registry.get<T>(entity));
+                        registry.emplace_or_replace<Dirty<T>>(entity);
+                    }
+
                 }
         };
     }

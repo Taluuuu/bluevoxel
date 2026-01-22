@@ -6,6 +6,7 @@
 
 #include <memory>
 #include <vector>
+#include <entt/entity/entity.hpp>
 
 namespace h2o
 {
@@ -30,15 +31,13 @@ namespace h2o
         void pre_render() override;
         void render() override;
 
-        // Registered mesh renderer components MUST unregister themselves on delete
-        void register_component(const MeshRendererComponent& renderer_component);
-        void unregister_component(const MeshRendererComponent& renderer_component);
-
         [[nodiscard]] CameraComp* find_camera() const;
 
     private:
 
-        std::vector<const MeshRendererComponent*> m_mesh_renderer_components{};
+        void on_mesh_renderer_created(entt::entity entity) const;
+
+    private:
 
         std::shared_ptr<gfx::IPipeline> m_pipeline = nullptr;
 

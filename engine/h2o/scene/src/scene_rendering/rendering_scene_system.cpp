@@ -3,6 +3,7 @@
 #include "core/log.h"
 #include "core/engine.h"
 #include "rendering/camera.h"
+#include "rendering/mesh.h"
 #include "rendering/pipeline.h"
 #include "rendering/rendering_module.h"
 #include "rendering/renderer.h"
@@ -18,6 +19,22 @@
 
 namespace h2o
 {
+    namespace
+    {
+        [[nodiscard]] m4 make_model_matrix(const v3& position, const v3& rotation, const v3& scale)
+        {
+            m4 model(1.0f);
+
+            model = glm::translate(model, position);
+            model = glm::rotate(model, rotation.x, { 1.0f, 0.0f, 0.0f });
+            model = glm::rotate(model, rotation.y, { 0.0f, 1.0f, 0.0f });
+            model = glm::rotate(model, rotation.z, { 0.0f, 0.0f, 1.0f });
+            model = glm::scale(model, scale);
+
+            return model;
+        }
+    }
+
     RenderingSystem::RenderingSystem(const SceneSystemInitializer& system_initializer)
         : SceneSystem(system_initializer)
         , m_renderer(g_engine->get_module_checked<RenderingModule>().renderer())
@@ -37,6 +54,8 @@ namespace h2o
             }
         );
 
+        scene.registry().on_construct<MeshRenderer>().connect<&RenderingSystem::on_mesh_renderer_created>(*this);
+
         // TODO: Move this to the system's init function
         m_pipeline = m_renderer
             .create_pipeline()
@@ -51,7 +70,7 @@ namespace h2o
 
     RenderingSystem::~RenderingSystem()
     {
-        assert(m_mesh_renderer_components.empty());
+        // assert(m_mesh_renderer_components.empty());
     }
 
     void RenderingSystem::pre_render()
@@ -85,42 +104,27 @@ namespace h2o
         m_pipeline->set_uniform_mat4(0, m_renderer.proj_view_matrix());
 
         m_renderer.bind_pipeline(m_pipeline);
-        for (const auto render_comp : m_mesh_renderer_components)
-        {
-            assert(render_comp);
 
-            auto& actor = render_comp->owner;
-            m_pipeline->set_uniform_mat4(1, actor.transform.model_matrix());
-            m_pipeline->set_uniform_int(2, 0);
-
-            if (const auto& mesh = render_comp->mesh())
+        scene.registry().view<MeshRenderer, Position, Rotation, Scale>().each(
+            [&](
+                const MeshRenderer& mesh_renderer,
+                const Position& position,
+                const Rotation& rotation,
+                const Scale& scale)
             {
-                if (const auto& texture = render_comp->texture())
-                    texture->bind(0);
 
-                m_renderer.draw(*mesh);
+                m_pipeline->set_uniform_mat4(1, make_model_matrix(position.position, rotation.rotation, scale.scale));
+                m_pipeline->set_uniform_int(2, 0);
+
+                if (const auto& mesh = mesh_renderer.mesh)
+                {
+                    if (const auto& texture = mesh_renderer.texture)
+                        texture->bind(0);
+
+                    m_renderer.draw(*mesh);
+                }
             }
-        }
-    }
-
-    void RenderingSystem::register_component(const MeshRendererComponent& renderer_component)
-    {
-#ifndef NDEBUG
-        auto result = std::find(
-            m_mesh_renderer_components.begin(),
-            m_mesh_renderer_components.end(),
-            &renderer_component);
-
-        assert(result == m_mesh_renderer_components.end());
-#endif
-
-        m_mesh_renderer_components.push_back(&renderer_component);
-    }
-
-    void RenderingSystem::unregister_component(const MeshRendererComponent& renderer_component)
-    {
-        [[maybe_unused]] auto num_erased = std::erase(m_mesh_renderer_components, &renderer_component);
-        assert(num_erased == 1);
+        );
     }
 
     CameraComp* RenderingSystem::find_camera() const
@@ -131,5 +135,15 @@ namespace h2o
             return nullptr;
 
         return &view.get<CameraComp>(entity);
+    }
+
+    void RenderingSystem::on_mesh_renderer_created(const entt::entity entity) const
+    {
+        const auto mesh_renderer = scene.registry().try_get<MeshRenderer>(entity);
+        if (!mesh_renderer)
+            return;
+
+        mesh_renderer->mesh = g_engine->resource_mgr().fetch<gfx::Mesh>(mesh_renderer->mesh_path);
+        mesh_renderer->texture = g_engine->resource_mgr().fetch<gfx::Texture>(mesh_renderer->texture_path);
     }
 }

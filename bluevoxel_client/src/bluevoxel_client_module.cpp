@@ -57,9 +57,10 @@ namespace bluevoxel
         m_input_module->register_axis("cam_y", h2o::MouseMoveDelta::X, 0.001f, false);
 
         m_client.on_connected_to_server.add_listener(m_on_connected_handle,
-            [](const h2o::Client::ConnectionEvent&)
+            [this](const h2o::Client::ConnectionEvent&)
             {
                 g_engine->layer_stack().pop_layer(h2o::Layer::PauseMenu);
+                create_scene();
             }
         );
 
@@ -71,8 +72,6 @@ namespace bluevoxel
         );
 
         g_engine->layer_stack().push_layer(h2o::Layer::PauseMenu, { false, true });
-
-        create_scene();
 
         return true;
     }
@@ -157,7 +156,7 @@ namespace bluevoxel
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
         m_scene->add_system<h2o::WeatherSystem>();
         m_scene->add_system<h2o::PlayerMovementSystem>();
-        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
+        // m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
         m_scene->on_network_sync_entity_created.add_listener(m_on_network_sync_entity_created_handle,
             [this](const entt::entity entity)
@@ -166,6 +165,7 @@ namespace bluevoxel
                 if (!registry.any_of<h2o::Player>(entity))
                     return;
 
+                // Add some local only components when we spawn a player
                 if (const auto network_sync = registry.try_get<h2o::NetworkSync>(entity))
                 {
                     if (network_sync->owner == m_scene->local_peer_id())

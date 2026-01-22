@@ -80,12 +80,10 @@ namespace h2o
                         const auto& buffer = update_component_msg.serialized_components;
                         net_utils::Reader reader{ buffer.begin(), buffer.size() };
 
-                        m_scene_module.deserialize_component(m_registry, it->second, update_component_msg.component_type, reader);
+                        m_scene_module.deserialize_component(m_registry, it->second, update_component_msg.component_type, reader, m_net_peer->is_host());
                     }
                 }
             );
-
-            m_local_peer_id = net_peer->local_peer_id();
         }
 
         set_tick_phases(TickPhase::FrameStart | TickPhase::NetworkUpdate);
@@ -97,6 +95,14 @@ namespace h2o
     {
         m_scene_module.unregister_scene(*this);
         m_system_map.clear();
+    }
+
+    u32 Scene::local_peer_id() const
+    {
+        if (const auto peer = net_peer())
+            return peer->local_peer_id();
+
+        return 0;
     }
 
     SceneSystemInitializer Scene::make_system_initializer()
@@ -163,7 +169,7 @@ namespace h2o
     void Scene::on_network_sync_created(const entt::entity entity)
     {
         // If server, assign an entity id
-        if (m_local_peer_id == 0)
+        if (net_peer()->is_host())
         {
             if (const auto sync = m_registry.try_get<NetworkSync>(entity))
             {
