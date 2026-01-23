@@ -113,6 +113,12 @@ namespace h2o
             it->second.serialize_dirty_components(registry, out_entity_ids, writer);
     }
 
+    void SceneModule::skip_component(const entt::id_type type, net_utils::Reader& reader) const
+    {
+        if (const auto it = m_registered_components_types.find(type); it != m_registered_components_types.end())
+            it->second.skip(reader);
+    }
+
     void SceneModule::for_each_component_type(const std::function<void(entt::id_type)>& function) const
     {
         for (const auto& type : m_registered_components_types | std::views::keys)

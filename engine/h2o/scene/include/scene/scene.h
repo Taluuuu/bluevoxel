@@ -60,7 +60,7 @@ namespace h2o
         std::vector<entt::entity> m_newly_spawned_entities{};
 
         std::unordered_map<u32, entt::entity> m_server_to_local{};
-        u32 m_entity_id_generator = 1;
+        u32 m_entity_id_generator = 18;
 
         std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map{};
 

@@ -30,6 +30,7 @@ namespace h2o
         void deserialize_component(entt::registry& registry, entt::entity entity, entt::id_type type, net_utils::Reader& reader, bool mark_dirty) const;
         // Removes Dirty<T> components from the registry
         void serialize_dirty_components(entt::registry& registry, entt::id_type type, std::vector<u32>& out_entity_ids, net_utils::Writer& writer) const;
+        void skip_component(entt::id_type type, net_utils::Reader& reader) const;
 
         template<class T>
         void register_component();
@@ -45,6 +46,7 @@ namespace h2o
             std::function<void(entt::registry&, std::vector<u32>&, net_utils::Writer&)> serialize_dirty_components;
             std::function<void(const entt::registry&, entt::entity, net_utils::Writer&)> serialize;
             std::function<void(entt::registry&, entt::entity, net_utils::Reader&, bool)> deserialize;
+            std::function<void(net_utils::Reader&)> skip;
         };
 
         std::unordered_map<entt::id_type, ReplicatedComponent> m_registered_components_types{};
@@ -110,9 +112,18 @@ namespace h2o
                             registry.emplace<T>(entity, comp);
                         }
 
-                        registry.emplace_or_replace<Dirty<T>>(entity);
+                        if (mark_dirty)
+                            registry.emplace_or_replace<Dirty<T>>(entity);
                     }
-
+                },
+            .skip =
+                [](net_utils::Reader& reader)
+                {
+                    if constexpr (!std::is_empty_v<T>)
+                    {
+                        T dummy;
+                        reader.object(dummy);
+                    }
                 }
         };
     }

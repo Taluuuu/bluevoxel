@@ -156,7 +156,7 @@ namespace bluevoxel
         m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
         m_scene->add_system<h2o::WeatherSystem>();
         m_scene->add_system<h2o::PlayerMovementSystem>();
-        // m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
+        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
         m_scene->on_network_sync_entity_created.add_listener(m_on_network_sync_entity_created_handle,
             [this](const entt::entity entity)
@@ -170,11 +170,17 @@ namespace bluevoxel
                 {
                     if (network_sync->owner == m_scene->local_peer_id())
                     {
+                        h2o::log::info("Local owner: {}, Entity ID: {}, actual entity: {}", network_sync->owner, network_sync->entity_id, (u32)entity);
+
                         if (!registry.any_of<h2o::PlayerMovementComp>(entity))
                             registry.emplace<h2o::PlayerMovementComp>(entity);
 
                         if (!registry.any_of<h2o::CameraComp>(entity))
                             registry.emplace<h2o::CameraComp>(entity);
+                    }
+                    else
+                    {
+                        h2o::log::info("Remote owner: {}, Entity ID: {}, actual entity: {}", network_sync->owner, network_sync->entity_id, (u32)entity);
                     }
                 }
             }

@@ -64,21 +64,28 @@ namespace h2o
             net_peer->handle_message<net_msg::UpdateComponent>(m_on_update_component_handle,
                 [this](PeerID, const net_msg::UpdateComponent& update_component_msg)
                 {
+                    const auto& buffer = update_component_msg.serialized_components;
+                    net_utils::Reader reader{ buffer.begin(), buffer.size() };
+
                     for (const u32 entity_id : update_component_msg.entity_ids)
                     {
-                        // TODO: Find a better way for this. Just ignore component updates for locally controlled entities
-                        if (entity_id == local_peer_id())
-                            continue;
-
                         const auto it = m_server_to_local.find(entity_id);
                         if (it == m_server_to_local.end())
                         {
                             log::warn("Could not update component on entity {}: local entity not found.", entity_id);
+                            m_scene_module.skip_component(update_component_msg.component_type, reader);
                             continue;
                         }
 
-                        const auto& buffer = update_component_msg.serialized_components;
-                        net_utils::Reader reader{ buffer.begin(), buffer.size() };
+                        // TODO: Find a better way for this. Just ignore component updates for locally controlled entities
+                        if (const auto sync = m_registry.try_get<NetworkSync>(it->second))
+                        {
+                            if (sync->owner == local_peer_id())
+                            {
+                                m_scene_module.skip_component(update_component_msg.component_type, reader);
+                                continue;
+                            }
+                        }
 
                         m_scene_module.deserialize_component(m_registry, it->second, update_component_msg.component_type, reader, m_net_peer->is_host());
                     }
@@ -159,7 +166,10 @@ namespace h2o
                     {
                         const net_msg::UpdateComponent msg{ component_type, updated_entity_ids, buffer };
                         for (const PeerID peer_id : m_net_peer->peers())
+                        {
                             m_net_peer->send_message(peer_id, msg);
+                            // log::info("SEND UPDATE to {}", peer_id);
+                        }
                     }
                 }
             );
