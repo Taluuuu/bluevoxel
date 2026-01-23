@@ -27,7 +27,7 @@ namespace h2o
 
             model = glm::translate(model, position);
             model = glm::rotate(model, rotation.x, { 1.0f, 0.0f, 0.0f });
-            model = glm::rotate(model, rotation.y, { 0.0f, 1.0f, 0.0f });
+            model = glm::rotate(model, rotation.y * -1.0f - glm::half_pi<f32>(), { 0.0f, 1.0f, 0.0f });
             model = glm::rotate(model, rotation.z, { 0.0f, 0.0f, 1.0f });
             model = glm::scale(model, scale);
 

@@ -9,6 +9,7 @@ add_library(h2o_game_framework STATIC
     src/components/fps_camera_component.cpp
     src/components/player_movement_component.cpp
     src/components/third_person_camera_component.cpp
+    src/systems/fps_camera_system.cpp
     src/systems/player_movement_system.cpp
 )
 

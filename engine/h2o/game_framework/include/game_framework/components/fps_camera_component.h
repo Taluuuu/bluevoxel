@@ -22,4 +22,7 @@ namespace h2o
         InputModule& m_input_module;
 
     };
+
+    // Tag to enable mouse camera movement
+    struct FpsCameraComp{};
 }
