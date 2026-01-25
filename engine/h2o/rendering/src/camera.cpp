@@ -13,8 +13,14 @@ namespace h2o::gfx
     {
         m_position = position;
         m_rotation = rotation;
-        m_front = calc_front();
-        m_up = calc_up();
+
+        m4 rot(1.0f);
+        rot = glm::rotate(rot, rotation.y, { 0.0f, 1.0f, 0.0f });
+        rot = glm::rotate(rot, rotation.x, { 1.0f, 0.0f, 0.0f });
+        rot = glm::rotate(rot, rotation.z, { 0.0f, 0.0f, 1.0f });
+
+        m_front = v3(rot[2]);
+        m_up    = v3(rot[1]);
     }
 
     m4 Camera::calc_view_matrix() const
@@ -29,14 +35,11 @@ namespace h2o::gfx
 
     v3 Camera::calc_front() const
     {
-        const f32 pitch = m_rotation.x;
-        const f32 yaw   = m_rotation.y;
-
-        return glm::normalize(v3{
-            glm::cos(yaw) * glm::cos(pitch),
-            glm::sin(pitch),
-            glm::sin(yaw) * glm::cos(pitch)
-        });
+        return v3{
+            glm::sin(m_rotation.y) * glm::cos(m_rotation.x),
+            -glm::sin(m_rotation.x),
+            -glm::cos(m_rotation.y) * glm::cos(m_rotation.x)
+        };
     }
 
     v3 Camera::calc_up() const

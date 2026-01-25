@@ -20,13 +20,15 @@ namespace h2o
         g_engine->layer_stack().push_layer(Layer::Game, LayerData { true, false });
 
         const v3 cam_input {
-            m_input_module.get_axis("cam_x"),
-            m_input_module.get_axis("cam_y"), 0.0f };
+            m_input_module.get_axis("cam_y"),
+            m_input_module.get_axis("cam_x"), 0.0f };
 
         scene.registry().view<FpsCameraComp, Rotation>().each(
             [&](const entt::entity entity, Rotation& rotation)
             {
-                rotation.rotation += cam_input;
+                rotation.rotation.y += cam_input.x;
+                rotation.rotation.x += cam_input.y;
+
                 rotation.rotation.x = glm::clamp(rotation.rotation.x,
                     -glm::half_pi<f32>() + 0.01f, glm::half_pi<f32>() - 0.01f);
 

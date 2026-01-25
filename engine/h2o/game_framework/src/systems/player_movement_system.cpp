@@ -86,19 +86,18 @@ namespace h2o
     v3 PlayerMovementSystem::get_desired_move_dir(const f32 rot_y) const
     {
         v3 move_input {
-            m_input_module.get_axis("move_y"), 0.0f,
-            m_input_module.get_axis("move_x") };
+            -m_input_module.get_axis("move_x"), 0.0f,
+            m_input_module.get_axis("move_y") };
 
         if (glm::length2(move_input) < 0.1f)
             return v3{ 0.0f };
 
         move_input = glm::normalize(move_input);
 
-        const v3 move_input_rotated {
-            move_input.x * glm::cos(rot_y) - move_input.z * glm::sin(rot_y), 0.0f,
-            move_input.x * glm::sin(rot_y) + move_input.z * glm::cos(rot_y) };
+        const m4 rotation_matrix = glm::rotate(m4(1.0f), rot_y, v3{ 0.0f, 1.0f, 0.0f });
+        const v3 move_dir_world = v3(rotation_matrix * v4(move_input, 0.0f));
 
-        return move_input_rotated;
+        return move_dir_world;
     }
 
     bool PlayerMovementSystem::touching_grass() const

@@ -26,8 +26,8 @@ namespace h2o
             m4 model(1.0f);
 
             model = glm::translate(model, position);
+            model = glm::rotate(model, rotation.y, { 0.0f, 1.0f, 0.0f });
             model = glm::rotate(model, rotation.x, { 1.0f, 0.0f, 0.0f });
-            model = glm::rotate(model, rotation.y * -1.0f - glm::half_pi<f32>(), { 0.0f, 1.0f, 0.0f });
             model = glm::rotate(model, rotation.z, { 0.0f, 0.0f, 1.0f });
             model = glm::scale(model, scale);
 
@@ -112,7 +112,6 @@ namespace h2o
                 const Rotation& rotation,
                 const Scale& scale)
             {
-
                 m_pipeline->set_uniform_mat4(1, make_model_matrix(position.position, rotation.rotation, scale.scale));
                 m_pipeline->set_uniform_int(2, 0);
 

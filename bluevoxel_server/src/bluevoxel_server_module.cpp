@@ -56,7 +56,7 @@ namespace bluevoxel
                 registry.emplace<h2o::Velocity>(player_entity);
                 registry.emplace<h2o::Player>(player_entity);
                 registry.emplace<h2o::NetworkSync>(player_entity, event.client_id);
-                registry.emplace<h2o::MeshRenderer>(player_entity, "bluevoxel/models/robot.fbx", "bluevoxel/textures/robot.png");
+                registry.emplace<h2o::MeshRenderer>(player_entity, "bluevoxel/models/character.fbx", "bluevoxel/textures/robot.png");
             }
         );
 

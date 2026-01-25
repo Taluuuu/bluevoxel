@@ -16,8 +16,8 @@ namespace h2o::gfx
 
         void update(const v3& position, const v3& rotation);
 
-        m4 calc_view_matrix() const;
-        m4 calc_proj_matrix() const;
+        [[nodiscard]] m4 calc_view_matrix() const;
+        [[nodiscard]] m4 calc_proj_matrix() const;
 
         [[nodiscard]] const v3& position() const { return m_position; }
         [[nodiscard]] const v3& rotation() const { return m_rotation; }
