@@ -173,8 +173,6 @@ namespace bluevoxel
                 {
                     if (network_sync->owner == m_scene->local_peer_id())
                     {
-                        h2o::log::info("Local owner: {}, Entity ID: {}, actual entity: {}", network_sync->owner, network_sync->entity_id, (u32)entity);
-
                         if (!registry.any_of<h2o::PlayerMovementComp>(entity))
                             registry.emplace<h2o::PlayerMovementComp>(entity);
 
@@ -183,10 +181,6 @@ namespace bluevoxel
 
                         if (!registry.any_of<h2o::FpsCameraComp>(entity))
                             registry.emplace<h2o::FpsCameraComp>(entity);
-                    }
-                    else
-                    {
-                        h2o::log::info("Remote owner: {}, Entity ID: {}, actual entity: {}", network_sync->owner, network_sync->entity_id, (u32)entity);
                     }
                 }
             }
