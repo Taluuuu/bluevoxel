@@ -1,7 +1,6 @@
 #include "bluevoxel_client_module.h"
 
 #include "core/engine.h"
-#include "game_framework/actors/player_character.h"
 #include "game_framework/components/fps_camera_component.h"
 #include "game_framework/components/player_movement_component.h"
 #include "game_framework/systems/fps_camera_system.h"
@@ -9,13 +8,13 @@
 #include "input/input_module.h"
 #include "physics/scene/physics_system.h"
 #include "rendering/mesh.h"
+#include "rendering/mesh_scene.h"
 #include "rendering/renderer.h"
 #include "rendering/rendering_module.h"
 #include "rendering/texture.h"
 #include "scene/player.h"
 #include "scene/scene.h"
 #include "scene/scene_module.h"
-#include "scene/scene_networking_system.h"
 #include "scene/scene_net_messages.h"
 #include "scene_rendering/camera_component.h"
 #include "scene_rendering/mesh_renderer_component.h"
@@ -155,11 +154,11 @@ namespace bluevoxel
         m_scene = std::make_shared<h2o::Scene>("client_scene", &m_client);
         m_scene->add_system<h2o::PhysicsSystem>();
         m_scene->add_system<h2o::RenderingSystem>();
-        m_scene->add_system<h2o::SceneNetworkingSystem, h2o::Client&>(m_client);
         m_scene->add_system<h2o::WeatherSystem>();
         m_scene->add_system<h2o::PlayerMovementSystem>();
         m_scene->add_system<h2o::FpsCameraSystem>();
-        m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
+        const auto player_mesh = g_engine->resource_mgr().fetch<h2o::MeshScene>("bluevoxel/models/character.fbx");
+        // m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::Client&>(m_client);
 
         m_scene->on_network_sync_entity_created.add_listener(m_on_network_sync_entity_created_handle,
             [this](const entt::entity entity)

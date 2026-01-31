@@ -1,7 +1,6 @@
 #include "structure_editor_workspace.h"
 
 #include "core/engine.h"
-#include "game_framework/actors/player_character.h"
 #include "game_framework/components/player_movement_component.h"
 #include "input/input_module.h"
 #include "rendering/renderer.h"

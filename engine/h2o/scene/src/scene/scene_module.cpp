@@ -4,6 +4,7 @@
 #include "scene/player.h"
 #include "scene/scene.h"
 #include "scene/scene_networking_components.h"
+#include "scene/transform.h"
 #include "scene_rendering/mesh_renderer_component.h"
 
 #include <entt/core/hashed_string.hpp>

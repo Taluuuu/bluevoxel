@@ -4,11 +4,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 
 add_library(h2o_scene STATIC
-    src/scene/actor.cpp
-    src/scene/component.cpp
     src/scene/scene.cpp
     src/scene/scene_module.cpp
-    src/scene/scene_networking_system.cpp
     src/scene/scene_system.cpp
     src/scene/transform.cpp
 

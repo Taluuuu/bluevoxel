@@ -1,7 +1,6 @@
 #pragma once
 
-#include "scene/component.h"
-
+#include <memory>
 #include <string>
 
 namespace h2o
@@ -11,26 +10,6 @@ namespace h2o
         class Texture;
         class Mesh;
     }
-
-    class MeshRendererComponent : public Component
-    {
-    public:
-
-        explicit MeshRendererComponent(const ComponentInitializer& component_initializer);
-        ~MeshRendererComponent() override;
-
-        void set_mesh(const std::shared_ptr<gfx::Mesh>& mesh);
-        void set_texture(const std::shared_ptr<gfx::Texture>& texture);
-
-        [[nodiscard]] const std::shared_ptr<gfx::Texture>& texture() const { return m_texture; }
-        [[nodiscard]] const std::shared_ptr<gfx::Mesh>& mesh() const { return m_mesh; }
-
-    private:
-
-        std::shared_ptr<gfx::Texture> m_texture = nullptr;
-        std::shared_ptr<gfx::Mesh> m_mesh = nullptr;
-
-    };
 
     struct MeshRenderer
     {
@@ -46,5 +25,18 @@ namespace h2o
         template<typename S>
         void serialize(S& s)
         { s(mesh_path, texture_path); }
+    };
+
+    struct MeshNode
+    {
+        // Serialized
+        std::string node_name{};
+
+        // TODO: Change this to a mesh node or smt
+        std::shared_ptr<gfx::Mesh> mesh = nullptr;
+
+        template<typename S>
+        void serialize(S& s)
+        { s(node_name); }
     };
 }

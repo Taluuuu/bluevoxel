@@ -1,5 +1,6 @@
 #include "bluevoxel_server_module.h"
 
+#include "../../engine/h2o/rendering/include/rendering/mesh_scene.h"
 #include "core/engine.h"
 #include "networking/networking_module.h"
 #include "networking/networking_utils.h"

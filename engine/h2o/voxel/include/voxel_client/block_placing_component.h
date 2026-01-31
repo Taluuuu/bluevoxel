@@ -1,7 +1,6 @@
 #pragma once
 
 #include "inventory/inventory.h"
-#include "scene/component.h"
 #include "voxel/block.h"
 
 namespace h2o
@@ -19,33 +18,33 @@ namespace h2o
     class RenderingModule;
     class VoxelModule;
 
-    class BlockPlacingComponent : public Component
-    {
-    public:
-
-        explicit BlockPlacingComponent(const ComponentInitializer& component_initializer);
-        ~BlockPlacingComponent() override = default;
-
-        void post_update(f32 delta_time) override;
-
-    public:
-
-        WeakHandle<IBlockPlaceable> block_placeable = nullptr;
-
-    private:
-
-        CameraComponent* m_camera = nullptr;
-
-        std::shared_ptr< Inventory<Block> > m_inventory = nullptr;
-        std::shared_ptr< Inventory<Block> > m_hotbar_inventory = nullptr;
-
-        v2 m_crosshair_size{ 16.0f };
-        std::shared_ptr<gfx::Texture> m_crosshair_texture = nullptr;
-
-        // Module refs
-        InputModule& m_input_module;
-        RenderingModule& m_rendering_module;
-        VoxelModule& m_voxel_module;
-
-    };
+    // class BlockPlacingComponent : public Component
+    // {
+    // public:
+    //
+    //     explicit BlockPlacingComponent(const ComponentInitializer& component_initializer);
+    //     ~BlockPlacingComponent() override = default;
+    //
+    //     void post_update(f32 delta_time) override;
+    //
+    // public:
+    //
+    //     WeakHandle<IBlockPlaceable> block_placeable = nullptr;
+    //
+    // private:
+    //
+    //     CameraComponent* m_camera = nullptr;
+    //
+    //     std::shared_ptr< Inventory<Block> > m_inventory = nullptr;
+    //     std::shared_ptr< Inventory<Block> > m_hotbar_inventory = nullptr;
+    //
+    //     v2 m_crosshair_size{ 16.0f };
+    //     std::shared_ptr<gfx::Texture> m_crosshair_texture = nullptr;
+    //
+    //     // Module refs
+    //     InputModule& m_input_module;
+    //     RenderingModule& m_rendering_module;
+    //     VoxelModule& m_voxel_module;
+    //
+    // };
 }

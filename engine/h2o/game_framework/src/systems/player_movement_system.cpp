@@ -5,6 +5,7 @@
 #include "glm/gtx/norm.hpp"
 #include "scene/scene.h"
 #include "scene/scene_networking_components.h"
+#include "scene/transform.h"
 
 namespace h2o
 {

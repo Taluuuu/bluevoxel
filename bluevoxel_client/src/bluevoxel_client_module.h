@@ -4,7 +4,6 @@
 #include "core/handle_types.h"
 #include "core/module.h"
 #include "networking/client.h"
-#include "scene/actor_initializer.h"
 #include "voxel/block.h"
 
 #include <memory>

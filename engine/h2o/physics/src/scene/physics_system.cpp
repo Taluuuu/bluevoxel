@@ -38,25 +38,27 @@ namespace h2o
 
     u32 PhysicsSystem::register_mobile_collider(ColliderComponent& collider_comp)
     {
-        const physics::Collider_AABB collider = collider_comp.calc_collider();
-        const MobileCollider mobile_collider {
-            .collider = collider,
-            .previous_collider = collider,
-            .collider_comp = &collider_comp
-        };
+        // const physics::Collider_AABB collider = collider_comp.calc_collider();
+        // const MobileCollider mobile_collider {
+        //     .collider = collider,
+        //     .previous_collider = collider,
+        //     .collider_comp = &collider_comp
+        // };
+        //
+        // u32 id = 0;
+        // for (; id < m_mobile_colliders.size(); id++)
+        // {
+        //     if (auto& collider_data = m_mobile_colliders[id]; !collider_data)
+        //     {
+        //         collider_data = mobile_collider;
+        //         return id;
+        //     }
+        // }
+        //
+        // m_mobile_colliders.emplace_back(mobile_collider);
+        // return id;
 
-        u32 id = 0;
-        for (; id < m_mobile_colliders.size(); id++)
-        {
-            if (auto& collider_data = m_mobile_colliders[id]; !collider_data)
-            {
-                collider_data = mobile_collider;
-                return id;
-            }
-        }
-
-        m_mobile_colliders.emplace_back(mobile_collider);
-        return id;
+        return -1;
     }
 
     void PhysicsSystem::update_mobile_collider(const u32 collider_id)
@@ -68,7 +70,7 @@ namespace h2o
             assert(collider->collider_comp != nullptr);
 
             collider->previous_collider = collider->collider;
-            collider->collider = collider->collider_comp->calc_collider();
+            // collider->collider = collider->collider_comp->calc_collider();
         }
     }
 
@@ -103,7 +105,7 @@ namespace h2o
                 if (displacement)
                 {
                     collider_data->collider.position += *displacement;
-                    collider_data->collider_comp->on_displaced(*displacement, normal);
+                    // collider_data->collider_comp->on_displaced(*displacement, normal);
                 }
             }
         }

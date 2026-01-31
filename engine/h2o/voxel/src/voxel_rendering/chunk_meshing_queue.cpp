@@ -1,6 +1,5 @@
 #include "voxel_rendering/chunk_meshing_queue.h"
 
-#include "scene/actor.h"
 #include "voxel/voxel_utils.h"
 
 #include <glm/gtx/norm.hpp>
@@ -23,7 +22,7 @@ namespace h2o
             return;
 
         const v3 chunk_world_pos = voxel_utils::chunk_to_world_pos(chunk_pos);
-        const v3 player_pos = m_player_actor ? m_player_actor->transform.position : v3{};
+        const v3 player_pos = v3{}; // TODO
         const f32 sqr_distance = glm::distance2(chunk_world_pos, player_pos);
 
         m_chunks_to_mesh_by_distance.insert({ sqr_distance, chunk_pos });

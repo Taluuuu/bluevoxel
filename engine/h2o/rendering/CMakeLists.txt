@@ -7,6 +7,7 @@ add_library(h2o_rendering STATIC
     src/buffer.cpp
     src/camera.cpp
     src/mesh.cpp
+    src/mesh_scene.cpp
     src/pipeline.cpp
     src/renderer.cpp
     src/renderer_base.cpp

@@ -1,12 +1,10 @@
 #include "world_gen_editor_workspace.h"
 
 #include "core/engine.h"
-#include "game_framework/actors/player_character.h"
 #include "game_framework/components/player_movement_component.h"
 #include "graph/graph_ui.h"
 #include "input/input_module.h"
 #include "scene/scene.h"
-#include "scene/scene_networking_system.h"
 #include "scene_rendering/rendering_scene_system.h"
 #include "ui/imgui.h"
 #include "voxel/chunk_generators/chunk_generator_terrain.h"
@@ -22,8 +20,6 @@ namespace bluevoxel
         m_scene = std::make_shared<h2o::Scene>("client_scene", &m_local_net_peer);
         m_scene->add_system<h2o::RenderingSystem>();
         m_chunk_client = m_scene->add_system<h2o::ChunkClient, h2o::INetPeer&>(m_local_net_peer);
-        m_scene->add_system<h2o::SceneNetworkingSystem, h2o::INetPeer&>(m_local_net_peer);
-
         m_chunk_server = m_scene->add_system<h2o::ChunkServer, h2o::INetPeer&>(m_local_net_peer);
 
         // const auto player = m_scene->spawn_actor<h2o::PlayerCharacter>();

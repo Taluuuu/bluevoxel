@@ -1,11 +1,12 @@
 #pragma
 
-#include "actor.h"
 #include "core/events.h"
 #include "core/log.h"
 #include "core/tickable.h"
 #include "scene_system.h"
+#include "core/handle_types.h"
 
+#include <typeindex>
 #include <entt/entt.hpp>
 #include <unordered_map>
 #include <vector>
@@ -46,7 +47,6 @@ namespace h2o
 
         [[nodiscard]] SceneSystemInitializer make_system_initializer();
 
-        void frame_start() override;
         void network_update(f32 delta_time) override;
 
     private:
@@ -65,8 +65,6 @@ namespace h2o
         std::unordered_map< std::type_index, OwningHandle<SceneSystem> > m_system_map{};
 
         std::string m_scene_name{};
-
-        std::vector<WeakHandle<Actor>> m_actors_to_run_start{};
 
         INetPeer* m_net_peer = nullptr;
         EventHandle m_on_object_destroyed_handle{};

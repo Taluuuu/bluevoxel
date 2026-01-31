@@ -87,7 +87,6 @@ namespace h2o::gfx
         std::vector<f32> vertices{};
         std::vector<f32> uvs{};
         std::vector<u32> indices{};
-        u32 indices_offset = 0;
 
         visit_node(scene->mRootNode, aiMatrix4x4{}, scene->mMeshes, vertices, uvs, indices);
 

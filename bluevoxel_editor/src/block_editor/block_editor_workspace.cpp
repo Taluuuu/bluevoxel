@@ -98,7 +98,7 @@ namespace bluevoxel
         if (!render_system)
             return;
 
-        const auto& camera = render_system->main_camera();
+        const auto camera = render_system->find_camera();
         if (!camera)
             return;
 
