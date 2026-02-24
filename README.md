@@ -1,37 +1,29 @@
 # BlueVoxel
 
-## Projected Milestones - Alpha
+A voxel game and engine (strongly) inspired by Minecraft
 
-### 0.0.1
+## Multiplayer
 
-This version should add multiplayer building in an infinite world. Players should 
-be able to see each-other and see the same world when disconnecting and 
-reconnecting to the server.
+The game uses a server-client architecture
 
-#### TODO list
+![Screenshot](screenshots/multiplayer.png)
 
- - Basic shading
- - Create structure system
- - Rework resource system and paths
- - Create input contexts
- - Create pause menu and temporary main menu
+## Editors
 
-### 0.0.2
+### Block Editor
 
-This version should add ticking blocks, better world generation, an UI system, a
-main menu with said UI system and skeletal animations.
+Create new block and block models
 
-### 0.0.3
+![Screenshot](screenshots/block_editor.png)
 
-This version should add an inventory system, entities and combat. This comes
-along a health system for every entity and player.
+### Structure Editor
 
-### 0.0.4
+Create and manage structures that can spawn randomly in the world
 
-This version should add better items and ways to get them in the world. This
-should probably take the form of crafting and looting them from entities. They
-should also be findable in naturally generating structures, through item storage.
+![Screenshot](screenshots/structure_editor.png)
 
-### 0.0.5
+### Terrain editor
 
-This version should add shadows and general improvements to rendering.
+Edit terrain generation values through a graph of block probability per height
+
+![Screenshot](screenshots/terrain_editor.png)
