@@ -35,7 +35,7 @@ namespace h2o
 
     private:
 
-        void on_mesh_renderer_created(entt::entity entity) const;
+        void on_mesh_renderer_created(entt::registry& registry, entt::entity entity) const;
 
     private:
 

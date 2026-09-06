@@ -8,7 +8,6 @@
 
 #include <entt/core/hashed_string.hpp>
 #include <entt/meta/factory.hpp>
-#include <entt/meta/context.hpp>
 #include <entt/meta/factory.hpp>
 #include <entt/meta/meta.hpp>
 #include <bitsery/bitsery.h>
@@ -78,12 +77,11 @@ namespace h2o
         net_utils::Writer& writer) const
     {
         std::vector<entt::id_type> component_types{};
-        for (const auto& type : m_registered_components_types | std::views::keys)
+        for (auto [id, storage] : registry.storage())
         {
-            if (const auto storage = registry.storage(type))
+            if (storage.contains(entity))
             {
-                if (storage->contains(entity))
-                    component_types.emplace_back(type);
+                component_types.emplace_back(id);
             }
         }
 

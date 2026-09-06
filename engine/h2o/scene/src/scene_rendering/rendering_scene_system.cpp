@@ -56,6 +56,7 @@ namespace h2o
 
         scene.registry().on_construct<MeshRenderer>().connect<&RenderingSystem::on_mesh_renderer_created>(*this);
 
+
         // TODO: Move this to the system's init function
         m_pipeline = m_renderer
             .create_pipeline()
@@ -136,7 +137,7 @@ namespace h2o
         return &view.get<CameraComp>(entity);
     }
 
-    void RenderingSystem::on_mesh_renderer_created(const entt::entity entity) const
+    void RenderingSystem::on_mesh_renderer_created(entt::registry& registry, const entt::entity entity) const
     {
         const auto mesh_renderer = scene.registry().try_get<MeshRenderer>(entity);
         if (!mesh_renderer)

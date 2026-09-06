@@ -176,7 +176,7 @@ namespace h2o
         }
     }
 
-    void Scene::on_network_sync_created(const entt::entity entity)
+    void Scene::on_network_sync_created(entt::registry& registry, const entt::entity entity)
     {
         // If server, assign an entity id
         if (net_peer()->is_host())

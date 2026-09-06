@@ -51,7 +51,7 @@ namespace h2o
 
     private:
 
-        void on_network_sync_created(entt::entity entity);
+        void on_network_sync_created(entt::registry& registry, entt::entity entity);
 
     private:
 
